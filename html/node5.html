@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="cx_Oracle.css" type='text/css' />
+<link rel="first" href="cx_Oracle.html" title='cx_Oracle' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="prev" href="node4.html" />
+<link rel="parent" href="module.html" />
+<link rel="next" href="connobj.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name='aesop' content='information' />
+<title>1.2 Exceptions</title>
+</head>
+<body>
+<div class="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="1.1 Constants"
+  href="node4.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="1. module Interface"
+  href="module.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="2. connection Objects"
+  href="connobj.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="node4.html">1.1 Constants</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="module.html">1. Module Interface</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="connobj.html">2. Connection Objects</a>
+</div>
+<hr /></div>
+</div>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION003200000000000000000">
+1.2 Exceptions</a>
+</h1>
+
+<p>
+<dl><dt><b><tt id='l2h-48' xml:id='l2h-48'>Warning</tt></b></dt>
+<dd>
+  Exception raised for important warnings and defined by the DB API but not
+  actually used by cx_Oracle.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-49' xml:id='l2h-49'>Error</tt></b></dt>
+<dd>
+  Exception that is the base class of all other exceptions defined by
+  cx_Oracle and is a subclass of the Python StandardError exception (defined in
+  the module exceptions).
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-50' xml:id='l2h-50'>InterfaceError</tt></b></dt>
+<dd>
+  Exception raised for errors that are related to the database interface rather
+  than the database itself. It is a subclass of Error.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-51' xml:id='l2h-51'>DatabaseError</tt></b></dt>
+<dd>
+  Exception raised for errors that are related to the database. It is a
+  subclass of Error.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-52' xml:id='l2h-52'>DataError</tt></b></dt>
+<dd>
+  Exception raised for errors that are due to problems with the processed data.
+  It is a subclass of DatabaseError.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-53' xml:id='l2h-53'>OperationalError</tt></b></dt>
+<dd>
+  Exception raised for errors that are related to the operation of the database
+  but are not necessarily under the control of the progammer. It is a
+  subclass of DatabaseError.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-54' xml:id='l2h-54'>IntegrityError</tt></b></dt>
+<dd>
+  Exception raised when the relational integrity of the database is affected.
+  It is a subclass of DatabaseError.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-55' xml:id='l2h-55'>InternalError</tt></b></dt>
+<dd>
+  Exception raised when the database encounters an internal error.
+  It is a subclass of DatabaseError.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-56' xml:id='l2h-56'>ProgrammingError</tt></b></dt>
+<dd>
+  Exception raised for programming errors. It is a subclass of DatabaseError.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-57' xml:id='l2h-57'>NotSupportedError</tt></b></dt>
+<dd>
+  Exception raised when a method or database API was used which is not
+  supported by the database. It is a subclass of DatabaseError.
+</dd></dl>
+
+<p>
+
+<div class="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="1.1 Constants"
+  href="node4.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="1. module Interface"
+  href="module.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="2. connection Objects"
+  href="connobj.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="node4.html">1.1 Constants</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="module.html">1. Module Interface</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="connobj.html">2. Connection Objects</a>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+</div>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

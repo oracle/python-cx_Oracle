@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="cx_Oracle.css" type='text/css' />
+<link rel="first" href="cx_Oracle.html" title='cx_Oracle' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="lobobj.html" />
+<link rel="prev" href="varobj.html" />
+<link rel="parent" href="cx_Oracle.html" />
+<link rel="next" href="lobobj.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name='aesop' content='information' />
+<title>5. SessionPool Objects</title>
+</head>
+<body>
+<div class="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="4. variable Objects"
+  href="varobj.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="6. lob Objects"
+  href="lobobj.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="varobj.html">4. Variable Objects</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="lobobj.html">6. LOB Objects</a>
+</div>
+<hr /></div>
+</div>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION007000000000000000000"></a><a name="sesspool"></a>
+<br>
+5. SessionPool Objects
+</h1>
+
+<p>
+<strong>NOTE</strong>: This object is an extension the DB API and is only available in
+Oracle 9i.
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-109' xml:id='l2h-109' class="function">acquire</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Acquire a connection from the session pool and return a connection
+  object (<a href="connobj.html#connobj">2</a>).
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-110' xml:id='l2h-110'>busy</tt></b></dt>
+<dd>
+  This read-only attribute returns the number of sessions currently acquired.
+</dd></dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-111' xml:id='l2h-111' class="function">drop</tt></b>(</nobr></td>
+  <td><var><var>connection</var></var>)</td></tr></table></dt>
+<dd>
+  Drop the connection from the pool which is useful if the connection is no
+  longer usable (such as when the session is killed).
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-112' xml:id='l2h-112'>dsn</tt></b></dt>
+<dd>
+  This read-only attribute returns the TNS entry of the database to which a
+  connection has been established.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-113' xml:id='l2h-113'>increment</tt></b></dt>
+<dd>
+  This read-only attribute returns the number of sessions that will be
+  established when additional sessions need to be created.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-114' xml:id='l2h-114'>max</tt></b></dt>
+<dd>
+  This read-only attribute returns the maximum number of sessions that the
+  session pool can control.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-115' xml:id='l2h-115'>min</tt></b></dt>
+<dd>
+  This read-only attribute returns the number of sessions with which the
+  session pool was created and the minimum number of sessions that will be
+  controlled by the session pool.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-116' xml:id='l2h-116'>name</tt></b></dt>
+<dd>
+  This read-only attribute returns the name assigned to the session pool by
+  Oracle.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-117' xml:id='l2h-117'>opened</tt></b></dt>
+<dd>
+  This read-only attribute returns the number of sessions currently opened by
+  the session pool.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-118' xml:id='l2h-118'>password</tt></b></dt>
+<dd>
+  This read-only attribute returns the password of the user which established
+  the connection to the database.
+</dd></dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-119' xml:id='l2h-119' class="function">release</tt></b>(</nobr></td>
+  <td><var><var>connection</var></var>)</td></tr></table></dt>
+<dd>
+  Release the connection back to the pool. This will be done automatically as
+  well if the connection object is garbage collected.
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-120' xml:id='l2h-120'>timeout</tt></b></dt>
+<dd>
+  This read-write attribute indicates the time (in seconds) after which idle
+  sessions will be terminated in order to maintain an optimum number of open
+  sessions.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-121' xml:id='l2h-121'>tnsentry</tt></b></dt>
+<dd>
+  This read-only attribute returns the TNS entry of the database to which a
+  connection has been established.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-122' xml:id='l2h-122'>username</tt></b></dt>
+<dd>
+  This read-only attribute returns the name of the user which established the
+  connection to the database.
+</dd></dl>
+
+<p>
+
+<div class="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="4. variable Objects"
+  href="varobj.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="6. lob Objects"
+  href="lobobj.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="varobj.html">4. Variable Objects</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="lobobj.html">6. LOB Objects</a>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+</div>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

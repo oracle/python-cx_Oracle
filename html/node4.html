@@ -1,0 +1,427 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="cx_Oracle.css" type='text/css' />
+<link rel="first" href="cx_Oracle.html" title='cx_Oracle' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="node5.html" />
+<link rel="prev" href="module.html" />
+<link rel="parent" href="module.html" />
+<link rel="next" href="node5.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name='aesop' content='information' />
+<title>1.1 Constants</title>
+</head>
+<body>
+<div class="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="1. module Interface"
+  href="module.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="1. module Interface"
+  href="module.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="1.2 Exceptions"
+  href="node5.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="module.html">1. Module Interface</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="module.html">1. Module Interface</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="node5.html">1.2 Exceptions</a>
+</div>
+<hr /></div>
+</div>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION003100000000000000000">
+1.1 Constants</a>
+</h1>
+
+<p>
+<dl><dt><b><tt id='l2h-13' xml:id='l2h-13'>apilevel</tt></b></dt>
+<dd>
+  String constant stating the supported DB API level. Currently '2.0'.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-14' xml:id='l2h-14'>buildtime</tt></b></dt>
+<dd>
+  String constant stating the time when the binary was built.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-15' xml:id='l2h-15'>BINARY</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are binary
+  (in Oracle this is RAW columns).
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-16' xml:id='l2h-16'>BFILE</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are BFILEs.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-17' xml:id='l2h-17'>BLOB</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are BLOBs.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-18' xml:id='l2h-18'>CLOB</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are CLOBs.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-19' xml:id='l2h-19'>CURSOR</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are cursors
+  (in PL/SQL these are known as ref cursors).
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-20' xml:id='l2h-20'>DATETIME</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are dates.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-21' xml:id='l2h-21'>FIXED_CHAR</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are fixed
+  length strings (in Oracle this is CHAR columns); these behave differently
+  in Oracle than varchar2 so they are differentiated here even though the DB
+  API does not differentiate them.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-22' xml:id='l2h-22'>FNCODE_BINDBYNAME</tt></b></dt>
+<dd>
+  This constant is used to register callbacks on the OCIBindByName() function
+  of the OCI.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-23' xml:id='l2h-23'>FNCODE_BINDBYPOS</tt></b></dt>
+<dd>
+  This constant is used to register callbacks on the OCIBindByPos() function
+  of the OCI.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-24' xml:id='l2h-24'>FNCODE_DEFINEBYPOS</tt></b></dt>
+<dd>
+  This constant is used to register callbacks on the OCIDefineByPos() function
+  of the OCI.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-25' xml:id='l2h-25'>FNCODE_STMTEXECUTE</tt></b></dt>
+<dd>
+  This constant is used to register callbacks on the OCIStmtExecute() function
+  of the OCI.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-26' xml:id='l2h-26'>FNCODE_STMTFETCH</tt></b></dt>
+<dd>
+  This constant is used to register callbacks on the OCIStmtFetch() function
+  of the OCI.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-27' xml:id='l2h-27'>FNCODE_STMTPREPARE</tt></b></dt>
+<dd>
+  This constant is used to register callbacks on the OCIStmtPrepare() function
+  of the OCI.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-28' xml:id='l2h-28'>LOB</tt></b></dt>
+<dd>
+  This type object is the Python type of BLOB and CLOB data that is returned
+  from cursors.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-29' xml:id='l2h-29'>LONG_BINARY</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are long
+  binary (in Oracle these are LONG RAW columns).
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-30' xml:id='l2h-30'>LONG_STRING</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are long
+  strings (in Oracle these are LONG columns).
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-31' xml:id='l2h-31'>NCLOB</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are NCLOBs.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-32' xml:id='l2h-32'>NUMBER</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are numbers.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-33' xml:id='l2h-33'>OBJECT</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are objects.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-34' xml:id='l2h-34'>paramstyle</tt></b></dt>
+<dd>
+  String constant stating the type of parameter marker formatting expected by
+  the interface. Currently 'named' as in 'where name = :name'.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-35' xml:id='l2h-35'>ROWID</tt></b></dt>
+<dd>
+  This type object is used to describe the pseudo column "rowid".
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-36' xml:id='l2h-36'>SPOOL_ATTRVAL_FORCEGET</tt></b></dt>
+<dd>
+  This constant is used to define the "get" mode on session pools and indicates
+  that a new connection will be returned if there are no free sessions
+  available in the pool.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-37' xml:id='l2h-37'>SPOOL_ATTRVAL_NOWAIT</tt></b></dt>
+<dd>
+  This constant is used to define the "get" mode on session pools and indicates
+  that an exception is raised if there are no free sessions available in the
+  pool.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-38' xml:id='l2h-38'>SPOOL_ATTRVAL_WAIT</tt></b></dt>
+<dd>
+  This constant is used to define the "get" mode on session pools and indicates
+  that the acquisition of a connection waits until a session is freed if there
+  are no free sessions available in the pool.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-39' xml:id='l2h-39'>STRING</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are strings
+  (in Oracle this is VARCHAR2 columns).
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-40' xml:id='l2h-40'>SYSDBA</tt></b></dt>
+<dd>
+  Value to be passed to the connect() method which indicates that SYSDBA
+  access is to be acquired. See the Oracle documentation for more details.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-41' xml:id='l2h-41'>SYSOPER</tt></b></dt>
+<dd>
+  Value to be passed to the connect() method which indicates that SYSOPER
+  access is to be acquired. See the Oracle documentation for more details.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-42' xml:id='l2h-42'>threadsafety</tt></b></dt>
+<dd>
+  Integer constant stating the level of thread safety that the interface
+  supports. Currently 2, which means that threads may share the module and
+  connections, but not cursors. Sharing means that a thread may use a resource
+  without wrapping it using a mutex semaphore to implement resource locking.
+
+<p>
+Note that in order to make use of multiple threads in a program which intends
+  to connect and disconnect in different threads, the threaded argument to the
+  Connection constructor must be a true value. See the comments on the
+  Connection constructor for more information (<a href="module.html#module">1</a>).
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-43' xml:id='l2h-43'>TIMESTAMP</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are
+  timestamps.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition and
+  is only available in Oracle 9i.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-44' xml:id='l2h-44'>UCBTYPE_ENTRY</tt></b></dt>
+<dd>
+  This constant is used to register callbacks on entry to the function
+  of the OCI. In other words, the callback will be called prior to the
+  execution of the OCI function.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-45' xml:id='l2h-45'>UCBTYPE_EXIT</tt></b></dt>
+<dd>
+  This constant is used to register callbacks on exit from the function
+  of the OCI. In other words, the callback will be called after the execution
+  of the OCI function.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-46' xml:id='l2h-46'>UCBTYPE_REPLACE</tt></b></dt>
+<dd>
+  This constant is used to register callbacks that completely replace the
+  call to the OCI function.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-47' xml:id='l2h-47'>version</tt></b></dt>
+<dd>
+  String constant stating the version of the module. Currently '4.3.1'.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+
+<div class="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="1. module Interface"
+  href="module.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="1. module Interface"
+  href="module.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="1.2 Exceptions"
+  href="node5.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="module.html">1. Module Interface</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="module.html">1. Module Interface</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="node5.html">1.2 Exceptions</a>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+</div>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

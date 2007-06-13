@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="cx_Oracle.css" type='text/css' />
+<link rel="first" href="cx_Oracle.html" title='cx_Oracle' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="sesspool.html" />
+<link rel="prev" href="cursorobj.html" />
+<link rel="parent" href="cx_Oracle.html" />
+<link rel="next" href="sesspool.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name='aesop' content='information' />
+<title>4. Variable Objects</title>
+</head>
+<body>
+<div class="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="3. cursor Objects"
+  href="cursorobj.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="5. sessionpool Objects"
+  href="sesspool.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="cursorobj.html">3. Cursor Objects</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="sesspool.html">5. SessionPool Objects</a>
+</div>
+<hr /></div>
+</div>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION006000000000000000000"></a><a name="varobj"></a>
+<br>
+4. Variable Objects
+</h1>
+
+<p>
+<strong>NOTE:</strong> The DB API definition does not define this object.
+
+<p>
+<dl><dt><b><tt id='l2h-105' xml:id='l2h-105'>allocelems</tt></b></dt>
+<dd>
+  This read-only attribute returns the number of elements allocated in an
+  array, or the number of scalar items that can be fetched into the variable.
+</dd></dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-106' xml:id='l2h-106' class="function">getvalue</tt></b>(</nobr></td>
+  <td><var></var><big>[</big><var><var>pos=0</var></var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>
+  Return the value at the given position in the variable.
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-107' xml:id='l2h-107'>maxlength</tt></b></dt>
+<dd>
+  This read-only attribute returns the maximum length of the variable.
+</dd></dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-108' xml:id='l2h-108' class="function">setvalue</tt></b>(</nobr></td>
+  <td><var><var>pos</var>, <var>value</var></var>)</td></tr></table></dt>
+<dd>
+  Set the value at the given position in the variable.
+</dl>
+
+<p>
+
+<div class="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="3. cursor Objects"
+  href="cursorobj.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="5. sessionpool Objects"
+  href="sesspool.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="cursorobj.html">3. Cursor Objects</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="sesspool.html">5. SessionPool Objects</a>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+</div>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

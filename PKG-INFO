@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: cx_Oracle
+Version: 4.3.1
+Summary: Python interface to Oracle
+Home-page: http://starship.python.net/crew/atuining
+Author: Anthony Tuininga
+Author-email: anthony.tuininga@gmail.com
+License: See LICENSE.txt
+Description: Python interface to Oracle conforming to the Python DB API 2.0 specification.
+        See http://www.python.org/topics/database/DatabaseAPI-2.0.html.
+Platform: UNKNOWN

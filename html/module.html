@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="cx_Oracle.css" type='text/css' />
+<link rel="first" href="cx_Oracle.html" title='cx_Oracle' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="connobj.html" />
+<link rel="prev" href="contents.html" />
+<link rel="parent" href="cx_Oracle.html" />
+<link rel="next" href="node4.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name='aesop' content='information' />
+<title>1. Module Interface</title>
+</head>
+<body>
+<div class="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="Contents"
+  href="contents.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="1.1 Constants"
+  href="node4.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="contents.html">Contents</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="node4.html">1.1 Constants</a>
+</div>
+<hr /></div>
+</div>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION003000000000000000000"></a><a name="module"></a>
+<br>
+1. Module Interface
+</h1>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-1' xml:id='l2h-1' class="function">Binary</tt></b>(</nobr></td>
+  <td><var><var>string</var></var>)</td></tr></table></dt>
+<dd>
+  Construct an object holding a binary (long) string value.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-2' xml:id='l2h-2' class="function">Connection</tt></b>(</nobr></td>
+  <td><var></var><big>[</big><var><var>user</var>, <var>password</var>,
+    <var>dsn</var>, <var>mode</var>, <var>handle</var>, <var>pool</var>, <var>threaded</var>,
+    <var>twophase</var></var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>
+<dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt class="function">connect</tt></b>(</nobr></td>
+  <td><var></var><big>[</big><var><var>user</var>, <var>password</var>,
+    <var>dsn</var>, <var>mode</var>, <var>handle</var>, <var>pool</var>, <var>threaded</var>,
+    <var>twophase</var></var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>  Constructor for creating a connection to the database. Return a Connection
+  object (<a href="connobj.html#connobj">2</a>). All arguments are optional and can be specified as
+  keyword parameters. The dsn (data source name) is the TNS entry (from the
+  Oracle names server or tnsnames.ora file) or is a string like the one
+  returned from makedsn(). If only one parameter is passed, a connect string is
+  assumed which is to be of the format "user/password@dsn", the same format
+  accepted by Oracle applications such as SQL*Plus. If the mode is specified,
+  it must be one of SYSDBA or SYSOPER which are defined at the module level;
+  otherwise it defaults to the normal mode of connecting. If the handle is
+  specified, it must be of type OCISvcCtx* and is only of use when embedding
+  Python in an application (like PowerBuilder) which has already made the
+  connection. The pool is only valid in Oracle 9i and is a session pool object
+  (<a href="sesspool.html#sesspool">5</a>) which is the equivalent of calling pool.acquire(). The
+  threaded attribute is expected to be a boolean expression which indicates
+  whether or not Oracle should use the mode OCI_THREADED to wrap accesses to
+  connections with a mutex. Doing so in single threaded applications imposes
+  a performance penalty of about 10-15% which is why the default is False.
+  The twophase attribute is expected to be a boolean expression which indicates
+  whether or not the attributes should be set on the connection object to allow
+  for two phase commit. The default for this value is also False because of
+  bugs in Oracle prior to Oracle 10g.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-4' xml:id='l2h-4' class="function">Cursor</tt></b>(</nobr></td>
+  <td><var><var>connection</var></var>)</td></tr></table></dt>
+<dd>
+  Constructor for creating a cursor.  Return a new Cursor object
+  (<a href="cursorobj.html#cursorobj">3</a>) using the connection.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-5' xml:id='l2h-5' class="function">Date</tt></b>(</nobr></td>
+  <td><var><var>year</var>, <var>month</var>, <var>day</var></var>)</td></tr></table></dt>
+<dd>
+  Construct an object holding a date value.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-6' xml:id='l2h-6' class="function">DateFromTicks</tt></b>(</nobr></td>
+  <td><var><var>ticks</var></var>)</td></tr></table></dt>
+<dd>
+  Construct an object holding a date value from the given ticks value (number
+  of seconds since the epoch; see the documentation of the standard Python
+  time module for details).
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-7' xml:id='l2h-7' class="function">makedsn</tt></b>(</nobr></td>
+  <td><var><var>host</var>, <var>port</var>, <var>sid</var></var>)</td></tr></table></dt>
+<dd>
+  Return a string suitable for use as the dsn for the connect() method. This
+  string is identical to the strings that are defined by the Oracle names
+  server or defined in the tnsnames.ora file.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-8' xml:id='l2h-8' class="function">SessionPool</tt></b>(</nobr></td>
+  <td><var><var>user</var>, <var>password</var>, <var>database</var>,
+        <var>min</var>, <var>max</var>, <var>increment</var>, </var><big>[</big><var><var>connectiontype</var>,
+        <var>threaded</var>, <var>getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT</var></var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>
+  Create a session pool (see Oracle 9i documentation for more information)
+  and return a session pool object (<a href="sesspool.html#sesspool">5</a>). This allows for very
+  fast connections to the database and is of primary use in a server where
+  the same connection is being made multiple times in rapid succession (a
+  web server, for example). If the connection type is specified, all calls to
+  acquire() will create connection objects of that type, rather than the base
+  type defined at the module level. The threaded attribute is expected to be a
+  boolean expression which indicates whether or not Oracle should use the mode
+  OCI_THREADED to wrap accesses to connections with a mutex. Doing so in single
+  threaded applications imposes a performance penalty of about 10-15% which is
+  why the default is False.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition and is
+  only available in Oracle 9i.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-9' xml:id='l2h-9' class="function">Time</tt></b>(</nobr></td>
+  <td><var><var>hour</var>, <var>minute</var>, <var>second</var></var>)</td></tr></table></dt>
+<dd>
+  Construct an object holding a time value.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-10' xml:id='l2h-10' class="function">TimeFromTicks</tt></b>(</nobr></td>
+  <td><var><var>ticks</var></var>)</td></tr></table></dt>
+<dd>
+  Construct an object holding a time value from the given ticks value (number
+  of seconds since the epoch; see the documentation of the standard Python
+  time module for details).
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-11' xml:id='l2h-11' class="function">Timestamp</tt></b>(</nobr></td>
+  <td><var><var>year</var>, <var>month</var>, <var>day</var>,
+    <var>hour</var>, <var>minute</var>, <var>second</var></var>)</td></tr></table></dt>
+<dd>
+  Construct an object holding a time stamp value.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-12' xml:id='l2h-12' class="function">TimestampFromTicks</tt></b>(</nobr></td>
+  <td><var><var>ticks</var></var>)</td></tr></table></dt>
+<dd>
+  Construct an object holding a time stamp value from the given ticks value
+  (number of seconds since the epoch; see the documentation of the standard
+  Python time module for details).
+</dl>
+
+<p>
+
+<p><br /></p><hr class='online-navigation' />
+<div class='online-navigation'>
+<!--Table of Child-Links-->
+<a name="CHILD_LINKS"><strong>Subsections</strong></a>
+
+<ul class="ChildLinks">
+<li><a href="node4.html">1.1 Constants</a>
+<li><a href="node5.html">1.2 Exceptions</a>
+</ul>
+<!--End of Table of Child-Links-->
+</div>
+
+<div class="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="Contents"
+  href="contents.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="1.1 Constants"
+  href="node4.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="contents.html">Contents</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="node4.html">1.1 Constants</a>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+</div>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

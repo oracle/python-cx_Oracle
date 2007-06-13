@@ -1,0 +1,323 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="cx_Oracle.css" type='text/css' />
+<link rel="first" href="cx_Oracle.html" title='cx_Oracle' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="cursorobj.html" />
+<link rel="prev" href="module.html" />
+<link rel="parent" href="cx_Oracle.html" />
+<link rel="next" href="cursorobj.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name='aesop' content='information' />
+<title>2. Connection Objects</title>
+</head>
+<body>
+<div class="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="1.2 Exceptions"
+  href="node5.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="3. cursor Objects"
+  href="cursorobj.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="node5.html">1.2 Exceptions</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="cursorobj.html">3. Cursor Objects</a>
+</div>
+<hr /></div>
+</div>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION004000000000000000000"></a><a name="connobj"></a>
+<br>
+2. Connection Objects
+</h1>
+
+<p>
+<strong>NOTE</strong>: Any outstanding changes will be rolled back when the connection
+object is destroyed or closed.
+
+<p>
+<dl><dt><b><tt id='l2h-58' xml:id='l2h-58'>action</tt></b></dt>
+<dd>
+  This write-only attribute sets the action column in the v$session table and
+  is only available in Oracle 10g.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-59' xml:id='l2h-59' class="function">begin</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+<dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt class="function">begin</tt></b>(</nobr></td>
+  <td><var></var><big>[</big><var><var>formatId</var>, <var>transactionId</var>,
+    <var>branchId</var></var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>  Explicitly begin a new transaction. Without parameters, this explicitly
+  begins a local transaction; otherwise, this explicitly begins a distributed
+  (global) transaction with the given parameters. See the Oracle documentation
+  for more details.
+
+<p>
+Note that in order to make use of global (distributed) transactions, the
+  twophase argument to the Connection constructor must be a true value. See the
+  comments on the Connection constructor for more information (<a href="module.html#module">1</a>).
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-61' xml:id='l2h-61' class="function">cancel</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Cancel a long-running transaction. This is only effective on non-Windows
+  platforms.
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-62' xml:id='l2h-62'>clientinfo</tt></b></dt>
+<dd>
+  This write-only attribute sets the client_info column in the v$session table
+  and is only available in Oracle 10g.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-63' xml:id='l2h-63' class="function">close</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Close the connection now, rather than whenever __del__ is called. The
+  connection will be unusable from this point forward; an Error exception will
+  be raised if any operation is attempted with the connection. The same applies
+  to any cursor objects trying to use the connection.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-64' xml:id='l2h-64' class="function">commit</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Commit any pending transactions to the database.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-65' xml:id='l2h-65' class="function">cursor</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Return a new Cursor object (<a href="cursorobj.html#cursorobj">3</a>) using the connection.
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-66' xml:id='l2h-66'>dsn</tt></b></dt>
+<dd>
+  This read-only attribute returns the TNS entry of the database to which a
+  connection has been established.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-67' xml:id='l2h-67'>encoding</tt></b></dt>
+<dd>
+  This read-only attribute returns the IANA character set name of the character
+  set in use by the Oracle client.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-68' xml:id='l2h-68'>maxBytesPerCharacter</tt></b></dt>
+<dd>
+  This read-only attribute returns the maximum number of bytes each character
+  can use for the client character set.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-69' xml:id='l2h-69'>module</tt></b></dt>
+<dd>
+  This write-only attribute sets the module column in the v$session table and
+  is only available in Oracle 10g.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-70' xml:id='l2h-70'>nencoding</tt></b></dt>
+<dd>
+  This read-only attribute returns the IANA character set name of the national
+  character set in use by the Oracle client.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-71' xml:id='l2h-71'>password</tt></b></dt>
+<dd>
+  This read-only attribute returns the password of the user which established
+  the connection to the database.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-72' xml:id='l2h-72' class="function">prepare</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Prepare the distributed (global) transaction for commit.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-73' xml:id='l2h-73' class="function">register</tt></b>(</nobr></td>
+  <td><var><var>code</var>, <var>when</var>, <var>function</var></var>)</td></tr></table></dt>
+<dd>
+  Register the function as an OCI callback. The code is one of the function
+  codes defined in the Oracle documentation of which the most common ones are
+  defined as constants in this module. The when parameter is one of
+  UCBTYPE_ENTRY, UCBTYPE_EXIT or UCBTYPE_REPLACE. The function is a Python
+  function which will accept the parameters that the OCI function accepts,
+  modified as needed to return Python objects that are of some use. Note that
+  this is a highly experimental method and can cause cx_Oracle to crash if not
+  used properly. In particular, the OCI does not provide sizing information to
+  the callback so attempts to access a variable beyond the allocated size will
+  crash cx_Oracle. Use with caution.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-74' xml:id='l2h-74' class="function">rollback</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Rollback any pending transactions.
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-75' xml:id='l2h-75'>tnsentry</tt></b></dt>
+<dd>
+  This read-only attribute returns the TNS entry of the database to which a
+  connection has been established.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-76' xml:id='l2h-76' class="function">unregister</tt></b>(</nobr></td>
+  <td><var><var>code</var>, <var>when</var></var>)</td></tr></table></dt>
+<dd>
+  Unregister the function as an OCI callback. The code is one of the function
+  codes defined in the Oracle documentation of which the most common ones are
+  defined as constants in this module. The when parameter is one of
+  UCBTYPE_ENTRY, UCBTYPE_EXIT or UCBTYPE_REPLACE.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition.
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-77' xml:id='l2h-77'>username</tt></b></dt>
+<dd>
+  This read-only attribute returns the name of the user which established the
+  connection to the database.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-78' xml:id='l2h-78'>version</tt></b></dt>
+<dd>
+  This read-only attribute returns the version of the database to which a
+  connection has been established.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+
+<div class="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="1.2 Exceptions"
+  href="node5.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="3. cursor Objects"
+  href="cursorobj.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="node5.html">1.2 Exceptions</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="cursorobj.html">3. Cursor Objects</a>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+</div>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

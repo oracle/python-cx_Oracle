@@ -1,0 +1,148 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="cx_Oracle.css" type='text/css' />
+<link rel="first" href="cx_Oracle.html" title='cx_Oracle' />
+<link rel='contents' href='contents.html' title="Contents" />
+<link rel='last' href='about.html' title='About this document...' />
+<link rel='help' href='about.html' title='About this document...' />
+<link rel="next" href="node12.html" />
+<link rel="prev" href="lobobj.html" />
+<link rel="parent" href="cx_Oracle.html" />
+<link rel="next" href="node12.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name='aesop' content='information' />
+<title>7. Date Objects</title>
+</head>
+<body>
+<div class="navigation">
+<div id='top-navigation-panel' xml:id='top-navigation-panel'>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="6. lob Objects"
+  href="lobobj.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="8. License"
+  href="node12.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="lobobj.html">6. LOB Objects</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="node12.html">8. License</a>
+</div>
+<hr /></div>
+</div>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION009000000000000000000"></a><a name="dateobj"></a>
+<br>
+7. Date Objects
+</h1>
+
+<p>
+<strong>NOTE</strong>: This object is an extension the DB API. It is returned whenever
+Oracle date and timestamp (in Oracle 9i) columns are fetched and whenever the
+constructor methods (Date(), Time(), Timestamp()) are called.
+
+<p>
+<strong>NOTE</strong>: As of Python 2.4 cx_Oracle returns the datetime objects from the
+standard library datetime module instead of these objects.
+
+<p>
+<dl><dt><b><tt id='l2h-130' xml:id='l2h-130'>year</tt></b></dt>
+<dd>
+  This read-only attribute returns the year.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-131' xml:id='l2h-131'>month</tt></b></dt>
+<dd>
+  This read-only attribute returns the month.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-132' xml:id='l2h-132'>day</tt></b></dt>
+<dd>
+  This read-only attribute returns the day.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-133' xml:id='l2h-133'>hour</tt></b></dt>
+<dd>
+  This read-only attribute returns the hour.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-134' xml:id='l2h-134'>minute</tt></b></dt>
+<dd>
+  This read-only attribute returns the minute.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-135' xml:id='l2h-135'>second</tt></b></dt>
+<dd>
+  This read-only attribute returns the second.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-136' xml:id='l2h-136'>fsecond</tt></b></dt>
+<dd>
+  This read-only attribute returns the fractional second.
+</dd></dl>
+
+<p>
+
+<div class="navigation">
+<div class='online-navigation'>
+<p></p><hr />
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td class='online-navigation'><a rel="prev" title="6. lob Objects"
+  href="lobobj.html"><img src='previous.png'
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
+<td class='online-navigation'><a rel="parent" title="cx_Oracle"
+  href="cx_Oracle.html"><img src='up.png'
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="8. License"
+  href="node12.html"><img src='next.png'
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
+<td align="center" width="100%">cx_Oracle</td>
+<td class='online-navigation'><a rel="contents" title="Table of Contents"
+  href="contents.html"><img src='contents.png'
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+<td class='online-navigation'><img src='blank.png'
+  border='0' height='32'  alt='' width='32' /></td>
+</tr></table>
+<div class='online-navigation'>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="lobobj.html">6. LOB Objects</a>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="node12.html">8. License</a>
+</div>
+</div>
+<hr />
+<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+</div>
+<!--End of Navigation Panel-->
+
+</body>
+</html>
