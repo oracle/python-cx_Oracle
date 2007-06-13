@@ -1098,6 +1098,9 @@ static PyObject *Variable_ExternalCopy(
         if (targetVar->actualLength)
             targetVar->actualLength[targetPos] =
                     sourceVar->actualLength[sourcePos];
+        if (targetVar->returnCode)
+            targetVar->returnCode[targetPos] =
+                    sourceVar->returnCode[sourcePos];
         memcpy( (char*) targetVar->data + targetPos * targetVar->maxLength,
                 (char*) sourceVar->data + sourcePos * sourceVar->maxLength,
                 sourceVar->maxLength);
