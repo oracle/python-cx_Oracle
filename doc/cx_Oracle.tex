@@ -1,0 +1,1033 @@
+\documentclass{manual}
+\usepackage[T1]{fontenc}
+
+\title{cx\_Oracle}
+
+\author{Anthony Tuininga}
+\authoraddress{
+        \strong{Computronix}\\
+        Email: \email{anthony.tuininga@gmail.com}
+}
+
+\date{\today}                   % date of release
+\release{HEAD}                  % software release
+\setreleaseinfo{}		% empty for final release
+\setshortversion{HEAD}          % major.minor only for software
+
+\begin{document}
+
+\maketitle
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+Copyright \copyright{} 2001-2007 Computronix.
+All rights reserved.
+
+See the end of this document for complete license and permissions
+information.
+
+\begin{abstract}
+
+\noindent
+cx_Oracle is a Python extension module that allows access to Oracle and
+conforms to the Python database API 2.0 specifications with a few exceptions.
+See \url{http://www.python.org/topics/database/DatabaseAPI-2.0.html} for more
+information on the Python database API specification.
+
+\end{abstract}
+
+\tableofcontents
+
+\chapter{Module Interface\label{module}}
+
+\begin{funcdesc}{Binary}{\var{string}}
+  Construct an object holding a binary (long) string value.
+\end{funcdesc}
+
+\begin{funcdesc}{Connection}{\optional{\var{user}, \var{password},
+    \var{dsn}, \var{mode}, \var{handle}, \var{pool}, \var{threaded},
+    \var{twophase}}}
+\funcline{connect}{\optional{\var{user}, \var{password},
+    \var{dsn}, \var{mode}, \var{handle}, \var{pool}, \var{threaded},
+    \var{twophase}}}
+  Constructor for creating a connection to the database. Return a Connection
+  object (\ref{connobj}). All arguments are optional and can be specified as
+  keyword parameters. The dsn (data source name) is the TNS entry (from the
+  Oracle names server or tnsnames.ora file) or is a string like the one
+  returned from makedsn(). If only one parameter is passed, a connect string is
+  assumed which is to be of the format "user/password@dsn", the same format
+  accepted by Oracle applications such as SQL*Plus. If the mode is specified,
+  it must be one of SYSDBA or SYSOPER which are defined at the module level;
+  otherwise it defaults to the normal mode of connecting. If the handle is
+  specified, it must be of type OCISvcCtx* and is only of use when embedding
+  Python in an application (like PowerBuilder) which has already made the
+  connection. The pool is only valid in Oracle 9i and is a session pool object
+  (\ref{sesspool}) which is the equivalent of calling pool.acquire(). The
+  threaded attribute is expected to be a boolean expression which indicates
+  whether or not Oracle should use the mode OCI_THREADED to wrap accesses to
+  connections with a mutex. Doing so in single threaded applications imposes
+  a performance penalty of about 10-15\% which is why the default is False.
+  The twophase attribute is expected to be a boolean expression which indicates
+  whether or not the attributes should be set on the connection object to allow
+  for two phase commit. The default for this value is also False because of
+  bugs in Oracle prior to Oracle 10g.
+\end{funcdesc}
+
+\begin{funcdesc}{Cursor}{\var{connection}}
+  Constructor for creating a cursor.  Return a new Cursor object
+  (\ref{cursorobj}) using the connection.
+
+  \strong{NOTE:} This method is an extension to the DB API definition.
+\end{funcdesc}
+
+\begin{funcdesc}{Date}{\var{year}, \var{month}, \var{day}}
+  Construct an object holding a date value.
+\end{funcdesc}
+
+\begin{funcdesc}{DateFromTicks}{\var{ticks}}
+  Construct an object holding a date value from the given ticks value (number
+  of seconds since the epoch; see the documentation of the standard Python
+  time module for details).
+\end{funcdesc}
+
+\begin{funcdesc}{makedsn}{\var{host}, \var{port}, \var{sid}}
+  Return a string suitable for use as the dsn for the connect() method. This
+  string is identical to the strings that are defined by the Oracle names
+  server or defined in the tnsnames.ora file.
+
+  \strong{NOTE:} This method is an extension to the DB API definition.
+\end{funcdesc}
+
+\begin{funcdesc}{SessionPool}{\var{user}, \var{password}, \var{database},
+        \var{min}, \var{max}, \var{increment}, \optional{\var{connectiontype},
+        \var{threaded}, \var{getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT}}}
+  Create a session pool (see Oracle 9i documentation for more information)
+  and return a session pool object (\ref{sesspool}). This allows for very
+  fast connections to the database and is of primary use in a server where
+  the same connection is being made multiple times in rapid succession (a
+  web server, for example). If the connection type is specified, all calls to
+  acquire() will create connection objects of that type, rather than the base
+  type defined at the module level. The threaded attribute is expected to be a
+  boolean expression which indicates whether or not Oracle should use the mode
+  OCI_THREADED to wrap accesses to connections with a mutex. Doing so in single
+  threaded applications imposes a performance penalty of about 10-15\% which is
+  why the default is False.
+
+  \strong{NOTE:} This method is an extension to the DB API definition and is
+  only available in Oracle 9i.
+\end{funcdesc}
+
+\begin{funcdesc}{Time}{\var{hour}, \var{minute}, \var{second}}
+  Construct an object holding a time value.
+\end{funcdesc}
+
+\begin{funcdesc}{TimeFromTicks}{\var{ticks}}
+  Construct an object holding a time value from the given ticks value (number
+  of seconds since the epoch; see the documentation of the standard Python
+  time module for details).
+\end{funcdesc}
+
+\begin{funcdesc}{Timestamp}{\var{year}, \var{month}, \var{day},
+    \var{hour}, \var{minute}, \var{second}}
+  Construct an object holding a time stamp value.
+\end{funcdesc}
+
+\begin{funcdesc}{TimestampFromTicks}{\var{ticks}}
+  Construct an object holding a time stamp value from the given ticks value
+  (number of seconds since the epoch; see the documentation of the standard
+  Python time module for details).
+\end{funcdesc}
+
+\section{Constants}
+
+\begin{datadesc}{apilevel}
+  String constant stating the supported DB API level. Currently '2.0'.
+\end{datadesc}
+
+\begin{datadesc}{buildtime}
+  String constant stating the time when the binary was built.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{BINARY}
+  This type object is used to describe columns in a database that are binary
+  (in Oracle this is RAW columns).
+\end{datadesc}
+
+\begin{datadesc}{BFILE}
+  This type object is used to describe columns in a database that are BFILEs.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{BLOB}
+  This type object is used to describe columns in a database that are BLOBs.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{CLOB}
+  This type object is used to describe columns in a database that are CLOBs.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{CURSOR}
+  This type object is used to describe columns in a database that are cursors
+  (in PL/SQL these are known as ref cursors).
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{DATETIME}
+  This type object is used to describe columns in a database that are dates.
+\end{datadesc}
+
+\begin{datadesc}{FIXED_CHAR}
+  This type object is used to describe columns in a database that are fixed
+  length strings (in Oracle this is CHAR columns); these behave differently
+  in Oracle than varchar2 so they are differentiated here even though the DB
+  API does not differentiate them.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{FNCODE_BINDBYNAME}
+  This constant is used to register callbacks on the OCIBindByName() function
+  of the OCI.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{FNCODE_BINDBYPOS}
+  This constant is used to register callbacks on the OCIBindByPos() function
+  of the OCI.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{FNCODE_DEFINEBYPOS}
+  This constant is used to register callbacks on the OCIDefineByPos() function
+  of the OCI.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{FNCODE_STMTEXECUTE}
+  This constant is used to register callbacks on the OCIStmtExecute() function
+  of the OCI.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{FNCODE_STMTFETCH}
+  This constant is used to register callbacks on the OCIStmtFetch() function
+  of the OCI.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{FNCODE_STMTPREPARE}
+  This constant is used to register callbacks on the OCIStmtPrepare() function
+  of the OCI.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{LOB}
+  This type object is the Python type of BLOB and CLOB data that is returned
+  from cursors.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{LONG_BINARY}
+  This type object is used to describe columns in a database that are long
+  binary (in Oracle these are LONG RAW columns).
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{LONG_STRING}
+  This type object is used to describe columns in a database that are long
+  strings (in Oracle these are LONG columns).
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{NCLOB}
+  This type object is used to describe columns in a database that are NCLOBs.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{NUMBER}
+  This type object is used to describe columns in a database that are numbers.
+\end{datadesc}
+
+\begin{datadesc}{OBJECT}
+  This type object is used to describe columns in a database that are objects.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{paramstyle}
+  String constant stating the type of parameter marker formatting expected by
+  the interface. Currently 'named' as in 'where name = :name'.
+\end{datadesc}
+
+\begin{datadesc}{ROWID}
+  This type object is used to describe the pseudo column "rowid".
+\end{datadesc}
+
+\begin{datadesc}{SPOOL_ATTRVAL_FORCEGET}
+  This constant is used to define the "get" mode on session pools and indicates
+  that a new connection will be returned if there are no free sessions
+  available in the pool.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{SPOOL_ATTRVAL_NOWAIT}
+  This constant is used to define the "get" mode on session pools and indicates
+  that an exception is raised if there are no free sessions available in the
+  pool.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{SPOOL_ATTRVAL_WAIT}
+  This constant is used to define the "get" mode on session pools and indicates
+  that the acquisition of a connection waits until a session is freed if there
+  are no free sessions available in the pool.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{STRING}
+  This type object is used to describe columns in a database that are strings
+  (in Oracle this is VARCHAR2 columns).
+\end{datadesc}
+
+\begin{datadesc}{SYSDBA}
+  Value to be passed to the connect() method which indicates that SYSDBA
+  access is to be acquired. See the Oracle documentation for more details.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{SYSOPER}
+  Value to be passed to the connect() method which indicates that SYSOPER
+  access is to be acquired. See the Oracle documentation for more details.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{threadsafety}
+  Integer constant stating the level of thread safety that the interface
+  supports. Currently 2, which means that threads may share the module and
+  connections, but not cursors. Sharing means that a thread may use a resource
+  without wrapping it using a mutex semaphore to implement resource locking.
+
+  Note that in order to make use of multiple threads in a program which intends
+  to connect and disconnect in different threads, the threaded argument to the
+  Connection constructor must be a true value. See the comments on the
+  Connection constructor for more information (\ref{module}).
+\end{datadesc}
+
+\begin{datadesc}{TIMESTAMP}
+  This type object is used to describe columns in a database that are
+  timestamps.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition and
+  is only available in Oracle 9i.
+\end{datadesc}
+
+\begin{datadesc}{UCBTYPE_ENTRY}
+  This constant is used to register callbacks on entry to the function
+  of the OCI. In other words, the callback will be called prior to the
+  execution of the OCI function.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{UCBTYPE_EXIT}
+  This constant is used to register callbacks on exit from the function
+  of the OCI. In other words, the callback will be called after the execution
+  of the OCI function.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{UCBTYPE_REPLACE}
+  This constant is used to register callbacks that completely replace the
+  call to the OCI function.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{version}
+  String constant stating the version of the module. Currently '\version{}'.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\section{Exceptions}
+
+\begin{datadesc}{Warning}
+  Exception raised for important warnings and defined by the DB API but not
+  actually used by cx_Oracle.
+\end{datadesc}
+
+\begin{datadesc}{Error}
+  Exception that is the base class of all other exceptions defined by
+  cx_Oracle and is a subclass of the Python StandardError exception (defined in
+  the module exceptions).
+\end{datadesc}
+
+\begin{datadesc}{InterfaceError}
+  Exception raised for errors that are related to the database interface rather
+  than the database itself. It is a subclass of Error.
+\end{datadesc}
+
+\begin{datadesc}{DatabaseError}
+  Exception raised for errors that are related to the database. It is a
+  subclass of Error.
+\end{datadesc}
+
+\begin{datadesc}{DataError}
+  Exception raised for errors that are due to problems with the processed data.
+  It is a subclass of DatabaseError.
+\end{datadesc}
+
+\begin{datadesc}{OperationalError}
+  Exception raised for errors that are related to the operation of the database
+  but are not necessarily under the control of the progammer. It is a
+  subclass of DatabaseError.
+\end{datadesc}
+
+\begin{datadesc}{IntegrityError}
+  Exception raised when the relational integrity of the database is affected.
+  It is a subclass of DatabaseError.
+\end{datadesc}
+ 
+\begin{datadesc}{InternalError}
+  Exception raised when the database encounters an internal error.
+  It is a subclass of DatabaseError.
+\end{datadesc}
+ 
+\begin{datadesc}{ProgrammingError}
+  Exception raised for programming errors. It is a subclass of DatabaseError.
+\end{datadesc}
+ 
+\begin{datadesc}{NotSupportedError}
+  Exception raised when a method or database API was used which is not
+  supported by the database. It is a subclass of DatabaseError.
+\end{datadesc}
+ 
+\chapter{Connection Objects\label{connobj}}
+
+\strong{NOTE}: Any outstanding changes will be rolled back when the connection
+object is destroyed or closed.
+
+\begin{datadesc}{action}
+  This write-only attribute sets the action column in the v\$session table and
+  is only available in Oracle 10g.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{funcdesc}{begin}{}
+\funcline{begin}{\optional{\var{formatId}, \var{transactionId},
+    \var{branchId}}}
+  Explicitly begin a new transaction. Without parameters, this explicitly
+  begins a local transaction; otherwise, this explicitly begins a distributed
+  (global) transaction with the given parameters. See the Oracle documentation
+  for more details.
+
+  Note that in order to make use of global (distributed) transactions, the
+  twophase argument to the Connection constructor must be a true value. See the
+  comments on the Connection constructor for more information (\ref{module}).
+
+  \strong{NOTE:} This method is an extension to the DB API definition.
+\end{funcdesc}
+
+\begin{funcdesc}{cancel}{}
+  Cancel a long-running transaction. This is only effective on non-Windows
+  platforms.
+\end{funcdesc}
+
+\begin{datadesc}{clientinfo}
+  This write-only attribute sets the client_info column in the v\$session table
+  and is only available in Oracle 10g.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{funcdesc}{close}{}
+  Close the connection now, rather than whenever __del__ is called. The
+  connection will be unusable from this point forward; an Error exception will
+  be raised if any operation is attempted with the connection. The same applies
+  to any cursor objects trying to use the connection.
+\end{funcdesc}
+
+\begin{funcdesc}{commit}{}
+  Commit any pending transactions to the database.
+\end{funcdesc}
+
+\begin{funcdesc}{cursor}{}
+  Return a new Cursor object (\ref{cursorobj}) using the connection.
+\end{funcdesc}
+
+\begin{datadesc}{dsn}
+  This read-only attribute returns the TNS entry of the database to which a
+  connection has been established.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{encoding}
+  This read-only attribute returns the IANA character set name of the character
+  set in use by the Oracle client.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{maxBytesPerCharacter}
+  This read-only attribute returns the maximum number of bytes each character
+  can use for the client character set.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{module}
+  This write-only attribute sets the module column in the v\$session table and
+  is only available in Oracle 10g.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{nencoding}
+  This read-only attribute returns the IANA character set name of the national
+  character set in use by the Oracle client.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{password}
+  This read-only attribute returns the password of the user which established
+  the connection to the database.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{funcdesc}{prepare}{}
+  Prepare the distributed (global) transaction for commit.
+
+  \strong{NOTE:} This method is an extension to the DB API definition.
+\end{funcdesc}
+
+\begin{funcdesc}{register}{\var{code}, \var{when}, \var{function}}
+  Register the function as an OCI callback. The code is one of the function
+  codes defined in the Oracle documentation of which the most common ones are
+  defined as constants in this module. The when parameter is one of
+  UCBTYPE_ENTRY, UCBTYPE_EXIT or UCBTYPE_REPLACE. The function is a Python
+  function which will accept the parameters that the OCI function accepts,
+  modified as needed to return Python objects that are of some use. Note that
+  this is a highly experimental method and can cause cx_Oracle to crash if not
+  used properly. In particular, the OCI does not provide sizing information to
+  the callback so attempts to access a variable beyond the allocated size will
+  crash cx_Oracle. Use with caution.
+
+  \strong{NOTE:} This method is an extension to the DB API definition.
+\end{funcdesc}
+
+\begin{funcdesc}{rollback}{}
+  Rollback any pending transactions.
+\end{funcdesc}
+
+\begin{datadesc}{tnsentry}
+  This read-only attribute returns the TNS entry of the database to which a
+  connection has been established.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{funcdesc}{unregister}{\var{code}, \var{when}}
+  Unregister the function as an OCI callback. The code is one of the function
+  codes defined in the Oracle documentation of which the most common ones are
+  defined as constants in this module. The when parameter is one of
+  UCBTYPE_ENTRY, UCBTYPE_EXIT or UCBTYPE_REPLACE.
+
+  \strong{NOTE:} This method is an extension to the DB API definition.
+\end{funcdesc}
+
+\begin{datadesc}{username}
+  This read-only attribute returns the name of the user which established the
+  connection to the database.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{version}
+  This read-only attribute returns the version of the database to which a
+  connection has been established.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\chapter{Cursor Objects\label{cursorobj}}
+
+\begin{datadesc}{arraysize}
+  This read-write attribute specifies the number of rows to fetch at a time
+  internally and is the default number of rows to fetch with the fetchmany()
+  call. It defaults to 1 meaning to fetch a single row at a time. Note that
+  this attribute can drastically affect the performance of a query since it
+  directly affects the number of network round trips that need to be performed.
+\end{datadesc}
+
+\begin{datadesc}{bindarraysize}
+  This read-write attribute specifies the number of rows to bind at a time and
+  is used when creating variables via setinputsizes() or var(). It defaults to
+  1 meaning to bind a single row at a time.
+
+  \strong{NOTE:} The DB API definition does not define this attribute.
+\end{datadesc}
+
+\begin{funcdesc}{arrayvar}{\var{dataType}, \var{value}, \optional{\var{size}}}
+  Create an array variable associated with the cursor of the given type and
+  size and return a variable object (\ref{varobj}). The value is either an
+  integer specifying the number of elements to allocate or it is a list and
+  the number of elements allocated is drawn from the size of the list. If the
+  value is a list, the variable is also set with the contents of the list. If
+  the size is not specified and the type is a string or binary, 4000 bytes
+  (maximum allowable by Oracle) is allocated. This is needed for passing arrays
+  to PL/SQL (in cases where the list might be empty and the type cannot be
+  determined automatically) or returning arrays from PL/SQL.
+
+  \strong{NOTE:} The DB API definition does not define this method.
+\end{funcdesc}
+
+\begin{funcdesc}{bindnames}{}
+  Return the list of bind variable names bound to the statement. Note that the
+  statement must have been prepared first.
+
+  \strong{NOTE:} The DB API definition does not define this method.
+\end{funcdesc}
+
+\begin{funcdesc}{callfunc}{\var{name}, \var{returnType},
+      \optional{\var{parameters=[]}}}
+  Call a function with the given name. The return type is specified in the
+  same notation as is required by setinputsizes(). The sequence of parameters
+  must contain one entry for each argument that the function expects.
+  The result of the call is the return value of the function.
+\end{funcdesc}
+
+\begin{funcdesc}{callproc}{\var{name}, \optional{\var{parameters=[]}}}
+  Call a procedure with the given name. The sequence of parameters must contain
+  one entry for each argument that the procedure expects. The result of the
+  call is a modified copy of the input sequence. Input parameters are left
+  untouched; output and input/output parameters are replaced with possibly new
+  values.
+\end{funcdesc}
+
+\begin{funcdesc}{close}{}
+  Close the cursor now, rather than whenever __del__ is called. The cursor will
+  be unusable from this point forward; an Error exception will be raised if any
+  operation is attempted with the cursor.
+\end{funcdesc}
+
+\begin{datadesc}{connection}
+  This read-only attribute returns a reference to the connection object on
+  which the cursor was created.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition but it
+  is mentioned in PEP 249 as an optional extension.
+\end{datadesc}
+
+\begin{datadesc}{description}
+  This read-only attribute is a sequence of 7-item sequences. Each of these
+  sequences contains information describing one result column: (name, type,
+  display_size, internal_size, precision, scale, null_ok). This attribute will
+  be None for operations that do not return rows or if the cursor has not had
+  an operation invoked via the execute() method yet.
+
+  The type will be one of the type objects defined at the module level.
+\end{datadesc}
+
+\begin{funcdesc}{execute}{\var{statement}, \optional{\var{parameters}},
+    \var{**keywordParameters}}
+  Execute a statement against the database. Parameters may be passed as a
+  dictionary or sequence or as keyword arguments. If the arguments are a
+  dictionary, the values will be bound by name and if the arguments are a
+  sequence the values will be bound by position.
+
+  A reference to the statement will be retained by the cursor. If None or the
+  same string object is passed in again, the cursor will execute that
+  statement again without performing a prepare or rebinding and redefining.
+  This is most effective for algorithms where the same statement is used, but
+  different parameters are bound to it (many times).
+
+  For maximum efficiency when reusing an statement, it is best to use the
+  setinputsizes() method to specify the parameter types and sizes ahead of
+  time; in particular, None is assumed to be a string of length 1 so any
+  values that are later bound as numbers or dates will raise a TypeError
+  exception.
+
+  If the statement is a query, a list of variable objects (\ref{varobj}) will
+  be returned corresponding to the list of variables into which data will be
+  fetched with the fetchone(), fetchmany() and fetchall() methods; otherwise,
+  None will be returned.
+
+  \strong{NOTE:} The DB API definition does not define the return value of this
+  method.
+\end{funcdesc}
+
+\begin{funcdesc}{executemany}{\var{statement}, \var{parameters}}
+  Prepare a statement for execution against a database and then execute it
+  against all parameter mappings or sequences found in the sequence parameters.
+  The statement is managed in the same way as the execute() method manages it.
+\end{funcdesc}
+
+\begin{funcdesc}{executemanyprepared}{\var{numIters}}
+  Execute the previously prepared and bound statement the given number of
+  times. The variables that are bound must have already been set to their
+  desired value before this call is made.  This method was designed for the
+  case where optimal performance is required as it comes at the expense of
+  compatibility with the DB API.
+
+  \strong{NOTE:} The DB API definition does not define this method.
+\end{funcdesc}
+
+\begin{funcdesc}{fetchall}{}
+  Fetch all (remaining) rows of a query result, returning them as a list of
+  tuples. An empty list is returned if no more rows are available. Note that
+  the cursor's arraysize attribute can affect the performance of this
+  operation, as internally reads from the database are done in batches
+  corresponding to the arraysize.
+
+  An exception is raised if the previous call to execute() did not produce any
+  result set or no call was issued yet.
+\end{funcdesc}
+
+\begin{funcdesc}{fetchmany}{\optional{\var{numRows=cursor.arraysize}}}
+  Fetch the next set of rows of a query result, returning a list of tuples. An
+  empty list is returned if no more rows are available. Note that the cursor's
+  arraysize attribute can affect the performance of this operation.
+
+  The number of rows to fetch is specified by the parameter. If it is not
+  given, the cursor's arrysize attribute determines the number of rows to be
+  fetched. If the number of rows available to be fetched is fewer than the
+  amount requested, fewer rows will be returned.
+
+  An exception is raised if the previous call to execute() did not produce any
+  result set or no call was issued yet.
+\end{funcdesc}
+
+\begin{funcdesc}{fetchone}{}
+  Fetch the next row of a query result set, returning a single tuple or None
+  when no more data is available.
+
+  An exception is raised if the previous call to execute() did not produce any
+  result set or no call was issued yet.
+\end{funcdesc}
+
+\begin{funcdesc}{fetchraw}{\optional{\var{numRows=cursor.arraysize}}}
+  Fetch the next set of rows of a query result into the internal buffers of the
+  defined variables for the cursor. The number of rows actually fetched is
+  returned.  This method was designed for the case where optimal performance is
+  required as it comes at the expense of compatibility with the DB API.
+
+  An exception is raised if the previous call to execute() did not produce any
+  result set or no call was issued yet.
+
+  \strong{NOTE:} The DB API definition does not define this method.
+\end{funcdesc}
+
+\begin{funcdesc}{__iter__}{}
+  Returns the cursor itself to be used as an iterator.
+
+  \strong{NOTE:} This method is an extension to the DB API definition but it
+  is mentioned in PEP 249 as an optional extension.
+\end{funcdesc}
+
+\begin{funcdesc}{next}{}
+  Fetch the next row of a query result set, using the same semantics as
+  the method fetchone().
+
+  \strong{NOTE:} This method is an extension to the DB API definition but it
+  is mentioned in PEP 249 as an optional extension.
+\end{funcdesc}
+
+\begin{datadesc}{numbersAsStrings}
+  This integer attribute defines whether or not numbers should be returned as
+  strings rather than integers or floating point numbers. This is useful to get
+  around the fact that Oracle floating point numbers have considerably greater
+  precision than C floating point numbers and not require a change to the SQL
+  being executed.
+
+  \strong{NOTE:} The DB API definition does not define this attribute.
+\end{datadesc}
+
+\begin{funcdesc}{parse}{\var{statement}}
+  This can be used to parse a statement without actually executing it (this
+  step is done automatically by Oracle when a statement is executed).
+
+  \strong{NOTE:} The DB API definition does not define this method.
+\end{funcdesc}
+
+\begin{funcdesc}{prepare}{\var{statement}}
+  This can be used before a call to execute() to define the statement that will
+  be executed. When this is done, the prepare phase will not be performed when
+  the call to execute() is made with None or the same string object as the
+  statement.
+
+  \strong{NOTE:} The DB API definition does not define this method.
+\end{funcdesc}
+
+\begin{datadesc}{rowcount}
+  This read-only attribute specifies the number of rows that have currently
+  been fetched from the cursor (for select statements) or that have been
+  affected by the operation (for insert, update and delete statements).
+\end{datadesc}
+
+\begin{funcdesc}{setinputsizes}{\var{*args}, \var{**keywordArgs}}
+  This can be used before a call to execute() to predefine memory areas for the
+  operation's parameters. Each parameter should be a type object corresponding
+  to the input that will be used or it should be an integer specifying the
+  maximum length of a string parameter. Use keyword arguments when binding by
+  name and positional arguments when binding by position. The singleton None
+  can be used as a parameter when using positional arguments to indicate that
+  no space should be reserved for that position.
+\end{funcdesc}
+
+\begin{funcdesc}{setoutputsize}{\var{size}, \optional{\var{column}}}
+  This can be used before a call to execute() to predefine memory areas for the
+  long columns that will be fetched. The column is specified as an index into
+  the result sequence. Not specifying the column will set the default size for
+  all large columns in the cursor.
+\end{funcdesc}
+
+\begin{datadesc}{statement}
+  This read-only attribute provides the string object that was previously
+  prepared with prepare() or executed with execute().
+
+  \strong{NOTE:} The DB API definition does not define this attribute.
+\end{datadesc}
+
+\begin{funcdesc}{var}{\var{dataType}, \optional{\var{size}}}
+  Create a variable associated with the cursor of the given type and size and
+  return a variable object (\ref{varobj}). If the size is not specified and the
+  type is a string or binary, 4000 bytes (maximum allowable by Oracle) is
+  allocated; if the size is not specified and the type is a long string or long
+  binary, 128KB is allocated. This method was designed for use with PL/SQL
+  in/out variables where the length or type cannot be determined automatically
+  from the Python object passed in.
+
+  \strong{NOTE:} The DB API definition does not define this method.
+\end{funcdesc}
+
+\chapter{Variable Objects\label{varobj}}
+
+\strong{NOTE:} The DB API definition does not define this object.
+
+\begin{datadesc}{allocelems}
+  This read-only attribute returns the number of elements allocated in an
+  array, or the number of scalar items that can be fetched into the variable.
+\end{datadesc}
+
+\begin{funcdesc}{getvalue}{\optional{\var{pos=0}}}
+  Return the value at the given position in the variable.
+\end{funcdesc}
+
+\begin{datadesc}{maxlength}
+  This read-only attribute returns the maximum length of the variable.
+\end{datadesc}
+
+\begin{funcdesc}{setvalue}{\var{pos}, \var{value}}
+  Set the value at the given position in the variable.
+\end{funcdesc}
+
+\chapter{SessionPool Objects\label{sesspool}}
+
+\strong{NOTE}: This object is an extension the DB API and is only available in
+Oracle 9i.
+
+\begin{funcdesc}{acquire}{}
+  Acquire a connection from the session pool and return a connection
+  object (\ref{connobj}).
+\end{funcdesc}
+
+\begin{datadesc}{busy}
+  This read-only attribute returns the number of sessions currently acquired.
+\end{datadesc}
+
+\begin{funcdesc}{drop}{\var{connection}}
+  Drop the connection from the pool which is useful if the connection is no
+  longer usable (such as when the session is killed).
+\end{funcdesc}
+
+\begin{datadesc}{dsn}
+  This read-only attribute returns the TNS entry of the database to which a
+  connection has been established.
+\end{datadesc}
+
+\begin{datadesc}{increment}
+  This read-only attribute returns the number of sessions that will be
+  established when additional sessions need to be created.
+\end{datadesc}
+
+\begin{datadesc}{max}
+  This read-only attribute returns the maximum number of sessions that the
+  session pool can control.
+\end{datadesc}
+
+\begin{datadesc}{min}
+  This read-only attribute returns the number of sessions with which the
+  session pool was created and the minimum number of sessions that will be
+  controlled by the session pool.
+\end{datadesc}
+
+\begin{datadesc}{name}
+  This read-only attribute returns the name assigned to the session pool by
+  Oracle.
+\end{datadesc}
+
+\begin{datadesc}{opened}
+  This read-only attribute returns the number of sessions currently opened by
+  the session pool.
+\end{datadesc}
+
+\begin{datadesc}{password}
+  This read-only attribute returns the password of the user which established
+  the connection to the database.
+\end{datadesc}
+
+\begin{funcdesc}{release}{\var{connection}}
+  Release the connection back to the pool. This will be done automatically as
+  well if the connection object is garbage collected.
+\end{funcdesc}
+
+\begin{datadesc}{timeout}
+  This read-write attribute indicates the time (in seconds) after which idle
+  sessions will be terminated in order to maintain an optimum number of open
+  sessions.
+\end{datadesc}
+
+\begin{datadesc}{tnsentry}
+  This read-only attribute returns the TNS entry of the database to which a
+  connection has been established.
+\end{datadesc}
+
+\begin{datadesc}{username}
+  This read-only attribute returns the name of the user which established the
+  connection to the database.
+\end{datadesc}
+
+\chapter{LOB Objects\label{lobobj}}
+
+\strong{NOTE}: This object is an extension the DB API. It is returned whenever
+Oracle CLOB, BLOB and BFILE columns are fetched.
+
+\strong{NOTE}: Internally, Oracle uses LOB locators which are allocated based
+on the cursor array size. Thus, it is important that the data in the LOB object
+be manipulated before another internal fetch takes place. The safest way to do
+this is to use the cursor as an iterator. In particular, do not use the
+fetchall() method. The exception "LOB variable no longer valid after
+subsequent fetch" will be raised if an attempt to access a LOB variable after
+a subsequent fetch is detected.
+
+\begin{funcdesc}{close}{}
+  Close the LOB. Call this when writing is completed so that the indexes
+  associated with the LOB can be updated.
+\end{funcdesc}
+\begin{funcdesc}{fileexists}{}
+  Return a boolean indicating if the file referenced by the BFILE type LOB
+  exists.
+\end{funcdesc}
+
+\begin{funcdesc}{getchunksize}{}
+  Return the chunk size for the internal LOB. Reading and writing to the LOB
+  in chunks of multiples of this size will improve performance.
+\end{funcdesc}
+
+\begin{funcdesc}{getfilename}{}
+  Return a two-tuple consisting of the directory alias and file name for a
+  BFILE type LOB.
+\end{funcdesc}
+
+\begin{funcdesc}{isopen}{}
+  Return a boolean indicating if the LOB is opened.
+\end{funcdesc}
+
+\begin{funcdesc}{open}{}
+  Open the LOB for writing. This will improve performance when writing to a LOB
+  in chunks and there are functional or extensible indexes associated with the
+  LOB.
+\end{funcdesc}
+
+\begin{funcdesc}{read}{\optional{\var{offset = 1}, \optional{\var{amount}}}}
+  Return a portion (or all) of the data in the LOB object.
+\end{funcdesc}
+
+\begin{funcdesc}{setfilename}{\var{dirAlias}, \var{name}}
+  Set the directory alias and name of the BFILE type LOB.
+\end{funcdesc}
+
+\begin{funcdesc}{size}{}
+  Returns the size of the data in the LOB object.
+\end{funcdesc}
+
+\begin{funcdesc}{trim}{\optional{\var{newSize = 0}}}
+  Trim the LOB to the new size.
+\end{funcdesc}
+
+\begin{funcdesc}{write}{\var{data}, \optional{\var{offset = 1}}}
+  Write the data to the LOB object at the given offset. Note that if you want
+  to make the LOB value smaller, you must use the trim() function.
+\end{funcdesc}
+
+\chapter{Date Objects\label{dateobj}}
+
+\strong{NOTE}: This object is an extension the DB API. It is returned whenever
+Oracle date and timestamp (in Oracle 9i) columns are fetched and whenever the
+constructor methods (Date(), Time(), Timestamp()) are called.
+
+\strong{NOTE}: As of Python 2.4 cx_Oracle returns the datetime objects from the
+standard library datetime module instead of these objects.
+
+\begin{datadesc}{year}
+  This read-only attribute returns the year.
+\end{datadesc}
+
+\begin{datadesc}{month}
+  This read-only attribute returns the month.
+\end{datadesc}
+
+\begin{datadesc}{day}
+  This read-only attribute returns the day.
+\end{datadesc}
+
+\begin{datadesc}{hour}
+  This read-only attribute returns the hour.
+\end{datadesc}
+
+\begin{datadesc}{minute}
+  This read-only attribute returns the minute.
+\end{datadesc}
+
+\begin{datadesc}{second}
+  This read-only attribute returns the second.
+\end{datadesc}
+
+\begin{datadesc}{fsecond}
+  This read-only attribute returns the fractional second.
+\end{datadesc}
+
+\input{license}
+
+\end{document}
+
