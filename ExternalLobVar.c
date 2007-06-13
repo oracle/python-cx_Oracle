@@ -21,12 +21,16 @@ static void ExternalLobVar_Free(udt_ExternalLobVar*);
 static PyObject *ExternalLobVar_Str(udt_ExternalLobVar*);
 static PyObject *ExternalLobVar_GetAttr(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_Size(udt_ExternalLobVar*, PyObject*);
+static PyObject *ExternalLobVar_Open(udt_ExternalLobVar*, PyObject*);
+static PyObject *ExternalLobVar_Close(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_Read(udt_ExternalLobVar*, PyObject*,
         PyObject*);
 static PyObject *ExternalLobVar_Write(udt_ExternalLobVar*, PyObject*,
         PyObject*);
 static PyObject *ExternalLobVar_Trim(udt_ExternalLobVar*, PyObject*,
         PyObject*);
+static PyObject *ExternalLobVar_GetChunkSize(udt_ExternalLobVar*, PyObject*);
+static PyObject *ExternalLobVar_IsOpen(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_GetFileName(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_SetFileName(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_FileExists(udt_ExternalLobVar*, PyObject*);
@@ -38,28 +42,28 @@ static PyObject *ExternalLobVar_Reduce(udt_ExternalLobVar*);
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ExternalLobVarType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.LOB",			// tp_name
-    sizeof(udt_ExternalLobVar),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) ExternalLobVar_Free,	// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    0,					// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    (reprfunc) ExternalLobVar_Str,	// tp_str
+    0,                                  // ob_size
+    "cx_Oracle.LOB",                    // tp_name
+    sizeof(udt_ExternalLobVar),         // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) ExternalLobVar_Free,   // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    (reprfunc) ExternalLobVar_Str,      // tp_str
     (getattrofunc) ExternalLobVar_GetAttr,
                                         // tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0					// tp_doc
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
 };
 
 
@@ -68,12 +72,16 @@ static PyTypeObject g_ExternalLobVarType = {
 //-----------------------------------------------------------------------------
 static PyMethodDef g_ExternalLobVarMethods[] = {
     { "size", (PyCFunction) ExternalLobVar_Size, METH_NOARGS },
+    { "open", (PyCFunction) ExternalLobVar_Open, METH_NOARGS },
+    { "close", (PyCFunction) ExternalLobVar_Close, METH_NOARGS },
     { "read", (PyCFunction) ExternalLobVar_Read,
               METH_VARARGS  | METH_KEYWORDS },
     { "write", (PyCFunction) ExternalLobVar_Write,
               METH_VARARGS  | METH_KEYWORDS },
     { "trim", (PyCFunction) ExternalLobVar_Trim,
               METH_VARARGS  | METH_KEYWORDS },
+    { "getchunksize", (PyCFunction) ExternalLobVar_GetChunkSize, METH_NOARGS },
+    { "isopen", (PyCFunction) ExternalLobVar_IsOpen, METH_NOARGS },
     { "getfilename", (PyCFunction) ExternalLobVar_GetFileName, METH_NOARGS },
     { "setfilename", (PyCFunction) ExternalLobVar_SetFileName, METH_VARARGS },
     { "fileexists", (PyCFunction) ExternalLobVar_FileExists, METH_NOARGS },
@@ -87,8 +95,8 @@ static PyMethodDef g_ExternalLobVarMethods[] = {
 //   Create a new external LOB variable.
 //-----------------------------------------------------------------------------
 PyObject *ExternalLobVar_New(
-    udt_LobVar *var,			// variable to encapsulate
-    unsigned pos)			// position in array to encapsulate
+    udt_LobVar *var,                    // variable to encapsulate
+    unsigned pos)                       // position in array to encapsulate
 {
     udt_ExternalLobVar *newVar;
 
@@ -109,7 +117,7 @@ PyObject *ExternalLobVar_New(
 //   Free an external LOB variable.
 //-----------------------------------------------------------------------------
 static void ExternalLobVar_Free(
-    udt_ExternalLobVar *var)		// variable to free
+    udt_ExternalLobVar *var)            // variable to free
 {
     Py_DECREF(var->lobVar);
     PyObject_DEL(var);
@@ -121,7 +129,7 @@ static void ExternalLobVar_Free(
 //   Verify that the external LOB var is still valid.
 //-----------------------------------------------------------------------------
 static int ExternalLobVar_Verify(
-    udt_ExternalLobVar *var)		// variable to verify
+    udt_ExternalLobVar *var)            // variable to verify
 {
     if (var->internalFetchNum != var->lobVar->internalFetchNum) {
         PyErr_SetString(g_ProgrammingErrorException,
@@ -137,8 +145,8 @@ static int ExternalLobVar_Verify(
 //   Retrieve an attribute on the external LOB variable object.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_GetAttr(
-    udt_ExternalLobVar *var,		// cursor object
-    PyObject *name)			// name of attribute
+    udt_ExternalLobVar *var,            // cursor object
+    PyObject *name)                     // name of attribute
 {
     return Py_FindMethod(g_ExternalLobVarMethods, (PyObject*) var,
             PyString_AS_STRING(name));
@@ -150,11 +158,11 @@ static PyObject *ExternalLobVar_GetAttr(
 //   Return the size of the LOB variable for internal comsumption.
 //-----------------------------------------------------------------------------
 static int ExternalLobVar_InternalRead(
-    udt_ExternalLobVar *var,		// variable to return the size of
-    char *buffer,			// buffer in which to put data
-    ub4 bufferSize,			// size of buffer
-    ub4 *length,			// length of data (IN/OUT)
-    int offset)				// offset
+    udt_ExternalLobVar *var,            // variable to return the size of
+    char *buffer,                       // buffer in which to put data
+    ub4 bufferSize,                     // size of buffer
+    ub4 *length,                        // length of data (IN/OUT)
+    int offset)                         // offset
 {
     sword status;
 
@@ -197,7 +205,7 @@ static int ExternalLobVar_InternalRead(
 //   Return the size of the LOB variable for internal comsumption.
 //-----------------------------------------------------------------------------
 static int ExternalLobVar_InternalSize(
-    udt_ExternalLobVar *var)		// variable to return the size of
+    udt_ExternalLobVar *var)            // variable to return the size of
 {
     sword status;
     ub4 length;
@@ -218,9 +226,9 @@ static int ExternalLobVar_InternalSize(
 //   Return a portion (or all) of the data in the external LOB variable.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_Value(
-    udt_ExternalLobVar *var,		// variable to return the size of
-    int offset,				// offset into LOB
-    int amount)				// amount to read from LOB
+    udt_ExternalLobVar *var,            // variable to return the size of
+    int offset,                         // offset into LOB
+    int amount)                         // amount to read from LOB
 {
     ub4 length, bufferSize;
     PyObject *result;
@@ -264,8 +272,8 @@ static PyObject *ExternalLobVar_Value(
 //   Return the size of the data in the LOB variable.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_Size(
-    udt_ExternalLobVar *var,		// variable to return the size of
-    PyObject *args)			// arguments
+    udt_ExternalLobVar *var,            // variable to return the size of
+    PyObject *args)                     // arguments
 {
     int length;
 
@@ -279,13 +287,59 @@ static PyObject *ExternalLobVar_Size(
 
 
 //-----------------------------------------------------------------------------
+// ExternalLobVar_Open()
+//   Open the LOB to speed further accesses.
+//-----------------------------------------------------------------------------
+static PyObject *ExternalLobVar_Open(
+    udt_ExternalLobVar *var,            // variable to return the size of
+    PyObject *args)                     // arguments
+{
+    sword status;
+
+    if (ExternalLobVar_Verify(var) < 0)
+        return NULL;
+    status = OCILobOpen(var->lobVar->connection->handle,
+            var->lobVar->environment->errorHandle,
+            var->lobVar->data[var->pos], OCI_LOB_READWRITE);
+    if (Environment_CheckForError(var->lobVar->environment, status,
+            "ExternalLobVar_Open()") < 0)
+        return NULL;
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+//-----------------------------------------------------------------------------
+// ExternalLobVar_Close()
+//   Close the LOB.
+//-----------------------------------------------------------------------------
+static PyObject *ExternalLobVar_Close(
+    udt_ExternalLobVar *var,            // variable to return the size of
+    PyObject *args)                     // arguments
+{
+    sword status;
+
+    if (ExternalLobVar_Verify(var) < 0)
+        return NULL;
+    status = OCILobClose(var->lobVar->connection->handle,
+            var->lobVar->environment->errorHandle,
+            var->lobVar->data[var->pos]);
+    if (Environment_CheckForError(var->lobVar->environment, status,
+            "ExternalLobVar_Close()") < 0)
+        return NULL;
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+//-----------------------------------------------------------------------------
 // ExternalLobVar_Read()
 //   Return a portion (or all) of the data in the external LOB variable.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_Read(
-    udt_ExternalLobVar *var,		// variable to return the size of
-    PyObject *args,			// arguments
-    PyObject *keywordArgs)		// keyword arguments
+    udt_ExternalLobVar *var,            // variable to return the size of
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "offset", "amount", NULL };
     int offset, amount;
@@ -307,7 +361,7 @@ static PyObject *ExternalLobVar_Read(
 //   Return all of the data in the external LOB variable.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_Str(
-    udt_ExternalLobVar *var)		// variable to return the string for
+    udt_ExternalLobVar *var)            // variable to return the string for
 {
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
@@ -320,9 +374,9 @@ static PyObject *ExternalLobVar_Str(
 //   Write a value to the LOB variable; return the number of bytes written.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_Write(
-    udt_ExternalLobVar *var,		// variable to perform write against
-    PyObject *args,			// arguments
-    PyObject *keywordArgs)		// keyword arguments
+    udt_ExternalLobVar *var,            // variable to perform write against
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "data", "offset", NULL };
     int offset, bufferLength, length;
@@ -359,9 +413,9 @@ static PyObject *ExternalLobVar_Write(
 //   Trim the LOB variable to the specified length.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_Trim(
-    udt_ExternalLobVar *var,		// variable to perform write against
-    PyObject *args,			// arguments
-    PyObject *keywordArgs)		// keyword arguments
+    udt_ExternalLobVar *var,            // variable to perform write against
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "newSize", NULL };
     sword status;
@@ -394,7 +448,7 @@ static PyObject *ExternalLobVar_Trim(
 //   Method provided for pickling/unpickling of LOB variables.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_Reduce(
-    udt_ExternalLobVar *self)		// variable to dump
+    udt_ExternalLobVar *self)           // variable to dump
 {
     PyObject *result, *value;
 
@@ -408,12 +462,63 @@ static PyObject *ExternalLobVar_Reduce(
 
 
 //-----------------------------------------------------------------------------
+// ExternalLobVar_GetChunkSize()
+//   Return the chunk size that should be used when reading/writing the LOB in
+// chunks.
+//-----------------------------------------------------------------------------
+static PyObject *ExternalLobVar_GetChunkSize(
+    udt_ExternalLobVar *var,            // variable to get chunk size for
+    PyObject *args)                     // arguments
+{
+    ub4 chunkSize;
+    sword status;
+
+    if (ExternalLobVar_Verify(var) < 0)
+        return NULL;
+    status = OCILobGetChunkSize(var->lobVar->connection->handle,
+            var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
+            &chunkSize);
+    if (Environment_CheckForError(var->lobVar->environment, status,
+            "ExternalLobVar_GetChunkSize()") < 0)
+        return NULL;
+    return PyInt_FromLong(chunkSize);
+}
+
+
+//-----------------------------------------------------------------------------
+// ExternalLobVar_IsOpen()
+//   Return a boolean indicating if the lob is open or not.
+//-----------------------------------------------------------------------------
+static PyObject *ExternalLobVar_IsOpen(
+    udt_ExternalLobVar *var,            // variable to get chunk size for
+    PyObject *args)                     // arguments
+{
+    boolean isOpen;
+    sword status;
+
+    if (ExternalLobVar_Verify(var) < 0)
+        return NULL;
+    status = OCILobIsOpen(var->lobVar->connection->handle,
+            var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
+            &isOpen);
+    if (Environment_CheckForError(var->lobVar->environment, status,
+            "ExternalLobVar_IsOpen()") < 0)
+        return NULL;
+#if (PY_VERSION_HEX >= 0x02030000)
+    return PyBool_FromLong(isOpen);
+#else
+    return PyInt_FromLong(isOpen);
+#endif
+}
+
+
+//-----------------------------------------------------------------------------
 // ExternalLobVar_GetFileName()
 //   Return the directory alias and file name for the BFILE lob.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_GetFileName(
-    udt_ExternalLobVar *var,		// variable to perform write against
-    PyObject *args)			// arguments
+    udt_ExternalLobVar *var,            // variable to get file name for
+    PyObject *args)                     // arguments
 {
     char dirAlias[30], name[255];
     ub2 dirAliasLength, nameLength;
@@ -458,8 +563,8 @@ static PyObject *ExternalLobVar_GetFileName(
 //   Set the directory alias and file name for the BFILE lob.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_SetFileName(
-    udt_ExternalLobVar *var,		// variable to perform write against
-    PyObject *args)			// arguments
+    udt_ExternalLobVar *var,            // variable to set file name for
+    PyObject *args)                     // arguments
 {
     int dirAliasLength, nameLength;
     char *dirAlias, *name;
@@ -492,8 +597,8 @@ static PyObject *ExternalLobVar_SetFileName(
 //   Return a boolean indicating if the BFIILE lob exists.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_FileExists(
-    udt_ExternalLobVar *var,		// variable to perform write against
-    PyObject *args)			// arguments
+    udt_ExternalLobVar *var,            // variable to perform write against
+    PyObject *args)                     // arguments
 {
     PyObject *result;
     sword status;
