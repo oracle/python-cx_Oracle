@@ -12,10 +12,11 @@ import os
 import sys
 
 from distutils.core import setup
+from distutils.errors import DistutilsSetupError
 from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "4.3.1"
+BUILD_VERSION = "HEAD"
 
 # define the list of files to be included as documentation for Windows
 dataFiles = None
@@ -32,8 +33,21 @@ if sys.platform in ("win32", "cygwin"):
                 files.append(name)
         dataFiles.append( ("%s/%s" % (baseName, dir), files) )
 
+# try to determine the ORACLE_HOME
+oracleHome = os.environ.get("ORACLE_HOME")
+if oracleHome is None:
+    if sys.platform == "win32":
+        fileNameToFind = "oci.dll"
+    else:
+        fileNameToFind = "oracle"
+    for path in os.environ["PATH"].split(os.pathsep):
+        if os.path.exists(os.path.join(path, fileNameToFind)):
+            oracleHome = os.path.dirname(path)
+            break
+if oracleHome is None:
+    raise DistutilsSetupError, "cannot locate an Oracle software installation"
+
 # define some variables
-oracleHome = os.environ["ORACLE_HOME"]
 if sys.platform == "win32":
     libDirs = None
     includeDirs = [os.path.join(oracleHome, "oci", "include"), \
