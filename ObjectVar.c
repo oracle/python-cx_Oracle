@@ -34,27 +34,27 @@ static int ObjectVar_IsNull(udt_ObjectVar*, unsigned);
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ObjectVarType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.OBJECTVAR",		// tp_name
-    sizeof(udt_ObjectVar),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) Variable_Free,		// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    (reprfunc) Variable_Repr,		// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    (getattrofunc) ObjectVar_GetAttr,	// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0					// tp_doc
+    0,                                  // ob_size
+    "cx_Oracle.OBJECTVAR",              // tp_name
+    sizeof(udt_ObjectVar),              // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) Variable_Free,         // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) Variable_Repr,           // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    (getattrofunc) ObjectVar_GetAttr,   // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
 };
 
 
@@ -69,13 +69,13 @@ static udt_VariableType vt_Object = {
     (IsNullProc) ObjectVar_IsNull,
     (SetValueProc) NULL,
     (GetValueProc) ObjectVar_GetValue,
-    &g_ObjectVarType,			// Python type
-    SQLT_NTY,				// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(dvoid*),			// element length
-    0,					// is variable length
-    0,					// can be copied
-    0					// can be in array
+    &g_ObjectVarType,                   // Python type
+    SQLT_NTY,                           // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(dvoid*),                     // element length
+    0,                                  // is variable length
+    0,                                  // can be copied
+    0                                   // can be in array
 };
 
 
@@ -84,8 +84,8 @@ static udt_VariableType vt_Object = {
 //   Initialize the variable.
 //-----------------------------------------------------------------------------
 static int ObjectVar_Initialize(
-    udt_ObjectVar *self,		// variable to initialize
-    udt_Cursor *cursor)			// cursor to use
+    udt_ObjectVar *self,                // variable to initialize
+    udt_Cursor *cursor)                 // cursor to use
 {
     int i;
 
@@ -111,7 +111,7 @@ static int ObjectVar_Initialize(
 //   Prepare for variable destruction.
 //-----------------------------------------------------------------------------
 static void ObjectVar_Finalize(
-    udt_ObjectVar *self)		// variable to free
+    udt_ObjectVar *self)                // variable to free
 {
     int i;
 
@@ -133,8 +133,8 @@ static void ObjectVar_Finalize(
 //   Retrieve an attribute on the variable object.
 //-----------------------------------------------------------------------------
 static PyObject *ObjectVar_GetAttr(
-    udt_ObjectVar *self,		// variable object
-    PyObject *nameObject)		// name of attribute
+    udt_ObjectVar *self,                // variable object
+    PyObject *nameObject)               // name of attribute
 {
     char *name;
 
@@ -152,8 +152,8 @@ static PyObject *ObjectVar_GetAttr(
 //   Performs additional steps required for defining objects.
 //-----------------------------------------------------------------------------
 static int ObjectVar_PreDefine(
-    udt_ObjectVar *self,		// variable to set up
-    OCIParam *param)			// parameter being defined
+    udt_ObjectVar *self,                // variable to set up
+    OCIParam *param)                    // parameter being defined
 {
     self->objectType = ObjectType_New(self->connection, param);
     if (!self->objectType)
@@ -167,7 +167,7 @@ static int ObjectVar_PreDefine(
 //   Performs additional steps required for defining objects.
 //-----------------------------------------------------------------------------
 static int ObjectVar_PostDefine(
-    udt_ObjectVar *self)		// variable to set up
+    udt_ObjectVar *self)                // variable to set up
 {
     sword status;
 
@@ -184,8 +184,8 @@ static int ObjectVar_PostDefine(
 //   Returns a boolean indicating if the variable is null or not.
 //-----------------------------------------------------------------------------
 static int ObjectVar_IsNull(
-    udt_ObjectVar *self,		// variable to set up
-    unsigned pos)			// position to check
+    udt_ObjectVar *self,                // variable to set up
+    unsigned pos)                       // position to check
 {
     if (!self->objectIndicator[pos])
         return 1;
@@ -198,8 +198,8 @@ static int ObjectVar_IsNull(
 //   Returns the value stored at the given array position.
 //-----------------------------------------------------------------------------
 static PyObject *ObjectVar_GetValue(
-    udt_ObjectVar *self,		// variable to determine value for
-    unsigned pos)			// array position
+    udt_ObjectVar *self,                // variable to determine value for
+    unsigned pos)                       // array position
 {
     PyObject *var;
 

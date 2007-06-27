@@ -13,8 +13,8 @@ static udt_VariableType vt_Date;
 //   Return a Python date object given an Oracle date.
 //-----------------------------------------------------------------------------
 static PyObject *OracleDateToPythonDate(
-    udt_VariableType *varType,		// variable type
-    OCIDate* value)			// value to convert
+    udt_VariableType *varType,          // variable type
+    OCIDate* value)                     // value to convert
 {
     ub1 hour, minute, second, month, day;
     sb2 year;
@@ -39,8 +39,8 @@ static PyObject *OracleDateToPythonDate(
 //   Return a Python date object given an Oracle date.
 //-----------------------------------------------------------------------------
 static PyObject *OracleNumberToPythonFloat(
-    udt_Environment *environment,	// environment
-    OCINumber* value)			// value to convert
+    udt_Environment *environment,       // environment
+    OCINumber* value)                   // value to convert
 {
     double doubleValue;
     sword status;

@@ -64,93 +64,93 @@ static PyMemberDef g_ObjectAttributeMembers[] = {
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ObjectTypeType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.ObjectType",		// tp_name
-    sizeof(udt_ObjectType),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) ObjectType_Free,	// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    (reprfunc) ObjectType_Repr,		// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    0,					// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0,					// tp_doc
-    0,					// tp_traverse
-    0,					// tp_clear
-    0,					// tp_richcompare
-    0,					// tp_weaklistoffset
-    0,					// tp_iter
-    0,					// tp_iternext
-    0,					// tp_methods
-    g_ObjectTypeMembers,		// tp_members
-    0,					// tp_getset
-    0,					// tp_base
-    0,					// tp_dict
-    0,					// tp_descr_get
-    0,					// tp_descr_set
-    0,					// tp_dictoffset
-    0,					// tp_init
-    0,					// tp_alloc
-    0,					// tp_new
-    0,					// tp_free
-    0,					// tp_is_gc
-    0					// tp_bases
+    0,                                  // ob_size
+    "cx_Oracle.ObjectType",             // tp_name
+    sizeof(udt_ObjectType),             // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) ObjectType_Free,       // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) ObjectType_Repr,         // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    0,                                  // tp_methods
+    g_ObjectTypeMembers,                // tp_members
+    0,                                  // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    0,                                  // tp_init
+    0,                                  // tp_alloc
+    0,                                  // tp_new
+    0,                                  // tp_free
+    0,                                  // tp_is_gc
+    0                                   // tp_bases
 };
 
 
 static PyTypeObject g_ObjectAttributeType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.ObjectAttribute",	// tp_name
-    sizeof(udt_ObjectAttribute),	// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) ObjectAttribute_Free,	// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    (reprfunc) ObjectAttribute_Repr,	// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    0,					// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0,					// tp_doc
-    0,					// tp_traverse
-    0,					// tp_clear
-    0,					// tp_richcompare
-    0,					// tp_weaklistoffset
-    0,					// tp_iter
-    0,					// tp_iternext
-    0,					// tp_methods
-    g_ObjectAttributeMembers,		// tp_members
-    0,					// tp_getset
-    0,					// tp_base
-    0,					// tp_dict
-    0,					// tp_descr_get
-    0,					// tp_descr_set
-    0,					// tp_dictoffset
-    0,					// tp_init
-    0,					// tp_alloc
-    0,					// tp_new
-    0,					// tp_free
-    0,					// tp_is_gc
-    0					// tp_bases
+    0,                                  // ob_size
+    "cx_Oracle.ObjectAttribute",        // tp_name
+    sizeof(udt_ObjectAttribute),        // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) ObjectAttribute_Free,  // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) ObjectAttribute_Repr,    // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    0,                                  // tp_methods
+    g_ObjectAttributeMembers,           // tp_members
+    0,                                  // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    0,                                  // tp_init
+    0,                                  // tp_alloc
+    0,                                  // tp_new
+    0,                                  // tp_free
+    0,                                  // tp_is_gc
+    0                                   // tp_bases
 };
 
 
@@ -159,9 +159,9 @@ static PyTypeObject g_ObjectAttributeType = {
 //   Describe the type and store information about it as needed.
 //-----------------------------------------------------------------------------
 static int ObjectType_Describe(
-    udt_ObjectType *self,		// type to populate
-    udt_Connection *connection,		// connection for type information
-    OCIDescribe *describeHandle)	// describe handle
+    udt_ObjectType *self,               // type to populate
+    udt_Connection *connection,         // connection for type information
+    OCIDescribe *describeHandle)        // describe handle
 {
     OCIParam *topLevelParam, *attributeListParam, *attributeParam;
     udt_ObjectAttribute *attribute;
@@ -281,9 +281,9 @@ static int ObjectType_Describe(
 //   Initialize the object type with the information that is required.
 //-----------------------------------------------------------------------------
 static int ObjectType_Initialize(
-    udt_ObjectType *self,		// type to initialize
-    udt_Connection *connection,		// connection for type information
-    OCIParam *param)			// parameter descriptor
+    udt_ObjectType *self,               // type to initialize
+    udt_Connection *connection,         // connection for type information
+    OCIParam *param)                    // parameter descriptor
 {
     OCIDescribe *describeHandle;
     OCIRef *tdoReference;
@@ -350,8 +350,8 @@ static int ObjectType_Initialize(
 //   Allocate a new object type.
 //-----------------------------------------------------------------------------
 static udt_ObjectType *ObjectType_New(
-    udt_Connection *connection,		// connection for type information
-    OCIParam *param)			// parameter descriptor
+    udt_Connection *connection,         // connection for type information
+    OCIParam *param)                    // parameter descriptor
 {
     udt_ObjectType *self;
 
@@ -381,7 +381,7 @@ static udt_ObjectType *ObjectType_New(
 //   Free the memory associated with an object type.
 //-----------------------------------------------------------------------------
 static void ObjectType_Free(
-    udt_ObjectType *self)		// object type to free
+    udt_ObjectType *self)               // object type to free
 {
     Py_DECREF(self->environment);
     Py_XDECREF(self->schema);
@@ -401,7 +401,7 @@ static void ObjectType_Free(
 //   Return a string representation of the object type.
 //-----------------------------------------------------------------------------
 static PyObject *ObjectType_Repr(
-    udt_ObjectType *self)		// object type to return the string for
+    udt_ObjectType *self)               // object type to return the string for
 {
     PyObject *module, *name, *result;
 
@@ -421,9 +421,9 @@ static PyObject *ObjectType_Repr(
 //   Initialize the new object attribute.
 //-----------------------------------------------------------------------------
 static int ObjectAttribute_Initialize(
-    udt_ObjectAttribute *self,		// object attribute to initialize
-    udt_Connection *connection,		// connection in use
-    OCIParam *param)			// parameter descriptor
+    udt_ObjectAttribute *self,          // object attribute to initialize
+    udt_Connection *connection,         // connection in use
+    OCIParam *param)                    // parameter descriptor
 {
     sword status;
     char *name;
@@ -465,8 +465,8 @@ static int ObjectAttribute_Initialize(
 //   Allocate a new object attribute.
 //-----------------------------------------------------------------------------
 static udt_ObjectAttribute *ObjectAttribute_New(
-    udt_Connection *connection,		// connection information
-    OCIParam *param)			// parameter descriptor
+    udt_Connection *connection,         // connection information
+    OCIParam *param)                    // parameter descriptor
 {
     udt_ObjectAttribute *self;
 
@@ -489,7 +489,7 @@ static udt_ObjectAttribute *ObjectAttribute_New(
 //   Free the memory associated with an object attribute.
 //-----------------------------------------------------------------------------
 static void ObjectAttribute_Free(
-    udt_ObjectAttribute *self)		// object attribute to free
+    udt_ObjectAttribute *self)          // object attribute to free
 {
     Py_XDECREF(self->name);
     Py_XDECREF(self->subType);
@@ -502,7 +502,7 @@ static void ObjectAttribute_Free(
 //   Return a string representation of the object attribute.
 //-----------------------------------------------------------------------------
 static PyObject *ObjectAttribute_Repr(
-    udt_ObjectAttribute *self)		// attribute to return the string for
+    udt_ObjectAttribute *self)          // attribute to return the string for
 {
     PyObject *module, *name, *result;
 

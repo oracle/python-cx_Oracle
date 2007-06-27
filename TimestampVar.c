@@ -26,27 +26,27 @@ static PyObject *TimestampVar_GetValue(udt_TimestampVar*, unsigned);
 //-----------------------------------------------------------------------------
 static PyTypeObject g_TimestampVarType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.TIMESTAMP",		// tp_name
-    sizeof(udt_TimestampVar),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) Variable_Free,		// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    (reprfunc) Variable_Repr,		// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    (getattrofunc) Variable_GetAttr,	// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0					// tp_doc
+    0,                                  // ob_size
+    "cx_Oracle.TIMESTAMP",              // tp_name
+    sizeof(udt_TimestampVar),           // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) Variable_Free,         // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) Variable_Repr,           // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    (getattrofunc) Variable_GetAttr,    // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
 };
 
 
@@ -61,13 +61,13 @@ static udt_VariableType vt_Timestamp = {
     (IsNullProc) NULL,
     (SetValueProc) TimestampVar_SetValue,
     (GetValueProc) TimestampVar_GetValue,
-    &g_TimestampVarType,		// Python type
-    SQLT_TIMESTAMP,			// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(OCIDateTime*),		// element length (default)
-    0,					// is variable length
-    1,					// can be copied
-    1					// can be in array
+    &g_TimestampVarType,                // Python type
+    SQLT_TIMESTAMP,                     // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(OCIDateTime*),               // element length (default)
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
 };
 
 
@@ -76,8 +76,8 @@ static udt_VariableType vt_Timestamp = {
 //   Initialize the variable.
 //-----------------------------------------------------------------------------
 static int TimestampVar_Initialize(
-    udt_TimestampVar *var,		// variable to initialize
-    udt_Cursor *cursor)			// cursor variable associated with
+    udt_TimestampVar *var,              // variable to initialize
+    udt_Cursor *cursor)                 // cursor variable associated with
 {
     sword status;
     ub4 i;
@@ -100,7 +100,7 @@ static int TimestampVar_Initialize(
 //   Prepare for variable destruction.
 //-----------------------------------------------------------------------------
 static void TimestampVar_Finalize(
-    udt_TimestampVar *var)		// variable to free
+    udt_TimestampVar *var)              // variable to free
 {
     ub4 i;
 
@@ -117,9 +117,9 @@ static void TimestampVar_Finalize(
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
 static int TimestampVar_SetValue(
-    udt_TimestampVar *var,		// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_TimestampVar *var,              // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     sword status;
     uword valid;
@@ -163,9 +163,9 @@ static int TimestampVar_SetValue(
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
 static int TimestampVar_SetValue(
-    udt_TimestampVar *var,		// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_TimestampVar *var,              // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     udt_ExternalDateTimeVar *dateValue;
     sword status;
@@ -207,8 +207,8 @@ static int TimestampVar_SetValue(
 //   Returns the value stored at the given array position.
 //-----------------------------------------------------------------------------
 static PyObject *TimestampVar_GetValue(
-    udt_TimestampVar *var,		// variable to determine value for
-    unsigned pos)			// array position
+    udt_TimestampVar *var,              // variable to determine value for
+    unsigned pos)                       // array position
 {
     ub1 hour, minute, second, month, day;
     sword status;

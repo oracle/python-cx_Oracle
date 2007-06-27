@@ -28,27 +28,27 @@ static PyObject *CursorVar_GetValue(udt_CursorVar*, unsigned);
 //-----------------------------------------------------------------------------
 static PyTypeObject g_CursorVarType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.CURSOR",			// tp_name
-    sizeof(udt_CursorVar),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) Variable_Free,		// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    (reprfunc) Variable_Repr,		// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    (getattrofunc) Variable_GetAttr,	// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0					// tp_doc
+    0,                                  // ob_size
+    "cx_Oracle.CURSOR",                 // tp_name
+    sizeof(udt_CursorVar),              // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) Variable_Free,         // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) Variable_Repr,           // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    (getattrofunc) Variable_GetAttr,    // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
 };
 
 
@@ -63,13 +63,13 @@ static udt_VariableType vt_Cursor = {
     (IsNullProc) NULL,
     (SetValueProc) CursorVar_SetValue,
     (GetValueProc) CursorVar_GetValue,
-    &g_CursorVarType,			// Python type
-    SQLT_RSET,				// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(OCIStmt*),			// element length
-    0,					// is variable length
-    0,					// can be copied
-    0					// can be in array
+    &g_CursorVarType,                   // Python type
+    SQLT_RSET,                          // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(OCIStmt*),                   // element length
+    0,                                  // is variable length
+    0,                                  // can be copied
+    0                                   // can be in array
 };
 
 
@@ -78,8 +78,8 @@ static udt_VariableType vt_Cursor = {
 //   Initialize the variable.
 //-----------------------------------------------------------------------------
 static int CursorVar_Initialize(
-    udt_CursorVar *var,			// variable to initialize
-    udt_Cursor *cursor)			// cursor created by
+    udt_CursorVar *var,                 // variable to initialize
+    udt_Cursor *cursor)                 // cursor created by
 {
     udt_Cursor *tempCursor;
     ub4 i;
@@ -112,7 +112,7 @@ static int CursorVar_Initialize(
 //   Prepare for variable destruction.
 //-----------------------------------------------------------------------------
 static void CursorVar_Finalize(
-    udt_CursorVar *var)			// variable to free
+    udt_CursorVar *var)                 // variable to free
 {
     Py_DECREF(var->connection);
     Py_XDECREF(var->cursors);
@@ -124,9 +124,9 @@ static void CursorVar_Finalize(
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
 static int CursorVar_SetValue(
-    udt_CursorVar *var,			// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_CursorVar *var,                 // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     udt_Cursor *cursor;
 
@@ -159,8 +159,8 @@ static int CursorVar_SetValue(
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
 static PyObject *CursorVar_GetValue(
-    udt_CursorVar *var,			// variable to set value for
-    unsigned pos)			// array position to set
+    udt_CursorVar *var,                 // variable to set value for
+    unsigned pos)                       // array position to set
 {
     PyObject *cursor;
 

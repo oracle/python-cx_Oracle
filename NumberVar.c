@@ -35,27 +35,27 @@ static PyObject *NumberVar_GetValueAsDouble(udt_NumberVar*, unsigned);
 //-----------------------------------------------------------------------------
 static PyTypeObject g_NumberVarType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.NUMBER",			// tp_name
-    sizeof(udt_NumberVar),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) Variable_Free,		// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    (reprfunc) Variable_Repr,		// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    (getattrofunc) Variable_GetAttr,	// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0					// tp_doc
+    0,                                  // ob_size
+    "cx_Oracle.NUMBER",                 // tp_name
+    sizeof(udt_NumberVar),              // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) Variable_Free,         // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) Variable_Repr,           // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    (getattrofunc) Variable_GetAttr,    // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
 };
 
 
@@ -70,13 +70,13 @@ static udt_VariableType vt_Float = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
-    &g_NumberVarType,			// Python type
-    SQLT_VNU,				// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(OCINumber),			// element length
-    0,					// is variable length
-    1,					// can be copied
-    1					// can be in array
+    &g_NumberVarType,                   // Python type
+    SQLT_VNU,                           // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(OCINumber),                  // element length
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
 };
 
 
@@ -89,13 +89,13 @@ static udt_VariableType vt_NativeFloat = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValueAsDouble,
     (GetValueProc) NumberVar_GetValueAsDouble,
-    &g_NumberVarType,			// Python type
-    SQLT_BDOUBLE,			// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(double),			// element length
-    0,					// is variable length
-    1,					// can be copied
-    1					// can be in array
+    &g_NumberVarType,                   // Python type
+    SQLT_BDOUBLE,                       // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(double),                     // element length
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
 };
 #endif
 
@@ -108,13 +108,13 @@ static udt_VariableType vt_Integer = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
-    &g_NumberVarType,			// Python type
-    SQLT_VNU,				// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(OCINumber),			// element length
-    0,					// is variable length
-    1,					// can be copied
-    1					// can be in array
+    &g_NumberVarType,                   // Python type
+    SQLT_VNU,                           // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(OCINumber),                  // element length
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
 };
 
 
@@ -126,13 +126,13 @@ static udt_VariableType vt_LongInteger = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
-    &g_NumberVarType,			// Python type
-    SQLT_VNU,				// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(OCINumber),			// element length
-    0,					// is variable length
-    1,					// can be copied
-    1					// can be in array
+    &g_NumberVarType,                   // Python type
+    SQLT_VNU,                           // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(OCINumber),                  // element length
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
 };
 
 
@@ -144,13 +144,13 @@ static udt_VariableType vt_NumberAsString = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
-    &g_NumberVarType,			// Python type
-    SQLT_VNU,				// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(OCINumber),			// element length
-    0,					// is variable length
-    1,					// can be copied
-    1					// can be in array
+    &g_NumberVarType,                   // Python type
+    SQLT_VNU,                           // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(OCINumber),                  // element length
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
 };
 
 
@@ -162,13 +162,13 @@ static udt_VariableType vt_Boolean = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
-    &g_NumberVarType,			// Python type
-    SQLT_VNU,				// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(OCINumber),			// element length
-    0,					// is variable length
-    1,					// can be copied
-    1					// can be in array
+    &g_NumberVarType,                   // Python type
+    SQLT_VNU,                           // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(OCINumber),                  // element length
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
 };
 
 
@@ -178,8 +178,8 @@ static udt_VariableType vt_Boolean = {
 // when values are fetched from this variable.
 //-----------------------------------------------------------------------------
 static int NumberVar_PreDefine(
-    udt_NumberVar *var,			// variable to initialize
-    OCIParam *param)			// parameter handle
+    udt_NumberVar *var,                 // variable to initialize
+    OCIParam *param)                    // parameter handle
 {
     sb2 precision;
     sword status;
@@ -216,9 +216,9 @@ static int NumberVar_PreDefine(
 //   Set the value of the variable from a Python boolean.
 //-----------------------------------------------------------------------------
 static int NumberVar_SetValueFromBoolean(
-    udt_NumberVar *var,			// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_NumberVar *var,                 // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     long integerValue;
     sword status;
@@ -237,9 +237,9 @@ static int NumberVar_SetValueFromBoolean(
 //   Set the value of the variable from a Python integer.
 //-----------------------------------------------------------------------------
 static int NumberVar_SetValueFromInteger(
-    udt_NumberVar *var,			// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_NumberVar *var,                 // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     long integerValue;
     sword status;
@@ -257,9 +257,9 @@ static int NumberVar_SetValueFromInteger(
 //   Set the value of the variable from a Python float.
 //-----------------------------------------------------------------------------
 static int NumberVar_SetValueFromFloat(
-    udt_NumberVar *var,			// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_NumberVar *var,                 // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     double doubleValue;
     sword status;
@@ -277,9 +277,9 @@ static int NumberVar_SetValueFromFloat(
 //   Set the value of the variable from a Python long.
 //-----------------------------------------------------------------------------
 static int NumberVar_SetValueFromLong(
-    udt_NumberVar *var,			// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_NumberVar *var,                 // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     PyObject *textValue;
     sword status;
@@ -302,9 +302,9 @@ static int NumberVar_SetValueFromLong(
 //   Return the number format and text to use for the Decimal object.
 //-----------------------------------------------------------------------------
 static int NumberVar_GetFormatAndTextFromDecimal(
-    PyObject *tupleValue,		// decimal as_tuple() value
-    char **textValue,			// text string for conversion
-    char **format)			// format for conversion
+    PyObject *tupleValue,               // decimal as_tuple() value
+    char **textValue,                   // text string for conversion
+    char **format)                      // format for conversion
 {
     long numDigits, scale, i, sign, length, digit;
     char *valuePtr, *formatPtr;
@@ -362,9 +362,9 @@ static int NumberVar_GetFormatAndTextFromDecimal(
 //   Set the value of the variable from a Python decimal.Decimal object.
 //-----------------------------------------------------------------------------
 static int NumberVar_SetValueFromDecimal(
-    udt_NumberVar *var,			// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_NumberVar *var,                 // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     char *textValue, *format;
     PyObject *tupleValue;
@@ -394,9 +394,9 @@ static int NumberVar_SetValueFromDecimal(
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
 static int NumberVar_SetValue(
-    udt_NumberVar *var,			// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_NumberVar *var,                 // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     if (PyInt_Check(value))
         return NumberVar_SetValueFromInteger(var, pos, value);
@@ -421,9 +421,9 @@ static int NumberVar_SetValue(
 //   Set the value of the variable which should be a native double.
 //-----------------------------------------------------------------------------
 static int NumberVar_SetValueAsDouble(
-    udt_NumberVar *var,			// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_NumberVar *var,                 // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     double *doublePtr;
 
@@ -444,8 +444,8 @@ static int NumberVar_SetValueAsDouble(
 //   Returns the value stored at the given array position.
 //-----------------------------------------------------------------------------
 static PyObject *NumberVar_GetValue(
-    udt_NumberVar *var,			// variable to determine value for
-    unsigned pos)			// array position
+    udt_NumberVar *var,                 // variable to determine value for
+    unsigned pos)                       // array position
 {
     char stringValue[200];
     long integerValue;
@@ -496,8 +496,8 @@ static PyObject *NumberVar_GetValue(
 //   Returns the value stored at the given array position as a float.
 //-----------------------------------------------------------------------------
 static PyObject *NumberVar_GetValueAsDouble(
-    udt_NumberVar *var,			// variable to determine value for
-    unsigned pos)			// array position
+    udt_NumberVar *var,                 // variable to determine value for
+    unsigned pos)                       // array position
 {
     double *doublePtr;
 

@@ -48,9 +48,9 @@ typedef int Py_ssize_t;
         return;
 
 // define macro to get the build version as a string
-#define xstr(s)			str(s)
-#define str(s)			#s
-#define BUILD_VERSION_STRING	xstr(BUILD_VERSION)
+#define xstr(s)                 str(s)
+#define str(s)                  #s
+#define BUILD_VERSION_STRING    xstr(BUILD_VERSION)
 
 
 //-----------------------------------------------------------------------------
@@ -78,10 +78,10 @@ static PyTypeObject *g_DecimalType = NULL;
 //   Create an exception and set it in the provided dictionary.
 //-----------------------------------------------------------------------------
 static int SetException(
-    PyObject *module,			// module object
-    PyObject **exception,		// exception to create
-    char *name,				// name of the exception
-    PyObject *baseException)		// exception to base exception on
+    PyObject *module,                   // module object
+    PyObject **exception,               // exception to create
+    char *name,                         // name of the exception
+    PyObject *baseException)            // exception to base exception on
 {
     char buffer[100];
 
@@ -98,9 +98,9 @@ static int SetException(
 //   Return the module and name for the type.
 //-----------------------------------------------------------------------------
 static int GetModuleAndName(
-    PyTypeObject *type,			// type to get module/name for
-    PyObject **module,			// name of module
-    PyObject **name)			// name of type
+    PyTypeObject *type,                 // type to get module/name for
+    PyObject **module,                  // name of module
+    PyObject **name)                    // name of type
 {
     *module = PyObject_GetAttrString( (PyObject*) type, "__module__");
     if (!*module)
@@ -127,8 +127,8 @@ static int GetModuleAndName(
 //   Make a data source name given the host port and SID.
 //-----------------------------------------------------------------------------
 static PyObject* MakeDSN(
-    PyObject* self,			// passthrough argument
-    PyObject* args)			// arguments to function
+    PyObject* self,                     // passthrough argument
+    PyObject* args)                     // arguments to function
 {
     char *host, *sid;
     int port;
@@ -149,8 +149,8 @@ static PyObject* MakeDSN(
 //   Returns a time value suitable for binding.
 //-----------------------------------------------------------------------------
 static PyObject* Time(
-    PyObject* self,			// passthrough argument
-    PyObject* args)			// arguments to function
+    PyObject* self,                     // passthrough argument
+    PyObject* args)                     // arguments to function
 {
     PyErr_SetString(g_NotSupportedErrorException,
             "Oracle does not support time only variables");
@@ -163,8 +163,8 @@ static PyObject* Time(
 //   Returns a time value suitable for binding.
 //-----------------------------------------------------------------------------
 static PyObject* TimeFromTicks(
-    PyObject* self,			// passthrough argument
-    PyObject* args)			// arguments to function
+    PyObject* self,                     // passthrough argument
+    PyObject* args)                     // arguments to function
 {
     PyErr_SetString(g_NotSupportedErrorException,
             "Oracle does not support time only variables");
@@ -178,8 +178,8 @@ static PyObject* TimeFromTicks(
 //   Returns a date value suitable for binding.
 //-----------------------------------------------------------------------------
 static PyObject* Date(
-    PyObject* self,			// passthrough argument
-    PyObject* args)			// arguments to function
+    PyObject* self,                     // passthrough argument
+    PyObject* args)                     // arguments to function
 {
     return ExternalDateTimeVar_New(&g_ExternalDateTimeVarType, args, NULL);
 }
@@ -191,8 +191,8 @@ static PyObject* Date(
 //   Returns a date value suitable for binding.
 //-----------------------------------------------------------------------------
 static PyObject* DateFromTicks(
-    PyObject* self,			// passthrough argument
-    PyObject* args)			// arguments to function
+    PyObject* self,                     // passthrough argument
+    PyObject* args)                     // arguments to function
 {
 #ifdef NATIVE_DATETIME
     return PyDate_FromTimestamp(args);
@@ -219,8 +219,8 @@ static PyObject* DateFromTicks(
 //   Returns a date value suitable for binding.
 //-----------------------------------------------------------------------------
 static PyObject* TimestampFromTicks(
-    PyObject* self,			// passthrough argument
-    PyObject* args)			// arguments to function
+    PyObject* self,                     // passthrough argument
+    PyObject* args)                     // arguments to function
 {
 #ifdef NATIVE_DATETIME
     return PyDateTime_FromTimestamp(args);

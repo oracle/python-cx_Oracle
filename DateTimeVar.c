@@ -24,27 +24,27 @@ static PyObject *DateTimeVar_GetValue(udt_DateTimeVar*, unsigned);
 //-----------------------------------------------------------------------------
 static PyTypeObject g_DateTimeVarType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.DATETIME",		// tp_name
-    sizeof(udt_DateTimeVar),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) Variable_Free,		// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    (reprfunc) Variable_Repr,		// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    (getattrofunc) Variable_GetAttr,	// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0					// tp_doc
+    0,                                  // ob_size
+    "cx_Oracle.DATETIME",               // tp_name
+    sizeof(udt_DateTimeVar),            // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) Variable_Free,         // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) Variable_Repr,           // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    (getattrofunc) Variable_GetAttr,    // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
 };
 
 
@@ -59,13 +59,13 @@ static udt_VariableType vt_DateTime = {
     (IsNullProc) NULL,
     (SetValueProc) DateTimeVar_SetValue,
     (GetValueProc) DateTimeVar_GetValue,
-    &g_DateTimeVarType,			// Python type
-    SQLT_ODT,				// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(OCIDate),			// element length (default)
-    0,					// is variable length
-    1,					// can be copied
-    1					// can be in array
+    &g_DateTimeVarType,                 // Python type
+    SQLT_ODT,                           // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(OCIDate),                    // element length (default)
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
 };
 
 
@@ -78,13 +78,13 @@ static udt_VariableType vt_Date = {
     (IsNullProc) NULL,
     (SetValueProc) DateTimeVar_SetValue,
     (GetValueProc) DateTimeVar_GetValue,
-    &g_DateTimeVarType,			// Python type
-    SQLT_ODT,				// Oracle type
-    SQLCS_IMPLICIT,			// charset form
-    sizeof(OCIDate),			// element length (default)
-    0,					// is variable length
-    1,					// can be copied
-    1					// can be in array
+    &g_DateTimeVarType,                 // Python type
+    SQLT_ODT,                           // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(OCIDate),                    // element length (default)
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
 };
 
 
@@ -93,9 +93,9 @@ static udt_VariableType vt_Date = {
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
 static int DateTimeVar_SetValue(
-    udt_DateTimeVar *var,		// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_DateTimeVar *var,               // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     ub1 month, day, hour, minute, second;
     short year;
@@ -131,9 +131,9 @@ static int DateTimeVar_SetValue(
 //   Get the attribute from the object and convert it to an integer.
 //-----------------------------------------------------------------------------
 static int DateTimeVar_GetAttribute(
-    PyObject *value,			// value to get attribute for
-    char *name,				// name to acquire
-    unsigned *outputValue)		// output value
+    PyObject *value,                    // value to get attribute for
+    char *name,                         // name to acquire
+    unsigned *outputValue)              // output value
 {
     PyObject *attrValue;
 
@@ -152,9 +152,9 @@ static int DateTimeVar_GetAttribute(
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
 static int DateTimeVar_SetValue(
-    udt_DateTimeVar *var,		// variable to set value for
-    unsigned pos,			// array position to set
-    PyObject *value)			// value to set
+    udt_DateTimeVar *var,               // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
 {
     unsigned year, month, day, hour, minute, second;
     udt_ExternalDateTimeVar *dateValue;
@@ -214,8 +214,8 @@ static int DateTimeVar_SetValue(
 //   Returns the value stored at the given array position.
 //-----------------------------------------------------------------------------
 static PyObject *DateTimeVar_GetValue(
-    udt_DateTimeVar *var,		// variable to determine value for
-    unsigned pos)			// array position
+    udt_DateTimeVar *var,               // variable to determine value for
+    unsigned pos)                       // array position
 {
     return OracleDateToPythonDate(var->type, &var->data[pos]);
 }

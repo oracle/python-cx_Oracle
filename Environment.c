@@ -18,7 +18,7 @@ typedef struct {
 //-----------------------------------------------------------------------------
 // maximum number of characters applicable to strings
 //-----------------------------------------------------------------------------
-#define MAX_STRING_CHARS		4000
+#define MAX_STRING_CHARS                4000
 
 //-----------------------------------------------------------------------------
 // forward declarations
@@ -31,27 +31,27 @@ static int Environment_CheckForError(udt_Environment*, sword, const char*);
 //-----------------------------------------------------------------------------
 static PyTypeObject g_EnvironmentType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "OracleEnvironment",		// tp_name
-    sizeof(udt_Environment),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) Environment_Free,	// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    0,					// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    0,					// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0					// tp_doc
+    0,                                  // ob_size
+    "OracleEnvironment",                // tp_name
+    sizeof(udt_Environment),            // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) Environment_Free,      // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
 };
 
 
@@ -63,7 +63,7 @@ static PyTypeObject g_EnvironmentType = {
 //   Create a new environment object.
 //-----------------------------------------------------------------------------
 static udt_Environment *Environment_New(
-    int threaded)			// use threaded mode?
+    int threaded)                       // use threaded mode?
 {
     udt_Environment *environment;
     sword status;
@@ -143,7 +143,7 @@ static udt_Environment *Environment_New(
 // will automatically destroy any child handles that were created.
 //-----------------------------------------------------------------------------
 static void Environment_Free(
-    udt_Environment *environment)	// environment object
+    udt_Environment *environment)       // environment object
 {
     if (environment->handle)
         OCIHandleFree(environment->handle, OCI_HTYPE_ENV);
@@ -158,8 +158,8 @@ static void Environment_Free(
 // environment is fully initialized.
 //-----------------------------------------------------------------------------
 static void Environment_RaiseError(
-    udt_Environment *environment,	// environment to raise error for
-    const char *context)		// context in which error occurred
+    udt_Environment *environment,       // environment to raise error for
+    const char *context)                // context in which error occurred
 {
     PyObject *exceptionType;
     udt_Error *error;
@@ -182,9 +182,9 @@ static void Environment_RaiseError(
 // Python exception.
 //-----------------------------------------------------------------------------
 static int Environment_CheckForError(
-    udt_Environment *environment,	// environment to raise error in
-    sword status,			// status of last call
-    const char *context)		// context
+    udt_Environment *environment,       // environment to raise error in
+    sword status,                       // status of last call
+    const char *context)                // context
 {
     if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO) {
         if (status == OCI_INVALID_HANDLE)

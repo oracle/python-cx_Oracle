@@ -8,13 +8,13 @@
 //   Return a new variable from a callback.
 //-----------------------------------------------------------------------------
 static udt_Variable *Callback_NewVariable(
-    udt_Connection *connection,		// connection to use
-    ub2 oracleType,			// Oracle type of data
-    ub4 maxLength,			// maximum length of elements
-    void *data,				// data pointer
-    void *indicator,			// indicator pointer
-    ub2 *returnCode,			// return code pointer
-    ub2 *actualLength)			// actual length pointer
+    udt_Connection *connection,         // connection to use
+    ub2 oracleType,                     // Oracle type of data
+    ub4 maxLength,                      // maximum length of elements
+    void *data,                         // data pointer
+    void *indicator,                    // indicator pointer
+    ub2 *returnCode,                    // return code pointer
+    ub2 *actualLength)                  // actual length pointer
 {
     udt_VariableType *type;
     udt_Variable *var;
@@ -62,8 +62,8 @@ static udt_Variable *Callback_NewVariable(
 //   Return the arguments to be passed when OCIBindByName is called.
 //-----------------------------------------------------------------------------
 static PyObject *Callback_BindByNameArgs(
-    udt_Connection *connection,		// connection to use
-    va_list args)			// arguments to OCI function
+    udt_Connection *connection,         // connection to use
+    va_list args)                       // arguments to OCI function
 {
     ub4 nameLength, allocatedElements, *actualElements;
     ub2 dataType, *actualLength, *returnCode;
@@ -110,8 +110,8 @@ static PyObject *Callback_BindByNameArgs(
 //   Return the arguments to be passed when OCIDefineByPos is called.
 //-----------------------------------------------------------------------------
 static PyObject *Callback_DefineByPosArgs(
-    udt_Connection *connection,		// connection to use
-    va_list args)			// arguments to OCI function
+    udt_Connection *connection,         // connection to use
+    va_list args)                       // arguments to OCI function
 {
     ub2 dataType, *actualLength, *returnCode;
     OCIDefine **defineHandle;
@@ -151,7 +151,7 @@ static PyObject *Callback_DefineByPosArgs(
 //   Return the arguments to be passed when OCIStmtExecute is called.
 //-----------------------------------------------------------------------------
 static PyObject *Callback_ExecuteArgs(
-    va_list args)			// arguments to OCI function
+    va_list args)                       // arguments to OCI function
 {
     OCISvcCtx* serviceContextHandle;
     OCIError *errorHandle;
@@ -173,8 +173,8 @@ static PyObject *Callback_ExecuteArgs(
 //   Return the arguments to be passed when OCIStmtFetch is called.
 //-----------------------------------------------------------------------------
 static PyObject *Callback_FetchArgs(
-    udt_Connection *connection,		// connection to use
-    va_list args)			// arguments to OCI function
+    udt_Connection *connection,         // connection to use
+    va_list args)                       // arguments to OCI function
 {
     ub4 numRows, rowCount;
     OCIError *errorHandle;
@@ -200,7 +200,7 @@ static PyObject *Callback_FetchArgs(
 //   Return the arguments to be passed when OCIStmtPrepare is called.
 //-----------------------------------------------------------------------------
 static PyObject *Callback_PrepareArgs(
-    va_list args)			// arguments to OCI function
+    va_list args)                       // arguments to OCI function
 {
     OCIError *errorHandle;
     ub4 statementLength;
@@ -221,9 +221,9 @@ static PyObject *Callback_PrepareArgs(
 //   Return the arguments to be passed to the Python callback method.
 //-----------------------------------------------------------------------------
 static PyObject *Callback_GetArgs(
-    udt_Connection *connection,		// connection to use
-    ub4 functionCode,			// function code
-    va_list args)			// OCI function arguments
+    udt_Connection *connection,         // connection to use
+    ub4 functionCode,                   // function code
+    va_list args)                       // OCI function arguments
 {
     switch (functionCode) {
         case OCI_FNCODE_BINDBYNAME:
@@ -247,9 +247,9 @@ static PyObject *Callback_GetArgs(
 //   Actually make the call to the Python function.
 //-----------------------------------------------------------------------------
 static sword Callback_Call(
-    PyObject *tuple,			// tuple containing connection/callback
-    ub4 functionCode,			// function code
-    va_list args)			// arguments
+    PyObject *tuple,                    // tuple containing connection/callback
+    ub4 functionCode,                   // function code
+    va_list args)                       // arguments
 {
     PyObject *callback, *callbackArgs, *result;
     udt_Connection *connection;
@@ -279,14 +279,14 @@ static sword Callback_Call(
 //   Callback handler for calling Python code within an OCI callback.
 //-----------------------------------------------------------------------------
 static sword Callback_Handler(
-    PyObject *tuple,			// tuple containing connection/callback
-    dvoid *handle,			// pointer to handle
-    ub4 handleType,			// handle type
-    ub4 functionCode,			// function code
-    ub1 when,				// when being called
-    sword returnCode,			// return code
-    ub4 *errorCode,			// error code (IN/OUT)
-    va_list args)			// arguments
+    PyObject *tuple,                    // tuple containing connection/callback
+    dvoid *handle,                      // pointer to handle
+    ub4 handleType,                     // handle type
+    ub4 functionCode,                   // function code
+    ub1 when,                           // when being called
+    sword returnCode,                   // return code
+    ub4 *errorCode,                     // error code (IN/OUT)
+    va_list args)                       // arguments
 {
 #ifdef WITH_THREAD
     PyThreadState *threadState;

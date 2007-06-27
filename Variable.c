@@ -111,10 +111,10 @@ static PyMethodDef g_VariableMethods[] = {
 //   Allocate a new variable.
 //-----------------------------------------------------------------------------
 static udt_Variable *Variable_New(
-    udt_Cursor *cursor,			// cursor to associate variable with
-    unsigned numElements,		// number of elements to allocate
-    udt_VariableType *type,		// variable type
-    ub4 elementLength)			// used only for variable length types
+    udt_Cursor *cursor,                 // cursor to associate variable with
+    unsigned numElements,               // number of elements to allocate
+    udt_VariableType *type,             // variable type
+    ub4 elementLength)                  // used only for variable length types
 {
     unsigned PY_LONG_LONG dataLength;
     udt_Variable *var;
@@ -203,7 +203,7 @@ static udt_Variable *Variable_New(
 //   Free an existing variable.
 //-----------------------------------------------------------------------------
 static void Variable_Free(
-    udt_Variable *var)			// variable to free
+    udt_Variable *var)                  // variable to free
 {
     if (var->isAllocatedInternally) {
         if (var->type->finalizeProc)
@@ -228,8 +228,8 @@ static void Variable_Free(
 //   Resize the variable.
 //-----------------------------------------------------------------------------
 static int Variable_Resize(
-    udt_Variable *var,			// variable to resize
-    unsigned maxLength)			// new length to use
+    udt_Variable *var,                  // variable to resize
+    unsigned maxLength)                 // new length to use
 {
     char *newData;
     ub4 i;
@@ -265,7 +265,7 @@ static int Variable_Resize(
 //   Returns a boolean indicating if the object is a variable.
 //-----------------------------------------------------------------------------
 static int Variable_Check(
-    PyObject *object)			// Python object to check
+    PyObject *object)                   // Python object to check
 {
     return (object->ob_type == &g_CursorVarType ||
             object->ob_type == &g_DateTimeVarType ||
@@ -293,8 +293,8 @@ static int Variable_Check(
 // type does not have a corresponding variable type.
 //-----------------------------------------------------------------------------
 static udt_VariableType *Variable_TypeByPythonType(
-    udt_Cursor* cursor,			// cursor variable created for
-    PyObject* type)			// Python type
+    udt_Cursor* cursor,                 // cursor variable created for
+    PyObject* type)                     // Python type
 {
     if (type == (PyObject*) &g_StringVarType)
         return &vt_String;
@@ -363,7 +363,7 @@ static udt_VariableType *Variable_TypeByPythonType(
 // object does not have a corresponding variable type.
 //-----------------------------------------------------------------------------
 static udt_VariableType *Variable_TypeByValue(
-    PyObject* value)			// Python type
+    PyObject* value)                    // Python type
 {
     PyObject *elementValue;
     char buffer[200];
@@ -429,8 +429,8 @@ static udt_VariableType *Variable_TypeByValue(
 // data type does not have a corresponding variable type.
 //-----------------------------------------------------------------------------
 static udt_VariableType *Variable_TypeByOracleDataType (
-    ub2 oracleDataType,			// Oracle data type
-    ub1 charsetForm)			// character set form
+    ub2 oracleDataType,                 // Oracle data type
+    ub1 charsetForm)                    // character set form
 {
     char buffer[100];
 
@@ -495,7 +495,7 @@ static udt_VariableType *Variable_TypeByOracleDataType (
 //   Make the variable an array, ensuring that the type supports arrays.
 //-----------------------------------------------------------------------------
 static int Variable_MakeArray(
-    udt_Variable *var)			// variable to make an array
+    udt_Variable *var)                  // variable to make an array
 {
     if (!var->type->canBeInArray) {
         PyErr_SetString(g_NotSupportedErrorException,
@@ -512,9 +512,9 @@ static int Variable_MakeArray(
 //   Allocate a new variable by looking at the type of the data.
 //-----------------------------------------------------------------------------
 static udt_Variable *Variable_NewByValue(
-    udt_Cursor *cursor,			// cursor to associate variable with
-    PyObject *value,			// Python value to associate
-    unsigned numElements)		// number of elements to allocate
+    udt_Cursor *cursor,                 // cursor to associate variable with
+    PyObject *value,                    // Python value to associate
+    unsigned numElements)               // number of elements to allocate
 {
     udt_VariableType *varType;
     Py_ssize_t bufferSize;
@@ -561,8 +561,8 @@ static udt_Variable *Variable_NewByValue(
 //   Allocate a new PL/SQL array by looking at the Python data type.
 //-----------------------------------------------------------------------------
 static udt_Variable *Variable_NewArrayByType(
-    udt_Cursor *cursor,			// cursor to bind variable to
-    PyObject *value)			// value to bind
+    udt_Cursor *cursor,                 // cursor to bind variable to
+    PyObject *value)                    // value to bind
 {
     PyObject *type, *numElements;
     udt_VariableType *varType;
@@ -604,9 +604,9 @@ static udt_Variable *Variable_NewArrayByType(
 //   Allocate a new variable by looking at the Python data type.
 //-----------------------------------------------------------------------------
 static udt_Variable *Variable_NewByType(
-    udt_Cursor *cursor,			// cursor to associate variable with
-    PyObject *value,			// Python data type to associate
-    unsigned numElements)		// number of elements to allocate
+    udt_Cursor *cursor,                 // cursor to associate variable with
+    PyObject *value,                    // Python data type to associate
+    unsigned numElements)               // number of elements to allocate
 {
     udt_VariableType *varType;
     int maxLength;
@@ -644,10 +644,10 @@ static udt_Variable *Variable_NewByType(
 // OCIDescriptorFree() is not necessary.
 //-----------------------------------------------------------------------------
 static udt_Variable *Variable_DefineHelper(
-    udt_Cursor *cursor,			// cursor in use
-    OCIParam *param,			// parameter descriptor
-    unsigned position,			// position in define list
-    unsigned numElements)		// number of elements to create
+    udt_Cursor *cursor,                 // cursor in use
+    OCIParam *param,                    // parameter descriptor
+    unsigned position,                  // position in define list
+    unsigned numElements)               // number of elements to create
 {
     ub2 dataType, lengthFromOracle;
     udt_VariableType *varType;
@@ -748,9 +748,9 @@ static udt_Variable *Variable_DefineHelper(
 //   Allocate a variable and define it for the given statement.
 //-----------------------------------------------------------------------------
 static udt_Variable *Variable_Define(
-    udt_Cursor *cursor,			// cursor to define for
-    unsigned numElements,		// number of elements to create
-    unsigned position)			// position to define
+    udt_Cursor *cursor,                 // cursor to define for
+    unsigned numElements,               // number of elements to create
+    unsigned position)                  // position to define
 {
     udt_Variable *var;
     OCIParam *param;
@@ -775,7 +775,7 @@ static udt_Variable *Variable_Define(
 //   Allocate a variable and bind it to the given statement.
 //-----------------------------------------------------------------------------
 static int Variable_InternalBind(
-    udt_Variable *var)			// variable to bind
+    udt_Variable *var)                  // variable to bind
 {
     sword status;
 
@@ -845,10 +845,10 @@ static int Variable_InternalBind(
 //   Allocate a variable and bind it to the given statement.
 //-----------------------------------------------------------------------------
 static int Variable_Bind(
-    udt_Variable *var,			// variable to bind
-    udt_Cursor *cursor,			// cursor to bind to
-    PyObject *name,			// name to bind to
-    ub4 pos)				// position to bind to
+    udt_Variable *var,                  // variable to bind
+    udt_Cursor *cursor,                 // cursor to bind to
+    PyObject *name,                     // name to bind to
+    ub4 pos)                            // position to bind to
 {
     // nothing to do if already bound
     if (var->bindHandle && name == var->boundName && pos == var->boundPos)
@@ -871,8 +871,8 @@ static int Variable_Bind(
 //   Verifies that truncation or other problems did not take place on retrieve.
 //-----------------------------------------------------------------------------
 static int Variable_VerifyFetch(
-  udt_Variable *var,			// variable to check fetch for
-  unsigned arrayPos)			// array position
+  udt_Variable *var,                    // variable to check fetch for
+  unsigned arrayPos)                    // array position
 {
     if (var->type->isVariableLength) {
         if (var->returnCode[arrayPos] != 0) {
@@ -892,8 +892,8 @@ static int Variable_VerifyFetch(
 //   Return the value of the variable at the given position.
 //-----------------------------------------------------------------------------
 static PyObject *Variable_GetSingleValue(
-    udt_Variable *var,			// variable to get the value for
-    unsigned arrayPos)			// array position
+    udt_Variable *var,                  // variable to get the value for
+    unsigned arrayPos)                  // array position
 {
     int isNull;
 
@@ -926,8 +926,8 @@ static PyObject *Variable_GetSingleValue(
 //   Return the value of the variable as an array.
 //-----------------------------------------------------------------------------
 static PyObject *Variable_GetArrayValue(
-    udt_Variable *var,			// variable to get the value for
-    ub4 numElements)			// number of elements to include
+    udt_Variable *var,                  // variable to get the value for
+    ub4 numElements)                    // number of elements to include
 {
     PyObject *value, *singleValue;
     ub4 i;
@@ -954,8 +954,8 @@ static PyObject *Variable_GetArrayValue(
 //   Return the value of the variable.
 //-----------------------------------------------------------------------------
 static PyObject *Variable_GetValue(
-    udt_Variable *var,			// variable to get the value for
-    unsigned arrayPos)			// array position
+    udt_Variable *var,                  // variable to get the value for
+    unsigned arrayPos)                  // array position
 {
     if (var->isArray)
         return Variable_GetArrayValue(var, var->actualElements);
@@ -968,9 +968,9 @@ static PyObject *Variable_GetValue(
 //   Set a single value in the variable.
 //-----------------------------------------------------------------------------
 static int Variable_SetSingleValue(
-    udt_Variable *var,			// variable to set value for
-    unsigned arrayPos,			// array position
-    PyObject *value)			// value to set
+    udt_Variable *var,                  // variable to set value for
+    unsigned arrayPos,                  // array position
+    PyObject *value)                    // value to set
 {
     // ensure we do not exceed the number of allocated elements
     if (arrayPos >= var->allocatedElements) {
@@ -997,8 +997,8 @@ static int Variable_SetSingleValue(
 //   Set all of the array values for the variable.
 //-----------------------------------------------------------------------------
 static int Variable_SetArrayValue(
-    udt_Variable *var,			// variable to set value for
-    PyObject *value)			// value to set
+    udt_Variable *var,                  // variable to set value for
+    PyObject *value)                    // value to set
 {
     unsigned numElements;
     ub4 i;
@@ -1032,9 +1032,9 @@ static int Variable_SetArrayValue(
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
 static int Variable_SetValue(
-    udt_Variable *var,			// variable to set
-    unsigned arrayPos,			// array position
-    PyObject *value)			// value to set
+    udt_Variable *var,                  // variable to set
+    unsigned arrayPos,                  // array position
+    PyObject *value)                    // value to set
 {
     if (var->isArray)
         return Variable_SetArrayValue(var, value);
@@ -1047,8 +1047,8 @@ static int Variable_SetValue(
 //   Copy the contents of the source variable to the destination variable.
 //-----------------------------------------------------------------------------
 static PyObject *Variable_ExternalCopy(
-    udt_Variable *targetVar,		// variable to set
-    PyObject *args)			// arguments
+    udt_Variable *targetVar,            // variable to set
+    PyObject *args)                     // arguments
 {
     unsigned sourcePos, targetPos;
     udt_Variable *sourceVar;
@@ -1116,8 +1116,8 @@ static PyObject *Variable_ExternalCopy(
 //   Set the value of the variable at the given position.
 //-----------------------------------------------------------------------------
 static PyObject *Variable_ExternalSetValue(
-    udt_Variable *var,			// variable to set
-    PyObject *args)			// arguments
+    udt_Variable *var,                  // variable to set
+    PyObject *args)                     // arguments
 {
     PyObject *value;
     unsigned pos;
@@ -1137,9 +1137,9 @@ static PyObject *Variable_ExternalSetValue(
 //   Return the value of the variable at the given position.
 //-----------------------------------------------------------------------------
 static PyObject *Variable_ExternalGetValue(
-    udt_Variable *var,			// variable to set
-    PyObject *args,			// arguments
-    PyObject *keywordArgs)		// keyword arguments
+    udt_Variable *var,                  // variable to set
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "pos", NULL };
     unsigned pos = 0;
@@ -1156,8 +1156,8 @@ static PyObject *Variable_ExternalGetValue(
 //   Retrieve an attribute on the variable object.
 //-----------------------------------------------------------------------------
 static PyObject *Variable_GetAttr(
-    udt_Variable *var,			// variable object
-    PyObject *nameObject)		// name of attribute
+    udt_Variable *var,                  // variable object
+    PyObject *nameObject)               // name of attribute
 {
     char *name;
 
@@ -1177,7 +1177,7 @@ static PyObject *Variable_GetAttr(
 //   Return a string representation of the variable.
 //-----------------------------------------------------------------------------
 static PyObject *Variable_Repr(
-    udt_Variable *var)			// variable to return the string for
+    udt_Variable *var)                  // variable to return the string for
 {
     PyObject *valueRepr, *value, *module, *name, *result;
 

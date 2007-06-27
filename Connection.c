@@ -119,48 +119,48 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ConnectionType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.Connection",		// tp_name
-    sizeof(udt_Connection),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) Connection_Free,	// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    (reprfunc) Connection_Repr,		// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    0,					// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
+    0,                                  // ob_size
+    "cx_Oracle.Connection",             // tp_name
+    sizeof(udt_Connection),             // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) Connection_Free,       // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) Connection_Repr,         // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-					// tp_flags
-    0,					// tp_doc
-    0,					// tp_traverse
-    0,					// tp_clear
-    0,					// tp_richcompare
-    0,					// tp_weaklistoffset
-    0,					// tp_iter
-    0,					// tp_iternext
-    g_ConnectionMethods,		// tp_methods
-    g_ConnectionMembers,		// tp_members
-    g_ConnectionCalcMembers,		// tp_getset
-    0,					// tp_base
-    0,					// tp_dict
-    0,					// tp_descr_get
-    0,					// tp_descr_set
-    0,					// tp_dictoffset
-    (initproc) Connection_Init,		// tp_init
-    0,					// tp_alloc
-    (newfunc) Connection_New,		// tp_new
-    0,					// tp_free
-    0,					// tp_is_gc
-    0					// tp_bases
+                                        // tp_flags
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    g_ConnectionMethods,                // tp_methods
+    g_ConnectionMembers,                // tp_members
+    g_ConnectionCalcMembers,            // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    (initproc) Connection_Init,         // tp_init
+    0,                                  // tp_alloc
+    (newfunc) Connection_New,           // tp_new
+    0,                                  // tp_free
+    0,                                  // tp_is_gc
+    0                                   // tp_bases
 };
 
 
@@ -170,7 +170,7 @@ static PyTypeObject g_ConnectionType = {
 // a Python exception is raised.
 //-----------------------------------------------------------------------------
 static int Connection_IsConnected(
-    udt_Connection *self)		// connection to check
+    udt_Connection *self)               // connection to check
 {
     if (!self->handle) {
         PyErr_SetString(g_InterfaceErrorException, "not connected");
@@ -186,8 +186,8 @@ static int Connection_IsConnected(
 //   Acquire a connection from a session pool.
 //-----------------------------------------------------------------------------
 static int Connection_Acquire(
-    udt_Connection *self,		// connection
-    udt_SessionPool *pool)		// pool to acquire connection from
+    udt_Connection *self,               // connection
+    udt_SessionPool *pool)              // pool to acquire connection from
 {
     boolean found;
     sword status;
@@ -225,9 +225,9 @@ static int Connection_Acquire(
 //   Set the value of the OCI attribute.
 //-----------------------------------------------------------------------------
 static int Connection_SetOCIAttr(
-    udt_Connection *self,		// connection to set
-    PyObject *value,			// value to set
-    ub4 *attribute)			// OCI attribute type
+    udt_Connection *self,               // connection to set
+    PyObject *value,                    // value to set
+    ub4 *attribute)                     // OCI attribute type
 {
     sword status;
 
@@ -256,8 +256,8 @@ static int Connection_SetOCIAttr(
 //   Attach to an existing connection.
 //-----------------------------------------------------------------------------
 static int Connection_Attach(
-    udt_Connection *self,		// connection
-    OCISvcCtx *handle)			// handle of connection to attach to
+    udt_Connection *self,               // connection
+    OCISvcCtx *handle)                  // handle of connection to attach to
 {
     OCISession *sessionHandle;
     OCIServer *serverHandle;
@@ -307,17 +307,17 @@ static int Connection_Attach(
 //   Create a new connection object by connecting to the database.
 //-----------------------------------------------------------------------------
 static int Connection_Connect(
-    udt_Connection *self,		// connection
-    const char *dsn,			// TNS entry
-    unsigned dsnLength,			// length of TNS entry
-    ub4 mode,				// mode to connect as
-    int threaded,			// threaded?
-    int twophase)			// allow two phase commit?
+    udt_Connection *self,               // connection
+    const char *dsn,                    // TNS entry
+    unsigned dsnLength,                 // length of TNS entry
+    ub4 mode,                           // mode to connect as
+    int threaded,                       // threaded?
+    int twophase)                       // allow two phase commit?
 {
     ub4 credentialType = OCI_CRED_EXT;
     sword status;
 
-    // allocate the server handle 
+    // allocate the server handle
     status = OCIHandleAlloc(self->environment->handle,
             (dvoid**) &self->serverHandle, OCI_HTYPE_SERVER, 0, 0);
     if (Environment_CheckForError(self->environment, status,
@@ -365,7 +365,7 @@ static int Connection_Connect(
             return -1;
     }
 
-    // allocate the session handle 
+    // allocate the session handle
     status = OCIHandleAlloc(self->environment->handle,
             (dvoid**) &self->sessionHandle, OCI_HTYPE_SESSION, 0, 0);
     if (Environment_CheckForError(self->environment, status,
@@ -428,9 +428,9 @@ static int Connection_Connect(
 //   Create a new connection object and return it.
 //-----------------------------------------------------------------------------
 static PyObject* Connection_New(
-    PyTypeObject *type,			// type object
-    PyObject *args,			// arguments
-    PyObject *keywordArgs)		// keyword arguments
+    PyTypeObject *type,                 // type object
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
     udt_Connection *self;
 
@@ -450,9 +450,9 @@ static PyObject* Connection_New(
 //   Initialize the connection members.
 //-----------------------------------------------------------------------------
 static int Connection_Init(
-    udt_Connection *self,		// connection
-    PyObject *args,			// arguments
-    PyObject *keywordArgs)		// keyword arguments
+    udt_Connection *self,               // connection
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
     unsigned usernameLength, passwordLength, dsnLength;
     const char *username, *password, *dsn;
@@ -573,7 +573,7 @@ static int Connection_Init(
 //   Deallocate the connection, disconnecting from the database if necessary.
 //-----------------------------------------------------------------------------
 static void Connection_Free(
-    udt_Connection *self)		// connection object
+    udt_Connection *self)               // connection object
 {
 #ifdef ORACLE_9I
     if (self->sessionPool) {
@@ -611,7 +611,7 @@ static void Connection_Free(
 //   Return a string representation of the connection.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_Repr(
-    udt_Connection *connection)		// connection to return the string for
+    udt_Connection *connection)         // connection to return the string for
 {
     PyObject *module, *name, *result;
 
@@ -641,8 +641,8 @@ static PyObject *Connection_Repr(
 //   Retrieve the IANA character set name for the attribute.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_GetCharacterSetName(
-    udt_Connection *self,		// connection object
-    ub2 attribute)			// attribute to fetch
+    udt_Connection *self,               // connection object
+    ub2 attribute)                      // attribute to fetch
 {
     char charsetName[OCI_NLS_MAXBUFSZ], ianaCharsetName[OCI_NLS_MAXBUFSZ];
     ub2 charsetId;
@@ -679,8 +679,8 @@ static PyObject *Connection_GetCharacterSetName(
 //   Retrieve the IANA encoding used by the client.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_GetEncoding(
-    udt_Connection *self,		// connection object
-    void *arg)				// optional argument (ignored)
+    udt_Connection *self,               // connection object
+    void *arg)                          // optional argument (ignored)
 {
     return Connection_GetCharacterSetName(self, OCI_ATTR_ENV_CHARSET_ID);
 }
@@ -691,8 +691,8 @@ static PyObject *Connection_GetEncoding(
 //   Retrieve the IANA national encoding used by the client.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_GetNationalEncoding(
-    udt_Connection *self,		// connection object
-    void *arg)				// optional argument (ignored)
+    udt_Connection *self,               // connection object
+    void *arg)                          // optional argument (ignored)
 {
     return Connection_GetCharacterSetName(self, OCI_ATTR_ENV_NCHARSET_ID);
 }
@@ -706,8 +706,8 @@ static PyObject *Connection_GetNationalEncoding(
 // calculated once.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_GetVersion(
-    udt_Connection *self,		// connection object
-    void *arg)				// optional argument (ignored)
+    udt_Connection *self,               // connection object
+    void *arg)                          // optional argument (ignored)
 {
     udt_Variable *versionVar, *compatVar;
     PyObject *results, *temp;
@@ -775,8 +775,8 @@ static PyObject *Connection_GetVersion(
 //   Return the maximum number of bytes per character.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_GetMaxBytesPerCharacter(
-    udt_Connection *self,		// connection object
-    void *arg)				// optional argument (ignored)
+    udt_Connection *self,               // connection object
+    void *arg)                          // optional argument (ignored)
 {
     return PyInt_FromLong(self->environment->maxBytesPerCharacter);
 }
@@ -787,8 +787,8 @@ static PyObject *Connection_GetMaxBytesPerCharacter(
 //   Close the connection, disconnecting from the database.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_Close(
-    udt_Connection *self,		// connection to close
-    PyObject *args)			// arguments
+    udt_Connection *self,               // connection to close
+    PyObject *args)                     // arguments
 {
     sword status;
 
@@ -828,8 +828,8 @@ static PyObject *Connection_Close(
 //   Commit the transaction on the connection.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_Commit(
-    udt_Connection *self,		// connection to commit
-    PyObject *args)			// arguments
+    udt_Connection *self,               // connection to commit
+    PyObject *args)                     // arguments
 {
     sword status;
 
@@ -856,8 +856,8 @@ static PyObject *Connection_Commit(
 //   Begin a new transaction on the connection.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_Begin(
-    udt_Connection *self,		// connection to commit
-    PyObject *args)			// arguments
+    udt_Connection *self,               // connection to commit
+    PyObject *args)                     // arguments
 {
     unsigned transactionIdLength, branchIdLength;
     const char *transactionId, *branchId;
@@ -934,8 +934,8 @@ static PyObject *Connection_Begin(
 //   Commit the transaction on the connection.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_Prepare(
-    udt_Connection *self,		// connection to commit
-    PyObject *args)			// arguments
+    udt_Connection *self,               // connection to commit
+    PyObject *args)                     // arguments
 {
     sword status;
 
@@ -963,8 +963,8 @@ static PyObject *Connection_Prepare(
 //   Rollback the transaction on the connection.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_Rollback(
-    udt_Connection *self,		// connection to rollback
-    PyObject *args)			// arguments
+    udt_Connection *self,               // connection to rollback
+    PyObject *args)                     // arguments
 {
     sword status;
 
@@ -991,8 +991,8 @@ static PyObject *Connection_Rollback(
 //   Create a new cursor (statement) referencing the connection.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_NewCursor(
-    udt_Connection *self,		// connection to create cursor on
-    PyObject *args)			// arguments
+    udt_Connection *self,               // connection to create cursor on
+    PyObject *args)                     // arguments
 {
     PyObject *createArgs, *result;
 
@@ -1013,8 +1013,8 @@ static PyObject *Connection_NewCursor(
 // currently executing OCI function.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_Cancel(
-    udt_Connection *self,		// connection to cancel
-    PyObject *args)			// arguments
+    udt_Connection *self,               // connection to cancel
+    PyObject *args)                     // arguments
 {
     sword status;
 
@@ -1038,8 +1038,8 @@ static PyObject *Connection_Cancel(
 //   Register a callback for the OCI function.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_RegisterCallback(
-    udt_Connection *self,		// connection to register callback on
-    PyObject *args)			// arguments
+    udt_Connection *self,               // connection to register callback on
+    PyObject *args)                     // arguments
 {
     PyObject *callback, *tuple;
     int functionCode, when;
@@ -1076,8 +1076,8 @@ static PyObject *Connection_RegisterCallback(
 // No error is raised if a callback has not been registered.
 //-----------------------------------------------------------------------------
 static PyObject *Connection_UnregisterCallback(
-    udt_Connection *self,		// connection to unregister callback on
-    PyObject *args)			// arguments
+    udt_Connection *self,               // connection to unregister callback on
+    PyObject *args)                     // arguments
 {
     OCIUserCallback callback;
     int functionCode, when;

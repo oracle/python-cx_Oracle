@@ -89,48 +89,48 @@ static PyGetSetDef g_SessionPoolCalcMembers[] = {
 //-----------------------------------------------------------------------------
 static PyTypeObject g_SessionPoolType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "OracleSessionPool",		// tp_name
-    sizeof(udt_SessionPool),		// tp_basicsize
-    0,					// tp_itemsize
-    (destructor) SessionPool_Free,	// tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    0,					// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
-    0,					// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
+    0,                                  // ob_size
+    "OracleSessionPool",                // tp_name
+    sizeof(udt_SessionPool),            // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) SessionPool_Free,      // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-					// tp_flags
-    0,					// tp_doc
-    0,					// tp_traverse
-    0,					// tp_clear
-    0,					// tp_richcompare
-    0,					// tp_weaklistoffset
-    0,					// tp_iter
-    0,					// tp_iternext
-    g_SessionPoolMethods,		// tp_methods
-    g_SessionPoolMembers,		// tp_members
-    g_SessionPoolCalcMembers,		// tp_getset
-    0,					// tp_base
-    0,					// tp_dict
-    0,					// tp_descr_get
-    0,					// tp_descr_set
-    0,					// tp_dictoffset
-    (initproc) SessionPool_Init,	// tp_init
-    0,					// tp_alloc
-    (newfunc) SessionPool_New,		// tp_new
-    0,					// tp_free
-    0,					// tp_is_gc
-    0					// tp_bases
+                                        // tp_flags
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    g_SessionPoolMethods,               // tp_methods
+    g_SessionPoolMembers,               // tp_members
+    g_SessionPoolCalcMembers,           // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    (initproc) SessionPool_Init,        // tp_init
+    0,                                  // tp_alloc
+    (newfunc) SessionPool_New,          // tp_new
+    0,                                  // tp_free
+    0,                                  // tp_is_gc
+    0                                   // tp_bases
 };
 
 
@@ -142,9 +142,9 @@ static PyTypeObject g_SessionPoolType = {
 //   Create a new session pool object.
 //-----------------------------------------------------------------------------
 static PyObject *SessionPool_New(
-    PyTypeObject *type,			// type object
-    PyObject *args,			// arguments
-    PyObject *keywordArgs)		// keyword arguments
+    PyTypeObject *type,                 // type object
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
     udt_SessionPool *newObject;
 
@@ -163,9 +163,9 @@ static PyObject *SessionPool_New(
 //   Initialize the session pool object.
 //-----------------------------------------------------------------------------
 static int SessionPool_Init(
-    udt_SessionPool *self,		// session pool object
-    PyObject *args,			// arguments
-    PyObject *keywordArgs)		// keyword arguments
+    udt_SessionPool *self,              // session pool object
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
     unsigned usernameLength, passwordLength, dsnLength, poolNameLength;
     const char *username, *password, *dsn, *poolName;
@@ -275,7 +275,7 @@ static int SessionPool_Init(
 //   Deallocate the session pool.
 //-----------------------------------------------------------------------------
 static void SessionPool_Free(
-    udt_SessionPool *self)		// session pool
+    udt_SessionPool *self)              // session pool
 {
     if (self->handle) {
         OCISessionPoolDestroy(self->handle, self->environment->errorHandle,
@@ -297,7 +297,7 @@ static void SessionPool_Free(
 // not, a Python exception is raised.
 //-----------------------------------------------------------------------------
 static int SessionPool_IsConnected(
-    udt_SessionPool *self)		// session pool
+    udt_SessionPool *self)              // session pool
 {
     if (!self->handle) {
         PyErr_SetString(g_InterfaceErrorException, "not connected");
@@ -312,8 +312,8 @@ static int SessionPool_IsConnected(
 //   Create a new connection within the session pool.
 //-----------------------------------------------------------------------------
 static PyObject *SessionPool_Acquire(
-    udt_SessionPool *self,		// session pool
-    PyObject *args)			// arguments
+    udt_SessionPool *self,              // session pool
+    PyObject *args)                     // arguments
 {
     PyObject *createArgs, *createKeywordArgs, *result;
 
@@ -353,9 +353,9 @@ static PyObject *SessionPool_Acquire(
 // allow for the possibility of dropping the connection.
 //-----------------------------------------------------------------------------
 static PyObject *SessionPool_InternalRelease(
-    udt_SessionPool *self,		// session pool
-    PyObject *args,			// arguments
-    ub4 mode)				// OCI mode to use
+    udt_SessionPool *self,              // session pool
+    PyObject *args,                     // arguments
+    ub4 mode)                           // OCI mode to use
 {
     udt_Connection *connection;
     sword status;
@@ -405,8 +405,8 @@ static PyObject *SessionPool_InternalRelease(
 // connection will be created if needed.
 //-----------------------------------------------------------------------------
 static PyObject *SessionPool_Drop(
-    udt_SessionPool *self,		// session pool
-    PyObject *args)			// arguments
+    udt_SessionPool *self,              // session pool
+    PyObject *args)                     // arguments
 {
     return SessionPool_InternalRelease(self, args, OCI_SESSRLS_DROPSESS);
 }
@@ -417,8 +417,8 @@ static PyObject *SessionPool_Drop(
 //   Release a connection back to the session pool.
 //-----------------------------------------------------------------------------
 static PyObject *SessionPool_Release(
-    udt_SessionPool *self,		// session pool
-    PyObject *args)			// arguments
+    udt_SessionPool *self,              // session pool
+    PyObject *args)                     // arguments
 {
     return SessionPool_InternalRelease(self, args, OCI_DEFAULT);
 }
@@ -429,8 +429,8 @@ static PyObject *SessionPool_Release(
 //   Return the value for the OCI attribute.
 //-----------------------------------------------------------------------------
 static PyObject *SessionPool_GetOCIAttr(
-    udt_SessionPool *self,		// session pool
-    ub4 *attribute)			// OCI attribute type
+    udt_SessionPool *self,              // session pool
+    ub4 *attribute)                     // OCI attribute type
 {
     sword status;
     ub4 value;
@@ -456,9 +456,9 @@ static PyObject *SessionPool_GetOCIAttr(
 //   Set the value of the OCI attribute.
 //-----------------------------------------------------------------------------
 static int SessionPool_SetOCIAttr(
-    udt_SessionPool *self,		// session pool
-    PyObject *value,			// value to set
-    ub4 *attribute)			// OCI attribute type
+    udt_SessionPool *self,              // session pool
+    PyObject *value,                    // value to set
+    ub4 *attribute)                     // OCI attribute type
 {
     ub4 ociValue;
     sword status;

@@ -58,47 +58,47 @@ static PyMethodDef g_ExternalDateTimeVarMethods[] = {
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ExternalDateTimeVarType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.Timestamp",		// tp_name
-    sizeof(udt_ExternalDateTimeVar),	// tp_basicsize
-    0,					// tp_itemsize
+    0,                                  // ob_size
+    "cx_Oracle.Timestamp",              // tp_name
+    sizeof(udt_ExternalDateTimeVar),    // tp_basicsize
+    0,                                  // tp_itemsize
     (destructor) ExternalDateTimeVar_Free,
                                         // tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    (cmpfunc) ExternalDateTimeVar_Cmp,	// tp_compare
-    (reprfunc) ExternalDateTimeVar_Str,	// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    (reprfunc) ExternalDateTimeVar_Str,	// tp_str
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    (cmpfunc) ExternalDateTimeVar_Cmp,  // tp_compare
+    (reprfunc) ExternalDateTimeVar_Str, // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    (reprfunc) ExternalDateTimeVar_Str, // tp_str
                                         // tp_getattro
-    0,					// tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
                                         // tp_flags
-    0,					// tp_doc
-    0,					// tp_traverse
-    0,					// tp_clear
-    0,					// tp_richcompare
-    0,					// tp_weaklistoffset
-    0,					// tp_iter
-    0,					// tp_iternext
-    g_ExternalDateTimeVarMethods,	// tp_methods
-    g_ExternalDateTimeVarMembers,	// tp_members
-    0,					// tp_getset
-    0,					// tp_base
-    0,					// tp_dict
-    0,					// tp_descr_get
-    0,					// tp_descr_set
-    0,					// tp_dictoffset
-    0,					// tp_init
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    g_ExternalDateTimeVarMethods,       // tp_methods
+    g_ExternalDateTimeVarMembers,       // tp_members
+    0,                                  // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    0,                                  // tp_init
     0,                                  // tp_alloc
-    ExternalDateTimeVar_New,		// tp_new
+    ExternalDateTimeVar_New,            // tp_new
     0,                                  // tp_free
     0,                                  // tp_is_gc
     0                                   // tp_bases
@@ -110,14 +110,14 @@ static PyTypeObject g_ExternalDateTimeVarType = {
 //   Create a new external date variable from C code.
 //-----------------------------------------------------------------------------
 PyObject *ExternalDateTimeVar_NewFromC(
-    PyTypeObject *type,			// type of object
-    unsigned year,			// year
-    unsigned month,			// month
-    unsigned day,			// day
-    unsigned hour,			// hour
-    unsigned minute,			// minute
-    unsigned second,			// second
-    unsigned fsecond)			// fractional seconds
+    PyTypeObject *type,                 // type of object
+    unsigned year,                      // year
+    unsigned month,                     // month
+    unsigned day,                       // day
+    unsigned hour,                      // hour
+    unsigned minute,                    // minute
+    unsigned second,                    // second
+    unsigned fsecond)                   // fractional seconds
 {
     udt_ExternalDateTimeVar *var;
 
@@ -161,7 +161,7 @@ static PyObject *ExternalDateTimeVar_New(
 //   Provide information for pickling and unpickling.
 //-----------------------------------------------------------------------------
 static PyObject* ExternalDateTimeVar_Reduce(
-    udt_ExternalDateTimeVar* self)	// object to pickle
+    udt_ExternalDateTimeVar* self)      // object to pickle
 {
     return Py_BuildValue("(O, (iiiiiii))", &g_ExternalDateTimeVarType,
             self->year, self->month, self->day, self->hour, self->minute,
@@ -174,7 +174,7 @@ static PyObject* ExternalDateTimeVar_Reduce(
 //   Free an external date variable.
 //-----------------------------------------------------------------------------
 static void ExternalDateTimeVar_Free(
-    udt_ExternalDateTimeVar *var)	// variable to free
+    udt_ExternalDateTimeVar *var)       // variable to free
 {
     PyObject_DEL(var);
 }
@@ -185,7 +185,7 @@ static void ExternalDateTimeVar_Free(
 //   Return the string representation of the external date variable object.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalDateTimeVar_Str(
-    udt_ExternalDateTimeVar *var)	// external date variable object
+    udt_ExternalDateTimeVar *var)       // external date variable object
 {
     char value[100];
 
@@ -202,8 +202,8 @@ static PyObject *ExternalDateTimeVar_Str(
 // the same and +1 if the second date is greater than the first.
 //-----------------------------------------------------------------------------
 static int ExternalDateTimeVar_Cmp(
-    udt_ExternalDateTimeVar *var1,	// first date
-    udt_ExternalDateTimeVar *var2)	// second date
+    udt_ExternalDateTimeVar *var1,      // first date
+    udt_ExternalDateTimeVar *var2)      // second date
 {
     if (var1->year < var2->year)
         return -1;
