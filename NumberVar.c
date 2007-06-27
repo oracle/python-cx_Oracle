@@ -10,12 +10,20 @@ static const char gc_NumberFormat[63] =
         "999999999999999999999999999999999999999999999999999999999999999";
 
 //-----------------------------------------------------------------------------
-// Number type
+// Number types
 //-----------------------------------------------------------------------------
 typedef struct {
     Variable_HEAD
     OCINumber *data;
 } udt_NumberVar;
+
+
+#ifdef SQLT_BFLOAT
+typedef struct {
+    Variable_HEAD
+    double *data;
+} udt_NativeFloatVar;
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -25,8 +33,8 @@ static int NumberVar_PreDefine(udt_NumberVar*, OCIParam*);
 static int NumberVar_SetValue(udt_NumberVar*, unsigned, PyObject*);
 static PyObject *NumberVar_GetValue(udt_NumberVar*, unsigned);
 #ifdef SQLT_BFLOAT
-static int NumberVar_SetValueAsDouble(udt_NumberVar*, unsigned, PyObject*);
-static PyObject *NumberVar_GetValueAsDouble(udt_NumberVar*, unsigned);
+static int NativeFloatVar_SetValue(udt_NativeFloatVar*, unsigned, PyObject*);
+static PyObject *NativeFloatVar_GetValue(udt_NativeFloatVar*, unsigned);
 #endif
 
 
@@ -59,6 +67,34 @@ static PyTypeObject g_NumberVarType = {
 };
 
 
+#ifdef SQLT_BFLOAT
+static PyTypeObject g_NativeFloatVarType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                  // ob_size
+    "cx_Oracle.NATIVE_FLOAT",           // tp_name
+    sizeof(udt_NativeFloatVar),         // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) Variable_Free,         // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) Variable_Repr,           // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    (getattrofunc) Variable_GetAttr,    // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
+};
+#endif
+
+
 //-----------------------------------------------------------------------------
 // variable type declarations
 //-----------------------------------------------------------------------------
@@ -87,9 +123,9 @@ static udt_VariableType vt_NativeFloat = {
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
     (IsNullProc) NULL,
-    (SetValueProc) NumberVar_SetValueAsDouble,
-    (GetValueProc) NumberVar_GetValueAsDouble,
-    &g_NumberVarType,                   // Python type
+    (SetValueProc) NativeFloatVar_SetValue,
+    (GetValueProc) NativeFloatVar_GetValue,
+    &g_NativeFloatVarType,              // Python type
     SQLT_BDOUBLE,                       // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(double),                     // element length
@@ -415,30 +451,6 @@ static int NumberVar_SetValue(
 }
 
 
-#ifdef SQLT_BFLOAT
-//-----------------------------------------------------------------------------
-// NumberVar_SetValueAsDouble()
-//   Set the value of the variable which should be a native double.
-//-----------------------------------------------------------------------------
-static int NumberVar_SetValueAsDouble(
-    udt_NumberVar *var,                 // variable to set value for
-    unsigned pos,                       // array position to set
-    PyObject *value)                    // value to set
-{
-    double *doublePtr;
-
-    if (!PyFloat_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "expecting float");
-        return -1;
-    }
-
-    doublePtr = (double*) &var->data[pos];
-    *doublePtr = PyFloat_AS_DOUBLE(value);
-    return 0;
-}
-#endif
-
-
 //-----------------------------------------------------------------------------
 // NumberVar_GetValue()
 //   Returns the value stored at the given array position.
@@ -492,17 +504,32 @@ static PyObject *NumberVar_GetValue(
 
 #ifdef SQLT_BFLOAT
 //-----------------------------------------------------------------------------
-// NumberVar_GetValueAsDouble()
+// NativeFloatVar_GetValue()
 //   Returns the value stored at the given array position as a float.
 //-----------------------------------------------------------------------------
-static PyObject *NumberVar_GetValueAsDouble(
-    udt_NumberVar *var,                 // variable to determine value for
+static PyObject *NativeFloatVar_GetValue(
+    udt_NativeFloatVar *var,            // variable to determine value for
     unsigned pos)                       // array position
 {
-    double *doublePtr;
+    return PyFloat_FromDouble(var->data[pos]);
+}
 
-    doublePtr = (double*) &var->data[pos];
-    return PyFloat_FromDouble(*doublePtr);
+
+//-----------------------------------------------------------------------------
+// NativeFloatVar_SetValue()
+//   Set the value of the variable which should be a native double.
+//-----------------------------------------------------------------------------
+static int NativeFloatVar_SetValue(
+    udt_NativeFloatVar *var,            // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
+{
+    if (!PyFloat_Check(value)) {
+        PyErr_SetString(PyExc_TypeError, "expecting float");
+        return -1;
+    }
+    var->data[pos] = PyFloat_AS_DOUBLE(value);
+    return 0;
 }
 #endif
 

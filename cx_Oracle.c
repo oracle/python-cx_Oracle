@@ -355,6 +355,10 @@ void initcx_Oracle(void)
         return;
     if (PyType_Ready(&g_ExternalObjectVarType) < 0)
         return;
+#ifdef SQLT_BFLOAT
+    if (PyType_Ready(&g_NativeFloatVarType) < 0)
+        return;
+#endif
 
     // initialize module and retrieve the dictionary
     module = Py_InitModule("cx_Oracle", g_ModuleMethods);
@@ -433,6 +437,9 @@ void initcx_Oracle(void)
     ADD_TYPE_OBJECT("STRING", &g_StringVarType)
 #ifdef ORACLE_9I
     ADD_TYPE_OBJECT("TIMESTAMP", &g_TimestampVarType)
+#endif
+#ifdef SQLT_BFLOAT
+    ADD_TYPE_OBJECT("NATIVE_FLOAT", &g_NativeFloatVarType)
 #endif
 
     // create constants required by Python DB API 2.0

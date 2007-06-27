@@ -283,6 +283,9 @@ static int Variable_Check(
 #ifdef ORACLE_9I
             || object->ob_type == &g_TimestampVarType
 #endif
+#ifdef SQLT_BFLOAT
+            || object->ob_type == &g_NativeFloatVarType
+#endif
             );
 }
 
@@ -350,6 +353,10 @@ static udt_VariableType *Variable_TypeByPythonType(
 #endif
     if (type == (PyObject*) &g_CursorVarType)
         return &vt_Cursor;
+#ifdef SQLT_BFLOAT
+    if (type == (PyObject*) &g_NativeFloatVarType)
+        return &vt_NativeFloat;
+#endif
 
     PyErr_SetString(g_NotSupportedErrorException,
             "Variable_TypeByPythonType(): unhandled data type");
