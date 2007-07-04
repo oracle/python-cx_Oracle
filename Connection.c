@@ -885,12 +885,22 @@ static PyObject *Connection_Begin(
     if (Connection_IsConnected(self) < 0)
         return NULL;
 
-    // create the transaction handle
-    status = OCIHandleAlloc(self->environment->handle,
-            (dvoid**) &transactionHandle, OCI_HTYPE_TRANS, 0, 0);
+    // determine if a transaction handle was previously allocated
+    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
+            (dvoid**) &transactionHandle, 0, OCI_ATTR_TRANS,
+            self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
-            "Connection_Begin(): allocate transaction handle") < 0)
+            "Connection_Begin(): find existing transaction handle") < 0)
         return NULL;
+
+    // create a new transaction handle, if necessary
+    if (!transactionHandle) {
+        status = OCIHandleAlloc(self->environment->handle,
+                (dvoid**) &transactionHandle, OCI_HTYPE_TRANS, 0, 0);
+        if (Environment_CheckForError(self->environment, status,
+                "Connection_Begin(): allocate transaction handle") < 0)
+            return NULL;
+    }
 
     // set the XID for the transaction, if applicable
     if (formatId != -1) {
