@@ -331,6 +331,7 @@ static void Cursor_Free(
     Py_XDECREF(self->bindVariables);
     Py_XDECREF(self->fetchVariables);
     Py_XDECREF(self->connection);
+    Py_XDECREF(self->rowFactory);
     self->ob_type->tp_free((PyObject*) self);
 }
 
@@ -1111,6 +1112,10 @@ static int Cursor_InternalPrepare(
         Py_XDECREF(self->bindVariables);
         self->bindVariables = NULL;
     }
+
+    // clear row factory, if spplicable
+    Py_XDECREF(self->rowFactory);
+    self->rowFactory = NULL;
 
     // determine if statement is a query
     if (Cursor_GetStatementType(self) < 0)
