@@ -801,6 +801,15 @@ object is destroyed or closed.
   affected by the operation (for insert, update and delete statements).
 \end{datadesc}
 
+\begin{datadesc}{rowfactory}
+  This read-write attribute specifies a method to call for each row that is
+  retrieved from the database. Ordinarily a tuple is returned for each row but
+  if this attribute is set, the method is called with the argument tuple that
+  would normally be returned and the result of the method is returned instead.
+
+  \strong{NOTE:} The DB API definition does not define this attribute.
+\end{datadesc}
+
 \begin{funcdesc}{setinputsizes}{\var{*args}, \var{**keywordArgs}}
   This can be used before a call to execute() to predefine memory areas for the
   operation's parameters. Each parameter should be a type object corresponding
