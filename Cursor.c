@@ -509,10 +509,15 @@ static int Cursor_InternalExecute(
     ub4 numIters)                       // number of iterations to execute
 {
     sword status;
+    ub4 mode;
+
+    if (self->connection->autocommit)
+        mode = OCI_COMMIT_ON_SUCCESS;
+    else mode = OCI_DEFAULT;
 
     Py_BEGIN_ALLOW_THREADS
     status = OCIStmtExecute(self->connection->handle, self->handle,
-            self->environment->errorHandle, numIters, 0, 0, 0, OCI_DEFAULT);
+            self->environment->errorHandle, numIters, 0, 0, 0, mode);
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(self->environment, status,
             "Cursor_InternalExecute()") < 0) {

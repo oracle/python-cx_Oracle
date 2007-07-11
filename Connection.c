@@ -20,6 +20,7 @@ typedef struct {
     PyObject *dsn;
     PyObject *version;
     ub4 commitMode;
+    int autocommit;
 } udt_Connection;
 
 
@@ -89,6 +90,7 @@ static PyMemberDef g_ConnectionMembers[] = {
     { "password", T_OBJECT, offsetof(udt_Connection, password), READONLY },
     { "dsn", T_OBJECT, offsetof(udt_Connection, dsn), READONLY },
     { "tnsentry", T_OBJECT, offsetof(udt_Connection, dsn), READONLY },
+    { "autocommit", T_INT, offsetof(udt_Connection, autocommit), 0 },
     { NULL }
 };
 
