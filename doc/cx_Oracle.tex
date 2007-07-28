@@ -562,6 +562,14 @@ object is destroyed or closed.
   Rollback any pending transactions.
 \end{funcdesc}
 
+\begin{datadesc}{stmtcachesize}
+  This read-write attribute specifies the size of the statement cache. This
+  value can make a significant difference in performance (up to 100x) if you
+  have a small number of statements that you execute repeatedly.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
 \begin{datadesc}{tnsentry}
   This read-only attribute returns the TNS entry of the database to which a
   connection has been established.
@@ -792,11 +800,13 @@ object is destroyed or closed.
   \strong{NOTE:} The DB API definition does not define this method.
 \end{funcdesc}
 
-\begin{funcdesc}{prepare}{\var{statement}}
+\begin{funcdesc}{prepare}{\var{statement}, \optional{\var{tag}}}
   This can be used before a call to execute() to define the statement that will
   be executed. When this is done, the prepare phase will not be performed when
   the call to execute() is made with None or the same string object as the
-  statement.
+  statement. If specified (Oracle 9i and higher) the statement will be
+  returned to the statement cache with the given tag. See the Oracle
+  documentation for more information about the statement cache.
 
   \strong{NOTE:} The DB API definition does not define this method.
 \end{funcdesc}
