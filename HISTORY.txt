@@ -1,3 +1,28 @@
+Changes from 4.3.1 to 4.3.2
+ 1) Added methods open(), close(), isopen() and getchunksize() in order to
+    improve performance of reading/writing LOB values in chunks.
+ 2) Fixed support for native doubles and floats in Oracle 10g; added new type
+    NATIVE_FLOAT to allow specification of a variable of that specific type
+    where desired. Thanks to D.R. Boxhoorn for pointing out the fact that this
+    was not working properly when the arraysize was anything other than 1.
+ 3) When calling connection.begin(), only create a new tranasction handle if
+    one is not already associated with the connection. Thanks to Andreas Mock
+    for discovering this and for Amaury Forgeot d'Arc for diagnosing the
+    problem and pointing the way to a solution.
+ 4) Added attribute cursor.rowfactory which allows a method to be called for
+    each row that is returned; this is about 20% faster than calling the method
+    in Python using the idiom [method(*r) for r in cursor].
+ 5) Attempt to locate an Oracle installation by looking at the PATH if the
+    environment variable ORACLE_HOME is not set; this is of primary use on
+    Windows where this variable should not normally be set.
+ 6) Added support for autocommit mode as requested by Ian Kelly.
+ 7) Added support for connection.stmtcachesize which allows for both reading
+    and writing the size of the statement cache size. This parameter can make a
+    huge difference with the length of time taken to prepare statements. Added
+    support for setting the statement tag when preparing a statement. Both of
+    these were requested by Bjorn Sandberg who also provided an initial patch.
+ 8) When copying the value of a variable, copy the return code as well.
+
 Changes from 4.3 to 4.3.1
  1) Ensure that if the client buffer size exceeds 4000 bytes that the server
     buffer size does not as strings may only contain 4000 bytes; this allows
