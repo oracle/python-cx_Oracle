@@ -58,6 +58,10 @@ static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
 static PyObject *Connection_GetEncoding(udt_Connection*, void*);
 static PyObject *Connection_GetNationalEncoding(udt_Connection*, void*);
 #endif
+#ifdef ORACLE_9I
+static PyObject *Connection_GetStmtCacheSize(udt_Connection*, void*);
+static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
+#endif
 #ifdef ORACLE_10G
 static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 #endif
@@ -106,6 +110,10 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
     { "version", (getter) Connection_GetVersion, 0, 0, 0 },
     { "maxBytesPerCharacter", (getter) Connection_GetMaxBytesPerCharacter,
             0, 0, 0 },
+#ifdef ORACLE_9I
+    { "stmtcachesize", (getter) Connection_GetStmtCacheSize,
+            (setter) Connection_SetStmtCacheSize, 0, 0 },
+#endif
 #ifdef ORACLE_10G
     { "module", 0, (setter) Connection_SetOCIAttr, 0, &gc_ModuleAttribute },
     { "action", 0, (setter) Connection_SetOCIAttr, 0, &gc_ActionAttribute },
@@ -654,14 +662,14 @@ static PyObject *Connection_GetCharacterSetName(
     status = OCIAttrGet(self->environment->handle, OCI_HTYPE_ENV, &charsetId,
             NULL, attribute, self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
-            "Connection_GetCharacterSetName(): get character set id") < 0)
+            "Connection_GetCharacterSetName(): get charset id") < 0)
         return NULL;
 
     // get character set name
     status = OCINlsCharSetIdToName(self->environment->handle,
             (text*) charsetName, OCI_NLS_MAXBUFSZ, charsetId);
     if (Environment_CheckForError(self->environment, status,
-            "Connection_GetNEncoding(): get Oracle character set name") < 0)
+            "Connection_GetCharacterSetName(): get Oracle charset name") < 0)
         return NULL;
 
     // get IANA character set name
@@ -669,7 +677,7 @@ static PyObject *Connection_GetCharacterSetName(
             (oratext*) ianaCharsetName, OCI_NLS_MAXBUFSZ,
             (oratext*) charsetName, OCI_NLS_CS_ORA_TO_IANA);
     if (Environment_CheckForError(self->environment, status,
-            "Connection_GetEncoding(): translate NLS character set") < 0)
+            "Connection_GetCharacterSetName(): translate NLS charset") < 0)
         return NULL;
 
     return PyString_FromString(ianaCharsetName);
@@ -697,6 +705,59 @@ static PyObject *Connection_GetNationalEncoding(
     void *arg)                          // optional argument (ignored)
 {
     return Connection_GetCharacterSetName(self, OCI_ATTR_ENV_NCHARSET_ID);
+}
+#endif
+
+
+#ifdef ORACLE_9I
+//-----------------------------------------------------------------------------
+// Connection_GetStmtCacheSize()
+//   Return the Oracle statement cache size.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetStmtCacheSize(
+    udt_Connection* self,               // connection object
+    void* arg)                          // optional argument (ignored)
+{
+    ub4 cacheSize;
+    sword status;
+
+    if (Connection_IsConnected(self) < 0)
+        return NULL;
+    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
+            (dvoid**) &cacheSize, 0, OCI_ATTR_STMTCACHESIZE,
+            self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_GetStmtCacheSize()") < 0)
+        return NULL;
+    return PyInt_FromLong(cacheSize);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_SetStmtCacheSize()
+//   Set the Oracle statement cache size.
+//-----------------------------------------------------------------------------
+static int Connection_SetStmtCacheSize(
+    udt_Connection* self,               // connection object
+    PyObject *value,                    // value to set it to
+    void* arg)                          // optional argument (ignored)
+{
+    ub4 valueToSet;
+    sword status;
+
+    if (Connection_IsConnected(self) < 0)
+        return -1;
+    if (!PyInt_Check(value)) {
+        PyErr_SetString(PyExc_TypeError, "value must be an integer");
+        return -1;
+    }
+    valueToSet = (ub4) PyInt_AS_LONG(value);
+    status = OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX, (dvoid*) &valueToSet,
+            0, OCI_ATTR_STMTCACHESIZE, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_SetStmtCacheSize()") < 0)
+        return -1;
+    return 0;
 }
 #endif
 

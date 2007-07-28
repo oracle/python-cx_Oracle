@@ -12,6 +12,9 @@ typedef struct {
     udt_Connection *connection;
     udt_Environment *environment;
     PyObject *statement;
+#ifdef ORACLE_9I
+    PyObject *statementTag;
+#endif
     PyObject *bindVariables;
     PyObject *fetchVariables;
     PyObject *rowFactory;
@@ -199,7 +202,9 @@ static int Cursor_FreeHandle(
     int raiseException)                 // raise an exception, if necesary?
 {
 #ifdef ORACLE_9I
+    ub4 tagLength;
     sword status;
+    char *tag;
 #endif
 
     if (self->handle) {
@@ -209,9 +214,17 @@ static int Cursor_FreeHandle(
             OCIHandleFree(self->handle, OCI_HTYPE_STMT);
 #ifdef ORACLE_9I
         } else {
+            if (self->statementTag) {
+                tag = PyString_AS_STRING(self->statementTag);
+                tagLength = PyString_GET_SIZE(self->statementTag);
+            } else {
+                tag = NULL;
+                tagLength = 0;
+            }
             if (self->connection->handle != 0) {
                 status = OCIStmtRelease(self->handle,
-                        self->environment->errorHandle, NULL, 0, OCI_DEFAULT);
+                        self->environment->errorHandle, (text*) tag, tagLength,
+                        OCI_DEFAULT);
                 if (raiseException && Environment_CheckForError(
                         self->environment, status, "Cursor_FreeHandle()") < 0)
                     return -1;
@@ -328,6 +341,9 @@ static void Cursor_Free(
 {
     Cursor_FreeHandle(self, 0);
     Py_XDECREF(self->statement);
+#ifdef ORACLE_9I
+    Py_XDECREF(self->statementTag);
+#endif
     Py_XDECREF(self->bindVariables);
     Py_XDECREF(self->fetchVariables);
     Py_XDECREF(self->connection);
@@ -1055,9 +1071,12 @@ static PyObject *Cursor_CreateRow(
 //-----------------------------------------------------------------------------
 static int Cursor_InternalPrepare(
     udt_Cursor *self,                   // cursor to perform prepare on
-    PyObject *statement)                // statement to prepare
+    PyObject *statement,                // statement to prepare
+    PyObject *statementTag)		// tag of statement to prepare
 {
+    ub4 tagLength;
     sword status;
+    char *tag;
 
     // make sure we don't get a situation where nothing is to be executed
     if (statement == Py_None && !self->statement) {
@@ -1082,6 +1101,9 @@ static int Cursor_InternalPrepare(
 
     // release existing statement, if necessary
 #ifdef ORACLE_9I
+    Py_XDECREF(self->statementTag);
+    Py_XINCREF(statementTag);
+    self->statementTag = statementTag;
     if (Cursor_FreeHandle(self, 1) < 0)
         return -1;
 #endif
@@ -1090,11 +1112,18 @@ static int Cursor_InternalPrepare(
     Py_BEGIN_ALLOW_THREADS
 #ifdef ORACLE_9I
     self->isOwned = 0;
+    if (statementTag) {
+        tag = PyString_AS_STRING(statementTag);
+        tagLength = PyString_GET_SIZE(statementTag);
+    } else {
+        tag = NULL;
+        tagLength = 0;
+    }
     status = OCIStmtPrepare2(self->connection->handle, &self->handle,
             self->environment->errorHandle,
             (text*) PyString_AS_STRING(statement),
-            PyString_GET_SIZE(statement), NULL, 0, OCI_NTV_SYNTAX,
-            OCI_DEFAULT);
+            PyString_GET_SIZE(statement), (text*) tag, tagLength,
+            OCI_NTV_SYNTAX, OCI_DEFAULT);
 #else
     status = OCIStmtPrepare(self->handle, self->environment->errorHandle,
             (text*) PyString_AS_STRING(statement),
@@ -1150,7 +1179,7 @@ static PyObject *Cursor_Parse(
         return NULL;
 
     // prepare the statement
-    if (Cursor_InternalPrepare(self, statement) < 0)
+    if (Cursor_InternalPrepare(self, statement, NULL) < 0)
         return NULL;
 
     // parse the statement
@@ -1175,10 +1204,11 @@ static PyObject *Cursor_Prepare(
     udt_Cursor *self,                   // cursor to perform prepare on
     PyObject *args)                     // arguments
 {
-    PyObject *statement;
+    PyObject *statement, *statementTag;
 
-    // statement text is expected
-    if (!PyArg_ParseTuple(args, "S", &statement))
+    // statement text and optional tag is expected
+    statementTag = NULL;
+    if (!PyArg_ParseTuple(args, "S|S", &statement, &statementTag))
         return NULL;
 
     // make sure the cursor is open
@@ -1186,7 +1216,7 @@ static PyObject *Cursor_Prepare(
         return NULL;
 
     // prepare the statement
-    if (Cursor_InternalPrepare(self, statement) < 0)
+    if (Cursor_InternalPrepare(self, statement, statementTag) < 0)
         return NULL;
 
     Py_INCREF(Py_None);
@@ -1418,7 +1448,7 @@ static PyObject *Cursor_Execute(
         return NULL;
 
     // prepare the statement, if applicable
-    if (Cursor_InternalPrepare(self, statement) < 0)
+    if (Cursor_InternalPrepare(self, statement, NULL) < 0)
         return NULL;
 
     // perform binds
@@ -1478,7 +1508,7 @@ static PyObject *Cursor_ExecuteMany(
         return NULL;
 
     // prepare the statement
-    if (Cursor_InternalPrepare(self, statement) < 0)
+    if (Cursor_InternalPrepare(self, statement, NULL) < 0)
         return NULL;
 
     // queries are not supported as the result is undefined
