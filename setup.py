@@ -108,7 +108,13 @@ extension = Extension(
         library_dirs = libDirs,
         extra_compile_args = extraCompileArgs,
         extra_link_args = extraLinkArgs,
-        sources = ["cx_Oracle.c"])
+        sources = ["cx_Oracle.c"],
+        depends = ["Callback.c", "Connection.c", "Cursor.c", "CursorVar.c",
+                "DateTimeVar.c", "Environment.c", "Error.c",
+                "ExternalDateTimeVar.c", "ExternalLobVar.c",
+                "ExternalObjectVar.c", "LobVar.c", "LongVar.c", "NumberVar.c",
+                "ObjectType.c", "ObjectVar.c", "SessionPool.c", "StringVar.c",
+                "TimestampVar.c", "Transforms.c", "Variable.c"])
 
 # perform the setup
 setup(
