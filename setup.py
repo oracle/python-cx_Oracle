@@ -16,7 +16,7 @@ from distutils.errors import DistutilsSetupError
 from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "HEAD"
+BUILD_VERSION = "4.4a1"
 
 # define the list of files to be included as documentation for Windows
 dataFiles = None
@@ -49,10 +49,10 @@ if oracleHome is None:
 
 # define some variables
 if sys.platform == "win32":
-    libDirs = None
+    libDirs = [os.path.join(oracleHome, "bin")]
     includeDirs = [os.path.join(oracleHome, "oci", "include"), \
             os.path.join(oracleHome, "rdbms", "demo")]
-    libs = []
+    libs = ["oci"]
 elif sys.platform == "cygwin":
     includeDirs = ["/usr/include", "rdbms/demo", "rdbms/public", \
             "network/public", "oci/include"]
@@ -89,10 +89,6 @@ elif sys.platform == "cygwin":
     extraCompileArgs.append("-mno-cygwin")
 elif sys.platform == "darwin":
     extraLinkArgs = None
-elif sys.platform == "win32":
-    import win32api
-    extraLinkArgs.append(win32api.GetModuleFileName(sys.dllhandle))
-    extraLinkArgs.append(os.path.join(oracleHome, "bin", "oci.dll"))
 
 # force the inclusion of an RPATH linker directive if desired; this will
 # eliminate the need for setting LD_LIBRARY_PATH but it also means that this
