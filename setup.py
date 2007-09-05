@@ -33,6 +33,9 @@ if sys.platform in ("win32", "cygwin"):
                 files.append(name)
         dataFiles.append( ("%s/%s" % (baseName, dir), files) )
 
+# define the list of files to be included as documentation for bdist_rpm
+docFiles = "LICENSE.txt README.txt HISTORY.txt html test"
+
 # try to determine the ORACLE_HOME
 oracleHome = os.environ.get("ORACLE_HOME")
 if oracleHome is None:
@@ -119,6 +122,7 @@ setup(
         description = "Python interface to Oracle",
         license = "See LICENSE.txt",
         data_files = dataFiles,
+        options = dict(bdist_rpm = dict(doc_files = docFiles)),
         long_description = \
             "Python interface to Oracle conforming to the Python DB API 2.0 "
             "specification.\n"
