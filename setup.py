@@ -8,6 +8,11 @@ Unix platforms
 
 """
 
+import distutils.command.bdist_msi
+import distutils.command.bdist_wininst
+import distutils.command.build
+import distutils.dist
+import distutils.util
 import os
 import sys
 
@@ -99,6 +104,78 @@ elif sys.platform == "darwin":
 if "FORCE_RPATH" in os.environ:
     extraLinkArgs.append("-Wl,-rpath,%s/lib" % oracleHome)
 
+# determine the type of Oracle software installation
+if sys.platform == "win32":
+    subDir = "bin"
+    filesToCheck = [
+            ("11g", "oraclient11.dll"),
+            ("10g", "oraclient10.dll"),
+            ("9i", "oraclient9.dll"),
+            ("8i", "oraclient8.dll")
+    ]
+else:
+    subDir = "lib"
+    filesToCheck = [
+            ("11g", "libclient11.a"),
+            ("10g", "libclient10.a"),
+            ("9i", "libclient9.a"),
+            ("8i", "libclient8.a")
+    ]
+oracleVersion = None
+for version, baseFileName in filesToCheck:
+    fileName = os.path.join(oracleHome, subDir, baseFileName)
+    if os.path.exists(fileName):
+        oracleVersion = version
+        break
+if oracleVersion is None:
+    raise DistutilsSetupError, "Oracle home does not refer to an 8i, " \
+            "9i, 10g or 11g installation"
+
+# tweak distribution full name to include the Oracle version
+class Distribution(distutils.dist.Distribution):
+
+    def get_fullname_with_oracle_version(self):
+        name = self.metadata.get_fullname()
+        return "%s-%s" % (name, oracleVersion)
+
+
+# tweak the build directories to include the Oracle version
+class build(distutils.command.build.build):
+
+    def finalize_options(self):
+        platSpecifier = ".%s-%s-%s" % \
+                (distutils.util.get_platform(), sys.version[0:3],
+                 oracleVersion)
+        if self.build_platlib is None:
+            self.build_platlib = os.path.join(self.build_base,
+                    "lib%s" % platSpecifier)
+        if self.build_temp is None:
+            self.build_temp = os.path.join(self.build_base,
+                    "temp%s" % platSpecifier)
+        distutils.command.build.build.finalize_options(self)
+
+# tweak the MSI installer name to include the Oracle version
+class bdist_msi(distutils.command.bdist_msi.bdist_msi):
+
+    def run(self):
+        origMethod = self.distribution.get_fullname
+        self.distribution.get_fullname = \
+                self.distribution.get_fullname_with_oracle_version
+        distutils.command.bdist_msi.bdist_msi.run(self)
+        self.distribution.get_fullname = origMethod
+
+
+# tweak the Windows installer name to include the Oracle version
+class bdist_wininst(distutils.command.bdist_wininst.bdist_wininst):
+
+    def run(self):
+        origMethod = self.distribution.get_fullname
+        self.distribution.get_fullname = \
+                self.distribution.get_fullname_with_oracle_version
+        distutils.command.bdist_wininst.bdist_wininst.run(self)
+        self.distribution.get_fullname = origMethod
+
+
 # setup the extension
 extension = Extension(
         name = "cx_Oracle",
@@ -119,9 +196,12 @@ extension = Extension(
 setup(
         name = "cx_Oracle",
         version = BUILD_VERSION,
+        distclass = Distribution,
         description = "Python interface to Oracle",
         license = "See LICENSE.txt",
         data_files = dataFiles,
+        cmdclass = dict(bdist_msi = bdist_msi, bdist_wininst = bdist_wininst,
+                build = build),
         options = dict(bdist_rpm = dict(doc_files = docFiles)),
         long_description = \
             "Python interface to Oracle conforming to the Python DB API 2.0 "
