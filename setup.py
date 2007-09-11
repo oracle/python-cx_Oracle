@@ -143,6 +143,10 @@ class Distribution(distutils.dist.Distribution):
 class build(distutils.command.build.build):
 
     def finalize_options(self):
+        global distutils
+        global os
+        global sys
+        global oracleVersion
         platSpecifier = ".%s-%s-%s" % \
                 (distutils.util.get_platform(), sys.version[0:3],
                  oracleVersion)
