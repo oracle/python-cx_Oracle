@@ -81,8 +81,12 @@ else:
     for i in range(len(includeDirs)):
         includeDirs[i] = os.path.join(oracleHome, includeDirs[i])
     libPath = os.path.join(oracleHome, "lib")
-    if sys.platform == "sunos5" and sys.maxint > 2147483647:
-        libPath = os.path.join(oracleHome, "lib64")
+    if sys.maxint == 2 ** 31 - 1:
+        alternatePath = os.path.join(oracleHome, "lib32")
+    else:
+        alternatePath = os.path.join(oracleHome, "lib64")
+    if os.path.exists(alternatePath):
+        libPath = alternatePath
     libDirs = [libPath, oracleHome]
     libs = ["clntsh"]
 
