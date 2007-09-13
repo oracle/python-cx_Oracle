@@ -8,8 +8,11 @@ Unix platforms
 
 """
 
-import distutils.command.bdist_msi
-import distutils.command.bdist_wininst
+import sys
+
+if sys.platform == "win32":
+    import distutils.command.bdist_msi
+    import distutils.command.bdist_wininst
 import distutils.command.build
 import distutils.dist
 import distutils.util
@@ -158,26 +161,32 @@ class build(distutils.command.build.build):
                     "temp%s" % platSpecifier)
         distutils.command.build.build.finalize_options(self)
 
-# tweak the MSI installer name to include the Oracle version
-class bdist_msi(distutils.command.bdist_msi.bdist_msi):
+commandClasses = dict(build = build)
 
-    def run(self):
-        origMethod = self.distribution.get_fullname
-        self.distribution.get_fullname = \
-                self.distribution.get_fullname_with_oracle_version
-        distutils.command.bdist_msi.bdist_msi.run(self)
-        self.distribution.get_fullname = origMethod
+# tweak the Windows installer names to include the Oracle version
+if sys.platform == "win32":
 
+    class bdist_msi(distutils.command.bdist_msi.bdist_msi):
 
-# tweak the Windows installer name to include the Oracle version
-class bdist_wininst(distutils.command.bdist_wininst.bdist_wininst):
+        def run(self):
+            origMethod = self.distribution.get_fullname
+            self.distribution.get_fullname = \
+                    self.distribution.get_fullname_with_oracle_version
+            distutils.command.bdist_msi.bdist_msi.run(self)
+            self.distribution.get_fullname = origMethod
 
-    def run(self):
-        origMethod = self.distribution.get_fullname
-        self.distribution.get_fullname = \
-                self.distribution.get_fullname_with_oracle_version
-        distutils.command.bdist_wininst.bdist_wininst.run(self)
-        self.distribution.get_fullname = origMethod
+    commandClasses["bdist_msi"] = bdist_msi
+
+    class bdist_wininst(distutils.command.bdist_wininst.bdist_wininst):
+
+        def run(self):
+            origMethod = self.distribution.get_fullname
+            self.distribution.get_fullname = \
+                    self.distribution.get_fullname_with_oracle_version
+            distutils.command.bdist_wininst.bdist_wininst.run(self)
+            self.distribution.get_fullname = origMethod
+
+    commandClasses["bdist_wininst"] = bdist_wininst
 
 
 # setup the extension
@@ -204,8 +213,7 @@ setup(
         description = "Python interface to Oracle",
         license = "See LICENSE.txt",
         data_files = dataFiles,
-        cmdclass = dict(bdist_msi = bdist_msi, bdist_wininst = bdist_wininst,
-                build = build),
+        cmdclass = commandClasses,
         options = dict(bdist_rpm = dict(doc_files = docFiles)),
         long_description = \
             "Python interface to Oracle conforming to the Python DB API 2.0 "
