@@ -111,39 +111,41 @@ elif sys.platform == "darwin":
 if "FORCE_RPATH" in os.environ:
     extraLinkArgs.append("-Wl,-rpath,%s/lib" % oracleHome)
 
-# determine the type of Oracle software installation
-if sys.platform == "win32":
-    subDir = "bin"
-    filesToCheck = [
-            ("11g", "oraclient11.dll"),
-            ("10g", "oraclient10.dll"),
-            ("9i", "oraclient9.dll"),
-            ("8i", "oraclient8.dll")
-    ]
-else:
-    subDir = "lib"
-    filesToCheck = [
-            ("11g", "libclient11.a"),
-            ("10g", "libclient10.a"),
-            ("9i", "libclient9.a"),
-            ("8i", "libclient8.a")
-    ]
-oracleVersion = None
-for version, baseFileName in filesToCheck:
-    fileName = os.path.join(oracleHome, subDir, baseFileName)
-    if os.path.exists(fileName):
-        oracleVersion = version
-        break
-if oracleVersion is None:
-    raise DistutilsSetupError, "Oracle home does not refer to an 8i, " \
-            "9i, 10g or 11g installation"
-
 # tweak distribution full name to include the Oracle version
 class Distribution(distutils.dist.Distribution):
 
+    def __init__(self, attrs):
+        global oracleHome
+        distutils.dist.Distribution.__init__(self, attrs)
+        if sys.platform == "win32":
+            subDir = "bin"
+            filesToCheck = [
+                    ("11g", "oraclient11.dll"),
+                    ("10g", "oraclient10.dll"),
+                    ("9i", "oraclient9.dll"),
+                    ("8i", "oraclient8.dll")
+            ]
+        else:
+            subDir = "lib"
+            filesToCheck = [
+                    ("11g", "libclient11.a"),
+                    ("10g", "libclient10.a"),
+                    ("9i", "libclient9.a"),
+                    ("8i", "libclient8.a")
+            ]
+        self.oracleVersion = None
+        for version, baseFileName in filesToCheck:
+            fileName = os.path.join(oracleHome, subDir, baseFileName)
+            if os.path.exists(fileName):
+                self.oracleVersion = version
+                break
+        if self.oracleVersion is None:
+            raise DistutilsSetupError, "Oracle home does not refer to an " \
+                    "8i, 9i, 10g or 11g installation"
+
     def get_fullname_with_oracle_version(self):
         name = self.metadata.get_fullname()
-        return "%s-%s" % (name, oracleVersion)
+        return "%s-%s" % (name, self.oracleVersion)
 
 
 # tweak the build directories to include the Oracle version
@@ -153,10 +155,9 @@ class build(distutils.command.build.build):
         global distutils
         global os
         global sys
-        global oracleVersion
         platSpecifier = ".%s-%s-%s" % \
                 (distutils.util.get_platform(), sys.version[0:3],
-                 oracleVersion)
+                 self.distribution.oracleVersion)
         if self.build_platlib is None:
             self.build_platlib = os.path.join(self.build_base,
                     "lib%s" % platSpecifier)
