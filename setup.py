@@ -31,15 +31,15 @@ dataFiles = None
 if sys.platform in ("win32", "cygwin"):
     baseName = "cx_Oracle-doc"
     dataFiles = [ (baseName, [ "LICENSE.TXT", "README.TXT", "HISTORY.txt"]) ]
-    allFiles = []
-    for fileName in open("MANIFEST").readlines():
-        allFiles.append(fileName.strip())
     for dir in ("html", "test"):
         files = []
-        for name in allFiles:
-            if name.startswith(dir):
-                files.append(name)
-        dataFiles.append( ("%s/%s" % (baseName, dir), files) )
+        fullDirName = "%s/%s" % (baseName,dir)
+        for name in os.listdir(dir):
+            if name.startswith("."):
+                continue
+            fullName = "%s/%s" % (dir, name)
+            files.append(fullName)
+        dataFiles.append((fullDirName, files))
 
 # define the list of files to be included as documentation for bdist_rpm
 docFiles = "LICENSE.txt README.txt HISTORY.txt html test"
