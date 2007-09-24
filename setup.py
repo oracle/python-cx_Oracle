@@ -10,7 +10,7 @@ Unix platforms
 
 import sys
 
-if sys.platform == "win32":
+if sys.platform == "win32" and sys.version_info[:2] >= (2, 5):
     import distutils.command.bdist_msi
     import distutils.command.bdist_wininst
 import distutils.command.build
@@ -169,7 +169,7 @@ class build(distutils.command.build.build):
 commandClasses = dict(build = build)
 
 # tweak the Windows installer names to include the Oracle version
-if sys.platform == "win32":
+if sys.platform == "win32" and sys.version_info[:2] >= (2, 5):
 
     class bdist_msi(distutils.command.bdist_msi.bdist_msi):
 
