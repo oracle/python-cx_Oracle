@@ -13,6 +13,7 @@ import sys
 if sys.platform == "win32" and sys.version_info[:2] >= (2, 5):
     import distutils.command.bdist_msi
     import distutils.command.bdist_wininst
+import distutils.command.bdist_rpm
 import distutils.command.build
 import distutils.dist
 import distutils.util
@@ -148,6 +149,24 @@ class Distribution(distutils.dist.Distribution):
         return "%s-%s" % (name, self.oracleVersion)
 
 
+# tweak the RPM build command to include the Python and Oracle version
+class bdist_rpm(distutils.command.bdist_rpm.bdist_rpm):
+
+    def run(self):
+        distutils.command.bdist_rpm.bdist_rpm.run(self)
+        specFile = os.path.join(self.rpm_base, "SPECS",
+                "%s.spec" % self.distribution.get_name())
+        queryFormat = "%{name}-%{version}-%{release}.%{arch}.rpm"
+        command = "rpm -q --qf '%s' --specfile %s" % (queryFormat, specFile)
+        origFileName = os.popen(command).read()
+        parts = origFileName.split("-")
+        parts.insert(2, self.distribution.oracleVersion)
+        parts.insert(3, "py%s%s" % sys.version_info[:2])
+        newFileName = "-".join(parts)
+        self.move_file(os.path.join("dist", origFileName),
+        os.path.join("dist", newFileName))
+
+
 # tweak the build directories to include the Oracle version
 class build(distutils.command.build.build):
 
@@ -166,7 +185,7 @@ class build(distutils.command.build.build):
                     "temp%s" % platSpecifier)
         distutils.command.build.build.finalize_options(self)
 
-commandClasses = dict(build = build)
+commandClasses = dict(build = build, bdist_rpm = bdist_rpm)
 
 # tweak the Windows installer names to include the Oracle version
 if sys.platform == "win32" and sys.version_info[:2] >= (2, 5):
