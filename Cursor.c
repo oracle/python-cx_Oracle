@@ -1533,9 +1533,12 @@ static PyObject *Cursor_ExecuteMany(
     if (Cursor_PerformBind(self) < 0)
         return NULL;
 
-    // execute the statement
-    if (Cursor_InternalExecute(self, PyList_GET_SIZE(listOfArguments)) < 0)
-        return NULL;
+    // execute the statement, but only if the number of rows is greater than
+    // zero since Oracle raises an error otherwise
+    if (numRows > 0) {
+        if (Cursor_InternalExecute(self, numRows) < 0)
+            return NULL;
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
