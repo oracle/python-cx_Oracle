@@ -65,6 +65,9 @@ static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
 #ifdef ORACLE_10G
 static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 #endif
+#ifdef ORACLE_10GR2
+static PyObject *Connection_Ping(udt_Connection*, PyObject*);
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -82,6 +85,9 @@ static PyMethodDef g_ConnectionMethods[] = {
     { "unregister", (PyCFunction) Connection_UnregisterCallback, METH_VARARGS },
     { "__enter__", (PyCFunction) Connection_ContextManagerEnter, METH_NOARGS },
     { "__exit__", (PyCFunction) Connection_ContextManagerExit, METH_VARARGS },
+#ifdef ORACLE_10GR2
+    { "ping", (PyCFunction) Connection_Ping, METH_NOARGS },
+#endif
     { NULL }
 };
 
@@ -1228,4 +1234,29 @@ static PyObject *Connection_ContextManagerExit(
     Py_INCREF(Py_False);
     return Py_False;
 }
+
+
+#ifdef ORACLE_10GR2
+//-----------------------------------------------------------------------------
+// Connection_Ping()
+//   Makes a round trip call to the server to confirm that the connection and
+// server are active.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_Ping(
+    udt_Connection *self,               // connection
+    PyObject* args)                     // arguments
+{
+    sword status;
+
+    if (Connection_IsConnected(self) < 0)
+        return NULL;
+    status = OCIPing(self->handle, self->environment->errorHandle,
+            OCI_DEFAULT);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_UnregisterCallback(): clear") < 0)
+        return NULL;
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+#endif
 

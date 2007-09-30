@@ -537,6 +537,13 @@ object is destroyed or closed.
   \strong{NOTE:} This attribute is an extension to the DB API definition.
 \end{datadesc}
 
+\begin{funcdesc}{ping}{}
+  Ping the server which can be used to test if the connection is still active.
+
+  \strong{NOTE:} This method is an extension to the DB API definition and is
+  only available in Oracle 10g R2 and higher.
+\end{funcdesc}
+
 \begin{funcdesc}{prepare}{}
   Prepare the distributed (global) transaction for commit.
 

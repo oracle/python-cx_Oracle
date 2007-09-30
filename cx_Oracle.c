@@ -14,6 +14,9 @@
 #ifdef OCI_ATTR_MODULE
 #define ORACLE_10G
 #endif
+#ifdef OCI_MAJOR_VERSION
+#define ORACLE_10GR2
+#endif
 #if OCI_FNCODE_STMTRELEASE
 #define ORACLE_9I
 #endif
