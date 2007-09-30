@@ -147,6 +147,25 @@ static PyObject* MakeDSN(
 }
 
 
+#ifdef ORACLE_10GR2
+//-----------------------------------------------------------------------------
+// ClientVersion()
+//   Return the version of the Oracle client being used as a 5-tuple.
+//-----------------------------------------------------------------------------
+static PyObject* ClientVersion(
+    PyObject* self,                     // passthrough argument
+    PyObject* args)                     // arguments to function
+{
+    sword majorVersion, minorVersion, updateNum, patchNum, portUpdateNum;
+
+    OCIClientVersion(&majorVersion, &minorVersion, &updateNum,
+            &patchNum, &portUpdateNum);
+    return Py_BuildValue("(iiiii)", majorVersion, minorVersion, updateNum,
+            patchNum, portUpdateNum);
+}
+#endif
+
+
 //-----------------------------------------------------------------------------
 // Time()
 //   Returns a time value suitable for binding.
@@ -258,6 +277,9 @@ static PyMethodDef g_ModuleMethods[] = {
     { "DateFromTicks", DateFromTicks, METH_VARARGS },
     { "TimeFromTicks", TimeFromTicks, METH_VARARGS },
     { "TimestampFromTicks", TimestampFromTicks, METH_VARARGS },
+#ifdef ORACLE_10GR2
+    { "clientversion", ClientVersion, METH_NOARGS },
+#endif
     { NULL }
 };
 

@@ -46,6 +46,15 @@ information on the Python database API specification.
   Construct an object holding a binary (long) string value.
 \end{funcdesc}
 
+\begin{funcdesc}{clientversion}{}
+  Return the version of the client library being used as a 5 tuple. The five
+  values are the major version, minor version, update number, patch number
+  and port update number.
+
+  \strong{NOTE:} This method is an extension to the DB API definition and is
+  only available in Oracle 10g Release 2 and higher.
+\end{funcdesc}
+
 \begin{funcdesc}{Connection}{\optional{\var{user}, \var{password},
     \var{dsn}, \var{mode}, \var{handle}, \var{pool}, \var{threaded},
     \var{twophase}}}
