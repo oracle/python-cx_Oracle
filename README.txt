@@ -49,6 +49,12 @@ for column_1, column_2, column_3 in cursor.fetchall():
     print "Values:", column_1, column_2, column_3
 
 
+For more examples, please see the test suite in the test directory and the
+samples in the samples directory. You can also look at the scripts in the
+cx_OracleTools (http://cx-oracletools.sourceforge.net) and the modules in the
+cx_PyOracleLib (http://cx-pyoraclelib.sourceforge.net) projects.
+
+
 EXCEPTIONS:
 The only exception to the DB API specification is the lack of a nextset()
 method which is not supported by Oracle.
