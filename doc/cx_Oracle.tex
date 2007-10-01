@@ -195,6 +195,48 @@ information on the Python database API specification.
   This type object is used to describe columns in a database that are dates.
 \end{datadesc}
 
+\begin{datadesc}{DBSHUTDOWN_ABORT}
+  This constant is used in database shutdown to indicate that the program
+  should not wait for current calls to complete or for users to disconnect from
+  the database. Use only in unusual circumstances since database recovery may
+  be necessary upon next startup.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{DBSHUTDOWN_FINAL}
+  This constant is used in database shutdown to indicate that the instance can
+  be truly halted. This should only be done after the database has been shut
+  down in one of the other modes (except abort) and the database has been
+  closed and dismounted using the appropriate SQL commands.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{DBSHUTDOWN_IMMEDIATE}
+  This constant is used in database shutdown to indicate that all uncommitted
+  transactions should be rolled back and any connected users should be
+  disconnected.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{DBSHUTDOWN_TRANSACTIONAL}
+  This constant is used in database shutdown to indicate that further
+  connections should be prohibited and no new transactions should be allowed.
+  It then waits for active transactions to complete.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
+\begin{datadesc}{DBSHUTDOWN_TRANSACTIONAL_LOCAL}
+  This constant is used in database shutdown to indicate that further
+  connections should be prohibited and no new transactions should be allowed.
+  It then waits for only local active transactions to complete.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
+\end{datadesc}
+
 \begin{datadesc}{FIXED_CHAR}
   This type object is used to describe columns in a database that are fixed
   length strings (in Oracle this is CHAR columns); these behave differently
@@ -297,6 +339,13 @@ information on the Python database API specification.
 
 \begin{datadesc}{ROWID}
   This type object is used to describe the pseudo column "rowid".
+\end{datadesc}
+
+\begin{datadesc}{PRELIM_AUTH}
+  This constant is used to define the preliminary authentication mode required
+  for performing database startup and shutdown.
+
+  \strong{NOTE:} This attribute is an extension to the DB API definition.
 \end{datadesc}
 
 \begin{datadesc}{SPOOL_ATTRVAL_FORCEGET}
@@ -576,6 +625,30 @@ object is destroyed or closed.
 
 \begin{funcdesc}{rollback}{}
   Rollback any pending transactions.
+\end{funcdesc}
+
+\begin{funcdesc}{shutdown}{\optional{\var{mode}}}
+  Shutdown the database. In order to do this the connection must connected as
+  SYSDBA or SYSOPER. First shutdown using one of the DBSHUTDOWN constants
+  defined in the constants (\ref{constants}) section. Next issue the SQL
+  statements required to close the database ("alter database close normal")
+  and dismount the database ("alter database dismount") followed by a second
+  call to this method with the DBSHUTDOWN_FINAL mode.
+
+  \strong{NOTE:} This method is an extension to the DB API definition and is
+  only available in Oracle 10g R2 and higher.
+\end{funcdesc}
+
+\begin{funcdesc}{startup}{\var{force=False}, \var{restrict=False}}
+  Startup the database. This is equivalent to the SQL*Plus command
+  "startup nomount". The connection must be connected as SYSDBA or SYSOPER with
+  the PRELIM_AUTH option specified for this to work. Once this method has
+  completed, connect again without the PRELIM_AUTH option and issue the
+  statements required to mount ("alter database mount") and open ("alter
+  database open") the database.
+
+  \strong{NOTE:} This method is an extension to the DB API definition and is
+  only available in Oracle 10g R2 and higher.
 \end{funcdesc}
 
 \begin{datadesc}{stmtcachesize}
