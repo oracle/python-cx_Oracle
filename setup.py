@@ -212,6 +212,17 @@ if sys.platform == "win32" and sys.version_info[:2] >= (2, 5):
 
     commandClasses["bdist_wininst"] = bdist_wininst
 
+# define classifiers for the package index
+classifiers = [
+        "Development Status :: 6 - Mature",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Python Software Foundation License",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: C",
+        "Programming Language :: Python",
+        "Topic :: Database"
+]
 
 # setup the extension
 extension = Extension(
@@ -246,5 +257,8 @@ setup(
         author = "Anthony Tuininga",
         author_email = "anthony.tuininga@gmail.com",
         url = "http://cx-oracle.sourceforge.net",
-        ext_modules = [extension])
+        ext_modules = [extension],
+        keywords = "Oracle",
+        license = "Python Software Foundation License",
+        classifiers = classifiers)
 
