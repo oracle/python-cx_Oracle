@@ -246,7 +246,6 @@ setup(
         version = BUILD_VERSION,
         distclass = Distribution,
         description = "Python interface to Oracle",
-        license = "See LICENSE.txt",
         data_files = dataFiles,
         cmdclass = commandClasses,
         options = dict(bdist_rpm = dict(doc_files = docFiles)),
