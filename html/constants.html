@@ -6,10 +6,10 @@
 <link rel='contents' href='contents.html' title="Contents" />
 <link rel='last' href='about.html' title='About this document...' />
 <link rel='help' href='about.html' title='About this document...' />
-<link rel="next" href="node5.html" />
+<link rel="next" href="exceptions.html" />
 <link rel="prev" href="module.html" />
 <link rel="parent" href="module.html" />
-<link rel="next" href="node5.html" />
+<link rel="next" href="exceptions.html" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name='aesop' content='information' />
 <title>1.1 Constants</title>
@@ -26,7 +26,7 @@
   href="module.html"><img src='up.png'
   border='0' height='32'  alt='Up one Level' width='32' /></a></td>
 <td class='online-navigation'><a rel="next" title="1.2 Exceptions"
-  href="node5.html"><img src='next.png'
+  href="exceptions.html"><img src='next.png'
   border='0' height='32'  alt='Next Page' width='32' /></a></td>
 <td align="center" width="100%">cx_Oracle</td>
 <td class='online-navigation'><a rel="contents" title="Table of Contents"
@@ -43,24 +43,25 @@
 <b class="navlabel">Up:</b>
 <a class="sectref" rel="parent" href="module.html">1. Module Interface</a>
 <b class="navlabel">Next:</b>
-<a class="sectref" rel="next" href="node5.html">1.2 Exceptions</a>
+<a class="sectref" rel="next" href="exceptions.html">1.2 Exceptions</a>
 </div>
 <hr /></div>
 </div>
 <!--End of Navigation Panel-->
 
-<h1><a name="SECTION003100000000000000000">
-1.1 Constants</a>
+<h1><a name="SECTION003100000000000000000"></a><a name="constants"></a>
+<br>
+1.1 Constants
 </h1>
 
 <p>
-<dl><dt><b><tt id='l2h-13' xml:id='l2h-13'>apilevel</tt></b></dt>
+<dl><dt><b><tt id='l2h-14' xml:id='l2h-14'>apilevel</tt></b></dt>
 <dd>
   String constant stating the supported DB API level. Currently '2.0'.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-14' xml:id='l2h-14'>buildtime</tt></b></dt>
+<dl><dt><b><tt id='l2h-15' xml:id='l2h-15'>buildtime</tt></b></dt>
 <dd>
   String constant stating the time when the binary was built.
 
@@ -69,14 +70,14 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-15' xml:id='l2h-15'>BINARY</tt></b></dt>
+<dl><dt><b><tt id='l2h-16' xml:id='l2h-16'>BINARY</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are binary
   (in Oracle this is RAW columns).
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-16' xml:id='l2h-16'>BFILE</tt></b></dt>
+<dl><dt><b><tt id='l2h-17' xml:id='l2h-17'>BFILE</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are BFILEs.
 
@@ -85,7 +86,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-17' xml:id='l2h-17'>BLOB</tt></b></dt>
+<dl><dt><b><tt id='l2h-18' xml:id='l2h-18'>BLOB</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are BLOBs.
 
@@ -94,7 +95,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-18' xml:id='l2h-18'>CLOB</tt></b></dt>
+<dl><dt><b><tt id='l2h-19' xml:id='l2h-19'>CLOB</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are CLOBs.
 
@@ -103,7 +104,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-19' xml:id='l2h-19'>CURSOR</tt></b></dt>
+<dl><dt><b><tt id='l2h-20' xml:id='l2h-20'>CURSOR</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are cursors
   (in PL/SQL these are known as ref cursors).
@@ -113,13 +114,71 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-20' xml:id='l2h-20'>DATETIME</tt></b></dt>
+<dl><dt><b><tt id='l2h-21' xml:id='l2h-21'>DATETIME</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are dates.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-21' xml:id='l2h-21'>FIXED_CHAR</tt></b></dt>
+<dl><dt><b><tt id='l2h-22' xml:id='l2h-22'>DBSHUTDOWN_ABORT</tt></b></dt>
+<dd>
+  This constant is used in database shutdown to indicate that the program
+  should not wait for current calls to complete or for users to disconnect from
+  the database. Use only in unusual circumstances since database recovery may
+  be necessary upon next startup.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-23' xml:id='l2h-23'>DBSHUTDOWN_FINAL</tt></b></dt>
+<dd>
+  This constant is used in database shutdown to indicate that the instance can
+  be truly halted. This should only be done after the database has been shut
+  down in one of the other modes (except abort) and the database has been
+  closed and dismounted using the appropriate SQL commands. See the method
+  shutdown() in the section on connections (<a href="connobj.html#connobj">2</a>).
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-24' xml:id='l2h-24'>DBSHUTDOWN_IMMEDIATE</tt></b></dt>
+<dd>
+  This constant is used in database shutdown to indicate that all uncommitted
+  transactions should be rolled back and any connected users should be
+  disconnected.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-25' xml:id='l2h-25'>DBSHUTDOWN_TRANSACTIONAL</tt></b></dt>
+<dd>
+  This constant is used in database shutdown to indicate that further
+  connections should be prohibited and no new transactions should be allowed.
+  It then waits for active transactions to complete.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-26' xml:id='l2h-26'>DBSHUTDOWN_TRANSACTIONAL_LOCAL</tt></b></dt>
+<dd>
+  This constant is used in database shutdown to indicate that further
+  connections should be prohibited and no new transactions should be allowed.
+  It then waits for only local active transactions to complete.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-27' xml:id='l2h-27'>FIXED_CHAR</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are fixed
   length strings (in Oracle this is CHAR columns); these behave differently
@@ -131,7 +190,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-22' xml:id='l2h-22'>FNCODE_BINDBYNAME</tt></b></dt>
+<dl><dt><b><tt id='l2h-28' xml:id='l2h-28'>FNCODE_BINDBYNAME</tt></b></dt>
 <dd>
   This constant is used to register callbacks on the OCIBindByName() function
   of the OCI.
@@ -141,7 +200,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-23' xml:id='l2h-23'>FNCODE_BINDBYPOS</tt></b></dt>
+<dl><dt><b><tt id='l2h-29' xml:id='l2h-29'>FNCODE_BINDBYPOS</tt></b></dt>
 <dd>
   This constant is used to register callbacks on the OCIBindByPos() function
   of the OCI.
@@ -151,7 +210,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-24' xml:id='l2h-24'>FNCODE_DEFINEBYPOS</tt></b></dt>
+<dl><dt><b><tt id='l2h-30' xml:id='l2h-30'>FNCODE_DEFINEBYPOS</tt></b></dt>
 <dd>
   This constant is used to register callbacks on the OCIDefineByPos() function
   of the OCI.
@@ -161,7 +220,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-25' xml:id='l2h-25'>FNCODE_STMTEXECUTE</tt></b></dt>
+<dl><dt><b><tt id='l2h-31' xml:id='l2h-31'>FNCODE_STMTEXECUTE</tt></b></dt>
 <dd>
   This constant is used to register callbacks on the OCIStmtExecute() function
   of the OCI.
@@ -171,7 +230,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-26' xml:id='l2h-26'>FNCODE_STMTFETCH</tt></b></dt>
+<dl><dt><b><tt id='l2h-32' xml:id='l2h-32'>FNCODE_STMTFETCH</tt></b></dt>
 <dd>
   This constant is used to register callbacks on the OCIStmtFetch() function
   of the OCI.
@@ -181,7 +240,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-27' xml:id='l2h-27'>FNCODE_STMTPREPARE</tt></b></dt>
+<dl><dt><b><tt id='l2h-33' xml:id='l2h-33'>FNCODE_STMTPREPARE</tt></b></dt>
 <dd>
   This constant is used to register callbacks on the OCIStmtPrepare() function
   of the OCI.
@@ -191,7 +250,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-28' xml:id='l2h-28'>LOB</tt></b></dt>
+<dl><dt><b><tt id='l2h-34' xml:id='l2h-34'>LOB</tt></b></dt>
 <dd>
   This type object is the Python type of BLOB and CLOB data that is returned
   from cursors.
@@ -201,7 +260,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-29' xml:id='l2h-29'>LONG_BINARY</tt></b></dt>
+<dl><dt><b><tt id='l2h-35' xml:id='l2h-35'>LONG_BINARY</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are long
   binary (in Oracle these are LONG RAW columns).
@@ -211,7 +270,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-30' xml:id='l2h-30'>LONG_STRING</tt></b></dt>
+<dl><dt><b><tt id='l2h-36' xml:id='l2h-36'>LONG_STRING</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are long
   strings (in Oracle these are LONG columns).
@@ -221,7 +280,17 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-31' xml:id='l2h-31'>NCLOB</tt></b></dt>
+<dl><dt><b><tt id='l2h-37' xml:id='l2h-37'>NATIVE_FLOAT</tt></b></dt>
+<dd>
+  This type object is used to describe columns in a database that are of type
+  binary_double or binary_float and is only available in Oracle 10g.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-38' xml:id='l2h-38'>NCLOB</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are NCLOBs.
 
@@ -230,13 +299,13 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-32' xml:id='l2h-32'>NUMBER</tt></b></dt>
+<dl><dt><b><tt id='l2h-39' xml:id='l2h-39'>NUMBER</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are numbers.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-33' xml:id='l2h-33'>OBJECT</tt></b></dt>
+<dl><dt><b><tt id='l2h-40' xml:id='l2h-40'>OBJECT</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are objects.
 
@@ -245,20 +314,30 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-34' xml:id='l2h-34'>paramstyle</tt></b></dt>
+<dl><dt><b><tt id='l2h-41' xml:id='l2h-41'>paramstyle</tt></b></dt>
 <dd>
   String constant stating the type of parameter marker formatting expected by
   the interface. Currently 'named' as in 'where name = :name'.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-35' xml:id='l2h-35'>ROWID</tt></b></dt>
+<dl><dt><b><tt id='l2h-42' xml:id='l2h-42'>ROWID</tt></b></dt>
 <dd>
   This type object is used to describe the pseudo column "rowid".
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-36' xml:id='l2h-36'>SPOOL_ATTRVAL_FORCEGET</tt></b></dt>
+<dl><dt><b><tt id='l2h-43' xml:id='l2h-43'>PRELIM_AUTH</tt></b></dt>
+<dd>
+  This constant is used to define the preliminary authentication mode required
+  for performing database startup and shutdown.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-44' xml:id='l2h-44'>SPOOL_ATTRVAL_FORCEGET</tt></b></dt>
 <dd>
   This constant is used to define the "get" mode on session pools and indicates
   that a new connection will be returned if there are no free sessions
@@ -269,7 +348,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-37' xml:id='l2h-37'>SPOOL_ATTRVAL_NOWAIT</tt></b></dt>
+<dl><dt><b><tt id='l2h-45' xml:id='l2h-45'>SPOOL_ATTRVAL_NOWAIT</tt></b></dt>
 <dd>
   This constant is used to define the "get" mode on session pools and indicates
   that an exception is raised if there are no free sessions available in the
@@ -280,7 +359,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-38' xml:id='l2h-38'>SPOOL_ATTRVAL_WAIT</tt></b></dt>
+<dl><dt><b><tt id='l2h-46' xml:id='l2h-46'>SPOOL_ATTRVAL_WAIT</tt></b></dt>
 <dd>
   This constant is used to define the "get" mode on session pools and indicates
   that the acquisition of a connection waits until a session is freed if there
@@ -291,14 +370,14 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-39' xml:id='l2h-39'>STRING</tt></b></dt>
+<dl><dt><b><tt id='l2h-47' xml:id='l2h-47'>STRING</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are strings
   (in Oracle this is VARCHAR2 columns).
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-40' xml:id='l2h-40'>SYSDBA</tt></b></dt>
+<dl><dt><b><tt id='l2h-48' xml:id='l2h-48'>SYSDBA</tt></b></dt>
 <dd>
   Value to be passed to the connect() method which indicates that SYSDBA
   access is to be acquired. See the Oracle documentation for more details.
@@ -308,7 +387,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-41' xml:id='l2h-41'>SYSOPER</tt></b></dt>
+<dl><dt><b><tt id='l2h-49' xml:id='l2h-49'>SYSOPER</tt></b></dt>
 <dd>
   Value to be passed to the connect() method which indicates that SYSOPER
   access is to be acquired. See the Oracle documentation for more details.
@@ -318,7 +397,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-42' xml:id='l2h-42'>threadsafety</tt></b></dt>
+<dl><dt><b><tt id='l2h-50' xml:id='l2h-50'>threadsafety</tt></b></dt>
 <dd>
   Integer constant stating the level of thread safety that the interface
   supports. Currently 2, which means that threads may share the module and
@@ -333,7 +412,7 @@ Note that in order to make use of multiple threads in a program which intends
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-43' xml:id='l2h-43'>TIMESTAMP</tt></b></dt>
+<dl><dt><b><tt id='l2h-51' xml:id='l2h-51'>TIMESTAMP</tt></b></dt>
 <dd>
   This type object is used to describe columns in a database that are
   timestamps.
@@ -344,7 +423,7 @@ Note that in order to make use of multiple threads in a program which intends
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-44' xml:id='l2h-44'>UCBTYPE_ENTRY</tt></b></dt>
+<dl><dt><b><tt id='l2h-52' xml:id='l2h-52'>UCBTYPE_ENTRY</tt></b></dt>
 <dd>
   This constant is used to register callbacks on entry to the function
   of the OCI. In other words, the callback will be called prior to the
@@ -355,7 +434,7 @@ Note that in order to make use of multiple threads in a program which intends
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-45' xml:id='l2h-45'>UCBTYPE_EXIT</tt></b></dt>
+<dl><dt><b><tt id='l2h-53' xml:id='l2h-53'>UCBTYPE_EXIT</tt></b></dt>
 <dd>
   This constant is used to register callbacks on exit from the function
   of the OCI. In other words, the callback will be called after the execution
@@ -366,7 +445,7 @@ Note that in order to make use of multiple threads in a program which intends
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-46' xml:id='l2h-46'>UCBTYPE_REPLACE</tt></b></dt>
+<dl><dt><b><tt id='l2h-54' xml:id='l2h-54'>UCBTYPE_REPLACE</tt></b></dt>
 <dd>
   This constant is used to register callbacks that completely replace the
   call to the OCI function.
@@ -376,9 +455,9 @@ Note that in order to make use of multiple threads in a program which intends
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-47' xml:id='l2h-47'>version</tt></b></dt>
+<dl><dt><b><tt id='l2h-55' xml:id='l2h-55'>version</tt></b></dt>
 <dd>
-  String constant stating the version of the module. Currently '4.3.1'.
+  String constant stating the version of the module. Currently 'HEAD'.
 
 <p>
 <strong>NOTE:</strong> This attribute is an extension to the DB API definition.
@@ -398,7 +477,7 @@ Note that in order to make use of multiple threads in a program which intends
   href="module.html"><img src='up.png'
   border='0' height='32'  alt='Up one Level' width='32' /></a></td>
 <td class='online-navigation'><a rel="next" title="1.2 Exceptions"
-  href="node5.html"><img src='next.png'
+  href="exceptions.html"><img src='next.png'
   border='0' height='32'  alt='Next Page' width='32' /></a></td>
 <td align="center" width="100%">cx_Oracle</td>
 <td class='online-navigation'><a rel="contents" title="Table of Contents"
@@ -415,11 +494,11 @@ Note that in order to make use of multiple threads in a program which intends
 <b class="navlabel">Up:</b>
 <a class="sectref" rel="parent" href="module.html">1. Module Interface</a>
 <b class="navlabel">Next:</b>
-<a class="sectref" rel="next" href="node5.html">1.2 Exceptions</a>
+<a class="sectref" rel="next" href="exceptions.html">1.2 Exceptions</a>
 </div>
 </div>
 <hr />
-<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+<span class="release-info">Release HEAD, documentation updated on October 1, 2007.</span>
 </div>
 <!--End of Navigation Panel-->
 

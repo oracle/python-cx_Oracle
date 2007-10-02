@@ -1,3 +1,30 @@
+Changes from 4.3.2 to 4.3.3
+ 1) Added method ping() on connections which can be used to test whether or not
+    a connection is still active (available in Oracle 10g R2).
+ 2) Added method cx_Oracle.clientversion() which returns a 5-tuple giving the
+    version of the client that is in use (available in Oracle 10g R2).
+ 3) Added methods startup() and shutdown() on connections which can be used to
+    startup and shutdown databases (available in Oracle 10g R2).
+ 4) Added support for Oracle 11g.
+ 5) Added samples directory which contains a handful of scripts containing
+    sample code for more advanced techniques. More will follow in future
+    releases.
+ 6) Prevent error "ORA-24333: zero iteration count" when calling executemany()
+    with zero rows as requested by Andreas Mock.
+ 7) Added methods __enter__() and __exit__() on connections to support using
+    connections as context managers in Python 2.5 and higher. The context
+    managed is the transaction state. Upon exit the transaction is either
+    rolled back or committed depending on whether an exception took place or
+    not.
+ 8) Make the search for the lib32 and lib64 directories automatic for all
+    platforms.
+ 9) Tweak the setup configuration script to include all of the metadata and
+    allow for building the module within another setup configuration script
+10) Include the Oracle version in addition to the Python version in the build
+    directories that are created and in the names of the binary packages that
+    are created.
+11) Remove unnecessary dependency on win32api to build module on Windows.
+
 Changes from 4.3.1 to 4.3.2
  1) Added methods open(), close(), isopen() and getchunksize() in order to
     improve performance of reading/writing LOB values in chunks.

@@ -9,7 +9,7 @@
 <link rel="next" href="connobj.html" />
 <link rel="prev" href="contents.html" />
 <link rel="parent" href="cx_Oracle.html" />
-<link rel="next" href="node4.html" />
+<link rel="next" href="constants.html" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name='aesop' content='information' />
 <title>1. Module Interface</title>
@@ -26,7 +26,7 @@
   href="cx_Oracle.html"><img src='up.png'
   border='0' height='32'  alt='Up one Level' width='32' /></a></td>
 <td class='online-navigation'><a rel="next" title="1.1 Constants"
-  href="node4.html"><img src='next.png'
+  href="constants.html"><img src='next.png'
   border='0' height='32'  alt='Next Page' width='32' /></a></td>
 <td align="center" width="100%">cx_Oracle</td>
 <td class='online-navigation'><a rel="contents" title="Table of Contents"
@@ -43,7 +43,7 @@
 <b class="navlabel">Up:</b>
 <a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
 <b class="navlabel">Next:</b>
-<a class="sectref" rel="next" href="node4.html">1.1 Constants</a>
+<a class="sectref" rel="next" href="constants.html">1.1 Constants</a>
 </div>
 <hr /></div>
 </div>
@@ -64,7 +64,21 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-2' xml:id='l2h-2' class="function">Connection</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-2' xml:id='l2h-2' class="function">clientversion</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Return the version of the client library being used as a 5-tuple. The five
+  values are the major version, minor version, update number, patch number
+  and port update number.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition and is
+  only available in Oracle 10g Release 2 and higher.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-3' xml:id='l2h-3' class="function">Connection</tt></b>(</nobr></td>
   <td><var></var><big>[</big><var><var>user</var>, <var>password</var>,
     <var>dsn</var>, <var>mode</var>, <var>handle</var>, <var>pool</var>, <var>threaded</var>,
     <var>twophase</var></var><big>]</big><var></var>)</td></tr></table></dt>
@@ -99,7 +113,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-4' xml:id='l2h-4' class="function">Cursor</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-5' xml:id='l2h-5' class="function">Cursor</tt></b>(</nobr></td>
   <td><var><var>connection</var></var>)</td></tr></table></dt>
 <dd>
   Constructor for creating a cursor.  Return a new Cursor object
@@ -111,7 +125,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-5' xml:id='l2h-5' class="function">Date</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-6' xml:id='l2h-6' class="function">Date</tt></b>(</nobr></td>
   <td><var><var>year</var>, <var>month</var>, <var>day</var></var>)</td></tr></table></dt>
 <dd>
   Construct an object holding a date value.
@@ -119,7 +133,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-6' xml:id='l2h-6' class="function">DateFromTicks</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-7' xml:id='l2h-7' class="function">DateFromTicks</tt></b>(</nobr></td>
   <td><var><var>ticks</var></var>)</td></tr></table></dt>
 <dd>
   Construct an object holding a date value from the given ticks value (number
@@ -129,7 +143,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-7' xml:id='l2h-7' class="function">makedsn</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-8' xml:id='l2h-8' class="function">makedsn</tt></b>(</nobr></td>
   <td><var><var>host</var>, <var>port</var>, <var>sid</var></var>)</td></tr></table></dt>
 <dd>
   Return a string suitable for use as the dsn for the connect() method. This
@@ -142,7 +156,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-8' xml:id='l2h-8' class="function">SessionPool</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-9' xml:id='l2h-9' class="function">SessionPool</tt></b>(</nobr></td>
   <td><var><var>user</var>, <var>password</var>, <var>database</var>,
         <var>min</var>, <var>max</var>, <var>increment</var>, </var><big>[</big><var><var>connectiontype</var>,
         <var>threaded</var>, <var>getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT</var></var><big>]</big><var></var>)</td></tr></table></dt>
@@ -166,7 +180,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-9' xml:id='l2h-9' class="function">Time</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-10' xml:id='l2h-10' class="function">Time</tt></b>(</nobr></td>
   <td><var><var>hour</var>, <var>minute</var>, <var>second</var></var>)</td></tr></table></dt>
 <dd>
   Construct an object holding a time value.
@@ -174,7 +188,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-10' xml:id='l2h-10' class="function">TimeFromTicks</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-11' xml:id='l2h-11' class="function">TimeFromTicks</tt></b>(</nobr></td>
   <td><var><var>ticks</var></var>)</td></tr></table></dt>
 <dd>
   Construct an object holding a time value from the given ticks value (number
@@ -184,7 +198,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-11' xml:id='l2h-11' class="function">Timestamp</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-12' xml:id='l2h-12' class="function">Timestamp</tt></b>(</nobr></td>
   <td><var><var>year</var>, <var>month</var>, <var>day</var>,
     <var>hour</var>, <var>minute</var>, <var>second</var></var>)</td></tr></table></dt>
 <dd>
@@ -193,7 +207,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-12' xml:id='l2h-12' class="function">TimestampFromTicks</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-13' xml:id='l2h-13' class="function">TimestampFromTicks</tt></b>(</nobr></td>
   <td><var><var>ticks</var></var>)</td></tr></table></dt>
 <dd>
   Construct an object holding a time stamp value from the given ticks value
@@ -209,8 +223,8 @@
 <a name="CHILD_LINKS"><strong>Subsections</strong></a>
 
 <ul class="ChildLinks">
-<li><a href="node4.html">1.1 Constants</a>
-<li><a href="node5.html">1.2 Exceptions</a>
+<li><a href="constants.html">1.1 Constants</a>
+<li><a href="exceptions.html">1.2 Exceptions</a>
 </ul>
 <!--End of Table of Child-Links-->
 </div>
@@ -227,7 +241,7 @@
   href="cx_Oracle.html"><img src='up.png'
   border='0' height='32'  alt='Up one Level' width='32' /></a></td>
 <td class='online-navigation'><a rel="next" title="1.1 Constants"
-  href="node4.html"><img src='next.png'
+  href="constants.html"><img src='next.png'
   border='0' height='32'  alt='Next Page' width='32' /></a></td>
 <td align="center" width="100%">cx_Oracle</td>
 <td class='online-navigation'><a rel="contents" title="Table of Contents"
@@ -244,11 +258,11 @@
 <b class="navlabel">Up:</b>
 <a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
 <b class="navlabel">Next:</b>
-<a class="sectref" rel="next" href="node4.html">1.1 Constants</a>
+<a class="sectref" rel="next" href="constants.html">1.1 Constants</a>
 </div>
 </div>
 <hr />
-<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+<span class="release-info">Release HEAD, documentation updated on October 1, 2007.</span>
 </div>
 <!--End of Navigation Panel-->
 

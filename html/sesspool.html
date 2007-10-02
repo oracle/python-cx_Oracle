@@ -60,7 +60,7 @@ Oracle 9i.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-109' xml:id='l2h-109' class="function">acquire</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-125' xml:id='l2h-125' class="function">acquire</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Acquire a connection from the session pool and return a connection
@@ -68,14 +68,14 @@ Oracle 9i.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-110' xml:id='l2h-110'>busy</tt></b></dt>
+<dl><dt><b><tt id='l2h-126' xml:id='l2h-126'>busy</tt></b></dt>
 <dd>
   This read-only attribute returns the number of sessions currently acquired.
 </dd></dl>
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-111' xml:id='l2h-111' class="function">drop</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-127' xml:id='l2h-127' class="function">drop</tt></b>(</nobr></td>
   <td><var><var>connection</var></var>)</td></tr></table></dt>
 <dd>
   Drop the connection from the pool which is useful if the connection is no
@@ -83,28 +83,28 @@ Oracle 9i.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-112' xml:id='l2h-112'>dsn</tt></b></dt>
+<dl><dt><b><tt id='l2h-128' xml:id='l2h-128'>dsn</tt></b></dt>
 <dd>
   This read-only attribute returns the TNS entry of the database to which a
   connection has been established.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-113' xml:id='l2h-113'>increment</tt></b></dt>
+<dl><dt><b><tt id='l2h-129' xml:id='l2h-129'>increment</tt></b></dt>
 <dd>
   This read-only attribute returns the number of sessions that will be
   established when additional sessions need to be created.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-114' xml:id='l2h-114'>max</tt></b></dt>
+<dl><dt><b><tt id='l2h-130' xml:id='l2h-130'>max</tt></b></dt>
 <dd>
   This read-only attribute returns the maximum number of sessions that the
   session pool can control.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-115' xml:id='l2h-115'>min</tt></b></dt>
+<dl><dt><b><tt id='l2h-131' xml:id='l2h-131'>min</tt></b></dt>
 <dd>
   This read-only attribute returns the number of sessions with which the
   session pool was created and the minimum number of sessions that will be
@@ -112,21 +112,21 @@ Oracle 9i.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-116' xml:id='l2h-116'>name</tt></b></dt>
+<dl><dt><b><tt id='l2h-132' xml:id='l2h-132'>name</tt></b></dt>
 <dd>
   This read-only attribute returns the name assigned to the session pool by
   Oracle.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-117' xml:id='l2h-117'>opened</tt></b></dt>
+<dl><dt><b><tt id='l2h-133' xml:id='l2h-133'>opened</tt></b></dt>
 <dd>
   This read-only attribute returns the number of sessions currently opened by
   the session pool.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-118' xml:id='l2h-118'>password</tt></b></dt>
+<dl><dt><b><tt id='l2h-134' xml:id='l2h-134'>password</tt></b></dt>
 <dd>
   This read-only attribute returns the password of the user which established
   the connection to the database.
@@ -134,7 +134,7 @@ Oracle 9i.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-119' xml:id='l2h-119' class="function">release</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-135' xml:id='l2h-135' class="function">release</tt></b>(</nobr></td>
   <td><var><var>connection</var></var>)</td></tr></table></dt>
 <dd>
   Release the connection back to the pool. This will be done automatically as
@@ -142,7 +142,7 @@ Oracle 9i.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-120' xml:id='l2h-120'>timeout</tt></b></dt>
+<dl><dt><b><tt id='l2h-136' xml:id='l2h-136'>timeout</tt></b></dt>
 <dd>
   This read-write attribute indicates the time (in seconds) after which idle
   sessions will be terminated in order to maintain an optimum number of open
@@ -150,14 +150,14 @@ Oracle 9i.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-121' xml:id='l2h-121'>tnsentry</tt></b></dt>
+<dl><dt><b><tt id='l2h-137' xml:id='l2h-137'>tnsentry</tt></b></dt>
 <dd>
   This read-only attribute returns the TNS entry of the database to which a
   connection has been established.
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-122' xml:id='l2h-122'>username</tt></b></dt>
+<dl><dt><b><tt id='l2h-138' xml:id='l2h-138'>username</tt></b></dt>
 <dd>
   This read-only attribute returns the name of the user which established the
   connection to the database.
@@ -198,7 +198,7 @@ Oracle 9i.
 </div>
 </div>
 <hr />
-<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+<span class="release-info">Release HEAD, documentation updated on October 1, 2007.</span>
 </div>
 <!--End of Navigation Panel-->
 

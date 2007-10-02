@@ -20,7 +20,7 @@
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
 <td class='online-navigation'><a rel="prev" title="1.2 Exceptions"
-  href="node5.html"><img src='previous.png'
+  href="exceptions.html"><img src='previous.png'
   border='0' height='32'  alt='Previous Page' width='32' /></a></td>
 <td class='online-navigation'><a rel="parent" title="cx_Oracle"
   href="cx_Oracle.html"><img src='up.png'
@@ -39,7 +39,7 @@
 </tr></table>
 <div class='online-navigation'>
 <b class="navlabel">Previous:</b>
-<a class="sectref" rel="prev" href="node5.html">1.2 Exceptions</a>
+<a class="sectref" rel="prev" href="exceptions.html">1.2 Exceptions</a>
 <b class="navlabel">Up:</b>
 <a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
 <b class="navlabel">Next:</b>
@@ -59,7 +59,32 @@
 object is destroyed or closed.
 
 <p>
-<dl><dt><b><tt id='l2h-58' xml:id='l2h-58'>action</tt></b></dt>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-66' xml:id='l2h-66' class="function">__enter__</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  The entry point for the connection as a context manager, a feature available
+  in Python 2.5 and higher. It returns itself.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-67' xml:id='l2h-67' class="function">__exit__</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  The exit point for the connection as a context manager, a feature available
+  in Python 2.5 and higher. In the event of an exception, the transaction is
+  rolled back; otherwise, the transaction is committed.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition.
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-68' xml:id='l2h-68'>action</tt></b></dt>
 <dd>
   This write-only attribute sets the action column in the v$session table and
   is only available in Oracle 10g.
@@ -69,8 +94,17 @@ object is destroyed or closed.
 </dd></dl>
 
 <p>
+<dl><dt><b><tt id='l2h-69' xml:id='l2h-69'>autocommit</tt></b></dt>
+<dd>
+  This read-write attribute determines whether autocommit mode is on or off.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-59' xml:id='l2h-59' class="function">begin</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-70' xml:id='l2h-70' class="function">begin</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
 <dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
@@ -93,7 +127,7 @@ Note that in order to make use of global (distributed) transactions, the
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-61' xml:id='l2h-61' class="function">cancel</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-72' xml:id='l2h-72' class="function">cancel</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Cancel a long-running transaction. This is only effective on non-Windows
@@ -101,7 +135,7 @@ Note that in order to make use of global (distributed) transactions, the
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-62' xml:id='l2h-62'>clientinfo</tt></b></dt>
+<dl><dt><b><tt id='l2h-73' xml:id='l2h-73'>clientinfo</tt></b></dt>
 <dd>
   This write-only attribute sets the client_info column in the v$session table
   and is only available in Oracle 10g.
@@ -112,7 +146,7 @@ Note that in order to make use of global (distributed) transactions, the
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-63' xml:id='l2h-63' class="function">close</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-74' xml:id='l2h-74' class="function">close</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Close the connection now, rather than whenever __del__ is called. The
@@ -123,7 +157,7 @@ Note that in order to make use of global (distributed) transactions, the
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-64' xml:id='l2h-64' class="function">commit</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-75' xml:id='l2h-75' class="function">commit</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Commit any pending transactions to the database.
@@ -131,14 +165,14 @@ Note that in order to make use of global (distributed) transactions, the
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-65' xml:id='l2h-65' class="function">cursor</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-76' xml:id='l2h-76' class="function">cursor</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Return a new Cursor object (<a href="cursorobj.html#cursorobj">3</a>) using the connection.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-66' xml:id='l2h-66'>dsn</tt></b></dt>
+<dl><dt><b><tt id='l2h-77' xml:id='l2h-77'>dsn</tt></b></dt>
 <dd>
   This read-only attribute returns the TNS entry of the database to which a
   connection has been established.
@@ -148,7 +182,7 @@ Note that in order to make use of global (distributed) transactions, the
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-67' xml:id='l2h-67'>encoding</tt></b></dt>
+<dl><dt><b><tt id='l2h-78' xml:id='l2h-78'>encoding</tt></b></dt>
 <dd>
   This read-only attribute returns the IANA character set name of the character
   set in use by the Oracle client.
@@ -158,7 +192,7 @@ Note that in order to make use of global (distributed) transactions, the
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-68' xml:id='l2h-68'>maxBytesPerCharacter</tt></b></dt>
+<dl><dt><b><tt id='l2h-79' xml:id='l2h-79'>maxBytesPerCharacter</tt></b></dt>
 <dd>
   This read-only attribute returns the maximum number of bytes each character
   can use for the client character set.
@@ -168,7 +202,7 @@ Note that in order to make use of global (distributed) transactions, the
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-69' xml:id='l2h-69'>module</tt></b></dt>
+<dl><dt><b><tt id='l2h-80' xml:id='l2h-80'>module</tt></b></dt>
 <dd>
   This write-only attribute sets the module column in the v$session table and
   is only available in Oracle 10g.
@@ -178,7 +212,7 @@ Note that in order to make use of global (distributed) transactions, the
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-70' xml:id='l2h-70'>nencoding</tt></b></dt>
+<dl><dt><b><tt id='l2h-81' xml:id='l2h-81'>nencoding</tt></b></dt>
 <dd>
   This read-only attribute returns the IANA character set name of the national
   character set in use by the Oracle client.
@@ -188,7 +222,7 @@ Note that in order to make use of global (distributed) transactions, the
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-71' xml:id='l2h-71'>password</tt></b></dt>
+<dl><dt><b><tt id='l2h-82' xml:id='l2h-82'>password</tt></b></dt>
 <dd>
   This read-only attribute returns the password of the user which established
   the connection to the database.
@@ -199,7 +233,19 @@ Note that in order to make use of global (distributed) transactions, the
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-72' xml:id='l2h-72' class="function">prepare</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-83' xml:id='l2h-83' class="function">ping</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Ping the server which can be used to test if the connection is still active.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition and is
+  only available in Oracle 10g R2 and higher.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-84' xml:id='l2h-84' class="function">prepare</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Prepare the distributed (global) transaction for commit.
@@ -210,7 +256,7 @@ Note that in order to make use of global (distributed) transactions, the
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-73' xml:id='l2h-73' class="function">register</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-85' xml:id='l2h-85' class="function">register</tt></b>(</nobr></td>
   <td><var><var>code</var>, <var>when</var>, <var>function</var></var>)</td></tr></table></dt>
 <dd>
   Register the function as an OCI callback. The code is one of the function
@@ -230,14 +276,59 @@ Note that in order to make use of global (distributed) transactions, the
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-74' xml:id='l2h-74' class="function">rollback</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-86' xml:id='l2h-86' class="function">rollback</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Rollback any pending transactions.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-75' xml:id='l2h-75'>tnsentry</tt></b></dt>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-87' xml:id='l2h-87' class="function">shutdown</tt></b>(</nobr></td>
+  <td><var></var><big>[</big><var><var>mode</var></var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>
+  Shutdown the database. In order to do this the connection must connected as
+  SYSDBA or SYSOPER. First shutdown using one of the DBSHUTDOWN constants
+  defined in the constants (<a href="constants.html#constants">1.1</a>) section. Next issue the SQL
+  statements required to close the database ("alter database close normal")
+  and dismount the database ("alter database dismount") followed by a second
+  call to this method with the DBSHUTDOWN_FINAL mode.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition and is
+  only available in Oracle 10g R2 and higher.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-88' xml:id='l2h-88' class="function">startup</tt></b>(</nobr></td>
+  <td><var><var>force=False</var>, <var>restrict=False</var></var>)</td></tr></table></dt>
+<dd>
+  Startup the database. This is equivalent to the SQL*Plus command
+  "startup nomount". The connection must be connected as SYSDBA or SYSOPER with
+  the PRELIM_AUTH option specified for this to work. Once this method has
+  completed, connect again without the PRELIM_AUTH option and issue the
+  statements required to mount ("alter database mount") and open ("alter
+  database open") the database.
+
+<p>
+<strong>NOTE:</strong> This method is an extension to the DB API definition and is
+  only available in Oracle 10g R2 and higher.
+</dl>
+
+<p>
+<dl><dt><b><tt id='l2h-89' xml:id='l2h-89'>stmtcachesize</tt></b></dt>
+<dd>
+  This read-write attribute specifies the size of the statement cache. This
+  value can make a significant difference in performance (up to 100x) if you
+  have a small number of statements that you execute repeatedly.
+
+<p>
+<strong>NOTE:</strong> This attribute is an extension to the DB API definition.
+</dd></dl>
+
+<p>
+<dl><dt><b><tt id='l2h-90' xml:id='l2h-90'>tnsentry</tt></b></dt>
 <dd>
   This read-only attribute returns the TNS entry of the database to which a
   connection has been established.
@@ -248,7 +339,7 @@ Note that in order to make use of global (distributed) transactions, the
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-76' xml:id='l2h-76' class="function">unregister</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-91' xml:id='l2h-91' class="function">unregister</tt></b>(</nobr></td>
   <td><var><var>code</var>, <var>when</var></var>)</td></tr></table></dt>
 <dd>
   Unregister the function as an OCI callback. The code is one of the function
@@ -261,7 +352,7 @@ Note that in order to make use of global (distributed) transactions, the
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-77' xml:id='l2h-77'>username</tt></b></dt>
+<dl><dt><b><tt id='l2h-92' xml:id='l2h-92'>username</tt></b></dt>
 <dd>
   This read-only attribute returns the name of the user which established the
   connection to the database.
@@ -271,7 +362,7 @@ Note that in order to make use of global (distributed) transactions, the
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-78' xml:id='l2h-78'>version</tt></b></dt>
+<dl><dt><b><tt id='l2h-93' xml:id='l2h-93'>version</tt></b></dt>
 <dd>
   This read-only attribute returns the version of the database to which a
   connection has been established.
@@ -288,7 +379,7 @@ Note that in order to make use of global (distributed) transactions, the
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
 <td class='online-navigation'><a rel="prev" title="1.2 Exceptions"
-  href="node5.html"><img src='previous.png'
+  href="exceptions.html"><img src='previous.png'
   border='0' height='32'  alt='Previous Page' width='32' /></a></td>
 <td class='online-navigation'><a rel="parent" title="cx_Oracle"
   href="cx_Oracle.html"><img src='up.png'
@@ -307,7 +398,7 @@ Note that in order to make use of global (distributed) transactions, the
 </tr></table>
 <div class='online-navigation'>
 <b class="navlabel">Previous:</b>
-<a class="sectref" rel="prev" href="node5.html">1.2 Exceptions</a>
+<a class="sectref" rel="prev" href="exceptions.html">1.2 Exceptions</a>
 <b class="navlabel">Up:</b>
 <a class="sectref" rel="parent" href="cx_Oracle.html">cx_Oracle</a>
 <b class="navlabel">Next:</b>
@@ -315,7 +406,7 @@ Note that in order to make use of global (distributed) transactions, the
 </div>
 </div>
 <hr />
-<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+<span class="release-info">Release HEAD, documentation updated on October 1, 2007.</span>
 </div>
 <!--End of Navigation Panel-->
 

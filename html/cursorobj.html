@@ -55,7 +55,7 @@
 </h1>
 
 <p>
-<dl><dt><b><tt id='l2h-79' xml:id='l2h-79'>arraysize</tt></b></dt>
+<dl><dt><b><tt id='l2h-94' xml:id='l2h-94'>arraysize</tt></b></dt>
 <dd>
   This read-write attribute specifies the number of rows to fetch at a time
   internally and is the default number of rows to fetch with the fetchmany()
@@ -65,7 +65,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-80' xml:id='l2h-80'>bindarraysize</tt></b></dt>
+<dl><dt><b><tt id='l2h-95' xml:id='l2h-95'>bindarraysize</tt></b></dt>
 <dd>
   This read-write attribute specifies the number of rows to bind at a time and
   is used when creating variables via setinputsizes() or var(). It defaults to
@@ -77,7 +77,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-81' xml:id='l2h-81' class="function">arrayvar</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-96' xml:id='l2h-96' class="function">arrayvar</tt></b>(</nobr></td>
   <td><var><var>dataType</var>, <var>value</var>, </var><big>[</big><var><var>size</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   Create an array variable associated with the cursor of the given type and
@@ -96,7 +96,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-82' xml:id='l2h-82' class="function">bindnames</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-97' xml:id='l2h-97' class="function">bindnames</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Return the list of bind variable names bound to the statement. Note that the
@@ -108,7 +108,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-83' xml:id='l2h-83' class="function">callfunc</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-98' xml:id='l2h-98' class="function">callfunc</tt></b>(</nobr></td>
   <td><var><var>name</var>, <var>returnType</var>,
       </var><big>[</big><var><var>parameters=[]</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
@@ -120,7 +120,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-84' xml:id='l2h-84' class="function">callproc</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-99' xml:id='l2h-99' class="function">callproc</tt></b>(</nobr></td>
   <td><var><var>name</var>, </var><big>[</big><var><var>parameters=[]</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   Call a procedure with the given name. The sequence of parameters must contain
@@ -132,7 +132,7 @@
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-85' xml:id='l2h-85' class="function">close</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-100' xml:id='l2h-100' class="function">close</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Close the cursor now, rather than whenever __del__ is called. The cursor will
@@ -141,7 +141,7 @@
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-86' xml:id='l2h-86'>connection</tt></b></dt>
+<dl><dt><b><tt id='l2h-101' xml:id='l2h-101'>connection</tt></b></dt>
 <dd>
   This read-only attribute returns a reference to the connection object on
   which the cursor was created.
@@ -152,7 +152,7 @@
 </dd></dl>
 
 <p>
-<dl><dt><b><tt id='l2h-87' xml:id='l2h-87'>description</tt></b></dt>
+<dl><dt><b><tt id='l2h-102' xml:id='l2h-102'>description</tt></b></dt>
 <dd>
   This read-only attribute is a sequence of 7-item sequences. Each of these
   sequences contains information describing one result column: (name, type,
@@ -166,7 +166,7 @@ The type will be one of the type objects defined at the module level.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-88' xml:id='l2h-88' class="function">execute</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-103' xml:id='l2h-103' class="function">execute</tt></b>(</nobr></td>
   <td><var><var>statement</var>, </var><big>[</big><var><var>parameters</var></var><big>]</big><var>,
     <var>**keywordParameters</var></var>)</td></tr></table></dt>
 <dd>
@@ -202,7 +202,7 @@ If the statement is a query, a list of variable objects (<a href="varobj.html#va
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-89' xml:id='l2h-89' class="function">executemany</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-104' xml:id='l2h-104' class="function">executemany</tt></b>(</nobr></td>
   <td><var><var>statement</var>, <var>parameters</var></var>)</td></tr></table></dt>
 <dd>
   Prepare a statement for execution against a database and then execute it
@@ -212,7 +212,7 @@ If the statement is a query, a list of variable objects (<a href="varobj.html#va
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-90' xml:id='l2h-90' class="function">executemanyprepared</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-105' xml:id='l2h-105' class="function">executemanyprepared</tt></b>(</nobr></td>
   <td><var><var>numIters</var></var>)</td></tr></table></dt>
 <dd>
   Execute the previously prepared and bound statement the given number of
@@ -227,7 +227,7 @@ If the statement is a query, a list of variable objects (<a href="varobj.html#va
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-91' xml:id='l2h-91' class="function">fetchall</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-106' xml:id='l2h-106' class="function">fetchall</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Fetch all (remaining) rows of a query result, returning them as a list of
@@ -243,7 +243,7 @@ An exception is raised if the previous call to execute() did not produce any
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-92' xml:id='l2h-92' class="function">fetchmany</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-107' xml:id='l2h-107' class="function">fetchmany</tt></b>(</nobr></td>
   <td><var></var><big>[</big><var><var>numRows=cursor.arraysize</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   Fetch the next set of rows of a query result, returning a list of tuples. An
@@ -263,7 +263,7 @@ An exception is raised if the previous call to execute() did not produce any
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-93' xml:id='l2h-93' class="function">fetchone</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-108' xml:id='l2h-108' class="function">fetchone</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Fetch the next row of a query result set, returning a single tuple or None
@@ -276,7 +276,7 @@ An exception is raised if the previous call to execute() did not produce any
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-94' xml:id='l2h-94' class="function">fetchraw</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-109' xml:id='l2h-109' class="function">fetchraw</tt></b>(</nobr></td>
   <td><var></var><big>[</big><var><var>numRows=cursor.arraysize</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   Fetch the next set of rows of a query result into the internal buffers of the
@@ -294,7 +294,7 @@ An exception is raised if the previous call to execute() did not produce any
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-95' xml:id='l2h-95' class="function">__iter__</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-110' xml:id='l2h-110' class="function">__iter__</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Returns the cursor itself to be used as an iterator.
@@ -306,7 +306,7 @@ An exception is raised if the previous call to execute() did not produce any
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-96' xml:id='l2h-96' class="function">next</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-111' xml:id='l2h-111' class="function">next</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Fetch the next row of a query result set, using the same semantics as
@@ -318,7 +318,7 @@ An exception is raised if the previous call to execute() did not produce any
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-97' xml:id='l2h-97'>numbersAsStrings</tt></b></dt>
+<dl><dt><b><tt id='l2h-112' xml:id='l2h-112'>numbersAsStrings</tt></b></dt>
 <dd>
   This integer attribute defines whether or not numbers should be returned as
   strings rather than integers or floating point numbers. This is useful to get
@@ -332,7 +332,7 @@ An exception is raised if the previous call to execute() did not produce any
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-98' xml:id='l2h-98' class="function">parse</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-113' xml:id='l2h-113' class="function">parse</tt></b>(</nobr></td>
   <td><var><var>statement</var></var>)</td></tr></table></dt>
 <dd>
   This can be used to parse a statement without actually executing it (this
@@ -344,20 +344,22 @@ An exception is raised if the previous call to execute() did not produce any
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-99' xml:id='l2h-99' class="function">prepare</tt></b>(</nobr></td>
-  <td><var><var>statement</var></var>)</td></tr></table></dt>
+  <td><nobr><b><tt id='l2h-114' xml:id='l2h-114' class="function">prepare</tt></b>(</nobr></td>
+  <td><var><var>statement</var>, </var><big>[</big><var><var>tag</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   This can be used before a call to execute() to define the statement that will
   be executed. When this is done, the prepare phase will not be performed when
   the call to execute() is made with None or the same string object as the
-  statement.
+  statement. If specified (Oracle 9i and higher) the statement will be
+  returned to the statement cache with the given tag. See the Oracle
+  documentation for more information about the statement cache.
 
 <p>
 <strong>NOTE:</strong> The DB API definition does not define this method.
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-100' xml:id='l2h-100'>rowcount</tt></b></dt>
+<dl><dt><b><tt id='l2h-115' xml:id='l2h-115'>rowcount</tt></b></dt>
 <dd>
   This read-only attribute specifies the number of rows that have currently
   been fetched from the cursor (for select statements) or that have been
@@ -365,8 +367,20 @@ An exception is raised if the previous call to execute() did not produce any
 </dd></dl>
 
 <p>
+<dl><dt><b><tt id='l2h-116' xml:id='l2h-116'>rowfactory</tt></b></dt>
+<dd>
+  This read-write attribute specifies a method to call for each row that is
+  retrieved from the database. Ordinarily a tuple is returned for each row but
+  if this attribute is set, the method is called with the argument tuple that
+  would normally be returned and the result of the method is returned instead.
+
+<p>
+<strong>NOTE:</strong> The DB API definition does not define this attribute.
+</dd></dl>
+
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-101' xml:id='l2h-101' class="function">setinputsizes</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-117' xml:id='l2h-117' class="function">setinputsizes</tt></b>(</nobr></td>
   <td><var><var>*args</var>, <var>**keywordArgs</var></var>)</td></tr></table></dt>
 <dd>
   This can be used before a call to execute() to predefine memory areas for the
@@ -380,7 +394,7 @@ An exception is raised if the previous call to execute() did not produce any
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-102' xml:id='l2h-102' class="function">setoutputsize</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-118' xml:id='l2h-118' class="function">setoutputsize</tt></b>(</nobr></td>
   <td><var><var>size</var>, </var><big>[</big><var><var>column</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   This can be used before a call to execute() to predefine memory areas for the
@@ -390,7 +404,7 @@ An exception is raised if the previous call to execute() did not produce any
 </dl>
 
 <p>
-<dl><dt><b><tt id='l2h-103' xml:id='l2h-103'>statement</tt></b></dt>
+<dl><dt><b><tt id='l2h-119' xml:id='l2h-119'>statement</tt></b></dt>
 <dd>
   This read-only attribute provides the string object that was previously
   prepared with prepare() or executed with execute().
@@ -401,7 +415,7 @@ An exception is raised if the previous call to execute() did not produce any
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-104' xml:id='l2h-104' class="function">var</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-120' xml:id='l2h-120' class="function">var</tt></b>(</nobr></td>
   <td><var><var>dataType</var>, </var><big>[</big><var><var>size</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   Create a variable associated with the cursor of the given type and size and
@@ -451,7 +465,7 @@ An exception is raised if the previous call to execute() did not produce any
 </div>
 </div>
 <hr />
-<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+<span class="release-info">Release HEAD, documentation updated on October 1, 2007.</span>
 </div>
 <!--End of Navigation Panel-->
 

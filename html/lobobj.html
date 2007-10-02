@@ -69,7 +69,14 @@ a subsequent fetch is detected.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-123' xml:id='l2h-123' class="function">fileexists</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-139' xml:id='l2h-139' class="function">close</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Close the LOB. Call this when writing is completed so that the indexes
+  associated with the LOB can be updated.
+</dl>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-140' xml:id='l2h-140' class="function">fileexists</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Return a boolean indicating if the file referenced by the BFILE type LOB
@@ -78,7 +85,16 @@ a subsequent fetch is detected.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-124' xml:id='l2h-124' class="function">getfilename</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-141' xml:id='l2h-141' class="function">getchunksize</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Return the chunk size for the internal LOB. Reading and writing to the LOB
+  in chunks of multiples of this size will improve performance.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-142' xml:id='l2h-142' class="function">getfilename</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Return a two-tuple consisting of the directory alias and file name for a
@@ -87,7 +103,25 @@ a subsequent fetch is detected.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-125' xml:id='l2h-125' class="function">read</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-143' xml:id='l2h-143' class="function">isopen</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Return a boolean indicating if the LOB is opened.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-144' xml:id='l2h-144' class="function">open</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
+<dd>
+  Open the LOB for writing. This will improve performance when writing to a LOB
+  in chunks and there are functional or extensible indexes associated with the
+  LOB.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-145' xml:id='l2h-145' class="function">read</tt></b>(</nobr></td>
   <td><var></var><big>[</big><var><var>offset = 1</var>, </var><big>[</big><var><var>amount</var></var><big>]</big><var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   Return a portion (or all) of the data in the LOB object.
@@ -95,7 +129,7 @@ a subsequent fetch is detected.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-126' xml:id='l2h-126' class="function">setfilename</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-146' xml:id='l2h-146' class="function">setfilename</tt></b>(</nobr></td>
   <td><var><var>dirAlias</var>, <var>name</var></var>)</td></tr></table></dt>
 <dd>
   Set the directory alias and name of the BFILE type LOB.
@@ -103,7 +137,7 @@ a subsequent fetch is detected.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-127' xml:id='l2h-127' class="function">size</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-147' xml:id='l2h-147' class="function">size</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
   Returns the size of the data in the LOB object.
@@ -111,7 +145,7 @@ a subsequent fetch is detected.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-128' xml:id='l2h-128' class="function">trim</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-148' xml:id='l2h-148' class="function">trim</tt></b>(</nobr></td>
   <td><var></var><big>[</big><var><var>newSize = 0</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   Trim the LOB to the new size.
@@ -119,7 +153,7 @@ a subsequent fetch is detected.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-129' xml:id='l2h-129' class="function">write</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-149' xml:id='l2h-149' class="function">write</tt></b>(</nobr></td>
   <td><var><var>data</var>, </var><big>[</big><var><var>offset = 1</var></var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
   Write the data to the LOB object at the given offset. Note that if you want
@@ -161,7 +195,7 @@ a subsequent fetch is detected.
 </div>
 </div>
 <hr />
-<span class="release-info">Release 4.3.1, documentation updated on April 18, 2007.</span>
+<span class="release-info">Release HEAD, documentation updated on October 1, 2007.</span>
 </div>
 <!--End of Navigation Panel-->
 

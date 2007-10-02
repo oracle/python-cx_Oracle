@@ -47,7 +47,7 @@ information on the Python database API specification.
 \end{funcdesc}
 
 \begin{funcdesc}{clientversion}{}
-  Return the version of the client library being used as a 5 tuple. The five
+  Return the version of the client library being used as a 5-tuple. The five
   values are the major version, minor version, update number, patch number
   and port update number.
 
@@ -149,7 +149,7 @@ information on the Python database API specification.
   Python time module for details).
 \end{funcdesc}
 
-\section{Constants}
+\section{Constants}\label{constants}
 
 \begin{datadesc}{apilevel}
   String constant stating the supported DB API level. Currently '2.0'.
@@ -208,7 +208,8 @@ information on the Python database API specification.
   This constant is used in database shutdown to indicate that the instance can
   be truly halted. This should only be done after the database has been shut
   down in one of the other modes (except abort) and the database has been
-  closed and dismounted using the appropriate SQL commands.
+  closed and dismounted using the appropriate SQL commands. See the method
+  shutdown() in the section on connections (\ref{connobj}).
 
   \strong{NOTE:} This attribute is an extension to the DB API definition.
 \end{datadesc}
@@ -440,7 +441,7 @@ information on the Python database API specification.
   \strong{NOTE:} This attribute is an extension to the DB API definition.
 \end{datadesc}
 
-\section{Exceptions}
+\section{Exceptions}\label{exceptions}
 
 \begin{datadesc}{Warning}
   Exception raised for important warnings and defined by the DB API but not
@@ -497,6 +498,21 @@ information on the Python database API specification.
 
 \strong{NOTE}: Any outstanding changes will be rolled back when the connection
 object is destroyed or closed.
+
+\begin{funcdesc}{__enter__}{}
+  The entry point for the connection as a context manager, a feature available
+  in Python 2.5 and higher. It returns itself.
+
+  \strong{NOTE:} This method is an extension to the DB API definition.
+\end{funcdesc}
+
+\begin{funcdesc}{__exit__}{}
+  The exit point for the connection as a context manager, a feature available
+  in Python 2.5 and higher. In the event of an exception, the transaction is
+  rolled back; otherwise, the transaction is committed.
+
+  \strong{NOTE:} This method is an extension to the DB API definition.
+\end{funcdesc}
 
 \begin{datadesc}{action}
   This write-only attribute sets the action column in the v\$session table and
