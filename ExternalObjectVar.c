@@ -31,29 +31,29 @@ static PyObject *ExternalObjectVar_ConvertToPython(udt_Environment*,
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ExternalObjectVarType = {
     PyObject_HEAD_INIT(NULL)
-    0,					// ob_size
-    "cx_Oracle.OBJECT",			// tp_name
-    sizeof(udt_ExternalObjectVar),	// tp_basicsize
-    0,					// tp_itemsize
+    0,                                  // ob_size
+    "cx_Oracle.OBJECT",                 // tp_name
+    sizeof(udt_ExternalObjectVar),      // tp_basicsize
+    0,                                  // tp_itemsize
     (destructor) ExternalObjectVar_Free,
                                         // tp_dealloc
-    0,					// tp_print
-    0,					// tp_getattr
-    0,					// tp_setattr
-    0,					// tp_compare
-    0,					// tp_repr
-    0,					// tp_as_number
-    0,					// tp_as_sequence
-    0,					// tp_as_mapping
-    0,					// tp_hash
-    0,					// tp_call
-    0,					// tp_str
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
     (getattrofunc) ExternalObjectVar_GetAttr,
                                         // tp_getattro
-    0,					// tp_setattro
-    0,					// tp_as_buffer
-    Py_TPFLAGS_DEFAULT,			// tp_flags
-    0					// tp_doc
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
 };
 
 
@@ -62,11 +62,11 @@ static PyTypeObject g_ExternalObjectVarType = {
 //   Create a new external LOB variable.
 //-----------------------------------------------------------------------------
 PyObject *ExternalObjectVar_New(
-    PyObject *referencedObject,		// referenced object
-    udt_ObjectType *objectType,		// type of object
-    dvoid *instance,			// object instance data
-    dvoid *indicator,			// indicator structure
-    int isIndependent)			// is object independent?
+    PyObject *referencedObject,         // referenced object
+    udt_ObjectType *objectType,         // type of object
+    dvoid *instance,                    // object instance data
+    dvoid *indicator,                   // indicator structure
+    int isIndependent)                  // is object independent?
 {
     udt_ExternalObjectVar *newVar;
 
@@ -89,7 +89,7 @@ PyObject *ExternalObjectVar_New(
 //   Free an external LOB variable.
 //-----------------------------------------------------------------------------
 static void ExternalObjectVar_Free(
-    udt_ExternalObjectVar *self)	// variable to free
+    udt_ExternalObjectVar *self)        // variable to free
 {
     if (self->isIndependent)
         OCIObjectFree(self->objectType->environment->handle,
@@ -106,11 +106,11 @@ static void ExternalObjectVar_Free(
 //   Convert the collection elements to Python values.
 //-----------------------------------------------------------------------------
 static int ExternalObjectVar_ConvertCollectionElements(
-    udt_Environment *environment,	// environment to use
-    OCIIter *iter,			// iterator
-    PyObject *list,			// list result
-    PyObject *referencedObject,		// referenced object
-    udt_ObjectType *objectType)		// collection type information
+    udt_Environment *environment,       // environment to use
+    OCIIter *iter,                      // iterator
+    PyObject *list,                     // list result
+    PyObject *referencedObject,         // referenced object
+    udt_ObjectType *objectType)         // collection type information
 {
     dvoid *elementValue, *elementIndicator;
     PyObject *elementObject;
@@ -146,10 +146,10 @@ static int ExternalObjectVar_ConvertCollectionElements(
 //   Convert a collection to a Python list.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalObjectVar_ConvertCollection(
-    udt_Environment *environment,	// environment to use
-    OCIColl *collectionValue,		// collection value
-    PyObject *referencedObject,		// referenced object
-    udt_ObjectType *objectType)		// collection type information
+    udt_Environment *environment,       // environment to use
+    OCIColl *collectionValue,           // collection value
+    PyObject *referencedObject,         // referenced object
+    udt_ObjectType *objectType)         // collection type information
 {
     PyObject *list;
     OCIIter *iter;
@@ -184,12 +184,12 @@ static PyObject *ExternalObjectVar_ConvertCollection(
 //   Convert an Oracle value to a Python value.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalObjectVar_ConvertToPython(
-    udt_Environment *environment,	// environment to use
-    OCITypeCode typeCode,		// type of Oracle data
-    dvoid *value,			// Oracle value
-    dvoid *indicator,			// null indicator
-    PyObject *referencedObject,		// referenced object (for sub objects)
-    udt_ObjectType *subType)		// sub type (for sub objects)
+    udt_Environment *environment,       // environment to use
+    OCITypeCode typeCode,               // type of Oracle data
+    dvoid *value,                       // Oracle value
+    dvoid *indicator,                   // null indicator
+    PyObject *referencedObject,         // referenced object (for sub objects)
+    udt_ObjectType *subType)            // sub type (for sub objects)
 {
     OraText *stringValue;
 
@@ -227,8 +227,8 @@ static PyObject *ExternalObjectVar_ConvertToPython(
 //   Retrieve an attribute on the external LOB variable object.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalObjectVar_GetAttributeValue(
-    udt_ExternalObjectVar *self,	// object
-    udt_ObjectAttribute *attribute)	// attribute to get
+    udt_ExternalObjectVar *self,        // object
+    udt_ObjectAttribute *attribute)     // attribute to get
 {
     dvoid *valueIndicator, *value;
     OCIInd scalarValueIndicator;
@@ -264,8 +264,8 @@ static PyObject *ExternalObjectVar_GetAttributeValue(
 //   Retrieve an attribute on the external LOB variable object.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalObjectVar_GetAttr(
-    udt_ExternalObjectVar *self,	// object
-    PyObject *nameObject)		// name of attribute
+    udt_ExternalObjectVar *self,        // object
+    PyObject *nameObject)               // name of attribute
 {
     udt_ObjectAttribute *attribute;
     char *name;
