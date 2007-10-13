@@ -75,12 +75,21 @@ elif sys.platform == "cygwin":
         libDirs[i] = os.path.join(oracleHome, libDirs[i])
     libs = ["oci"]
 else:
-    includeDirs = ["rdbms/demo", "rdbms/public", "network/public",
+    possibleIncludeDirs = ["rdbms/demo", "rdbms/public", "network/public",
             "sdk/include"]
     if sys.platform == "darwin":
-        includeDirs.append("plsql/public")
-    for i in range(len(includeDirs)):
-        includeDirs[i] = os.path.join(oracleHome, includeDirs[i])
+        possibleIncludeDirs.append("plsql/public")
+    includeDirs = []
+    for dir in possibleIncludeDirs:
+        path = os.path.join(oracleHome, dir)
+        if os.path.isdir(path):
+            includeDirs.append(path)
+    if not includeDirs:
+        path = oracleHome.replace("lib", "include")
+        if os.path.isdir(path):
+            includeDirs.append(path)
+    if not includeDirs:
+        raise DistutilsSetupError, "cannot locate Oracle include files"
     libPath = os.path.join(oracleHome, "lib")
     if sys.maxint == 2 ** 31 - 1:
         alternatePath = os.path.join(oracleHome, "lib32")
@@ -129,9 +138,9 @@ class Distribution(distutils.dist.Distribution):
         else:
             subDir = "lib"
             filesToCheck = [
-                    ("11g", "libclient11.a"),
-                    ("10g", "libclient10.a"),
-                    ("9i", "libclient9.a"),
+                    ("11g", "libclntsh.so.11.1"),
+                    ("10g", "libclntsh.so.10.1"),
+                    ("9i", "libclntsh.so.9.0"),
                     ("8i", "libclient8.a")
             ]
         self.oracleVersion = None
