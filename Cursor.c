@@ -602,15 +602,28 @@ static PyObject *Cursor_ItemDescriptionHelper(
     unsigned pos,                       // position in description
     OCIParam *param)                    // parameter to use for description
 {
-    PyObject *tuple, *var, *type;
+    ub2 internalSize, sqlDataType;
+    udt_VariableType *varType;
     int displaySize, index;
-    ub2 internalSize;
+    PyObject *tuple, *type;
     ub4 nameLength;
     sb2 precision;
     sword status;
     char *name;
     ub1 nullOk;
     sb1 scale;
+
+    // acquire type of item
+    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &sqlDataType, 0,
+            OCI_ATTR_DATA_TYPE, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_ItemDescription(): data type") < 0)
+        return NULL;
+
+    // acquire usable type of item
+    varType = Variable_TypeByOracleDataType(sqlDataType, SQLCS_IMPLICIT);
+    if (!varType)
+        return NULL;
 
     // acquire internal size of item
     status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &internalSize, 0,
@@ -629,8 +642,7 @@ static PyObject *Cursor_ItemDescriptionHelper(
     // lookup precision and scale
     scale = 0;
     precision = 0;
-    var = PyList_GET_ITEM(self->fetchVariables, pos - 1);
-    if (var->ob_type == &g_NumberVarType) {
+    if (varType->pythonType == &g_NumberVarType) {
         status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &scale, 0,
                 OCI_ATTR_SCALE, self->environment->errorHandle);
         if (Environment_CheckForError(self->environment, status,
@@ -651,7 +663,7 @@ static PyObject *Cursor_ItemDescriptionHelper(
         return NULL;
 
     // set display size based on data type
-    type = (PyObject*) var->ob_type;
+    type = (PyObject*) varType->pythonType;
     if (type == (PyObject*) &g_StringVarType)
         displaySize = internalSize;
     else if (type == (PyObject*) &g_BinaryVarType)
@@ -740,6 +752,7 @@ static PyObject *Cursor_GetDescription(
 {
     PyObject *results, *tuple;
     int numItems, index;
+    sword status;
 
     // make sure the cursor is open
     if (Cursor_IsOpen(self) < 0)
@@ -749,14 +762,20 @@ static PyObject *Cursor_GetDescription(
     if (Cursor_FixupBoundCursor(self) < 0)
         return NULL;
 
-    // if no statement has been executed yet, return None
-    if (!self->fetchVariables) {
+    // if not a query, return None
+    if (self->statementType != OCI_STMT_SELECT) {
         Py_INCREF(Py_None);
         return Py_None;
     }
 
+    // determine number of items in select-list
+    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, (dvoid*) &numItems, 0,
+            OCI_ATTR_PARAM_COUNT, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+                "Cursor_GetDescription()") < 0)
+        return NULL;
+
     // create a list of the required length
-    numItems = PyList_GET_SIZE(self->fetchVariables);
     results = PyList_New(numItems);
     if (!results)
         return NULL;
@@ -1161,10 +1180,11 @@ static int Cursor_InternalPrepare(
 
 //-----------------------------------------------------------------------------
 // Cursor_Parse()
-//   Parse the statement without executing it.
+//   Parse the statement without executing it. This also retrieves information
+// about the select list for select statements.
 //-----------------------------------------------------------------------------
 static PyObject *Cursor_Parse(
-    udt_Cursor *self,                   // cursor to perform prepare on
+    udt_Cursor *self,                   // cursor to perform parse on
     PyObject *args)                     // arguments
 {
     PyObject *statement;
@@ -1185,7 +1205,7 @@ static PyObject *Cursor_Parse(
     // parse the statement
     Py_BEGIN_ALLOW_THREADS
     status = OCIStmtExecute(self->connection->handle, self->handle,
-            self->environment->errorHandle, 0, 0, 0, 0, OCI_PARSE_ONLY);
+            self->environment->errorHandle, 0, 0, 0, 0, OCI_DESCRIBE_ONLY);
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(self->environment, status,
             "Cursor_Parse()") < 0)
