@@ -89,7 +89,7 @@ static udt_Environment *Environment_New(
             NULL, NULL, 0, NULL);
     if (!environment->handle) {
         Py_DECREF(environment);
-        PyErr_SetString(PyExc_RuntimeError,
+        PyErr_SetString(g_InterfaceErrorException,
                 "Unable to acquire Oracle environment handle");
         return NULL;
     }
