@@ -15,7 +15,7 @@ Place the file cx_Oracle.pyd or cx_Oracle.so anywhere on your Python path.
 
 
 SOURCE INSTALL:
-This module has been built with Oracle 8.1.7, 9.2.0 and 10.1.0 on Linux,
+This module has been built with Oracle 8.1.7, 9.2.0 and 10.2.0 on Linux,
 Solaris, HP/UX, Tru64 Unix and Windows. It will likely build on other
 platforms and other Oracle versions but I haven't tried them. Use the provided
 setup.py to build and install the module which makes use of the distutils
