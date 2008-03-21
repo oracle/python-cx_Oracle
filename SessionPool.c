@@ -58,7 +58,7 @@ static PyMethodDef g_SessionPoolMethods[] = {
 //-----------------------------------------------------------------------------
 static PyMemberDef g_SessionPoolMembers[] = {
     { "username", T_OBJECT, offsetof(udt_SessionPool, username), READONLY },
-    { "password", T_OBJECT, offsetof(udt_SessionPool, password), READONLY },
+    { "password", T_OBJECT, offsetof(udt_SessionPool, password), 0 },
     { "dsn", T_OBJECT, offsetof(udt_SessionPool, dsn), READONLY },
     { "tnsentry", T_OBJECT, offsetof(udt_SessionPool, dsn), READONLY },
     { "name", T_OBJECT, offsetof(udt_SessionPool, name), READONLY },

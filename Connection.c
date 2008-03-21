@@ -103,7 +103,7 @@ static PyMethodDef g_ConnectionMethods[] = {
 //-----------------------------------------------------------------------------
 static PyMemberDef g_ConnectionMembers[] = {
     { "username", T_OBJECT, offsetof(udt_Connection, username), READONLY },
-    { "password", T_OBJECT, offsetof(udt_Connection, password), READONLY },
+    { "password", T_OBJECT, offsetof(udt_Connection, password), 0 },
     { "dsn", T_OBJECT, offsetof(udt_Connection, dsn), READONLY },
     { "tnsentry", T_OBJECT, offsetof(udt_Connection, dsn), READONLY },
     { "autocommit", T_INT, offsetof(udt_Connection, autocommit), 0 },
