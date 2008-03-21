@@ -828,7 +828,8 @@ static int Cursor_SetBindVariableHelper(
     unsigned arrayPos,                  // array position to set
     PyObject *value,                    // value to bind
     udt_Variable *origVar,              // original variable bound
-    udt_Variable **newVar)              // new variable to be bound
+    udt_Variable **newVar,              // new variable to be bound
+    int deferTypeAssignment)            // defer type assignment if null?
 {
     int isValueVar;
 
@@ -887,8 +888,9 @@ static int Cursor_SetBindVariableHelper(
             Py_XDECREF((*newVar)->boundName);
             (*newVar)->boundName = NULL;
 
-        // otherwise, create a new variable
-        } else {
+        // otherwise, create a new variable, unless the value is None and
+        // we wish to defer type assignment
+        } else if (value != Py_None || !deferTypeAssignment) {
             *newVar = Variable_NewByValue(self, value, numElements);
             if (!*newVar)
                 return -1;
@@ -910,7 +912,8 @@ static int Cursor_SetBindVariables(
     udt_Cursor *self,                   // cursor to perform binds on
     PyObject *parameters,               // parameters to bind
     unsigned numElements,               // number of elements to create
-    unsigned arrayPos)                  // array position to set
+    unsigned arrayPos,                  // array position to set
+    int deferTypeAssignment)            // defer type assignment if null?
 {
     int i, origBoundByPos, origNumParams, boundByPos, numParams;
     PyObject *key, *value, *origVar;
@@ -957,7 +960,8 @@ static int Cursor_SetBindVariables(
                     origVar = NULL;
             } else origVar = NULL;
             if (Cursor_SetBindVariableHelper(self, numElements, arrayPos,
-                    value, (udt_Variable*) origVar, &newVar) < 0)
+                    value, (udt_Variable*) origVar, &newVar,
+                    deferTypeAssignment) < 0)
                 return -1;
             if (newVar) {
                 if (i < PyList_GET_SIZE(self->bindVariables)) {
@@ -983,7 +987,8 @@ static int Cursor_SetBindVariables(
         while (PyDict_Next(parameters, &pos, &key, &value)) {
             origVar = PyDict_GetItem(self->bindVariables, key);
             if (Cursor_SetBindVariableHelper(self, numElements, arrayPos,
-                    value, (udt_Variable*) origVar, &newVar) < 0)
+                    value, (udt_Variable*) origVar, &newVar,
+                    deferTypeAssignment) < 0)
                 return -1;
             if (newVar) {
                 if (PyDict_SetItem(self->bindVariables, key,
@@ -1472,7 +1477,8 @@ static PyObject *Cursor_Execute(
         return NULL;
 
     // perform binds
-    if (executeArgs && Cursor_SetBindVariables(self, executeArgs, 1, 0) < 0)
+    if (executeArgs && Cursor_SetBindVariables(self, executeArgs, 1, 0,
+            0) < 0)
         return NULL;
     if (Cursor_PerformBind(self) < 0)
         return NULL;
@@ -1547,7 +1553,8 @@ static PyObject *Cursor_ExecuteMany(
                     "expecting a list of dictionaries or sequences");
             return NULL;
         }
-        if (Cursor_SetBindVariables(self, arguments, numRows, i) < 0)
+        if (Cursor_SetBindVariables(self, arguments, numRows, i,
+                (i < numRows - 1)) < 0)
             return NULL;
     }
     if (Cursor_PerformBind(self) < 0)
