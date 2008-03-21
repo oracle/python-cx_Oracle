@@ -373,14 +373,20 @@ static PyObject *SessionPool_InternalRelease(
         return NULL;
     }
 
-    // release the connection
+    // attempt a rollback but if dropping the connection from the pool
+    // ignore the error
     Py_BEGIN_ALLOW_THREADS
     status = OCITransRollback(connection->handle,
             connection->environment->errorHandle, OCI_DEFAULT);
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(connection->environment, status,
-            "SessionPool_Release(): rollback") < 0)
-        return NULL;
+            "SessionPool_Release(): rollback") < 0) {
+        if (mode != OCI_SESSRLS_DROPSESS)
+            return NULL;
+        PyErr_Clear();
+    }
+
+    // release the connection
     Py_BEGIN_ALLOW_THREADS
     status = OCISessionRelease(connection->handle,
             connection->environment->errorHandle, NULL, 0, mode);
