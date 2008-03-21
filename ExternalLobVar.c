@@ -167,18 +167,22 @@ static int ExternalLobVar_InternalRead(
     sword status;
 
     if (var->lobVar->isFile) {
+        Py_BEGIN_ALLOW_THREADS
         status = OCILobFileOpen(var->lobVar->connection->handle,
                 var->lobVar->environment->errorHandle,
                 var->lobVar->data[var->pos], OCI_FILE_READONLY);
+        Py_END_ALLOW_THREADS
         if (Environment_CheckForError(var->lobVar->environment, status,
                 "ExternalLobVar_FileOpen()") < 0)
             return -1;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     status = OCILobRead(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle,
             var->lobVar->data[var->pos], length, offset, buffer,
             bufferSize, NULL, NULL, 0, var->lobVar->type->charsetForm); 
+    Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_LobRead()") < 0) {
         OCILobFileClose(var->lobVar->connection->handle,
@@ -188,9 +192,11 @@ static int ExternalLobVar_InternalRead(
     }
 
     if (var->lobVar->isFile) {
+        Py_BEGIN_ALLOW_THREADS
         status = OCILobFileClose(var->lobVar->connection->handle,
                 var->lobVar->environment->errorHandle,
                 var->lobVar->data[var->pos]);
+        Py_END_ALLOW_THREADS
         if (Environment_CheckForError(var->lobVar->environment, status,
                 "ExternalLobVar_FileClose()") < 0)
             return -1;
@@ -210,9 +216,11 @@ static int ExternalLobVar_InternalSize(
     sword status;
     ub4 length;
 
+    Py_BEGIN_ALLOW_THREADS
     status = OCILobGetLength(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle,
             var->lobVar->data[var->pos], &length);
+    Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_InternalSize()") < 0)
         return -1;
@@ -298,9 +306,11 @@ static PyObject *ExternalLobVar_Open(
 
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
+    Py_BEGIN_ALLOW_THREADS
     status = OCILobOpen(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle,
             var->lobVar->data[var->pos], OCI_LOB_READWRITE);
+    Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_Open()") < 0)
         return NULL;
@@ -321,9 +331,11 @@ static PyObject *ExternalLobVar_Close(
 
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
+    Py_BEGIN_ALLOW_THREADS
     status = OCILobClose(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle,
             var->lobVar->data[var->pos]);
+    Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_Close()") < 0)
         return NULL;
@@ -395,10 +407,12 @@ static PyObject *ExternalLobVar_Write(
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
     length = bufferLength;
+    Py_BEGIN_ALLOW_THREADS
     status = OCILobWrite(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
             (unsigned int*) &length, offset, buffer, bufferLength,
             OCI_ONE_PIECE, NULL, NULL, 0, var->lobVar->type->charsetForm);
+    Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_Write()") < 0)
         return NULL;
@@ -430,9 +444,11 @@ static PyObject *ExternalLobVar_Trim(
     // create a string for retrieving the value
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
+    Py_BEGIN_ALLOW_THREADS
     status = OCILobTrim(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
             newSize);
+    Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_Trim()") < 0)
         return NULL;
@@ -498,9 +514,11 @@ static PyObject *ExternalLobVar_IsOpen(
 
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
+    Py_BEGIN_ALLOW_THREADS
     status = OCILobIsOpen(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
             &isOpen);
+    Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_IsOpen()") < 0)
         return NULL;
@@ -606,9 +624,11 @@ static PyObject *ExternalLobVar_FileExists(
 
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
+    Py_BEGIN_ALLOW_THREADS
     status = OCILobFileExists(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
             &flag);
+    Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_FileExists()") < 0)
         return NULL;

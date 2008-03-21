@@ -249,9 +249,12 @@ static void LobVar_Finalize(
         if (var->data[i]) {
             OCILobIsTemporary(var->environment->handle,
                     var->environment->errorHandle, var->data[i], &isTemporary);
-            if (isTemporary)
+            if (isTemporary) {
+                Py_BEGIN_ALLOW_THREADS
                 OCILobFreeTemporary(var->connection->handle,
                         var->environment->errorHandle, var->data[i]);
+                Py_END_ALLOW_THREADS
+            }
             OCIDescriptorFree(var->data[i], OCI_DTYPE_LOB);
         }
     }
@@ -301,17 +304,21 @@ static int LobVar_SetValue(
         if (var->type->oracleType == SQLT_BLOB)
             lobType = OCI_TEMP_BLOB;
         else lobType = OCI_TEMP_CLOB;
+        Py_BEGIN_ALLOW_THREADS
         status = OCILobCreateTemporary(var->connection->handle,
                 var->environment->errorHandle, var->data[pos], OCI_DEFAULT,
                 OCI_DEFAULT, lobType, FALSE, OCI_DURATION_SESSION);
+        Py_END_ALLOW_THREADS
         if (Environment_CheckForError(var->environment, status,
                 "LobVar_SetValue(): create temporary") < 0)
             return -1;
     }
 
     // trim the current value
+    Py_BEGIN_ALLOW_THREADS
     status = OCILobTrim(var->connection->handle,
             var->environment->errorHandle, var->data[pos], 0);
+    Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->environment, status,
             "LobVar_SetValue(): trim") < 0)
         return -1;
@@ -319,10 +326,12 @@ static int LobVar_SetValue(
     // set the current value
     length = PyString_GET_SIZE(value);
     if (length) {
+        Py_BEGIN_ALLOW_THREADS
         status = OCILobWrite(var->connection->handle,
                 var->environment->errorHandle, var->data[pos],
                 &length, 1, PyString_AS_STRING(value),
                 PyString_GET_SIZE(value), OCI_ONE_PIECE, NULL, NULL, 0, 0);
+        Py_END_ALLOW_THREADS
         if (Environment_CheckForError(var->environment, status,
                 "LobVar_SetValue(): write") < 0)
             return -1;
