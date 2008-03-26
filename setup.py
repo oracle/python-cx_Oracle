@@ -53,17 +53,27 @@ if oracleHome is None:
     else:
         fileNameToFind = "oracle"
     for path in os.environ["PATH"].split(os.pathsep):
+        path = os.path.normpath(path)
         if os.path.exists(os.path.join(path, fileNameToFind)):
-            oracleHome = os.path.dirname(path)
+            if os.path.normcase(os.path.basename(path)) == "bin":
+                oracleHome = os.path.dirname(path)
+            else:
+                oracleHome = path
             break
 if oracleHome is None:
     raise DistutilsSetupError, "cannot locate an Oracle software installation"
 
 # define some variables
 if sys.platform == "win32":
-    libDirs = [os.path.join(oracleHome, "bin")]
-    includeDirs = [os.path.join(oracleHome, "oci", "include"), \
-            os.path.join(oracleHome, "rdbms", "demo")]
+    libDirs = [os.path.join(oracleHome, "bin"), oracleHome]
+    possibleIncludeDirs = ["oci/include", "rdbms/demo", "sdk/include"]
+    includeDirs = []
+    for dir in possibleIncludeDirs:
+        path = os.path.normpath(os.path.join(oracleHome, dir))
+        if os.path.isdir(path):
+            includeDirs.append(path)
+    if not includeDirs:
+        raise DistutilsSetupError, "cannot locate Oracle include files"
     libs = ["oci"]
 elif sys.platform == "cygwin":
     includeDirs = ["/usr/include", "rdbms/demo", "rdbms/public", \
@@ -130,8 +140,8 @@ class Distribution(distutils.dist.Distribution):
         if sys.platform == "win32":
             subDir = "bin"
             filesToCheck = [
-                    ("11g", "oraclient11.dll"),
-                    ("10g", "oraclient10.dll"),
+                    ("11g", "oraocci11.dll"),
+                    ("10g", "oraocci10.dll"),
                     ("9i", "oraclient9.dll"),
                     ("8i", "oraclient8.dll")
             ]
@@ -145,13 +155,18 @@ class Distribution(distutils.dist.Distribution):
             ]
         self.oracleVersion = None
         for version, baseFileName in filesToCheck:
+            fileName = os.path.join(oracleHome, baseFileName)
+            if os.path.exists(fileName):
+                self.oracleVersion = version
+                break
             fileName = os.path.join(oracleHome, subDir, baseFileName)
             if os.path.exists(fileName):
                 self.oracleVersion = version
                 break
         if self.oracleVersion is None:
-            raise DistutilsSetupError, "Oracle home does not refer to an " \
-                    "8i, 9i, 10g or 11g installation"
+            messageFormat = "Oracle home (%s) does not refer to an " \
+                    "8i, 9i, 10g or 11g installation."
+            raise DistutilsSetupError, messageFormat % oracleHome
 
     def get_fullname_with_oracle_version(self):
         name = self.metadata.get_fullname()
