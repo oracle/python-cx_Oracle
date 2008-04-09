@@ -137,7 +137,7 @@ class Distribution(distutils.dist.Distribution):
     def __init__(self, attrs):
         global oracleHome
         distutils.dist.Distribution.__init__(self, attrs)
-        if sys.platform == "win32":
+        if sys.platform in ("win32", "cygwin"):
             subDir = "bin"
             filesToCheck = [
                     ("11g", "oraocci11.dll"),
