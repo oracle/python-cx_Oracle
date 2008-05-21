@@ -166,10 +166,28 @@ static void Environment_RaiseError(
 
     error = Error_New(environment, context);
     if (error) {
-        if (error->errorNumber == 1 ||
-                (error->errorNumber >= 2290 && error->errorNumber <= 2292))
-            exceptionType = g_IntegrityErrorException;
-        else exceptionType = g_DatabaseErrorException;
+        switch (error->errorNumber) {
+            case 1:
+            case 2290:
+            case 2291:
+            case 2292:
+                exceptionType = g_IntegrityErrorException;
+                break;
+            case 1012:
+            case 1033:
+            case 1034:
+            case 1089:
+            case 3113:
+            case 3114:
+            case 12203:
+            case 12500:
+            case 12571:
+                exceptionType = g_OperationalErrorException;
+                break;
+            default:
+                exceptionType = g_DatabaseErrorException;
+                break;
+        }
         PyErr_SetObject(exceptionType, (PyObject*) error);
         Py_DECREF(error);
     }
