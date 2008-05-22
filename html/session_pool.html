@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>SessionPool Object &mdash; cx_Oracle v4.4a1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:   '',
+        VERSION:    '4.4a1'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/interface.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="contents" title="Global table of contents" href="contents.html" />
+    <link rel="index" title="Global index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="cx_Oracle v4.4a1 documentation" href="index.html" />
+    <link rel="next" title="LOB Objects" href="lob.html" />
+    <link rel="prev" title="Variable Objects" href="variable.html" />
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
+        <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
+          <li class="right"><a href="lob.html" title="LOB Objects" accesskey="N">next</a> |</li>
+          <li class="right"><a href="variable.html" title="Variable Objects" accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+      </ul>
+    </div>
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="sessionpool-object">
+<span id="sesspool"></span><h1 id="sessionpool-object"><span id="sesspool"></span>SessionPool Object<a class="headerlink" href="#sessionpool-object" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This object is an extension the DB API and is only available in Oracle 9i.</p>
+</div>
+<dl class="method">
+<dt id="SessionPool.acquire">
+<!--#SessionPool.acquire#--><tt class="descclassname">SessionPool.</tt><tt class="descname">acquire</tt><big>(</big><big>)</big><a class="headerlink" href="#SessionPool.acquire" title="Permalink to this definition">¶</a></dt>
+<dd>Acquire a connection from the session pool and return a connection object
+(<a class="reference external" href="connection.html#connobj"><em>Connection Object</em></a>).</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.busy">
+<!--#SessionPool.busy#--><tt class="descclassname">SessionPool.</tt><tt class="descname">busy</tt><a class="headerlink" href="#SessionPool.busy" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the number of sessions currently acquired.</dd></dl>
+
+<dl class="method">
+<dt id="SessionPool.drop">
+<!--#SessionPool.drop#--><tt class="descclassname">SessionPool.</tt><tt class="descname">drop</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#SessionPool.drop" title="Permalink to this definition">¶</a></dt>
+<dd>Drop the connection from the pool which is useful if the connection is no
+longer usable (such as when the session is killed).</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.dsn">
+<!--#SessionPool.dsn#--><tt class="descclassname">SessionPool.</tt><tt class="descname">dsn</tt><a class="headerlink" href="#SessionPool.dsn" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the TNS entry of the database to which a
+connection has been established.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.increment">
+<!--#SessionPool.increment#--><tt class="descclassname">SessionPool.</tt><tt class="descname">increment</tt><a class="headerlink" href="#SessionPool.increment" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the number of sessions that will be
+established when additional sessions need to be created.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.max">
+<!--#SessionPool.max#--><tt class="descclassname">SessionPool.</tt><tt class="descname">max</tt><a class="headerlink" href="#SessionPool.max" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the maximum number of sessions that the
+session pool can control.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.min">
+<!--#SessionPool.min#--><tt class="descclassname">SessionPool.</tt><tt class="descname">min</tt><a class="headerlink" href="#SessionPool.min" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the number of sessions with which the
+session pool was created and the minimum number of sessions that will be
+controlled by the session pool.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.name">
+<!--#SessionPool.name#--><tt class="descclassname">SessionPool.</tt><tt class="descname">name</tt><a class="headerlink" href="#SessionPool.name" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the name assigned to the session pool by
+Oracle.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.opened">
+<!--#SessionPool.opened#--><tt class="descclassname">SessionPool.</tt><tt class="descname">opened</tt><a class="headerlink" href="#SessionPool.opened" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the number of sessions currently opened by
+the session pool.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.password">
+<!--#SessionPool.password#--><tt class="descclassname">SessionPool.</tt><tt class="descname">password</tt><a class="headerlink" href="#SessionPool.password" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the password of the user which established
+the connection to the database.</dd></dl>
+
+<dl class="method">
+<dt id="SessionPool.release">
+<!--#SessionPool.release#--><tt class="descclassname">SessionPool.</tt><tt class="descname">release</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#SessionPool.release" title="Permalink to this definition">¶</a></dt>
+<dd>Release the connection back to the pool. This will be done automatically as
+well if the connection object is garbage collected.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.timeout">
+<!--#SessionPool.timeout#--><tt class="descclassname">SessionPool.</tt><tt class="descname">timeout</tt><a class="headerlink" href="#SessionPool.timeout" title="Permalink to this definition">¶</a></dt>
+<dd>This read-write attribute indicates the time (in seconds) after which idle
+sessions will be terminated in order to maintain an optimum number of open
+sessions.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.tnsentry">
+<!--#SessionPool.tnsentry#--><tt class="descclassname">SessionPool.</tt><tt class="descname">tnsentry</tt><a class="headerlink" href="#SessionPool.tnsentry" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the TNS entry of the database to which a
+connection has been established.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.username">
+<!--#SessionPool.username#--><tt class="descclassname">SessionPool.</tt><tt class="descname">username</tt><a class="headerlink" href="#SessionPool.username" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the name of the user which established the
+connection to the database.</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="sidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="variable.html" title="previous chapter">Variable Objects</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="lob.html" title="next chapter">LOB Objects</a></p>
+            <h3>Quick search</h3>
+            <form class="search" action="search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
+        <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
+          <li class="right"><a href="lob.html" title="LOB Objects" accesskey="N">next</a> |</li>
+          <li class="right"><a href="variable.html" title="Variable Objects" accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Anthony Tuininga.
+      Last updated on May 22, 2008.
+    </div>
+  </body>
+</html>

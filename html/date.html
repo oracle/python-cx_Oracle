@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Date Object &mdash; cx_Oracle v4.4a1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:   '',
+        VERSION:    '4.4a1'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/interface.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="contents" title="Global table of contents" href="contents.html" />
+    <link rel="index" title="Global index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="cx_Oracle v4.4a1 documentation" href="index.html" />
+    <link rel="next" title="License" href="license.html" />
+    <link rel="prev" title="LOB Objects" href="lob.html" />
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
+        <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
+          <li class="right"><a href="license.html" title="License" accesskey="N">next</a> |</li>
+          <li class="right"><a href="lob.html" title="LOB Objects" accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+      </ul>
+    </div>
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="date-object">
+<span id="dateobj"></span><h1 id="date-object"><span id="dateobj"></span>Date Object<a class="headerlink" href="#date-object" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This object is an extension the DB API. It is returned whenever Oracle
+date and timestamp (in Oracle 9i) columns are fetched and whenever the
+constructor methods (Date(), Time(), Timestamp()) are called.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As of Python 2.4 cx_Oracle returns the datetime objects from the
+standard library datetime module instead of these objects.</p>
+</div>
+<dl class="attribute">
+<dt id="Date.year">
+<!--#Date.year#--><tt class="descclassname">Date.</tt><tt class="descname">year</tt><a class="headerlink" href="#Date.year" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the year.</dd></dl>
+
+<dl class="attribute">
+<dt id="Date.month">
+<!--#Date.month#--><tt class="descclassname">Date.</tt><tt class="descname">month</tt><a class="headerlink" href="#Date.month" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the month.</dd></dl>
+
+<dl class="attribute">
+<dt id="Date.day">
+<!--#Date.day#--><tt class="descclassname">Date.</tt><tt class="descname">day</tt><a class="headerlink" href="#Date.day" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the day.</dd></dl>
+
+<dl class="attribute">
+<dt id="Date.hour">
+<!--#Date.hour#--><tt class="descclassname">Date.</tt><tt class="descname">hour</tt><a class="headerlink" href="#Date.hour" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the hour.</dd></dl>
+
+<dl class="attribute">
+<dt id="Date.minute">
+<!--#Date.minute#--><tt class="descclassname">Date.</tt><tt class="descname">minute</tt><a class="headerlink" href="#Date.minute" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the minute.</dd></dl>
+
+<dl class="attribute">
+<dt id="Date.second">
+<!--#Date.second#--><tt class="descclassname">Date.</tt><tt class="descname">second</tt><a class="headerlink" href="#Date.second" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the second.</dd></dl>
+
+<dl class="attribute">
+<dt id="Date.fsecond">
+<!--#Date.fsecond#--><tt class="descclassname">Date.</tt><tt class="descname">fsecond</tt><a class="headerlink" href="#Date.fsecond" title="Permalink to this definition">¶</a></dt>
+<dd>This read-only attribute returns the fractional second.</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="sidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="lob.html" title="previous chapter">LOB Objects</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="license.html" title="next chapter">License</a></p>
+            <h3>Quick search</h3>
+            <form class="search" action="search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
+        <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
+          <li class="right"><a href="license.html" title="License" accesskey="N">next</a> |</li>
+          <li class="right"><a href="lob.html" title="LOB Objects" accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Anthony Tuininga.
+      Last updated on May 22, 2008.
+    </div>
+  </body>
+</html>
