@@ -287,7 +287,8 @@ static int Cursor_Init(
     Py_INCREF(connection);
     self->connection = connection;
     self->environment = connection->environment;
-    self->arraySize = 1;
+    self->arraySize = 50;
+    self->fetchArraySize = 50;
     self->bindArraySize = 1;
     self->statementType = -1;
     self->outputSize = -1;
