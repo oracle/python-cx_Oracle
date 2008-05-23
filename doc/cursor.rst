@@ -60,6 +60,10 @@ Cursor Object
    must contain one entry for each argument that the function expects. The
    result of the call is the return value of the function.
 
+   .. note::
+
+      The DB API definition does not define this method.
+
 
 .. method:: Cursor.callproc(name, [parameters=[]])
 
