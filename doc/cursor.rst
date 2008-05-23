@@ -92,7 +92,7 @@ Cursor Object
       mentioned in PEP 249 as an optional extension.
 
 
-.. method:: Cursor.description
+.. data:: Cursor.description
 
    This read-only attribute is a sequence of 7-item sequences. Each of these
    sequences contains information describing one result column: (name, type,
