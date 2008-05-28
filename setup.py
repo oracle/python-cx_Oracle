@@ -32,11 +32,13 @@ dataFiles = None
 if sys.platform in ("win32", "cygwin"):
     baseName = "cx_Oracle-doc"
     dataFiles = [ (baseName, [ "LICENSE.TXT", "README.TXT", "HISTORY.txt"]) ]
-    for dir in ("html", "samples", "test"):
+    for dir in ("html", "html/_static", "samples", "test"):
         files = []
-        fullDirName = "%s/%s" % (baseName,dir)
+        fullDirName = "%s/%s" % (baseName, dir)
         for name in os.listdir(dir):
             if name.startswith("."):
+                continue
+            if os.path.isdir(os.path.join(dir, name)):
                 continue
             fullName = "%s/%s" % (dir, name)
             files.append(fullName)

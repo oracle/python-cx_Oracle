@@ -1,6 +1,7 @@
 include MANIFEST.in
 include *.c
 include *.txt
-recursive-include html *.css *.html *.png
+recursive-include html *.html *.json
+recursive-include html/_static *.png *.css *.js
 recursive-include samples *.py
 recursive-include test *.py *.sql
