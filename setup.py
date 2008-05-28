@@ -24,6 +24,9 @@ from distutils.core import setup
 from distutils.errors import DistutilsSetupError
 from distutils.extension import Extension
 
+# if setuptools is desired, uncomment this line
+#from setuptools import setup, Extension
+
 # define build constants
 BUILD_VERSION = "4.4a1"
 
