@@ -20,12 +20,14 @@ import distutils.util
 import os
 import sys
 
-from distutils.core import setup
 from distutils.errors import DistutilsSetupError
-from distutils.extension import Extension
 
-# if setuptools is desired, uncomment this line
-#from setuptools import setup, Extension
+# if setuptools is detected, use it to add support for eggs
+try:
+    from setuptools import setup, Extension
+except:
+    from distutils.core import setup
+    from distutils.extension import Extension
 
 # define build constants
 BUILD_VERSION = "4.4a1"
