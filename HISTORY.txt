@@ -1,3 +1,41 @@
+Changes from 4.3.3 to 4.4
+ 1) Fix setup.py to handle the Oracle instant client and Oracle XE on both
+    Linux and Windows as pointed out by many. Thanks also to the many people
+    who also provided patches.
+ 2) Set the default array size to 50 instead of 1 as the DB API suggests
+    because the performance difference is so drastic and many people have
+    recommended that the default be changed.
+ 3) Added Py_BEGIN_ALLOW_THREADS and Py_END_ALLOW_THREADS around each blocking
+    call for LOBs as requested by Jason Conroy who also provided an initial
+    patch and performed a number of tests that demonstrate the new code is much
+    more responsive.
+ 4) Add support for acquiring cursor.description after a parse.
+ 5) Defer type assignment when performing executemany() until the last possible
+    moment if the value being bound in is null as suggested by Dragos Dociu.
+ 6) When dropping a connection from the pool, ignore any errors that occur
+    during the rollback; unfortunately, Oracle decides to commit data even when
+    dropping a connection from the pool instead of rolling it back so the
+    attempt still has to be made.
+ 7) Use cx_Oracle.InterfaceError rather than the builtin RuntimeError when
+    unable to create the Oracle environment object as requested by Luke Mewburn
+    since the error is specific to Oracle and someone attempting to catch any
+    exception cannot simply use cx_Oracle.Error.
+ 8) Translated some error codes to OperationalError as requested by Matthew
+    Harriger; translated if/elseif/else logic to switch statement to make it
+    more readable and to allow for additional translation if desired.
+ 9) Transformed documentation to new format using restructured text. Thanks to
+    Waldemar Osuch for contributing the initial draft of the new documentation.
+10) Allow the password to be overwritten by a new value as requested by Alex
+    VanderWoude; this value is retained as a convenience to the user and not
+    used by anything in the module; if changed externally it may be convenient
+    to keep this copy up to date.
+11) Cygwin is on Windows so should be treated in the same way as noted by
+    Matthew Cahn.
+12) Add support for using setuptools if so desired as requested by Shreya
+    Bhatt.
+13) Specify that the version of Oracle 10 that is now primarily used is 10.2,
+    not 10.1.
+
 Changes from 4.3.2 to 4.3.3
  1) Added method ping() on connections which can be used to test whether or not
     a connection is still active (available in Oracle 10g R2).
