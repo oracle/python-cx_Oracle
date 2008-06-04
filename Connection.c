@@ -419,7 +419,6 @@ static int Connection_Connect(
     }
 
 #ifdef OCI_ATTR_DRIVER_NAME
-printf("setting driver name to %s\n", DRIVER_NAME);
     status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
             (text*) DRIVER_NAME, strlen(DRIVER_NAME), OCI_ATTR_DRIVER_NAME,
             self->environment->errorHandle);
