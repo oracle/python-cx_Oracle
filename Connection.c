@@ -418,6 +418,17 @@ static int Connection_Connect(
             return -1;
     }
 
+#ifdef OCI_ATTR_DRIVER_NAME
+printf("setting driver name to %s\n", DRIVER_NAME);
+    status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
+            (text*) DRIVER_NAME, strlen(DRIVER_NAME), OCI_ATTR_DRIVER_NAME,
+            self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_Connect(): set driver name") < 0)
+        return -1;
+
+#endif
+
     // set the session handle on the service context handle
     status = OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX,
             self->sessionHandle, 0, OCI_ATTR_SESSION,

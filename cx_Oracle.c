@@ -50,10 +50,11 @@ typedef int Py_ssize_t;
     if (PyModule_AddObject(module, name, (PyObject*) type) < 0) \
         return;
 
-// define macro to get the build version as a string
+// define macros to get the build version as a string and the driver name
 #define xstr(s)                 str(s)
 #define str(s)                  #s
 #define BUILD_VERSION_STRING    xstr(BUILD_VERSION)
+#define DRIVER_NAME             "cx_Oracle-"BUILD_VERSION_STRING
 
 
 //-----------------------------------------------------------------------------
