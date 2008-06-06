@@ -2,13 +2,13 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Cursor Object &mdash; cx_Oracle v4.4a1 documentation</title>
+    <title>Cursor Object &mdash; cx_Oracle v4.4 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:   '',
-        VERSION:    '4.4a1'
+        VERSION:    '4.4'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
@@ -17,7 +17,7 @@
     <link rel="contents" title="Global table of contents" href="contents.html" />
     <link rel="index" title="Global index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="cx_Oracle v4.4a1 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v4.4 documentation" href="index.html" />
     <link rel="next" title="Variable Objects" href="variable.html" />
     <link rel="prev" title="Connection Object" href="connection.html" />
   </head>
@@ -29,7 +29,7 @@
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="variable.html" title="Variable Objects" accesskey="N">next</a> |</li>
           <li class="right"><a href="connection.html" title="Connection Object" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="document">
@@ -38,17 +38,18 @@
           <div class="body">
             
   
-  <div class="section" id="cursor-object">
-<span id="cursorobj"></span><h1 id="cursor-object"><span id="cursorobj"></span>Cursor Object<a class="headerlink" href="#cursor-object" title="Permalink to this headline">¶</a></h1>
+  <div class="section">
+<h1 id="cursor-object"><span id="cursorobj"></span>Cursor Object<a class="headerlink" href="#cursor-object" title="Permalink to this headline">¶</a></h1>
 <dl class="attribute">
 <dt id="Cursor.arraysize">
 <!--#Cursor.arraysize#--><tt class="descclassname">Cursor.</tt><tt class="descname">arraysize</tt><a class="headerlink" href="#Cursor.arraysize" title="Permalink to this definition">¶</a></dt>
 <dd>This read-write attribute specifies the number of rows to fetch at a time
 internally and is the default number of rows to fetch with the
-<a title="Cursor.fetchmany" class="reference internal" href="#Cursor.fetchmany"><tt class="xref docutils literal"><span class="pre">fetchmany()</span></tt></a> call.  It defaults to 1 meaning to fetch a
-single row at a time. Note that this attribute can drastically affect the
+<a title="Cursor.fetchmany" class="reference" href="#Cursor.fetchmany"><tt class="xref docutils literal"><span class="pre">fetchmany()</span></tt></a> call.  It defaults to 50 meaning to fetch 50
+rows at a time. Note that this attribute can drastically affect the
 performance of a query since it directly affects the number of network round
-trips that need to be performed.</dd></dl>
+trips that need to be performed. This is the reason for setting it to 50
+instead of the 1 that the DB API recommends.</dd></dl>
 
 <dl class="attribute">
 <dt id="Cursor.bindarraysize">
@@ -66,7 +67,7 @@ is used when creating variables via setinputsizes() or var(). It defaults to
 <dt id="Cursor.arrayvar">
 <!--#Cursor.arrayvar#--><tt class="descclassname">Cursor.</tt><tt class="descname">arrayvar</tt><big>(</big><em>dataType</em>, <em>value</em><span class="optional">[</span>, <em>size</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Cursor.arrayvar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an array variable associated with the cursor of the given type and
-size and return a variable object (<a class="reference external" href="variable.html#varobj"><em>Variable Objects</em></a>). The value is either an
+size and return a variable object (<a class="reference" href="variable.html#varobj"><em>Variable Objects</em></a>). The value is either an
 integer specifying the number of elements to allocate or it is a list and
 the number of elements allocated is drawn from the size of the list. If the
 value is a list, the variable is also set with the contents of the list. If
@@ -132,9 +133,9 @@ mentioned in PEP 249 as an optional extension.</p>
 </div>
 </dd></dl>
 
-<dl class="method">
+<dl class="data">
 <dt id="Cursor.description">
-<!--#Cursor.description#--><tt class="descclassname">Cursor.</tt><tt class="descname">description</tt><big>(</big><big>)</big><a class="headerlink" href="#Cursor.description" title="Permalink to this definition">¶</a></dt>
+<!--#Cursor.description#--><tt class="descclassname">Cursor.</tt><tt class="descname">description</tt><a class="headerlink" href="#Cursor.description" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-only attribute is a sequence of 7-item sequences. Each of these
 sequences contains information describing one result column: (name, type,
 display_size, internal_size, precision, scale, null_ok). This attribute will
@@ -160,10 +161,10 @@ setinputsizes() method to specify the parameter types and sizes ahead of
 time; in particular, None is assumed to be a string of length 1 so any
 values that are later bound as numbers or dates will raise a TypeError
 exception.</p>
-<p>If the statement is a query, a list of variable objects (<a class="reference external" href="variable.html#varobj"><em>Variable Objects</em></a>) will
+<p>If the statement is a query, a list of variable objects (<a class="reference" href="variable.html#varobj"><em>Variable Objects</em></a>) will
 be returned corresponding to the list of variables into which data will be
-fetched with the <a title="Cursor.fetchone" class="reference internal" href="#Cursor.fetchone"><tt class="xref docutils literal"><span class="pre">fetchone()</span></tt></a>, <a title="Cursor.fetchmany" class="reference internal" href="#Cursor.fetchmany"><tt class="xref docutils literal"><span class="pre">fetchmany()</span></tt></a> and
-<a title="Cursor.fetchall" class="reference internal" href="#Cursor.fetchall"><tt class="xref docutils literal"><span class="pre">fetchall()</span></tt></a> methods; otherwise, <tt class="xref docutils literal"><span class="pre">None</span></tt> will be returned.</p>
+fetched with the <a title="Cursor.fetchone" class="reference" href="#Cursor.fetchone"><tt class="xref docutils literal"><span class="pre">fetchone()</span></tt></a>, <a title="Cursor.fetchmany" class="reference" href="#Cursor.fetchmany"><tt class="xref docutils literal"><span class="pre">fetchmany()</span></tt></a> and
+<a title="Cursor.fetchall" class="reference" href="#Cursor.fetchall"><tt class="xref docutils literal"><span class="pre">fetchall()</span></tt></a> methods; otherwise, <tt class="xref docutils literal"><span class="pre">None</span></tt> will be returned.</p>
 </dd></dl>
 
 <dl class="method">
@@ -355,7 +356,7 @@ prepared with prepare() or executed with execute().</p>
 <dt id="Cursor.var">
 <!--#Cursor.var#--><tt class="descclassname">Cursor.</tt><tt class="descname">var</tt><big>(</big><em>dataType</em><span class="optional">[</span>, <em>size</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Cursor.var" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a variable associated with the cursor of the given type and size and
-return a variable object (<a class="reference external" href="variable.html#varobj"><em>Variable Objects</em></a>). If the size is not specified and
+return a variable object (<a class="reference" href="variable.html#varobj"><em>Variable Objects</em></a>). If the size is not specified and
 the type is a string or binary, 4000 bytes (maximum allowable by Oracle) is
 allocated; if the size is not specified and the type is a long string or
 long binary, 128KB is allocated. This method was designed for use with
@@ -396,12 +397,12 @@ automatically from the Python object passed in.</p>
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="variable.html" title="Variable Objects" accesskey="N">next</a> |</li>
           <li class="right"><a href="connection.html" title="Connection Object" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on May 23, 2008.
+      Last updated on Jun 06, 2008.
     </div>
   </body>
 </html>

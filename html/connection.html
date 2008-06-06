@@ -2,13 +2,13 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Connection Object &mdash; cx_Oracle v4.4a1 documentation</title>
+    <title>Connection Object &mdash; cx_Oracle v4.4 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:   '',
-        VERSION:    '4.4a1'
+        VERSION:    '4.4'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
@@ -17,7 +17,7 @@
     <link rel="contents" title="Global table of contents" href="contents.html" />
     <link rel="index" title="Global index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="cx_Oracle v4.4a1 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v4.4 documentation" href="index.html" />
     <link rel="next" title="Cursor Object" href="cursor.html" />
     <link rel="prev" title="Module Interface" href="module.html" />
   </head>
@@ -29,7 +29,7 @@
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="cursor.html" title="Cursor Object" accesskey="N">next</a> |</li>
           <li class="right"><a href="module.html" title="Module Interface" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="document">
@@ -38,8 +38,8 @@
           <div class="body">
             
   
-  <div class="section" id="connection-object">
-<span id="connobj"></span><h1 id="connection-object"><span id="connobj"></span>Connection Object<a class="headerlink" href="#connection-object" title="Permalink to this headline">¶</a></h1>
+  <div class="section">
+<h1 id="connection-object"><span id="connobj"></span>Connection Object<a class="headerlink" href="#connection-object" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Any outstanding changes will be rolled back when the connection object
@@ -101,7 +101,7 @@ for more details.</p>
 <p>Note that in order to make use of global (distributed) transactions, the
 twophase argument to the Connection constructor must be a true value. See
 the comments on the Connection constructor for more information
-(<a class="reference external" href="module.html#module"><em>Module Interface</em></a>).</p>
+(<a class="reference" href="module.html#module"><em>Module Interface</em></a>).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method is an extension to the DB API definition.</p>
@@ -141,7 +141,7 @@ applies to any cursor objects trying to use the connection.</dd></dl>
 <dl class="method">
 <dt id="Connection.cursor">
 <!--#Connection.cursor#--><tt class="descclassname">Connection.</tt><tt class="descname">cursor</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.cursor" title="Permalink to this definition">¶</a></dt>
-<dd>Return a new Cursor object (<a class="reference external" href="cursor.html#cursorobj"><em>Cursor Object</em></a>) using the connection.</dd></dl>
+<dd>Return a new Cursor object (<a class="reference" href="cursor.html#cursorobj"><em>Cursor Object</em></a>) using the connection.</dd></dl>
 
 <dl class="attribute">
 <dt id="Connection.dsn">
@@ -179,8 +179,9 @@ can use for the client character set.</p>
 <dl class="attribute">
 <dt id="Connection.module">
 <!--#Connection.module#--><tt class="descclassname">Connection.</tt><tt class="descname">module</tt><a class="headerlink" href="#Connection.module" title="Permalink to this definition">¶</a></dt>
-<dd>This write-only attribute sets the module column in the v$session table and
-is only available in Oracle 10g.</dd></dl>
+<dd><p>This write-only attribute sets the module column in the v$session table and
+is only available in Oracle 10g.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Connection.nencoding">
@@ -254,7 +255,7 @@ beyond the allocated size will crash cx_Oracle.  Use with caution.</p>
 <!--#Connection.shutdown#--><tt class="descclassname">Connection.</tt><tt class="descname">shutdown</tt><big>(</big><span class="optional">[</span><em>mode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Connection.shutdown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shutdown the database. In order to do this the connection must connected as
 <tt class="xref docutils literal"><span class="pre">SYSDBA</span></tt> or <tt class="xref docutils literal"><span class="pre">SYSOPER</span></tt>. First shutdown using one of the
-DBSHUTDOWN constants defined in the constants (<a class="reference external" href="module.html#constants"><em>Constants</em></a>) section.
+DBSHUTDOWN constants defined in the constants (<a class="reference" href="module.html#constants"><em>Constants</em></a>) section.
 Next issue the SQL statements required to close the database (&#8220;alter
 database close normal&#8221;) and dismount the database (&#8220;alter database
 dismount&#8221;) followed by a second call to this method with the
@@ -369,12 +370,12 @@ connection has been established.</p>
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="cursor.html" title="Cursor Object" accesskey="N">next</a> |</li>
           <li class="right"><a href="module.html" title="Module Interface" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on May 22, 2008.
+      Last updated on Jun 06, 2008.
     </div>
   </body>
 </html>

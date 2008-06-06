@@ -2,13 +2,13 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Module Interface &mdash; cx_Oracle v4.4a1 documentation</title>
+    <title>Module Interface &mdash; cx_Oracle v4.4 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:   '',
-        VERSION:    '4.4a1'
+        VERSION:    '4.4'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
@@ -17,7 +17,7 @@
     <link rel="contents" title="Global table of contents" href="contents.html" />
     <link rel="index" title="Global index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="cx_Oracle v4.4a1 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v4.4 documentation" href="index.html" />
     <link rel="next" title="Connection Object" href="connection.html" />
     <link rel="prev" title="cx_Oracle" href="index.html" />
   </head>
@@ -29,7 +29,7 @@
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="connection.html" title="Connection Object" accesskey="N">next</a> |</li>
           <li class="right"><a href="index.html" title="cx_Oracle" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="document">
@@ -38,8 +38,8 @@
           <div class="body">
             
   
-  <div class="section" id="module-interface">
-<span id="module"></span><span id="module-cx_Oracle"></span><h1 id="module-interface"><span id="module"></span><span id="module-cx_Oracle"></span>Module Interface<a class="headerlink" href="#module-interface" title="Permalink to this headline">¶</a></h1>
+  <div class="section">
+<h1 id="module-interface"><span id="module"></span><span id="module-cx_Oracle"></span>Module Interface<a class="headerlink" href="#module-interface" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="cx_Oracle.Binary">
 <!--#cx_Oracle.Binary#--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">Binary</tt><big>(</big><em>string</em><big>)</big><a class="headerlink" href="#cx_Oracle.Binary" title="Permalink to this definition">¶</a></dt>
@@ -64,18 +64,18 @@ available in Oracle 10g Release 2 and higher.</p>
 <dt id="cx_Oracle.connect">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">connect</tt><big>(</big><span class="optional">[</span><em>user</em>, <em>password</em>, <em>dsn</em>, <em>mode</em>, <em>handle</em>, <em>pool</em>, <em>threaded</em>, <em>twophase</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#cx_Oracle.connect" title="Permalink to this definition">¶</a></dt>
 <dd>Constructor for creating a connection to the database. Return a Connection
-object (<a class="reference external" href="connection.html#connobj"><em>Connection Object</em></a>). All arguments are optional and can be specified as
+object (<a class="reference" href="connection.html#connobj"><em>Connection Object</em></a>). All arguments are optional and can be specified as
 keyword parameters. The dsn (data source name) is the TNS entry (from the
 Oracle names server or tnsnames.ora file) or is a string like the one
 returned from makedsn(). If only one parameter is passed, a connect string
 is assumed which is to be of the format <tt class="docutils literal"><span class="pre">user/password&#64;dsn</span></tt>, the same
 format accepted by Oracle applications such as SQL*Plus. If the mode is
-specified, it must be one of <a title="cx_Oracle.SYSDBA" class="reference internal" href="#cx_Oracle.SYSDBA"><tt class="xref docutils literal"><span class="pre">SYSDBA</span></tt></a> or <a title="cx_Oracle.SYSOPER" class="reference internal" href="#cx_Oracle.SYSOPER"><tt class="xref docutils literal"><span class="pre">SYSOPER</span></tt></a> which are
+specified, it must be one of <a title="cx_Oracle.SYSDBA" class="reference" href="#cx_Oracle.SYSDBA"><tt class="xref docutils literal"><span class="pre">SYSDBA</span></tt></a> or <a title="cx_Oracle.SYSOPER" class="reference" href="#cx_Oracle.SYSOPER"><tt class="xref docutils literal"><span class="pre">SYSOPER</span></tt></a> which are
 defined at the module level; otherwise it defaults to the normal mode of
 connecting. If the handle is specified, it must be of type OCISvcCtx* and
 is only of use when embedding Python in an application (like PowerBuilder)
 which has already made the connection. The pool is only valid in Oracle 9i
-and is a session pool object (<a class="reference external" href="session_pool.html#sesspool"><em>SessionPool Object</em></a>) which is the equivalent of
+and is a session pool object (<a class="reference" href="session_pool.html#sesspool"><em>SessionPool Object</em></a>) which is the equivalent of
 calling pool.acquire(). The threaded attribute is expected to be a boolean
 expression which indicates whether or not Oracle should use the mode
 OCI_THREADED to wrap accesses to connections with a mutex. Doing so in
@@ -89,7 +89,7 @@ this value is also False because of bugs in Oracle prior to Oracle 10g.</dd></dl
 <dt id="cx_Oracle.Cursor">
 <!--#cx_Oracle.Cursor#--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">Cursor</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#cx_Oracle.Cursor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructor for creating a cursor.  Return a new Cursor object
-(<a class="reference external" href="cursor.html#cursorobj"><em>Cursor Object</em></a>) using the connection.</p>
+(<a class="reference" href="cursor.html#cursorobj"><em>Cursor Object</em></a>) using the connection.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method is an extension to the DB API definition.</p>
@@ -124,7 +124,7 @@ server or defined in the tnsnames.ora file.</p>
 <dt id="cx_Oracle.SessionPool">
 <!--#cx_Oracle.SessionPool#--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SessionPool</tt><big>(</big><em>user</em>, <em>password</em>, <em>database</em>, <em>min</em>, <em>max</em>, <em>increment</em><span class="optional">[</span>, <em>connectiontype</em>, <em>threaded</em>, <em>getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#cx_Oracle.SessionPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a session pool (see Oracle 9i documentation for more information) and
-return a session pool object (<a class="reference external" href="session_pool.html#sesspool"><em>SessionPool Object</em></a>). This allows for very fast
+return a session pool object (<a class="reference" href="session_pool.html#sesspool"><em>SessionPool Object</em></a>). This allows for very fast
 connections to the database and is of primary use in a server where the same
 connection is being made multiple times in rapid succession (a web server,
 for example). If the connection type is specified, all calls to acquire()
@@ -165,8 +165,8 @@ time module for details).</dd></dl>
 (number of seconds since the epoch; see the documentation of the standard
 Python time module for details).</dd></dl>
 
-<div class="section" id="id1">
-<span id="constants"></span><h2 id="id1"><span id="constants"></span>Constants<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section">
+<h2 id="id1"><span id="constants"></span>Constants<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="cx_Oracle.apilevel">
 <!--#cx_Oracle.apilevel#--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">apilevel</tt><a class="headerlink" href="#cx_Oracle.apilevel" title="Permalink to this definition">¶</a></dt>
@@ -254,8 +254,8 @@ may be necessary upon next startup.</p>
 be truly halted. This should only be done after the database has been shut
 down in one of the other modes (except abort) and the database has been
 closed and dismounted using the appropriate SQL commands. See the method
-<a title="Connection.shutdown" class="reference external" href="connection.html#Connection.shutdown"><tt class="xref docutils literal"><span class="pre">shutdown()</span></tt></a> in the section on connections
-(<a class="reference external" href="connection.html#connobj"><em>Connection Object</em></a>).</p>
+<a title="Connection.shutdown" class="reference" href="connection.html#Connection.shutdown"><tt class="xref docutils literal"><span class="pre">shutdown()</span></tt></a> in the section on connections
+(<a class="reference" href="connection.html#connobj"><em>Connection Object</em></a>).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This attribute is an extension to the DB API definition.</p>
@@ -380,7 +380,7 @@ of the OCI.</p>
 <dl class="data">
 <dt id="cx_Oracle.LOB">
 <!--#cx_Oracle.LOB#--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">LOB</tt><a class="headerlink" href="#cx_Oracle.LOB" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is the Python type of <a title="cx_Oracle.BLOB" class="reference internal" href="#cx_Oracle.BLOB"><tt class="xref docutils literal"><span class="pre">BLOB</span></tt></a> and <a title="cx_Oracle.CLOB" class="reference internal" href="#cx_Oracle.CLOB"><tt class="xref docutils literal"><span class="pre">CLOB</span></tt></a> data
+<dd><p>This type object is the Python type of <a title="cx_Oracle.BLOB" class="reference" href="#cx_Oracle.BLOB"><tt class="xref docutils literal"><span class="pre">BLOB</span></tt></a> and <a title="cx_Oracle.CLOB" class="reference" href="#cx_Oracle.CLOB"><tt class="xref docutils literal"><span class="pre">CLOB</span></tt></a> data
 that is returned from cursors.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -543,7 +543,7 @@ locking.</p>
 <p>Note that in order to make use of multiple threads in a program which
 intends to connect and disconnect in different threads, the threaded
 argument to the Connection constructor must be a true value. See the
-comments on the Connection constructor for more information (<a class="reference internal" href="#module"><em>Module Interface</em></a>).</p>
+comments on the Connection constructor for more information (<a class="reference" href="#module"><em>Module Interface</em></a>).</p>
 </dd></dl>
 
 <dl class="data">
@@ -596,7 +596,7 @@ to the OCI function.</p>
 <dl class="data">
 <dt id="cx_Oracle.version">
 <!--#cx_Oracle.version#--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">version</tt><a class="headerlink" href="#cx_Oracle.version" title="Permalink to this definition">¶</a></dt>
-<dd><p>String constant stating the version of the module. Currently &#8216;4.4a1&#8216;.</p>
+<dd><p>String constant stating the version of the module. Currently &#8216;4.4&#8216;.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This attribute is an extension to the DB API definition.</p>
@@ -604,8 +604,8 @@ to the OCI function.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="id2">
-<span id="exceptions"></span><h2 id="id2"><span id="exceptions"></span>Exceptions<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section">
+<h2 id="id2"><span id="exceptions"></span>Exceptions<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <dl class="exception">
 <dt id="cx_Oracle.Warning">
 <!--#cx_Oracle.Warning#-->exception <tt class="descclassname">cx_Oracle.</tt><tt class="descname">Warning</tt><a class="headerlink" href="#cx_Oracle.Warning" title="Permalink to this definition">¶</a></dt>
@@ -678,9 +678,9 @@ supported by the database. It is a subclass of DatabaseError.</dd></dl>
         <div class="sidebarwrapper">
             <h3>Table Of Contents</h3>
             <ul>
-<li><a class="reference external" href="">Module Interface</a><ul>
-<li><a class="reference external" href="#id1">Constants</a></li>
-<li><a class="reference external" href="#id2">Exceptions</a></li>
+<li><a class="reference" href="">Module Interface</a><ul>
+<li><a class="reference" href="#id1">Constants</a></li>
+<li><a class="reference" href="#id2">Exceptions</a></li>
 </ul>
 </li>
 </ul>
@@ -706,12 +706,12 @@ supported by the database. It is a subclass of DatabaseError.</dd></dl>
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="connection.html" title="Connection Object" accesskey="N">next</a> |</li>
           <li class="right"><a href="index.html" title="cx_Oracle" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4a1 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on May 22, 2008.
+      Last updated on Jun 06, 2008.
     </div>
   </body>
 </html>
