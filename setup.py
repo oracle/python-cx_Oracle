@@ -153,6 +153,14 @@ class Distribution(distutils.dist.Distribution):
                     ("9i", "oraclient9.dll"),
                     ("8i", "oraclient8.dll")
             ]
+        elif sys.platform == "darwin":
+            subDir = "lib"
+            filesToCheck = [
+                    ("11g", "libclntsh.dylib.11.1"),
+                    ("10g", "libclntsh.dylib.10.1"),
+                    ("9i", "libclntsh.dylib.9.0"),
+                    ("8i", "libclient8.a")
+            ]
         else:
             subDir = "lib"
             filesToCheck = [
