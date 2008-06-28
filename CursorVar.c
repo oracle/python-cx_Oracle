@@ -139,7 +139,6 @@ static int CursorVar_SetValue(
     Py_INCREF(value);
     PyList_SET_ITEM(var->cursors, pos, value);
     cursor = (udt_Cursor *) value;
-#ifdef ORACLE_9I
     if (!cursor->isOwned) {
         if (Cursor_FreeHandle(cursor, 1) < 0)
             return -1;
@@ -147,7 +146,6 @@ static int CursorVar_SetValue(
         if (Cursor_AllocateHandle(cursor) < 0)
             return -1;
     }
-#endif
     var->data[pos] = cursor->handle;
     cursor->statementType = -1;
     return 0;

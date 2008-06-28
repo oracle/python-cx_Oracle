@@ -19,13 +19,10 @@ moduleNames = [
         "LongVar",
         "NumberVar",
         "ObjectVar",
-        "StringVar"
+        "SessionPool",
+        "StringVar",
+        "TimestampVar"
 ]
-
-if hasattr(cx_Oracle, "TIMESTAMP"):
-    moduleNames.append("TimestampVar")
-if hasattr(cx_Oracle, "SessionPool"):
-    moduleNames.append("SessionPool")
 
 class BaseTestCase(unittest.TestCase):
 

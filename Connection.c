@@ -12,9 +12,7 @@ typedef struct {
     OCIServer *serverHandle;
     OCISession *sessionHandle;
     udt_Environment *environment;
-#ifdef ORACLE_9I
     udt_SessionPool *sessionPool;
-#endif
     PyObject *username;
     PyObject *password;
     PyObject *dsn;
@@ -58,10 +56,8 @@ static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
 static PyObject *Connection_GetEncoding(udt_Connection*, void*);
 static PyObject *Connection_GetNationalEncoding(udt_Connection*, void*);
 #endif
-#ifdef ORACLE_9I
 static PyObject *Connection_GetStmtCacheSize(udt_Connection*, void*);
 static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
-#endif
 #ifdef ORACLE_10G
 static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 #endif
@@ -122,10 +118,8 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
     { "version", (getter) Connection_GetVersion, 0, 0, 0 },
     { "maxBytesPerCharacter", (getter) Connection_GetMaxBytesPerCharacter,
             0, 0, 0 },
-#ifdef ORACLE_9I
     { "stmtcachesize", (getter) Connection_GetStmtCacheSize,
             (setter) Connection_SetStmtCacheSize, 0, 0 },
-#endif
 #ifdef ORACLE_10G
     { "module", 0, (setter) Connection_SetOCIAttr, 0, &gc_ModuleAttribute },
     { "action", 0, (setter) Connection_SetOCIAttr, 0, &gc_ActionAttribute },
@@ -202,7 +196,6 @@ static int Connection_IsConnected(
 }
 
 
-#ifdef ORACLE_9I
 //-----------------------------------------------------------------------------
 // Connection_Acquire()
 //   Acquire a connection from a session pool.
@@ -238,7 +231,6 @@ static int Connection_Acquire(
 
     return 0;
 }
-#endif
 
 
 #ifdef ORACLE_10G
@@ -490,38 +482,26 @@ static int Connection_Init(
     const char *username, *password, *dsn;
     PyObject *threadedObj, *twophaseObj;
     int threaded, twophase;
-#ifdef ORACLE_9I
     udt_SessionPool *pool;
-#endif
     OCISvcCtx *handle;
     ub4 connectMode;
 
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "mode", "handle",
-#ifdef ORACLE_9I
-            "pool",
-#endif
-            "threaded", "twophase", NULL };
+            "pool", "threaded", "twophase", NULL };
 
     // parse arguments
+    pool = NULL;
     handle = NULL;
     username = password = dsn = NULL;
     threadedObj = twophaseObj = NULL;
     usernameLength = passwordLength = dsnLength = 0;
     threaded = twophase = 0;
     connectMode = OCI_DEFAULT;
-#ifdef ORACLE_9I
-    pool = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|s#s#s#iiO!OO",
-#else
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|s#s#s#iiOO",
-#endif
             keywordList, &username, &usernameLength, &password,
             &passwordLength, &dsn, &dsnLength, &connectMode, &handle,
-#ifdef ORACLE_9I
-            &g_SessionPoolType, &pool,
-#endif
-            &threadedObj, &twophaseObj))
+            &g_SessionPoolType, &pool, &threadedObj, &twophaseObj))
         return -1;
     if (threadedObj) {
         threaded = PyObject_IsTrue(threadedObj);
@@ -591,10 +571,8 @@ static int Connection_Init(
     // handle the different ways of initializing the connection
     if (handle)
         return Connection_Attach(self, handle);
-#ifdef ORACLE_9I
     if (pool)
         return Connection_Acquire(self, pool);
-#endif
     return Connection_Connect(self, dsn, dsnLength, connectMode, threaded,
             twophase);
 }
@@ -607,7 +585,6 @@ static int Connection_Init(
 static void Connection_Free(
     udt_Connection *self)               // connection object
 {
-#ifdef ORACLE_9I
     if (self->sessionPool) {
         Py_BEGIN_ALLOW_THREADS
         OCITransRollback(self->handle, self->environment->errorHandle,
@@ -617,7 +594,6 @@ static void Connection_Free(
         Py_END_ALLOW_THREADS
         Py_DECREF(self->sessionPool);
     }
-#endif
     if (self->sessionHandle) {
         Py_BEGIN_ALLOW_THREADS
         OCITransRollback(self->handle, self->environment->errorHandle,
@@ -731,7 +707,6 @@ static PyObject *Connection_GetNationalEncoding(
 #endif
 
 
-#ifdef ORACLE_9I
 //-----------------------------------------------------------------------------
 // Connection_GetStmtCacheSize()
 //   Return the Oracle statement cache size.
@@ -781,7 +756,6 @@ static int Connection_SetStmtCacheSize(
         return -1;
     return 0;
 }
-#endif
 
 
 //-----------------------------------------------------------------------------

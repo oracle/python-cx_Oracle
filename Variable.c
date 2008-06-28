@@ -98,9 +98,7 @@ static PyMethodDef g_VariableMethods[] = {
 #include "LongVar.c"
 #include "NumberVar.c"
 #include "DateTimeVar.c"
-#ifdef ORACLE_9I
 #include "TimestampVar.c"
-#endif
 #include "LobVar.c"
 #include "CursorVar.c"
 #include "ObjectVar.c"
@@ -279,10 +277,8 @@ static int Variable_Check(
             object->ob_type == &g_StringVarType ||
             object->ob_type == &g_FixedCharVarType ||
             object->ob_type == &g_RowidVarType ||
-            object->ob_type == &g_BinaryVarType
-#ifdef ORACLE_9I
-            || object->ob_type == &g_TimestampVarType
-#endif
+            object->ob_type == &g_BinaryVarType ||
+            object->ob_type == &g_TimestampVarType
 #ifdef SQLT_BFLOAT
             || object->ob_type == &g_NativeFloatVarType
 #endif
@@ -347,10 +343,8 @@ static udt_VariableType *Variable_TypeByPythonType(
     if (type == (PyObject*) &g_ExternalDateTimeVarType)
         return &vt_DateTime;
 #endif
-#ifdef ORACLE_9I
     if (type == (PyObject*) &g_TimestampVarType)
         return &vt_Timestamp;
-#endif
     if (type == (PyObject*) &g_CursorVarType)
         return &vt_Cursor;
 #ifdef SQLT_BFLOAT
@@ -469,13 +463,11 @@ static udt_VariableType *Variable_TypeByOracleDataType (
         case SQLT_DAT:
         case SQLT_ODT:
             return &vt_DateTime;
-#ifdef ORACLE_9I
         case SQLT_DATE:
         case SQLT_TIMESTAMP:
         case SQLT_TIMESTAMP_TZ:
         case SQLT_TIMESTAMP_LTZ:
             return &vt_Timestamp;
-#endif
         case SQLT_CLOB:
             if (charsetForm == SQLCS_NCHAR)
                 return &vt_NCLOB;

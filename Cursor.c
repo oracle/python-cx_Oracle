@@ -12,9 +12,7 @@ typedef struct {
     udt_Connection *connection;
     udt_Environment *environment;
     PyObject *statement;
-#ifdef ORACLE_9I
     PyObject *statementTag;
-#endif
     PyObject *bindVariables;
     PyObject *fetchVariables;
     PyObject *rowFactory;
@@ -201,18 +199,13 @@ static int Cursor_FreeHandle(
     udt_Cursor *self,                   // cursor object
     int raiseException)                 // raise an exception, if necesary?
 {
-#ifdef ORACLE_9I
     ub4 tagLength;
     sword status;
     char *tag;
-#endif
 
     if (self->handle) {
-#ifdef ORACLE_9I
         if (self->isOwned) {
-#endif
             OCIHandleFree(self->handle, OCI_HTYPE_STMT);
-#ifdef ORACLE_9I
         } else {
             if (self->statementTag) {
                 tag = PyString_AS_STRING(self->statementTag);
@@ -230,7 +223,6 @@ static int Cursor_FreeHandle(
                     return -1;
             }
         }
-#endif
     }
     return 0;
 }
@@ -293,14 +285,6 @@ static int Cursor_Init(
     self->statementType = -1;
     self->outputSize = -1;
     self->outputSizeColumn = -1;
-
-#ifndef ORACLE_9I
-    // Oracle 8i must always allocate a handle
-    if (Cursor_AllocateHandle(self) < 0)
-        return -1;
-#endif
-
-    // mark cursor as open
     self->isOpen = 1;
 
     return 0;
@@ -342,9 +326,7 @@ static void Cursor_Free(
 {
     Cursor_FreeHandle(self, 0);
     Py_XDECREF(self->statement);
-#ifdef ORACLE_9I
     Py_XDECREF(self->statementTag);
-#endif
     Py_XDECREF(self->bindVariables);
     Py_XDECREF(self->fetchVariables);
     Py_XDECREF(self->connection);
@@ -1125,17 +1107,14 @@ static int Cursor_InternalPrepare(
     self->statement = statement;
 
     // release existing statement, if necessary
-#ifdef ORACLE_9I
     Py_XDECREF(self->statementTag);
     Py_XINCREF(statementTag);
     self->statementTag = statementTag;
     if (Cursor_FreeHandle(self, 1) < 0)
         return -1;
-#endif
 
     // prepare statement
     Py_BEGIN_ALLOW_THREADS
-#ifdef ORACLE_9I
     self->isOwned = 0;
     if (statementTag) {
         tag = PyString_AS_STRING(statementTag);
@@ -1149,20 +1128,13 @@ static int Cursor_InternalPrepare(
             (text*) PyString_AS_STRING(statement),
             PyString_GET_SIZE(statement), (text*) tag, tagLength,
             OCI_NTV_SYNTAX, OCI_DEFAULT);
-#else
-    status = OCIStmtPrepare(self->handle, self->environment->errorHandle,
-            (text*) PyString_AS_STRING(statement),
-            PyString_GET_SIZE(statement), OCI_NTV_SYNTAX, OCI_DEFAULT);
-#endif
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(self->environment, status,
             "Cursor_InternalPrepare(): prepare") < 0) {
-#ifdef ORACLE_9I
         // this is needed to avoid "invalid handle" errors since Oracle doesn't
         // seem to leave the pointer alone when an error is raised but the
         // resulting handle is still invalid
         self->handle = NULL;
-#endif
         return -1;
     }
 

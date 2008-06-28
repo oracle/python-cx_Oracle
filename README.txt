@@ -15,13 +15,13 @@ Place the file cx_Oracle.pyd or cx_Oracle.so anywhere on your Python path.
 
 
 SOURCE INSTALL:
-This module has been built with Oracle 8.1.7, 9.2.0 and 10.2.0 on Linux,
-Solaris, HP/UX, Tru64 Unix and Windows. It will likely build on other
-platforms and other Oracle versions but I haven't tried them. Use the provided
-setup.py to build and install the module which makes use of the distutils
-module. Note that on Windows, I have used mingw32 (http://www.mingw.org) and
-the module will not build with MSVC without modification. The commands
-required to build and install the module are as follows:
+This module has been built with Oracle 9.2.0, 10.2.0, 11.1.0 on Linux,
+Solaris and Windows. It will likely build on other platforms and other Oracle
+versions but I haven't tried them. Use the provided setup.py to build and
+install the module which makes use of the distutils module. Note that on
+Windows, I have used mingw32 (http://www.mingw.org) and the module will not
+build with MSVC without modification. The commands required to build and
+install the module are as follows:
 
 	python setup.py build
 	python setup.py install

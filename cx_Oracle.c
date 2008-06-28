@@ -17,9 +17,6 @@
 #ifdef OCI_MAJOR_VERSION
 #define ORACLE_10GR2
 #endif
-#if OCI_FNCODE_STMTRELEASE
-#define ORACLE_9I
-#endif
 
 // define whether or not we are building with the native datetime module
 #if (PY_VERSION_HEX >= 0x02040000)
@@ -119,11 +116,7 @@ static int GetModuleAndName(
 
 
 #include "Environment.c"
-#ifdef ORACLE_9I
 #include "SessionPool.c"
-#else
-#include "Connection.c"
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -337,12 +330,10 @@ void initcx_Oracle(void)
     if (PyType_Ready(&g_ExternalDateTimeVarType) < 0)
         return;
 #endif
-#ifdef ORACLE_9I
     if (PyType_Ready(&g_SessionPoolType) < 0)
         return;
     if (PyType_Ready(&g_TimestampVarType) < 0)
         return;
-#endif
     if (PyType_Ready(&g_EnvironmentType) < 0)
         return;
     if (PyType_Ready(&g_ObjectTypeType) < 0)
@@ -433,9 +424,7 @@ void initcx_Oracle(void)
 #else
     ADD_TYPE_OBJECT("Timestamp", &g_ExternalDateTimeVarType)
 #endif
-#ifdef ORACLE_9I
     ADD_TYPE_OBJECT("SessionPool", &g_SessionPoolType)
-#endif
     ADD_TYPE_OBJECT("_Error", &g_ErrorType)
 
     // the name "connect" is required by the DB API
@@ -461,9 +450,7 @@ void initcx_Oracle(void)
     ADD_TYPE_OBJECT("NUMBER", &g_NumberVarType)
     ADD_TYPE_OBJECT("ROWID", &g_RowidVarType)
     ADD_TYPE_OBJECT("STRING", &g_StringVarType)
-#ifdef ORACLE_9I
     ADD_TYPE_OBJECT("TIMESTAMP", &g_TimestampVarType)
-#endif
 #ifdef SQLT_BFLOAT
     ADD_TYPE_OBJECT("NATIVE_FLOAT", &g_NativeFloatVarType)
 #endif
@@ -496,11 +483,9 @@ void initcx_Oracle(void)
     ADD_OCI_CONSTANT(UCBTYPE_ENTRY)
     ADD_OCI_CONSTANT(UCBTYPE_EXIT)
     ADD_OCI_CONSTANT(UCBTYPE_REPLACE)
-#ifdef ORACLE_9I
     ADD_OCI_CONSTANT(SPOOL_ATTRVAL_WAIT)
     ADD_OCI_CONSTANT(SPOOL_ATTRVAL_NOWAIT)
     ADD_OCI_CONSTANT(SPOOL_ATTRVAL_FORCEGET)
-#endif
 #ifdef ORACLE_10GR2
     ADD_OCI_CONSTANT(PRELIM_AUTH)
     ADD_OCI_CONSTANT(DBSHUTDOWN_ABORT)

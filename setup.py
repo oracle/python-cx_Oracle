@@ -150,24 +150,21 @@ class Distribution(distutils.dist.Distribution):
             filesToCheck = [
                     ("11g", "oraocci11.dll"),
                     ("10g", "oraocci10.dll"),
-                    ("9i", "oraclient9.dll"),
-                    ("8i", "oraclient8.dll")
+                    ("9i", "oraclient9.dll")
             ]
         elif sys.platform == "darwin":
             subDir = "lib"
             filesToCheck = [
                     ("11g", "libclntsh.dylib.11.1"),
                     ("10g", "libclntsh.dylib.10.1"),
-                    ("9i", "libclntsh.dylib.9.0"),
-                    ("8i", "libclient8.a")
+                    ("9i", "libclntsh.dylib.9.0")
             ]
         else:
             subDir = "lib"
             filesToCheck = [
                     ("11g", "libclntsh.so.11.1"),
                     ("10g", "libclntsh.so.10.1"),
-                    ("9i", "libclntsh.so.9.0"),
-                    ("8i", "libclient8.a")
+                    ("9i", "libclntsh.so.9.0")
             ]
         self.oracleVersion = None
         for version, baseFileName in filesToCheck:
@@ -181,7 +178,7 @@ class Distribution(distutils.dist.Distribution):
                 break
         if self.oracleVersion is None:
             messageFormat = "Oracle home (%s) does not refer to an " \
-                    "8i, 9i, 10g or 11g installation."
+                    "9i, 10g or 11g installation."
             raise DistutilsSetupError, messageFormat % oracleHome
 
     def get_fullname_with_oracle_version(self):
