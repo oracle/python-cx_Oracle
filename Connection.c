@@ -19,6 +19,8 @@ typedef struct {
     PyObject *version;
     ub4 commitMode;
     int autocommit;
+    int release;
+    int attached;
 } udt_Connection;
 
 
@@ -197,38 +199,131 @@ static int Connection_IsConnected(
 
 
 //-----------------------------------------------------------------------------
-// Connection_Acquire()
-//   Acquire a connection from a session pool.
+// Connection_GetConnection()
+//   Get a connection using the OCISessionGet() interface rather than using
+// the low level interface for connecting.
 //-----------------------------------------------------------------------------
-static int Connection_Acquire(
+static int Connection_GetConnection(
     udt_Connection *self,               // connection
-    udt_SessionPool *pool)              // pool to acquire connection from
+    udt_SessionPool *pool,              // pool to acquire connection from
+    const char *dsn,                    // TNS entry
+    unsigned dsnLength,                 // length of TNS entry
+    const char *cclass,                 // connection class (DRCP)
+    unsigned cclassLength,              // length of connection class (DRCP)
+    ub4 purity)                         // purity (DRCP)
 {
+    udt_Environment *environment;
+    int externalCredentials;
+    unsigned dbNameLength;
+    OCIAuthInfo *authInfo;
+    OraText *dbName;
     boolean found;
     sword status;
+    ub4 mode;
 
-    // acquire the session from the pool
+    // set things up for the call to acquire a session
+    authInfo = NULL;
+    if (pool) {
+        environment = pool->environment;
+        dbName = (OraText*) PyString_AS_STRING(pool->name);
+        dbNameLength = PyString_GET_SIZE(pool->name);
+        mode = OCI_SESSGET_SPOOL;
+    } else {
+        environment = self->environment;
+        dbName = (OraText*) dsn;
+        dbNameLength = dsnLength;
+        mode = OCI_SESSGET_STMTCACHE;
+    }
+
+    // set up authorization handle, if needed
+    if (!pool || cclassLength > 0) {
+
+        // create authorization handle
+        status = OCIHandleAlloc(environment->handle, (dvoid*) &authInfo,
+                OCI_HTYPE_AUTHINFO, 0, NULL);
+        if (Environment_CheckForError(environment, status,
+                "Connection_GetConnection(): allocate handle") < 0)
+            return -1;
+
+        // set the user name, if applicable
+        externalCredentials = 1;
+        if (self->username && PyString_GET_SIZE(self->username) > 0) {
+            externalCredentials = 0;
+            status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
+                    (text*) PyString_AS_STRING(self->username),
+                    PyString_GET_SIZE(self->username), OCI_ATTR_USERNAME,
+                    environment->errorHandle);
+            if (Environment_CheckForError(environment, status,
+                    "Connection_GetConnection(): set user name") < 0)
+                return -1;
+        }
+
+        // set the password, if applicable
+        if (self->password && PyString_GET_SIZE(self->password) > 0) {
+            externalCredentials = 0;
+            status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
+                    (text*) PyString_AS_STRING(self->password),
+                    PyString_GET_SIZE(self->password), OCI_ATTR_PASSWORD,
+                    environment->errorHandle);
+            if (Environment_CheckForError(environment, status,
+                    "Connection_GetConnection(): set password") < 0)
+                return -1;
+        }
+
+        // if no user name or password are set, using external credentials
+        if (!pool && externalCredentials)
+            mode |= OCI_SESSGET_CREDEXT;
+
+#ifdef ORACLE_11G
+        // set the connection class, if applicable
+        if (cclassLength > 0) {
+            status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO, (text*) cclass,
+                    cclassLength, OCI_ATTR_CONNECTION_CLASS,
+                    environment->errorHandle);
+            if (Environment_CheckForError(environment, status,
+                    "Connection_GetConnection(): set connection class") < 0)
+                return -1;
+        }
+
+        // set the purity, if applicable
+        if (purity != OCI_ATTR_PURITY_DEFAULT) {
+            status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO, &purity,
+                    sizeof(purity), OCI_ATTR_PURITY,
+                    environment->errorHandle);
+            if (Environment_CheckForError(environment, status,
+                    "Connection_GetConnection(): set purity") < 0)
+                return -1;
+        }
+#endif
+    }
+
+    // acquire the new session
     Py_BEGIN_ALLOW_THREADS
-    status = OCISessionGet(pool->environment->handle,
-            pool->environment->errorHandle, &self->handle, NULL,
-            (OraText*) PyString_AS_STRING(pool->name),
-            PyString_GET_SIZE(pool->name), NULL, 0, NULL, NULL, &found,
-            OCI_SESSGET_SPOOL);
+    status = OCISessionGet(environment->handle, environment->errorHandle,
+            &self->handle, authInfo, dbName, dbNameLength, NULL, 0, NULL,
+            NULL, &found, mode);
     Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(pool->environment, status,
-            "Connection_Acquire()") < 0)
+    if (Environment_CheckForError(environment, status,
+            "Connection_GetConnection(): get connection") < 0)
         return -1;
 
-    // initialize members
-    Py_INCREF(pool);
-    self->sessionPool = pool;
-    Py_INCREF(pool->username);
-    self->username = pool->username;
-    Py_INCREF(pool->password);
-    self->password = pool->password;
-    Py_INCREF(pool->dsn);
-    self->dsn = pool->dsn;
+    // eliminate the authorization handle immediately, if applicable
+    if (authInfo)
+        OCIHandleFree(authInfo, OCI_HTYPE_AUTHINFO);
 
+    // copy members in the case where a pool is being used
+    if (pool) {
+        Py_INCREF(pool->username);
+        self->username = pool->username;
+        Py_INCREF(pool->password);
+        self->password = pool->password;
+        Py_INCREF(pool->dsn);
+        self->dsn = pool->dsn;
+        Py_INCREF(pool);
+        self->sessionPool = pool;
+    }
+
+    self->release = 1;
     return 0;
 }
 
@@ -312,6 +407,7 @@ static int Connection_Attach(
             "Connection_Attach(): set session handle") < 0)
         return -1;
 
+    self->attached = 1;
     return 0;
 }
 
@@ -325,7 +421,6 @@ static int Connection_Connect(
     const char *dsn,                    // TNS entry
     unsigned dsnLength,                 // length of TNS entry
     ub4 mode,                           // mode to connect as
-    int threaded,                       // threaded?
     int twophase)                       // allow two phase commit?
 {
     ub4 credentialType = OCI_CRED_EXT;
@@ -478,30 +573,35 @@ static int Connection_Init(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
-    unsigned usernameLength, passwordLength, dsnLength;
-    const char *username, *password, *dsn;
-    PyObject *threadedObj, *twophaseObj;
-    int threaded, twophase;
+    unsigned usernameLength, passwordLength, dsnLength, cclassLength;
+    PyObject *threadedObj, *twophaseObj, *eventsObj;
+    const char *username, *password, *dsn, *cclass;
+    int threaded, twophase, events;
+    ub4 connectMode, purity;
     udt_SessionPool *pool;
     OCISvcCtx *handle;
-    ub4 connectMode;
 
     // define keyword arguments
-    static char *keywordList[] = { "user", "password", "dsn", "mode", "handle",
-            "pool", "threaded", "twophase", NULL };
+    static char *keywordList[] = { "user", "password", "dsn", "mode",
+            "handle", "pool", "threaded", "twophase", "events", "cclass",
+            "purity", NULL };
 
     // parse arguments
     pool = NULL;
     handle = NULL;
-    username = password = dsn = NULL;
-    threadedObj = twophaseObj = NULL;
-    usernameLength = passwordLength = dsnLength = 0;
-    threaded = twophase = 0;
     connectMode = OCI_DEFAULT;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|s#s#s#iiO!OO",
+    username = password = dsn = cclass = NULL;
+    threadedObj = twophaseObj = eventsObj = NULL;
+    threaded = twophase = events = purity = 0;
+    usernameLength = passwordLength = dsnLength = cclassLength = 0;
+#ifdef ORACLE_11G
+    purity = OCI_ATTR_PURITY_DEFAULT;
+#endif
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|s#s#s#iiO!OOOs#i",
             keywordList, &username, &usernameLength, &password,
             &passwordLength, &dsn, &dsnLength, &connectMode, &handle,
-            &g_SessionPoolType, &pool, &threadedObj, &twophaseObj))
+            &g_SessionPoolType, &pool, &threadedObj, &twophaseObj, &eventsObj,
+            &cclass, &cclassLength, &purity))
         return -1;
     if (threadedObj) {
         threaded = PyObject_IsTrue(threadedObj);
@@ -513,9 +613,14 @@ static int Connection_Init(
         if (twophase < 0)
             return -1;
     }
+    if (eventsObj) {
+        events = PyObject_IsTrue(eventsObj);
+        if (events < 0)
+            return -1;
+    }
 
     // set up the environment
-    self->environment = Environment_New(threaded);
+    self->environment = Environment_New(threaded, events);
     if (!self->environment)
         return -1;
 
@@ -571,10 +676,10 @@ static int Connection_Init(
     // handle the different ways of initializing the connection
     if (handle)
         return Connection_Attach(self, handle);
-    if (pool)
-        return Connection_Acquire(self, pool);
-    return Connection_Connect(self, dsn, dsnLength, connectMode, threaded,
-            twophase);
+    if (pool || cclassLength > 0)
+        return Connection_GetConnection(self, pool, dsn, dsnLength, cclass,
+                cclassLength, purity);
+    return Connection_Connect(self, dsn, dsnLength, connectMode, twophase);
 }
 
 
@@ -585,27 +690,28 @@ static int Connection_Init(
 static void Connection_Free(
     udt_Connection *self)               // connection object
 {
-    if (self->sessionPool) {
+    if (self->release) {
         Py_BEGIN_ALLOW_THREADS
         OCITransRollback(self->handle, self->environment->errorHandle,
                 OCI_DEFAULT);
         OCISessionRelease(self->handle, self->environment->errorHandle, NULL,
                 0, OCI_DEFAULT);
         Py_END_ALLOW_THREADS
-        Py_DECREF(self->sessionPool);
+    } else if (!self->attached) {
+        if (self->sessionHandle) {
+            Py_BEGIN_ALLOW_THREADS
+            OCITransRollback(self->handle, self->environment->errorHandle,
+                    OCI_DEFAULT);
+            OCISessionEnd(self->handle, self->environment->errorHandle,
+                    self->sessionHandle, OCI_DEFAULT);
+            Py_END_ALLOW_THREADS
+        }
+        if (self->serverHandle)
+            OCIServerDetach(self->serverHandle,
+                    self->environment->errorHandle, OCI_DEFAULT);
     }
-    if (self->sessionHandle) {
-        Py_BEGIN_ALLOW_THREADS
-        OCITransRollback(self->handle, self->environment->errorHandle,
-                OCI_DEFAULT);
-        OCISessionEnd(self->handle, self->environment->errorHandle,
-                self->sessionHandle, OCI_DEFAULT);
-        Py_END_ALLOW_THREADS
-    }
-    if (self->serverHandle)
-        OCIServerDetach(self->serverHandle,
-                self->environment->errorHandle, OCI_DEFAULT);
     Py_XDECREF(self->environment);
+    Py_XDECREF(self->sessionPool);
     Py_XDECREF(self->username);
     Py_XDECREF(self->password);
     Py_XDECREF(self->dsn);

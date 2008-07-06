@@ -17,6 +17,9 @@
 #ifdef OCI_MAJOR_VERSION
 #define ORACLE_10GR2
 #endif
+#ifdef OCI_ATTR_CONNECTION_CLASS
+#define ORACLE_11G
+#endif
 
 // define whether or not we are building with the native datetime module
 #if (PY_VERSION_HEX >= 0x02040000)
@@ -493,6 +496,11 @@ void initcx_Oracle(void)
     ADD_OCI_CONSTANT(DBSHUTDOWN_IMMEDIATE)
     ADD_OCI_CONSTANT(DBSHUTDOWN_TRANSACTIONAL)
     ADD_OCI_CONSTANT(DBSHUTDOWN_TRANSACTIONAL_LOCAL)
+#endif
+#ifdef ORACLE_11G
+    ADD_OCI_CONSTANT(ATTR_PURITY_DEFAULT)
+    ADD_OCI_CONSTANT(ATTR_PURITY_NEW)
+    ADD_OCI_CONSTANT(ATTR_PURITY_SELF)
 #endif
 }
 

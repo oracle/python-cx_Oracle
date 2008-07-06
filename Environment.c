@@ -63,7 +63,8 @@ static PyTypeObject g_EnvironmentType = {
 //   Create a new environment object.
 //-----------------------------------------------------------------------------
 static udt_Environment *Environment_New(
-    int threaded)                       // use threaded mode?
+    int threaded,                       // use threaded mode?
+    int events)                         // use events mode?
 {
     udt_Environment *environment;
     sword status;
@@ -83,6 +84,10 @@ static udt_Environment *Environment_New(
     mode = OCI_OBJECT;
     if (threaded)
         mode |= OCI_THREADED;
+#ifdef ORACLE_11G
+    if (events)
+        mode |= OCI_EVENTS;
+#endif
 
     // create the environment handle
     status = OCIEnvCreate(&environment->handle, mode, NULL, NULL,

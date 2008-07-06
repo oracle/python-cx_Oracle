@@ -31,7 +31,7 @@ except:
     from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "4.4"
+BUILD_VERSION = "5.0a1"
 
 # define the list of files to be included as documentation for Windows
 dataFiles = None

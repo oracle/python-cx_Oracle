@@ -35,7 +35,7 @@ static ub4 gc_GetModeAttribute = OCI_ATTR_SPOOL_GETMODE;
 static PyObject *SessionPool_New(PyTypeObject*, PyObject*, PyObject*);
 static int SessionPool_Init(udt_SessionPool*, PyObject*, PyObject*);
 static void SessionPool_Free(udt_SessionPool*);
-static PyObject *SessionPool_Acquire(udt_SessionPool*, PyObject*);
+static PyObject *SessionPool_Acquire(udt_SessionPool*, PyObject*, PyObject*);
 static PyObject *SessionPool_Drop(udt_SessionPool*, PyObject*);
 static PyObject *SessionPool_Release(udt_SessionPool*, PyObject*);
 static PyObject *SessionPool_GetOCIAttr(udt_SessionPool*, ub4*);
@@ -46,7 +46,8 @@ static int SessionPool_SetOCIAttr(udt_SessionPool*, PyObject*, ub4*);
 // declaration of methods for Python type "SessionPool"
 //-----------------------------------------------------------------------------
 static PyMethodDef g_SessionPoolMethods[] = {
-    { "acquire", (PyCFunction) SessionPool_Acquire, METH_NOARGS },
+    { "acquire", (PyCFunction) SessionPool_Acquire,
+            METH_VARARGS | METH_KEYWORDS },
     { "drop", (PyCFunction) SessionPool_Drop, METH_VARARGS },
     { "release", (PyCFunction) SessionPool_Release, METH_VARARGS },
     { NULL }
@@ -168,28 +169,29 @@ static int SessionPool_Init(
     PyObject *keywordArgs)              // keyword arguments
 {
     unsigned usernameLength, passwordLength, dsnLength, poolNameLength;
-    const char *username, *password, *dsn, *poolName;
     unsigned minSessions, maxSessions, sessionIncrement;
+    const char *username, *password, *dsn, *poolName;
+    PyObject *threadedObj, *eventsObj;
     PyTypeObject *connectionType;
-    PyObject *threadedObj;
-    int threaded;
+    int threaded, events;
     sword status;
     ub1 getMode;
 
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "min", "max",
-            "increment", "connectiontype", "threaded", "getmode", NULL };
+            "increment", "connectiontype", "threaded", "getmode", "events",
+            NULL };
 
     // parse arguments and keywords
-    threaded = 0;
-    threadedObj = NULL;
+    threaded = events = 0;
+    threadedObj = eventsObj = NULL;
     connectionType = &g_ConnectionType;
     getMode = OCI_SPOOL_ATTRVAL_NOWAIT;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "s#s#s#iii|OOb",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "s#s#s#iii|OObO",
             keywordList, &username, &usernameLength, &password,
-            &passwordLength, &dsn, &dsnLength, &minSessions,
-            &maxSessions, &sessionIncrement, &connectionType, &threadedObj,
-            &getMode))
+            &passwordLength, &dsn, &dsnLength, &minSessions, &maxSessions,
+            &sessionIncrement, &connectionType, &threadedObj, &getMode,
+            &eventsObj))
         return -1;
     if (!PyType_Check(connectionType)) {
         PyErr_SetString(g_ProgrammingErrorException,
@@ -206,6 +208,11 @@ static int SessionPool_Init(
         if (threaded < 0)
             return -1;
     }
+    if (eventsObj) {
+        events = PyObject_IsTrue(eventsObj);
+        if (events < 0)
+            return -1;
+    }
 
     // initialize the object's members
     Py_INCREF(connectionType);
@@ -215,7 +222,7 @@ static int SessionPool_Init(
     self->sessionIncrement = sessionIncrement;
 
     // set up the environment
-    self->environment = Environment_New(threaded);
+    self->environment = Environment_New(threaded, events);
     if (!self->environment)
         return -1;
 
@@ -313,34 +320,36 @@ static int SessionPool_IsConnected(
 //-----------------------------------------------------------------------------
 static PyObject *SessionPool_Acquire(
     udt_SessionPool *self,              // session pool
-    PyObject *args)                     // arguments
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
-    PyObject *createArgs, *createKeywordArgs, *result;
+    static char *keywordList[] = { "cclass", "purity", NULL };
+    PyObject *createKeywordArgs, *result, *cclassObj, *purityObj;
+
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OO", keywordList,
+            &cclassObj, &purityObj))
+        return NULL;
 
     // make sure session pool is connected
     if (SessionPool_IsConnected(self) < 0)
         return NULL;
 
     // create arguments
-    createArgs = PyTuple_New(0);
-    if (!createArgs)
+    if (keywordArgs)
+        createKeywordArgs = PyDict_Copy(keywordArgs);
+    else createKeywordArgs = PyDict_New();
+    if (!createKeywordArgs)
         return NULL;
-    createKeywordArgs = PyDict_New();
-    if (!createKeywordArgs) {
-        Py_DECREF(createArgs);
-        return NULL;
-    }
     if (PyDict_SetItemString(createKeywordArgs, "pool",
             (PyObject*) self) < 0) {
-        Py_DECREF(createArgs);
         Py_DECREF(createKeywordArgs);
         return NULL;
     }
 
     // create the connection object
-    result = PyObject_Call( (PyObject*) self->connectionType, createArgs,
+    result = PyObject_Call( (PyObject*) self->connectionType, args,
             createKeywordArgs);
-    Py_DECREF(createArgs);
     Py_DECREF(createKeywordArgs);
 
     return result;
