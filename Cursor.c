@@ -16,6 +16,7 @@ typedef struct {
     PyObject *bindVariables;
     PyObject *fetchVariables;
     PyObject *rowFactory;
+    PyObject *outputTypeHandler;
     int arraySize;
     int bindArraySize;
     int fetchArraySize;
@@ -109,6 +110,8 @@ static PyMemberDef g_CursorMembers[] = {
     { "connection", T_OBJECT_EX, offsetof(udt_Cursor, connection), READONLY },
     { "numbersAsStrings", T_INT, offsetof(udt_Cursor, numbersAsStrings), 0 },
     { "rowfactory", T_OBJECT, offsetof(udt_Cursor, rowFactory), 0 },
+    { "outputtypehandler", T_OBJECT, offsetof(udt_Cursor, outputTypeHandler),
+            0 },
     { NULL }
 };
 

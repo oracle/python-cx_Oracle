@@ -638,6 +638,71 @@ static udt_Variable *Variable_NewByType(
 
 
 //-----------------------------------------------------------------------------
+// Variable_NewByOutputTypeHandler()
+//   Create a new variable by calling the output type handler.
+//-----------------------------------------------------------------------------
+static udt_Variable *Variable_NewByOutputTypeHandler(
+    udt_Cursor *cursor,                 // cursor to associate variable with
+    OCIParam *param,                    // parameter descriptor
+    PyObject *outputTypeHandler,        // method to call to get type
+    udt_VariableType *varType,          // variable type already chosen
+    ub4 maxLength,                      // maximum length of variable
+    unsigned numElements)               // number of elements
+{
+    PyObject *result;
+    ub4 nameLength;
+    sb2 precision;
+    sword status;
+    char *name;
+    sb1 scale;
+
+    // determine name of variable
+    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &name,
+            &nameLength, OCI_ATTR_NAME, cursor->environment->errorHandle);
+    if (Environment_CheckForError(cursor->environment, status,
+            "Variable_NewByOutputTypeHandler(): get name") < 0)
+        return NULL;
+
+    // retrieve scale and precision of the parameter, if applicable
+    scale = precision = 0;
+    if (varType->pythonType == &g_NumberVarType) {
+        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &scale, 0,
+                OCI_ATTR_SCALE, cursor->environment->errorHandle);
+        if (Environment_CheckForError(cursor->environment, status,
+                "Variable_NewByOutputTypeHandler(): get scale") < 0)
+            return NULL;
+        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &precision, 0,
+                OCI_ATTR_PRECISION, cursor->environment->errorHandle);
+        if (Environment_CheckForError(cursor->environment, status,
+                "Variable_NewByOutputTypeHandler(): get precision") < 0)
+            return NULL;
+    }
+
+    // call method, passing parameters
+    result = PyObject_CallFunction(outputTypeHandler, "Os#Oiii",
+            cursor, name, nameLength, varType->pythonType, maxLength,
+            precision, scale);
+    if (!result)
+        return NULL;
+
+    // if result is None, assume default behavior
+    if (result == Py_None) {
+        Py_DECREF(result);
+        return Variable_New(cursor, numElements, varType, maxLength);
+    }
+
+    // otherwise, return the result, ensuring it is a variable first
+    if (!Variable_Check(result)) {
+        Py_DECREF(result);
+        PyErr_SetString(PyExc_TypeError,
+                "expecting variable from output type handler");
+        return NULL;
+    }
+    return (udt_Variable*) result;
+}
+
+
+//-----------------------------------------------------------------------------
 // Variable_DefineHelper()
 //   Helper routine for Variable_Define() used so that constant calls to
 // OCIDescriptorFree() is not necessary.
@@ -707,7 +772,15 @@ static udt_Variable *Variable_DefineHelper(
     }
 
     // create a variable of the correct type
-    var = Variable_New(cursor, numElements, varType, maxLength);
+    if (cursor->outputTypeHandler && cursor->outputTypeHandler != Py_None)
+        var = Variable_NewByOutputTypeHandler(cursor, param,
+                cursor->outputTypeHandler, varType, maxLength, numElements);
+    else if (cursor->connection->outputTypeHandler &&
+            cursor->connection->outputTypeHandler != Py_None)
+        var = Variable_NewByOutputTypeHandler(cursor, param,
+                cursor->connection->outputTypeHandler, varType, maxLength,
+                numElements);
+    else var = Variable_New(cursor, numElements, varType, maxLength);
     if (!var)
         return NULL;
 
