@@ -173,6 +173,7 @@ static void Environment_RaiseError(
     if (error) {
         switch (error->errorNumber) {
             case 1:
+            case 1400:
             case 2290:
             case 2291:
             case 2292:
