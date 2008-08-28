@@ -130,8 +130,6 @@ if sys.platform == "aix4":
     extraCompileArgs.append("-qcpluscmt")
 elif sys.platform == "cygwin":
     extraCompileArgs.append("-mno-cygwin")
-elif sys.platform == "darwin":
-    extraLinkArgs = None
 
 # force the inclusion of an RPATH linker directive if desired; this will
 # eliminate the need for setting LD_LIBRARY_PATH but it also means that this
