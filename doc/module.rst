@@ -601,3 +601,50 @@ Exceptions
    Exception raised when a method or database API was used which is not
    supported by the database. It is a subclass of DatabaseError.
 
+
+Exception handling
+==================
+
+.. note::
+
+   PEP 249 (Python Database API Specification v2.0) says the following about
+   exception values:
+
+       [...] The values of these exceptions are not defined. They should
+       give the user a fairly good idea of what went wrong, though. [...]
+
+   With cx_Oracle every exception object has exactly one argument in the
+   ``args`` tuple. This argument is a ``cx_Oracle._Error`` object which has
+   the following three read-only attributes.
+
+.. attribute:: _Error.code
+
+   Integer attribute representing the Oracle error number (ORA-XXXXX).
+
+.. attribute:: _Error.message
+
+   String attribute representing the Oracle message of the error. This
+   message is localized by the environment of the Oracle connection.
+
+.. attribute:: _Error.context
+
+   String attribute representing the context in which the exception was
+   raised..
+
+This allows you to use the exceptions for example in the following way:
+
+::
+
+    import sys
+    import cx_Oracle
+
+    connection = cx_Oracle.Connection("user/pw@tns")
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("select 1 / 0 from dual")
+    except cx_Oracle.DatabaseError, exc:
+        error, = exc.args
+        print >> sys.stderr, "Oracle-Error-Code:", error.code
+        print >> sys.stderr, "Oracle-Error-Message:", error.message
+
