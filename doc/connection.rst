@@ -155,8 +155,8 @@ Connection Object
 
 .. attribute:: Connection.password
 
-   This read-only attribute returns the password of the user which established
-   the connection to the database.
+   This read-write attribute initially contains the password of the user which
+   established the connection to the database.
 
    .. note::
 
