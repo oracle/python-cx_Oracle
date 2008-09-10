@@ -9,6 +9,11 @@ information on the Python database API specification.
 For comments, contact Anthony Tuininga at anthony.tuininga@gmail.com or use the
 mailing list at http://lists.sourceforge.net/lists/listinfo/cx-oracle-users
 
+Please note that an Oracle client (or server) installation is required in order
+to use cx_Oracle. If you do not require the tools that come with a full client
+installation, it is recommended to install the Instant Client which is far
+easier to install.
+
 
 BINARY INSTALL:
 Place the file cx_Oracle.pyd or cx_Oracle.so anywhere on your Python path.
