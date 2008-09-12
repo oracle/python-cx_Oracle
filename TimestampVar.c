@@ -210,29 +210,6 @@ static PyObject *TimestampVar_GetValue(
     udt_TimestampVar *var,              // variable to determine value for
     unsigned pos)                       // array position
 {
-    ub1 hour, minute, second, month, day;
-    sword status;
-    ub4 fsecond;
-    sb2 year;
-
-    status = OCIDateTimeGetDate(var->environment->handle,
-            var->environment->errorHandle, var->data[pos], &year, &month,
-            &day);
-    if (Environment_CheckForError(var->environment, status,
-            "TimestampVar_GetValue(): date portion") < 0)
-        return NULL;
-    status = OCIDateTimeGetTime(var->environment->handle,
-            var->environment->errorHandle, var->data[pos], &hour, &minute,
-            &second, &fsecond);
-    if (Environment_CheckForError(var->environment, status,
-            "TimestampVar_GetValue(): time portion") < 0)
-        return NULL;
-#ifdef NATIVE_DATETIME
-    return PyDateTime_FromDateAndTime(year, month, day, hour, minute, second,
-            fsecond / 1000);
-#else
-    return ExternalDateTimeVar_NewFromC(&g_ExternalDateTimeVarType, year,
-            month, day, hour, minute, second, fsecond / 1000);
-#endif
+    return OracleTimestampToPythonDate(var->environment, var->data[pos]);
 }
 

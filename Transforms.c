@@ -35,6 +35,39 @@ static PyObject *OracleDateToPythonDate(
 
 
 //-----------------------------------------------------------------------------
+// OracleTimestampToPythonDate()
+//   Return a Python date object given an Oracle timestamp.
+//-----------------------------------------------------------------------------
+static PyObject *OracleTimestampToPythonDate(
+    udt_Environment *environment,       // environment
+    OCIDateTime* value)                 // value to convert
+{
+    ub1 hour, minute, second, month, day;
+    sword status;
+    ub4 fsecond;
+    sb2 year;
+
+    status = OCIDateTimeGetDate(environment->handle, environment->errorHandle,
+            value, &year, &month, &day);
+    if (Environment_CheckForError(environment, status,
+            "OracleTimestampToPythonDate(): date portion") < 0)
+        return NULL;
+    status = OCIDateTimeGetTime(environment->handle, environment->errorHandle,
+            value, &hour, &minute, &second, &fsecond);
+    if (Environment_CheckForError(environment, status,
+            "OracleTimestampToPythonDate(): time portion") < 0)
+        return NULL;
+#ifdef NATIVE_DATETIME
+    return PyDateTime_FromDateAndTime(year, month, day, hour, minute, second,
+            fsecond / 1000);
+#else
+    return ExternalDateTimeVar_NewFromC(&g_ExternalDateTimeVarType, year,
+            month, day, hour, minute, second, fsecond / 1000);
+#endif
+}
+
+
+//-----------------------------------------------------------------------------
 // OracleNumberToPythonFloat()
 //   Return a Python date object given an Oracle date.
 //-----------------------------------------------------------------------------

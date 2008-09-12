@@ -210,6 +210,9 @@ static PyObject *ExternalObjectVar_ConvertToPython(
             return OracleNumberToPythonFloat(environment, (OCINumber*) value);
         case OCI_TYPECODE_DATE:
             return OracleDateToPythonDate(&vt_DateTime, (OCIDate*) value);
+        case OCI_TYPECODE_TIMESTAMP:
+            return OracleTimestampToPythonDate(environment,
+                    * (OCIDateTime**) value);
         case OCI_TYPECODE_OBJECT:
             return ExternalObjectVar_New(referencedObject, subType, value,
                     indicator, 0);

@@ -25,7 +25,8 @@ create type cx_Oracle.udt_Object as object (
   NumberValue           number,
   StringValue           varchar2(60),
   FixedCharValue        char(10),
-  DateValue             date
+  DateValue             date,
+  TimestampValue        timestamp
 );
 /
 
@@ -169,7 +170,8 @@ end;
 
 insert into cx_Oracle.TestObjects values (1,
     cx_Oracle.udt_Object(1, 'First row', 'First',
-        to_date(20070306, 'YYYYMMDD')),
+        to_date(20070306, 'YYYYMMDD'),
+        to_timestamp('20080912 16:40:00', 'YYYYMMDD HH24:MI:SS')),
     cx_Oracle.udt_Array(5, 10, null, 20));
 
 insert into cx_Oracle.TestObjects values (2, null,
@@ -177,7 +179,8 @@ insert into cx_Oracle.TestObjects values (2, null,
 
 insert into cx_Oracle.TestObjects values (3,
     cx_Oracle.udt_Object(3, 'Third row', 'Third',
-        to_date(20070621, 'YYYYMMDD')), null);
+        to_date(20070621, 'YYYYMMDD'),
+        to_timestamp('20071213 07:30:45', 'YYYYMMDD HH24:MI:SS')), null);
 
 commit;
 
