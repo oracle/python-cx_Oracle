@@ -4,6 +4,8 @@
  * and packages necessary for performing the test suite.
  *---------------------------------------------------------------------------*/
 
+whenever sqlerror exit failure
+
 alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS';
 alter session set nls_numeric_characters='.,';
 
@@ -20,9 +22,10 @@ to cx_Oracle;
 
 -- create types
 create type cx_Oracle.udt_Object as object (
-  NumberValue			number,
-  StringValue			varchar2(60),
-  DateValue			date
+  NumberValue           number,
+  StringValue           varchar2(60),
+  FixedCharValue        char(10),
+  DateValue             date
 );
 /
 
@@ -31,56 +34,62 @@ create type cx_Oracle.udt_Array as varray(10) of number;
 
 -- create tables
 create table cx_Oracle.TestNumbers (
-  IntCol			number(9) not null,
-  NumberCol			number(9, 2) not null,
-  FloatCol			float not null,
-  UnconstrainedCol		number not null,
-  NullableCol			number(38)
+  IntCol                number(9) not null,
+  NumberCol             number(9, 2) not null,
+  FloatCol              float not null,
+  UnconstrainedCol      number not null,
+  NullableCol           number(38)
 ) tablespace users;
 
 create table cx_Oracle.TestStrings (
-  IntCol			number(9) not null,
-  StringCol			varchar2(20) not null,
-  RawCol			raw(30) not null,
-  FixedCharCol			char(40) not null,
-  NullableCol			varchar2(50)
+  IntCol                number(9) not null,
+  StringCol             varchar2(20) not null,
+  RawCol                raw(30) not null,
+  FixedCharCol          char(40) not null,
+  NullableCol           varchar2(50)
 ) tablespace users;
 
 create table cx_Oracle.TestDates (
-  IntCol			number(9) not null,
-  DateCol			date not null,
-  NullableCol			date
+  IntCol                number(9) not null,
+  DateCol               date not null,
+  NullableCol           date
 ) tablespace users;
 
 create table cx_Oracle.TestCLOBs (
-  IntCol			number(9) not null,
-  CLOBCol			clob not null
+  IntCol                number(9) not null,
+  CLOBCol               clob not null
 ) tablespace users;
 
 create table cx_Oracle.TestBLOBs (
-  IntCol			number(9) not null,
-  BLOBCol			blob not null
+  IntCol                number(9) not null,
+  BLOBCol               blob not null
 ) tablespace users;
 
 create table cx_Oracle.TestLongs (
-  IntCol			number(9) not null,
-  LongCol			long not null
+  IntCol                number(9) not null,
+  LongCol               long not null
 ) tablespace users;
 
 create table cx_Oracle.TestLongRaws (
-  IntCol			number(9) not null,
-  LongRawCol			long raw not null
+  IntCol                number(9) not null,
+  LongRawCol            long raw not null
 ) tablespace users;
 
 create table cx_Oracle.TestExecuteMany (
-  IntCol			number(9) not null
+  IntCol                number(9) not null
 ) tablespace users;
 
 create table cx_Oracle.TestObjects (
-  IntCol			number(9) not null,
-  ObjectCol			cx_Oracle.udt_Object,
-  ArrayCol			cx_Oracle.udt_Array
+  IntCol                number(9) not null,
+  ObjectCol             cx_Oracle.udt_Object,
+  ArrayCol              cx_Oracle.udt_Array
 );
+
+create table cx_Oracle.TestTimestamps (
+  IntCol			number(9) not null,
+  TimestampCol			timestamp not null,
+  NullableCol			timestamp
+) tablespace users;
 
 alter table cx_Oracle.testexecutemany
 add constraint testexecutemany_pk
@@ -144,8 +153,22 @@ begin
 end;
 /
 
+begin
+  for i in 1..10 loop
+    insert into cx_Oracle.TestTimestamps
+    values (i, to_timestamp('20021209', 'YYYYMMDD') +
+            to_dsinterval(to_char(i) || ' 00:00:' || to_char(i * 2) || '.' ||
+                    to_char(i * 50)),
+        decode(mod(i, 2), 0, to_timestamp(null, 'YYYYMMDD'),
+        to_timestamp('20021209', 'YYYYMMDD') +
+            to_dsinterval(to_char(i + 1) || ' 00:00:' ||
+                    to_char(i * 3) || '.' || to_char(i * 125))));
+  end loop;
+end;
+/
+
 insert into cx_Oracle.TestObjects values (1,
-    cx_Oracle.udt_Object(1, 'First row',
+    cx_Oracle.udt_Object(1, 'First row', 'First',
         to_date(20070306, 'YYYYMMDD')),
     cx_Oracle.udt_Array(5, 10, null, 20));
 
@@ -153,16 +176,16 @@ insert into cx_Oracle.TestObjects values (2, null,
     cx_Oracle.udt_Array(3, null, 9, 12, 15));
 
 insert into cx_Oracle.TestObjects values (3,
-    cx_Oracle.udt_Object(3, 'Third row',
+    cx_Oracle.udt_Object(3, 'Third row', 'Third',
         to_date(20070621, 'YYYYMMDD')), null);
 
 commit;
 
 -- create procedures for testing callproc()
 create procedure cx_Oracle.proc_Test (
-  a_InValue			varchar2,
-  a_InOutValue			in out number,
-  a_OutValue			out number
+  a_InValue             varchar2,
+  a_InOutValue          in out number,
+  a_OutValue            out number
 ) as
 begin
   a_InOutValue := a_InOutValue * length(a_InValue);
@@ -178,8 +201,8 @@ end;
 
 -- create functions for testing callfunc()
 create function cx_Oracle.func_Test (
-  a_String			varchar2,
-  a_ExtraAmount			number
+  a_String              varchar2,
+  a_ExtraAmount         number
 ) return number as
 begin
   return length(a_String) + a_ExtraAmount;
@@ -199,18 +222,18 @@ create or replace package cx_Oracle.pkg_TestStringArrays as
   type udt_StringList is table of varchar2(100) index by binary_integer;
 
   function TestInArrays (
-    a_StartingLength		number,
-    a_Array			udt_StringList
+    a_StartingLength    number,
+    a_Array             udt_StringList
   ) return number;
 
   procedure TestInOutArrays (
-    a_NumElems			number,
-    a_Array			in out nocopy udt_StringList
+    a_NumElems          number,
+    a_Array             in out nocopy udt_StringList
   );
 
   procedure TestOutArrays (
-    a_NumElems			number,
-    a_Array			out nocopy udt_StringList
+    a_NumElems          number,
+    a_Array             out nocopy udt_StringList
   );
 
 end;
@@ -219,10 +242,10 @@ end;
 create or replace package body cx_Oracle.pkg_TestStringArrays as
 
   function TestInArrays (
-    a_StartingLength		number,
-    a_Array			udt_StringList
+    a_StartingLength    number,
+    a_Array             udt_StringList
   ) return number is
-    t_Length			number;
+    t_Length            number;
   begin
     t_Length := a_StartingLength;
     for i in 1..a_Array.count loop
@@ -232,8 +255,8 @@ create or replace package body cx_Oracle.pkg_TestStringArrays as
   end;
 
   procedure TestInOutArrays (
-    a_NumElems			number,
-    a_Array			in out udt_StringList
+    a_NumElems          number,
+    a_Array             in out udt_StringList
   ) is
   begin
     for i in 1..a_NumElems loop
@@ -244,8 +267,8 @@ create or replace package body cx_Oracle.pkg_TestStringArrays as
   end;
 
   procedure TestOutArrays (
-    a_NumElems			number,
-    a_Array			out udt_StringList
+    a_NumElems          number,
+    a_Array             out udt_StringList
   ) is
   begin
     for i in 1..a_NumElems loop
@@ -261,18 +284,18 @@ create or replace package cx_Oracle.pkg_TestNumberArrays as
   type udt_NumberList is table of number index by binary_integer;
 
   function TestInArrays (
-    a_StartingValue		number,
-    a_Array			udt_NumberList
+    a_StartingValue     number,
+    a_Array             udt_NumberList
   ) return number;
 
   procedure TestInOutArrays (
-    a_NumElems			number,
-    a_Array			in out nocopy udt_NumberList
+    a_NumElems          number,
+    a_Array             in out nocopy udt_NumberList
   );
 
   procedure TestOutArrays (
-    a_NumElems			number,
-    a_Array			out nocopy udt_NumberList
+    a_NumElems          number,
+    a_Array             out nocopy udt_NumberList
   );
 
 end;
@@ -281,10 +304,10 @@ end;
 create or replace package body cx_Oracle.pkg_TestNumberArrays as
 
   function TestInArrays (
-    a_StartingValue		number,
-    a_Array			udt_NumberList
+    a_StartingValue     number,
+    a_Array             udt_NumberList
   ) return number is
-    t_Value			number;
+    t_Value             number;
   begin
     t_Value := a_StartingValue;
     for i in 1..a_Array.count loop
@@ -294,8 +317,8 @@ create or replace package body cx_Oracle.pkg_TestNumberArrays as
   end;
 
   procedure TestInOutArrays (
-    a_NumElems			number,
-    a_Array			in out udt_NumberList
+    a_NumElems          number,
+    a_Array             in out udt_NumberList
   ) is
   begin
     for i in 1..a_NumElems loop
@@ -304,8 +327,8 @@ create or replace package body cx_Oracle.pkg_TestNumberArrays as
   end;
 
   procedure TestOutArrays (
-    a_NumElems			number,
-    a_Array			out udt_NumberList
+    a_NumElems          number,
+    a_Array             out udt_NumberList
   ) is
   begin
     for i in 1..a_NumElems loop
@@ -321,19 +344,19 @@ create or replace package cx_Oracle.pkg_TestDateArrays as
   type udt_DateList is table of date index by binary_integer;
 
   function TestInArrays (
-    a_StartingValue		number,
-    a_BaseDate			date,
-    a_Array			udt_DateList
+    a_StartingValue     number,
+    a_BaseDate          date,
+    a_Array             udt_DateList
   ) return number;
 
   procedure TestInOutArrays (
-    a_NumElems			number,
-    a_Array			in out nocopy udt_DateList
+    a_NumElems          number,
+    a_Array             in out nocopy udt_DateList
   );
 
   procedure TestOutArrays (
-    a_NumElems			number,
-    a_Array			out nocopy udt_DateList
+    a_NumElems          number,
+    a_Array             out nocopy udt_DateList
   );
 
 end;
@@ -342,11 +365,11 @@ end;
 create or replace package body cx_Oracle.pkg_TestDateArrays as
 
   function TestInArrays (
-    a_StartingValue		number,
-    a_BaseDate			date,
-    a_Array			udt_DateList
+    a_StartingValue     number,
+    a_BaseDate          date,
+    a_Array             udt_DateList
   ) return number is
-    t_Value			number;
+    t_Value             number;
   begin
     t_Value := a_StartingValue;
     for i in 1..a_Array.count loop
@@ -356,8 +379,8 @@ create or replace package body cx_Oracle.pkg_TestDateArrays as
   end;
 
   procedure TestInOutArrays (
-    a_NumElems			number,
-    a_Array			in out udt_DateList
+    a_NumElems          number,
+    a_Array             in out udt_DateList
   ) is
   begin
     for i in 1..a_NumElems loop
@@ -366,8 +389,8 @@ create or replace package body cx_Oracle.pkg_TestDateArrays as
   end;
 
   procedure TestOutArrays (
-    a_NumElems			number,
-    a_Array			out udt_DateList
+    a_NumElems          number,
+    a_Array             out udt_DateList
   ) is
   begin
     for i in 1..a_NumElems loop
@@ -383,8 +406,8 @@ create or replace package cx_Oracle.pkg_TestOutCursors as
   type udt_RefCursor is ref cursor;
 
   procedure TestOutCursor (
-    a_MaxIntValue		number,
-    a_Cursor			out udt_RefCursor
+    a_MaxIntValue       number,
+    a_Cursor            out udt_RefCursor
   );
 
 end;
@@ -393,8 +416,8 @@ end;
 create or replace package body cx_Oracle.pkg_TestOutCursors as
 
   procedure TestOutCursor (
-    a_MaxIntValue		number,
-    a_Cursor			out udt_RefCursor
+    a_MaxIntValue       number,
+    a_Cursor            out udt_RefCursor
   ) is
   begin
     open a_Cursor for
@@ -408,4 +431,6 @@ create or replace package body cx_Oracle.pkg_TestOutCursors as
 
 end;
 /
+
+exit
 

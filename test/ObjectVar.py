@@ -30,9 +30,9 @@ class TestObjectVar(BaseTestCase):
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   ('OBJECTCOL', cx_Oracle.OBJECT, -1, 2000, 0, 0, 1),
                   ('ARRAYCOL', cx_Oracle.OBJECT, -1, 2000, 0, 0, 1) ])
-        self.__TestData(1, (1, 'First row',
+        self.__TestData(1, (1, 'First row', 'First     ',
                 cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0)), [5, 10, None, 20])
         self.__TestData(2, None, [3, None, 9, 12, 15])
-        self.__TestData(3, (3, 'Third row',
+        self.__TestData(3, (3, 'Third row', 'Third     ',
                 cx_Oracle.Timestamp(2007, 6, 21, 0, 0, 0)), None)
 
