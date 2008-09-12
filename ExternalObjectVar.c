@@ -200,6 +200,8 @@ static PyObject *ExternalObjectVar_ConvertToPython(
     }
 
     switch (typeCode) {
+        case OCI_TYPECODE_CHAR:
+        case OCI_TYPECODE_VARCHAR:
         case OCI_TYPECODE_VARCHAR2:
             stringValue = OCIStringPtr(environment->handle,
                     * (OCIString**) value);
