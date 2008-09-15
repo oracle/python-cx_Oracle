@@ -13,6 +13,7 @@ typedef struct {
     ub4 maxSessions;
     ub4 sessionIncrement;
     ub4 cacheSize;
+    int homogeneous;
     PyObject *name;
     PyObject *username;
     PyObject *password;
@@ -67,6 +68,7 @@ static PyMemberDef g_SessionPoolMembers[] = {
     { "min", T_INT, offsetof(udt_SessionPool, minSessions), READONLY },
     { "increment", T_INT, offsetof(udt_SessionPool, sessionIncrement),
             READONLY },
+    { "homogeneous", T_INT, offsetof(udt_SessionPool, homogeneous), READONLY },
     { NULL }
 };
 
@@ -170,28 +172,30 @@ static int SessionPool_Init(
 {
     unsigned usernameLength, passwordLength, dsnLength, poolNameLength;
     unsigned minSessions, maxSessions, sessionIncrement;
+    PyObject *threadedObj, *eventsObj, *homogeneousObj;
     const char *username, *password, *dsn, *poolName;
-    PyObject *threadedObj, *eventsObj;
+    int threaded, events, homogeneous;
     PyTypeObject *connectionType;
-    int threaded, events;
     sword status;
+    ub4 poolMode;
     ub1 getMode;
 
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "min", "max",
             "increment", "connectiontype", "threaded", "getmode", "events",
-            NULL };
+            "homogeneous", NULL };
 
     // parse arguments and keywords
+    homogeneous = 1;
     threaded = events = 0;
-    threadedObj = eventsObj = NULL;
+    threadedObj = eventsObj = homogeneousObj = NULL;
     connectionType = &g_ConnectionType;
     getMode = OCI_SPOOL_ATTRVAL_NOWAIT;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "s#s#s#iii|OObO",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "s#s#s#iii|OObOO",
             keywordList, &username, &usernameLength, &password,
             &passwordLength, &dsn, &dsnLength, &minSessions, &maxSessions,
             &sessionIncrement, &connectionType, &threadedObj, &getMode,
-            &eventsObj))
+            &eventsObj, &homogeneousObj))
         return -1;
     if (!PyType_Check(connectionType)) {
         PyErr_SetString(g_ProgrammingErrorException,
@@ -213,6 +217,11 @@ static int SessionPool_Init(
         if (events < 0)
             return -1;
     }
+    if (homogeneousObj) {
+        homogeneous = PyObject_IsTrue(homogeneousObj);
+        if (homogeneous < 0)
+            return -1;
+    }
 
     // initialize the object's members
     Py_INCREF(connectionType);
@@ -220,6 +229,7 @@ static int SessionPool_Init(
     self->minSessions = minSessions;
     self->maxSessions = maxSessions;
     self->sessionIncrement = sessionIncrement;
+    self->homogeneous = homogeneous;
 
     // set up the environment
     self->environment = Environment_New(threaded, events);
@@ -248,14 +258,18 @@ static int SessionPool_Init(
             "SessionPool_New(): allocate handle") < 0)
         return -1;
 
+    // prepare pool mode
+    poolMode = OCI_SPC_STMTCACHE;
+    if (self->homogeneous)
+        poolMode |= OCI_SPC_HOMOGENEOUS;
+
     // create the session pool
     Py_BEGIN_ALLOW_THREADS
     status = OCISessionPoolCreate(self->environment->handle,
             self->environment->errorHandle, self->handle,
             (OraText**) &poolName, &poolNameLength, (OraText*) dsn, dsnLength,
             minSessions, maxSessions, sessionIncrement, (OraText*) username,
-            usernameLength, (OraText*) password, passwordLength,
-            OCI_SPC_HOMOGENEOUS | OCI_SPC_STMTCACHE);
+            usernameLength, (OraText*) password, passwordLength, poolMode);
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(self->environment, status,
             "SessionPool_New(): create pool") < 0)
@@ -323,13 +337,24 @@ static PyObject *SessionPool_Acquire(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
-    static char *keywordList[] = { "cclass", "purity", NULL };
+    static char *keywordList[] = { "user", "password", "cclass", "purity",
+            NULL };
     PyObject *createKeywordArgs, *result, *cclassObj, *purityObj;
+    unsigned usernameLength, passwordLength;
+    char *username, *password;
 
     // parse arguments
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OO", keywordList,
-            &cclassObj, &purityObj))
+    username = NULL;
+    password = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|s#s#OO", keywordList,
+            &username, &usernameLength, &password, &passwordLength, &cclassObj,
+            &purityObj))
         return NULL;
+    if (self->homogeneous && (username || password)) {
+        PyErr_SetString(g_ProgrammingErrorException,
+                "pool is homogeneous. Proxy authentication is not possible.");
+        return NULL;
+    }
 
     // make sure session pool is connected
     if (SessionPool_IsConnected(self) < 0)

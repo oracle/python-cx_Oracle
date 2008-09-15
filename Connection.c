@@ -215,8 +215,8 @@ static int Connection_GetConnection(
     unsigned cclassLength,              // length of connection class (DRCP)
     ub4 purity)                         // purity (DRCP)
 {
+    int externalCredentials, proxyCredentials;
     udt_Environment *environment;
-    int externalCredentials;
     unsigned dbNameLength;
     OCIAuthInfo *authInfo;
     OraText *dbName;
@@ -226,11 +226,19 @@ static int Connection_GetConnection(
 
     // set things up for the call to acquire a session
     authInfo = NULL;
+    proxyCredentials = 0;
     if (pool) {
         environment = pool->environment;
         dbName = (OraText*) PyString_AS_STRING(pool->name);
         dbNameLength = PyString_GET_SIZE(pool->name);
         mode = OCI_SESSGET_SPOOL;
+        if (!pool->homogeneous && pool->username && self->username) {
+            proxyCredentials = PyObject_RichCompareBool(self->username,
+                    pool->username, Py_NE);
+            if (proxyCredentials < 0)
+                return -1;
+            mode = mode | OCI_SESSGET_CREDPROXY;
+        }
     } else {
         environment = self->environment;
         dbName = (OraText*) dsn;
@@ -239,7 +247,7 @@ static int Connection_GetConnection(
     }
 
     // set up authorization handle, if needed
-    if (!pool || cclassLength > 0) {
+    if (!pool || cclassLength > 0 || proxyCredentials) {
 
         // create authorization handle
         status = OCIHandleAlloc(environment->handle, (dvoid*) &authInfo,
@@ -316,10 +324,12 @@ static int Connection_GetConnection(
 
     // copy members in the case where a pool is being used
     if (pool) {
-        Py_INCREF(pool->username);
-        self->username = pool->username;
-        Py_INCREF(pool->password);
-        self->password = pool->password;
+        if (!proxyCredentials) {
+            Py_INCREF(pool->username);
+            self->username = pool->username;
+            Py_INCREF(pool->password);
+            self->password = pool->password;
+        }
         Py_INCREF(pool->dsn);
         self->dsn = pool->dsn;
         Py_INCREF(pool);

@@ -13,6 +13,11 @@ create user cx_Oracle identified by dev
 quota unlimited on users
 default tablespace users;
 
+create user cx_Oracle_proxy identified by dev;
+alter user cx_Oracle_proxy grant connect through cx_Oracle;
+
+grant create session to cx_Oracle_proxy;
+
 grant
   create session,
   create table,

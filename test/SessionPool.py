@@ -37,6 +37,24 @@ class TestConnection(TestCase):
         del connection_2
         self.failUnlessEqual(pool.busy, 1, "busy not 1 after del")
 
+    def testProxyAuth(self):
+        """test that proxy authentication is possible"""
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3)
+        self.failUnlessEqual(pool.homogeneous, 1,
+                "homogeneous should be 1 by default")
+        self.failUnlessRaises(cx_Oracle.ProgrammingError, pool.acquire,
+                user = "proxyuser")
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
+                homogeneous = False)
+        self.failUnlessEqual(pool.homogeneous, 0,
+                "homogeneous should be 0 after setting it in the constructor")
+        user = "%s_proxy" % USERNAME
+        connection = pool.acquire(user = user)
+        cursor = connection.cursor()
+        cursor.execute('select user from dual')
+        result, = cursor.fetchone()
+        self.assertEqual(result, user.upper())
+
     def testRollbackOnDel(self):
         "connection rolls back before being destroyed"
         pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3)

@@ -32,6 +32,13 @@ SessionPool Object
    connection has been established.
 
 
+.. attribute:: SessionPool.homogeneous
+
+   This read-write boolean attribute indicates whether the pool is considered
+   homogeneous or not. If the pool is not homogeneous different authentication
+   can be used for each connection acquired from the pool.
+
+
 .. attribute:: SessionPool.increment
 
    This read-only attribute returns the number of sessions that will be
