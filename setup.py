@@ -53,23 +53,63 @@ if sys.platform in ("win32", "cygwin"):
 # define the list of files to be included as documentation for bdist_rpm
 docFiles = "LICENSE.txt README.txt HISTORY.txt html samples test"
 
-# try to determine the ORACLE_HOME
-oracleHome = os.environ.get("ORACLE_HOME")
-if oracleHome is None:
-    if sys.platform == "win32":
-        fileNameToFind = "oci.dll"
+# method for checking a potential Oracle home
+def CheckOracleHome(directoryToCheck):
+    global oracleHome, oracleVersion, oracleLibDir
+    if sys.platform in ("win32", "cygwin"):
+        subDir = "bin"
+        filesToCheck = [
+                ("11g", "oraocci11.dll"),
+                ("10g", "oraocci10.dll"),
+                ("9i", "oraclient9.dll")
+        ]
+    elif sys.platform == "darwin":
+        subDir = "lib"
+        filesToCheck = [
+                ("11g", "libclntsh.dylib.11.1"),
+                ("10g", "libclntsh.dylib.10.1"),
+                ("9i", "libclntsh.dylib.9.0")
+        ]
     else:
-        fileNameToFind = "oracle"
-    for path in os.environ["PATH"].split(os.pathsep):
-        path = os.path.normpath(path)
-        if os.path.exists(os.path.join(path, fileNameToFind)):
-            if os.path.normcase(os.path.basename(path)) == "bin":
-                oracleHome = os.path.dirname(path)
+        subDir = "lib"
+        filesToCheck = [
+                ("11g", "libclntsh.so.11.1"),
+                ("10g", "libclntsh.so.10.1"),
+                ("9i", "libclntsh.so.9.0")
+        ]
+    for version, baseFileName in filesToCheck:
+        fileName = os.path.join(directoryToCheck, baseFileName)
+        if os.path.exists(fileName):
+            if os.path.basename(directoryToCheck).lower() == "bin":
+                oracleHome = os.path.dirname(directoryToCheck)
             else:
-                oracleHome = path
+                oracleHome = directoryToCheck
+            oracleLibDir = directoryToCheck
+            oracleVersion = version
+            return True
+        fileName = os.path.join(directoryToCheck, subDir, baseFileName)
+        if os.path.exists(fileName):
+            oracleHome = directoryToCheck
+            oracleLibDir = os.path.join(directoryToCheck, subDir)
+            oracleVersion = version
+            return True
+    oracleHome = oracleVersion = oracleLibDir = None
+    return False
+
+# try to determine the Oracle home
+oracleHome = os.environ.get("ORACLE_HOME")
+if oracleHome is not None:
+    if not CheckOracleHome(oracleHome):
+        messageFormat = "Oracle home (%s) does not refer to an " \
+                "9i, 10g or 11g installation."
+        raise DistutilsSetupError, messageFormat % oracleHome
+else:
+    for path in os.environ["PATH"].split(os.pathsep):
+        if CheckOracleHome(path):
             break
-if oracleHome is None:
-    raise DistutilsSetupError, "cannot locate an Oracle software installation"
+    if oracleHome is None:
+        raise DistutilsSetupError, "cannot locate an Oracle software " \
+                "installation"
 
 # define some variables
 if sys.platform == "win32":
@@ -135,53 +175,14 @@ elif sys.platform == "cygwin":
 # eliminate the need for setting LD_LIBRARY_PATH but it also means that this
 # location will be the only location searched for the Oracle client library
 if "FORCE_RPATH" in os.environ:
-    extraLinkArgs.append("-Wl,-rpath,%s/lib" % oracleHome)
+    extraLinkArgs.append("-Wl,-rpath,%s/lib" % oracleLibDir)
 
 # tweak distribution full name to include the Oracle version
 class Distribution(distutils.dist.Distribution):
 
-    def __init__(self, attrs):
-        global oracleHome
-        distutils.dist.Distribution.__init__(self, attrs)
-        if sys.platform in ("win32", "cygwin"):
-            subDir = "bin"
-            filesToCheck = [
-                    ("11g", "oraocci11.dll"),
-                    ("10g", "oraocci10.dll"),
-                    ("9i", "oraclient9.dll")
-            ]
-        elif sys.platform == "darwin":
-            subDir = "lib"
-            filesToCheck = [
-                    ("11g", "libclntsh.dylib.11.1"),
-                    ("10g", "libclntsh.dylib.10.1"),
-                    ("9i", "libclntsh.dylib.9.0")
-            ]
-        else:
-            subDir = "lib"
-            filesToCheck = [
-                    ("11g", "libclntsh.so.11.1"),
-                    ("10g", "libclntsh.so.10.1"),
-                    ("9i", "libclntsh.so.9.0")
-            ]
-        self.oracleVersion = None
-        for version, baseFileName in filesToCheck:
-            fileName = os.path.join(oracleHome, baseFileName)
-            if os.path.exists(fileName):
-                self.oracleVersion = version
-                break
-            fileName = os.path.join(oracleHome, subDir, baseFileName)
-            if os.path.exists(fileName):
-                self.oracleVersion = version
-                break
-        if self.oracleVersion is None:
-            messageFormat = "Oracle home (%s) does not refer to an " \
-                    "9i, 10g or 11g installation."
-            raise DistutilsSetupError, messageFormat % oracleHome
-
     def get_fullname_with_oracle_version(self):
         name = self.metadata.get_fullname()
-        return "%s-%s" % (name, self.oracleVersion)
+        return "%s-%s" % (name, oracleVersion)
 
 
 # tweak the RPM build command to include the Python and Oracle version
@@ -195,7 +196,7 @@ class bdist_rpm(distutils.command.bdist_rpm.bdist_rpm):
         command = "rpm -q --qf '%s' --specfile %s" % (queryFormat, specFile)
         origFileName = os.popen(command).read()
         parts = origFileName.split("-")
-        parts.insert(2, self.distribution.oracleVersion)
+        parts.insert(2, oracleVersion)
         parts.insert(3, "py%s%s" % sys.version_info[:2])
         newFileName = "-".join(parts)
         self.move_file(os.path.join("dist", origFileName),
@@ -211,7 +212,7 @@ class build(distutils.command.build.build):
         global sys
         platSpecifier = ".%s-%s-%s" % \
                 (distutils.util.get_platform(), sys.version[0:3],
-                 self.distribution.oracleVersion)
+                 oracleVersion)
         if self.build_platlib is None:
             self.build_platlib = os.path.join(self.build_base,
                     "lib%s" % platSpecifier)
