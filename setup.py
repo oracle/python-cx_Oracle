@@ -93,6 +93,13 @@ def CheckOracleHome(directoryToCheck):
             oracleLibDir = os.path.join(directoryToCheck, subDir)
             oracleVersion = version
             return True
+        dirName = os.path.dirname(directoryToCheck)
+        fileName = os.path.join(dirName, subDir, baseFileName)
+        if os.path.exists(fileName):
+            oracleHome = dirName
+            oracleLibDir = os.path.join(dirName, subDir)
+            oracleVersion = version
+            return True
     oracleHome = oracleVersion = oracleLibDir = None
     return False
 
