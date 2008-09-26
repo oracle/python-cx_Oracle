@@ -169,7 +169,7 @@ static void Environment_RaiseError(
     PyObject *exceptionType;
     udt_Error *error;
 
-    error = Error_New(environment, context);
+    error = Error_New(environment, context, 1);
     if (error) {
         switch (error->errorNumber) {
             case 1:

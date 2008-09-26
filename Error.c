@@ -76,7 +76,8 @@ static PyTypeObject g_ErrorType = {
 //-----------------------------------------------------------------------------
 static udt_Error *Error_New(
     udt_Environment *environment,       // environment object
-    const char *context)                // context in which error occurred
+    const char *context,                // context in which error occurred
+    int retrieveError)                  // retrieve error from OCI?
 {
     udt_Error *error;
     ub4 handleType;
@@ -87,20 +88,22 @@ static udt_Error *Error_New(
     if (!error)
         return NULL;
     error->context = context;
-    if (environment->errorHandle) {
-        handle = environment->errorHandle;
-        handleType = OCI_HTYPE_ERROR;
-    } else {
-        handle = environment->handle;
-        handleType = OCI_HTYPE_ENV;
-    }
-    status = OCIErrorGet(handle, 1, 0, &error->errorNumber,
-            (unsigned char*) error->errorText, sizeof(error->errorText),
-            handleType);
-    if (status != OCI_SUCCESS) {
-        Py_DECREF(error);
-        PyErr_SetString(g_InternalErrorException, "No Oracle error?");
-        return NULL;
+    if (retrieveError) {
+        if (environment->errorHandle) {
+            handle = environment->errorHandle;
+            handleType = OCI_HTYPE_ERROR;
+        } else {
+            handle = environment->handle;
+            handleType = OCI_HTYPE_ENV;
+        }
+        status = OCIErrorGet(handle, 1, 0, &error->errorNumber,
+                (unsigned char*) error->errorText, sizeof(error->errorText),
+                handleType);
+        if (status != OCI_SUCCESS) {
+            Py_DECREF(error);
+            PyErr_SetString(g_InternalErrorException, "No Oracle error?");
+            return NULL;
+        }
     }
     return error;
 }

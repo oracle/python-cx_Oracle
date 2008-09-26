@@ -946,12 +946,16 @@ static int Variable_VerifyFetch(
   udt_Variable *var,                    // variable to check fetch for
   unsigned arrayPos)                    // array position
 {
+    udt_Error *error;
+
     if (var->type->isVariableLength) {
         if (var->returnCode[arrayPos] != 0) {
-            char buffer[100];
-            sprintf(buffer, "column at array pos %d fetched with error: %d",
+            error = Error_New(var->environment, "Variable_VerifyFetch()", 0);
+            error->errorNumber = var->returnCode[arrayPos];
+            sprintf(error->errorText,
+                    "column at array pos %d fetched with error: %d",
                     arrayPos, var->returnCode[arrayPos]);
-            PyErr_SetString(g_DatabaseErrorException, buffer);
+            PyErr_SetObject(g_DatabaseErrorException, (PyObject*) error);
             return -1;
         }
     }
