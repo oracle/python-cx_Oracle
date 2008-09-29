@@ -104,12 +104,12 @@ def CheckOracleHome(directoryToCheck):
     return False
 
 # try to determine the Oracle home
-oracleHome = os.environ.get("ORACLE_HOME")
-if oracleHome is not None:
-    if not CheckOracleHome(oracleHome):
+userOracleHome = os.environ.get("ORACLE_HOME")
+if userOracleHome is not None:
+    if not CheckOracleHome(userOracleHome):
         messageFormat = "Oracle home (%s) does not refer to an " \
                 "9i, 10g or 11g installation."
-        raise DistutilsSetupError, messageFormat % oracleHome
+        raise DistutilsSetupError, messageFormat % userOracleHome
 else:
     for path in os.environ["PATH"].split(os.pathsep):
         if CheckOracleHome(path):
