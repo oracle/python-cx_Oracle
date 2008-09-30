@@ -150,8 +150,10 @@ static udt_Variable *Variable_New(
     if (type->isVariableLength) {
         if (elementLength < sizeof(ub2))
             elementLength = sizeof(ub2);
-        var->maxLength =
-                elementLength * cursor->environment->maxBytesPerCharacter;
+        if (type->charsetForm == SQLCS_IMPLICIT)
+            var->maxLength =
+                    elementLength * cursor->environment->maxBytesPerCharacter;
+        else var->maxLength = elementLength * 2;
     }
 
     // allocate the indicator and data
@@ -276,6 +278,8 @@ static int Variable_Check(
             object->ob_type == &g_NumberVarType ||
             object->ob_type == &g_StringVarType ||
             object->ob_type == &g_FixedCharVarType ||
+            object->ob_type == &g_UnicodeVarType ||
+            object->ob_type == &g_FixedUnicodeVarType ||
             object->ob_type == &g_RowidVarType ||
             object->ob_type == &g_BinaryVarType ||
             object->ob_type == &g_TimestampVarType
@@ -301,6 +305,12 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_String;
     if (type == (PyObject*) &g_FixedCharVarType)
         return &vt_FixedChar;
+    if (type == (PyObject*) &g_UnicodeVarType)
+        return &vt_NationalCharString;
+    if (type == (PyObject*) &PyUnicode_Type)
+        return &vt_NationalCharString;
+    if (type == (PyObject*) &g_FixedUnicodeVarType)
+        return &vt_FixedNationalChar;
     if (type == (PyObject*) &g_RowidVarType)
         return &vt_Rowid;
     if (type == (PyObject*) &g_BinaryVarType)
@@ -375,6 +385,8 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_String;
     if (PyString_Check(value))
         return &vt_String;
+    if (PyUnicode_Check(value))
+        return &vt_NationalCharString;
     if (PyInt_Check(value))
         return &vt_Integer;
     if (PyLong_Check(value))
@@ -439,6 +451,8 @@ static udt_VariableType *Variable_TypeByOracleDataType (
         case SQLT_LNG:
             return &vt_LongString;
         case SQLT_AFC:
+            if (charsetForm == SQLCS_NCHAR)
+                return &vt_FixedNationalChar;
             return &vt_FixedChar;
         case SQLT_CHR:
             if (charsetForm == SQLCS_NCHAR)
@@ -486,6 +500,41 @@ static udt_VariableType *Variable_TypeByOracleDataType (
             oracleDataType);
     PyErr_SetString(g_NotSupportedErrorException, buffer);
     return NULL;
+}
+
+
+//-----------------------------------------------------------------------------
+// Variable_TypeByOracleDescriptor()
+//   Return a variable type given an Oracle descriptor.
+//-----------------------------------------------------------------------------
+static udt_VariableType *Variable_TypeByOracleDescriptor(
+    OCIParam *param,                    // parameter to get type from
+    udt_Environment *environment)       // environment to use
+{
+    ub1 charsetForm;
+    ub2 dataType;
+    sword status;
+
+    // retrieve datatype of the parameter
+    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &dataType, 0,
+            OCI_ATTR_DATA_TYPE, environment->errorHandle);
+    if (Environment_CheckForError(environment, status,
+            "Variable_TypeByOracleDescriptor(): data type") < 0)
+        return NULL;
+
+    // retrieve character set form of the parameter
+    if (dataType != SQLT_CHR && dataType != SQLT_AFC &&
+            dataType != SQLT_CLOB) {
+        charsetForm = SQLCS_IMPLICIT;
+    } else {
+        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &charsetForm,
+                0, OCI_ATTR_CHARSET_FORM, environment->errorHandle);
+        if (Environment_CheckForError(environment, status,
+                "Variable_TypeByOracleDescriptor(): charset form") < 0)
+            return NULL;
+    }
+
+    return Variable_TypeByOracleDataType(dataType, charsetForm);
 }
 
 
@@ -713,33 +762,14 @@ static udt_Variable *Variable_DefineHelper(
     unsigned position,                  // position in define list
     unsigned numElements)               // number of elements to create
 {
-    ub2 dataType, lengthFromOracle;
     udt_VariableType *varType;
+    ub2 lengthFromOracle;
     udt_Variable *var;
-    ub1 charsetForm;
     ub4 maxLength;
     sword status;
 
-    // retrieve datatype of the parameter
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &dataType, 0,
-            OCI_ATTR_DATA_TYPE, cursor->environment->errorHandle);
-    if (Environment_CheckForError(cursor->environment, status,
-            "Variable_Define(): data type") < 0)
-        return NULL;
-
-    // retrieve character set form of the parameter
-    if (dataType != SQLT_CHR && dataType != SQLT_CLOB) {
-        charsetForm = SQLCS_IMPLICIT;
-    } else {
-        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &charsetForm,
-                0, OCI_ATTR_CHARSET_FORM, cursor->environment->errorHandle);
-        if (Environment_CheckForError(cursor->environment, status,
-                "Variable_Define(): charset form") < 0)
-            return NULL;
-    }
-
     // determine data type
-    varType = Variable_TypeByOracleDataType(dataType, charsetForm);
+    varType = Variable_TypeByOracleDescriptor(param, cursor->environment);
     if (!varType)
         return NULL;
     if (cursor->numbersAsStrings && varType == &vt_Float)
@@ -849,6 +879,7 @@ static udt_Variable *Variable_Define(
 static int Variable_InternalBind(
     udt_Variable *var)                  // variable to bind
 {
+    ub2 charsetId;
     sword status;
 
     // perform the bind
@@ -887,13 +918,27 @@ static int Variable_InternalBind(
             "Variable_InternalBind()") < 0)
         return -1;
 
-    // set the charset form if applicable
+    // set the charset form and id if applicable
     if (var->type->charsetForm != SQLCS_IMPLICIT) {
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
                 (dvoid*) &var->type->charsetForm, 0, OCI_ATTR_CHARSET_FORM,
                 var->environment->errorHandle);
         if (Environment_CheckForError(var->environment, status,
                 "Variable_InternalBind(): set charset form") < 0)
+            return -1;
+        charsetId = OCI_UTF16ID;
+        status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
+                 (dvoid*) &charsetId, 0, OCI_ATTR_CHARSET_ID,
+                 var->environment->errorHandle);
+        if (Environment_CheckForError(var->environment, status,
+                 "Variable_InternalBind(): setting charset Id") < 0)
+            return -1;
+        ub4 lengthInChars = var->maxLength / 2;
+        status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
+                (dvoid*) &lengthInChars, 0, OCI_ATTR_CHAR_COUNT,
+                var->environment->errorHandle);
+        if (Environment_CheckForError(var->environment, status,
+                "Variable_InternalBind(): set char count") < 0)
             return -1;
     }
 

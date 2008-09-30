@@ -39,6 +39,10 @@ typedef int Py_ssize_t;
 #define PY_SSIZE_T_MIN INT_MIN
 #endif
 
+// define simple construct for determining endianness of the platform
+// Oracle uses native encoding with OCI_UTF16 but bails when a BOM is written
+#define IS_LITTLE_ENDIAN (int)*(unsigned char*) &one
+
 // define macro for adding OCI constants
 #define ADD_OCI_CONSTANT(x) \
     if (PyModule_AddIntConstant(module, #x, OCI_ ##x) < 0) \
@@ -48,6 +52,11 @@ typedef int Py_ssize_t;
 #define ADD_TYPE_OBJECT(name, type) \
     Py_INCREF(type); \
     if (PyModule_AddObject(module, name, (PyObject*) type) < 0) \
+        return;
+
+// define macro for making a type ready
+#define MAKE_TYPE_READY(type) \
+    if (PyType_Ready(type) < 0) \
         return;
 
 // define macros to get the build version as a string and the driver name
@@ -323,61 +332,37 @@ void initcx_Oracle(void)
     PyErr_Clear();
 
     // prepare the types for use by the module
-    if (PyType_Ready(&g_ConnectionType) < 0)
-        return;
-    if (PyType_Ready(&g_CursorType) < 0)
-        return;
-    if (PyType_Ready(&g_ErrorType) < 0)
-        return;
+    MAKE_TYPE_READY(&g_ConnectionType);
+    MAKE_TYPE_READY(&g_CursorType);
+    MAKE_TYPE_READY(&g_ErrorType);
 #ifndef NATIVE_DATETIME
-    if (PyType_Ready(&g_ExternalDateTimeVarType) < 0)
-        return;
+    MAKE_TYPE_READY(&g_ExternalDateTimeVarType);
 #endif
-    if (PyType_Ready(&g_SessionPoolType) < 0)
-        return;
-    if (PyType_Ready(&g_TimestampVarType) < 0)
-        return;
-    if (PyType_Ready(&g_EnvironmentType) < 0)
-        return;
-    if (PyType_Ready(&g_ObjectTypeType) < 0)
-        return;
-    if (PyType_Ready(&g_ObjectAttributeType) < 0)
-        return;
-    if (PyType_Ready(&g_StringVarType) < 0)
-        return;
-    if (PyType_Ready(&g_FixedCharVarType) < 0)
-        return;
-    if (PyType_Ready(&g_RowidVarType) < 0)
-        return;
-    if (PyType_Ready(&g_BinaryVarType) < 0)
-        return;
-    if (PyType_Ready(&g_LongStringVarType) < 0)
-        return;
-    if (PyType_Ready(&g_LongBinaryVarType) < 0)
-        return;
-    if (PyType_Ready(&g_NumberVarType) < 0)
-        return;
-    if (PyType_Ready(&g_ExternalLobVarType) < 0)
-        return;
-    if (PyType_Ready(&g_DateTimeVarType) < 0)
-        return;
-    if (PyType_Ready(&g_CLOBVarType) < 0)
-        return;
-    if (PyType_Ready(&g_NCLOBVarType) < 0)
-        return;
-    if (PyType_Ready(&g_BLOBVarType) < 0)
-        return;
-    if (PyType_Ready(&g_BFILEVarType) < 0)
-        return;
-    if (PyType_Ready(&g_CursorVarType) < 0)
-        return;
-    if (PyType_Ready(&g_ObjectVarType) < 0)
-        return;
-    if (PyType_Ready(&g_ExternalObjectVarType) < 0)
-        return;
+    MAKE_TYPE_READY(&g_SessionPoolType);
+    MAKE_TYPE_READY(&g_TimestampVarType);
+    MAKE_TYPE_READY(&g_EnvironmentType);
+    MAKE_TYPE_READY(&g_ObjectTypeType);
+    MAKE_TYPE_READY(&g_ObjectAttributeType);
+    MAKE_TYPE_READY(&g_StringVarType);
+    MAKE_TYPE_READY(&g_FixedCharVarType);
+    MAKE_TYPE_READY(&g_RowidVarType);
+    MAKE_TYPE_READY(&g_BinaryVarType);
+    MAKE_TYPE_READY(&g_LongStringVarType);
+    MAKE_TYPE_READY(&g_LongBinaryVarType);
+    MAKE_TYPE_READY(&g_NumberVarType);
+    MAKE_TYPE_READY(&g_ExternalLobVarType);
+    MAKE_TYPE_READY(&g_DateTimeVarType);
+    MAKE_TYPE_READY(&g_CLOBVarType);
+    MAKE_TYPE_READY(&g_NCLOBVarType);
+    MAKE_TYPE_READY(&g_BLOBVarType);
+    MAKE_TYPE_READY(&g_BFILEVarType);
+    MAKE_TYPE_READY(&g_CursorVarType);
+    MAKE_TYPE_READY(&g_ObjectVarType);
+    MAKE_TYPE_READY(&g_ExternalObjectVarType);
+    MAKE_TYPE_READY(&g_UnicodeVarType);
+    MAKE_TYPE_READY(&g_FixedUnicodeVarType);
 #ifdef SQLT_BFLOAT
-    if (PyType_Ready(&g_NativeFloatVarType) < 0)
-        return;
+    MAKE_TYPE_READY(&g_NativeFloatVarType);
 #endif
 
     // initialize module and retrieve the dictionary
@@ -446,6 +431,7 @@ void initcx_Oracle(void)
     ADD_TYPE_OBJECT("DATETIME", &g_ExternalDateTimeVarType)
 #endif
     ADD_TYPE_OBJECT("FIXED_CHAR", &g_FixedCharVarType)
+    ADD_TYPE_OBJECT("FIXED_UNICODE", &g_FixedUnicodeVarType)
     ADD_TYPE_OBJECT("LOB", &g_ExternalLobVarType)
     ADD_TYPE_OBJECT("LONG_BINARY", &g_LongBinaryVarType)
     ADD_TYPE_OBJECT("LONG_STRING", &g_LongStringVarType)
@@ -454,6 +440,7 @@ void initcx_Oracle(void)
     ADD_TYPE_OBJECT("ROWID", &g_RowidVarType)
     ADD_TYPE_OBJECT("STRING", &g_StringVarType)
     ADD_TYPE_OBJECT("TIMESTAMP", &g_TimestampVarType)
+    ADD_TYPE_OBJECT("UNICODE", &g_UnicodeVarType)
 #ifdef SQLT_BFLOAT
     ADD_TYPE_OBJECT("NATIVE_FLOAT", &g_NativeFloatVarType)
 #endif

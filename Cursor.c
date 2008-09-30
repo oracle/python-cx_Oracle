@@ -588,10 +588,10 @@ static PyObject *Cursor_ItemDescriptionHelper(
     unsigned pos,                       // position in description
     OCIParam *param)                    // parameter to use for description
 {
-    ub2 internalSize, sqlDataType;
     udt_VariableType *varType;
     int displaySize, index;
     PyObject *tuple, *type;
+    ub2 internalSize;
     ub4 nameLength;
     sb2 precision;
     sword status;
@@ -599,15 +599,8 @@ static PyObject *Cursor_ItemDescriptionHelper(
     ub1 nullOk;
     sb1 scale;
 
-    // acquire type of item
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &sqlDataType, 0,
-            OCI_ATTR_DATA_TYPE, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_ItemDescription(): data type") < 0)
-        return NULL;
-
     // acquire usable type of item
-    varType = Variable_TypeByOracleDataType(sqlDataType, SQLCS_IMPLICIT);
+    varType = Variable_TypeByOracleDescriptor(param, self->environment);
     if (!varType)
         return NULL;
 
@@ -652,10 +645,14 @@ static PyObject *Cursor_ItemDescriptionHelper(
     type = (PyObject*) varType->pythonType;
     if (type == (PyObject*) &g_StringVarType)
         displaySize = internalSize;
+    else if (type == (PyObject*) &g_UnicodeVarType)
+        displaySize = internalSize / 2;
     else if (type == (PyObject*) &g_BinaryVarType)
         displaySize = internalSize;
     else if (type == (PyObject*) &g_FixedCharVarType)
         displaySize = internalSize;
+    else if (type == (PyObject*) &g_FixedUnicodeVarType)
+        displaySize = internalSize / 2;
     else if (type == (PyObject*) &g_NumberVarType) {
         if (precision) {
             displaySize = precision + 1;

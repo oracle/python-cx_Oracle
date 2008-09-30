@@ -21,7 +21,8 @@ moduleNames = [
         "ObjectVar",
         "SessionPool",
         "StringVar",
-        "TimestampVar"
+        "TimestampVar",
+        "UnicodeVar"
 ]
 
 class BaseTestCase(unittest.TestCase):

@@ -6,6 +6,18 @@
 
 whenever sqlerror exit failure
 
+-- drop existing users, if present
+begin
+  for r in
+      ( select username
+        from dba_users
+        where username in ('CX_ORACLE', 'CX_ORACLE_PROXY')
+      ) loop
+    execute immediate 'drop user ' || r.username || ' cascade';
+  end loop;
+end;
+/
+
 alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS';
 alter session set nls_numeric_characters='.,';
 
@@ -53,6 +65,13 @@ create table cx_Oracle.TestStrings (
   RawCol                raw(30) not null,
   FixedCharCol          char(40) not null,
   NullableCol           varchar2(50)
+) tablespace users;
+
+create table cx_Oracle.TestUnicodes (
+  IntCol                number(9) not null,
+  UnicodeCol            nvarchar2(20) not null,
+  FixedUnicodeCol       nchar(40) not null,
+  NullableCol           nvarchar2(50)
 ) tablespace users;
 
 create table cx_Oracle.TestDates (
@@ -144,6 +163,16 @@ begin
     insert into cx_Oracle.TestStrings
     values (i, 'String ' || to_char(i), t_RawValue,
         'Fixed Char ' || to_char(i),
+        decode(mod(i, 2), 0, null, 'Nullable ' || to_char(i)));
+  end loop;
+end;
+/
+
+begin
+  for i in 1..10 loop
+    insert into cx_Oracle.TestUnicodes
+    values (i, 'Unicode ' || unistr('\3042') || ' ' || to_char(i),
+        'Fixed Unicode ' || to_char(i),
         decode(mod(i, 2), 0, null, 'Nullable ' || to_char(i)));
   end loop;
 end;
@@ -281,6 +310,69 @@ create or replace package body cx_Oracle.pkg_TestStringArrays as
   begin
     for i in 1..a_NumElems loop
       a_Array(i) := 'Test out element # ' || to_char(i);
+    end loop;
+  end;
+
+end;
+/
+
+create or replace package cx_Oracle.pkg_TestUnicodeArrays as
+
+  type udt_UnicodeList is table of nvarchar2(100) index by binary_integer;
+
+  function TestInArrays (
+    a_StartingLength    number,
+    a_Array             udt_UnicodeList
+  ) return number;
+
+  procedure TestInOutArrays (
+    a_NumElems          number,
+    a_Array             in out nocopy udt_UnicodeList
+  );
+
+  procedure TestOutArrays (
+    a_NumElems          number,
+    a_Array             out nocopy udt_UnicodeList
+  );
+
+end;
+/
+
+create or replace package body cx_Oracle.pkg_TestUnicodeArrays as
+
+  function TestInArrays (
+    a_StartingLength    number,
+    a_Array             udt_UnicodeList
+  ) return number is
+    t_Length            number;
+  begin
+    t_Length := a_StartingLength;
+    for i in 1..a_Array.count loop
+      t_Length := t_Length + length(a_Array(i));
+    end loop;
+    return t_Length;
+  end;
+
+  procedure TestInOutArrays (
+    a_NumElems          number,
+    a_Array             in out udt_UnicodeList
+  ) is
+  begin
+    for i in 1..a_NumElems loop
+      a_Array(i) := unistr('Converted element ' || unistr('\3042') ||
+          ' # ') || to_char(i) || ' originally had length ' ||
+          to_char(length(a_Array(i)));
+    end loop;
+  end;
+
+  procedure TestOutArrays (
+    a_NumElems          number,
+    a_Array             out udt_UnicodeList
+  ) is
+  begin
+    for i in 1..a_NumElems loop
+      a_Array(i) := unistr('Test out element ') || unistr('\3042') || ' # ' ||
+          to_char(i);
     end loop;
   end;
 
