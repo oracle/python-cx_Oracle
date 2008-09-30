@@ -698,6 +698,7 @@ static udt_Variable *Variable_NewByOutputTypeHandler(
     ub4 maxLength,                      // maximum length of variable
     unsigned numElements)               // number of elements
 {
+    udt_Variable *var;
     PyObject *result;
     ub4 nameLength;
     sb2 precision;
@@ -740,14 +741,24 @@ static udt_Variable *Variable_NewByOutputTypeHandler(
         return Variable_New(cursor, numElements, varType, maxLength);
     }
 
-    // otherwise, return the result, ensuring it is a variable first
+    // otherwise, verify that the result is an actual variable
     if (!Variable_Check(result)) {
         Py_DECREF(result);
         PyErr_SetString(PyExc_TypeError,
                 "expecting variable from output type handler");
         return NULL;
     }
-    return (udt_Variable*) result;
+
+    // verify that the array size is sufficient to handle the fetch
+    var = (udt_Variable*) result;
+    if (var->allocatedElements < cursor->fetchArraySize) {
+        Py_DECREF(result);
+        PyErr_SetString(PyExc_TypeError,
+                "expecting variable with array size large enough for fetch");
+        return NULL;
+    }
+
+    return var;
 }
 
 
