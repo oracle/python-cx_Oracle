@@ -59,7 +59,7 @@ static PyObject *Cursor_Parse(udt_Cursor*, PyObject*);
 static PyObject *Cursor_Prepare(udt_Cursor*, PyObject*);
 static PyObject *Cursor_SetInputSizes(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_SetOutputSize(udt_Cursor*, PyObject*);
-static PyObject *Cursor_Var(udt_Cursor*, PyObject*);
+static PyObject *Cursor_Var(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_ArrayVar(udt_Cursor*, PyObject*);
 static PyObject *Cursor_BindNames(udt_Cursor*, PyObject*);
 static PyObject *Cursor_GetDescription(udt_Cursor*, void*);
@@ -91,7 +91,7 @@ static PyMethodDef g_CursorMethods[] = {
     { "executemanyprepared", (PyCFunction) Cursor_ExecuteManyPrepared,
               METH_VARARGS },
     { "setoutputsize", (PyCFunction) Cursor_SetOutputSize, METH_VARARGS },
-    { "var", (PyCFunction) Cursor_Var, METH_VARARGS },
+    { "var", (PyCFunction) Cursor_Var, METH_VARARGS | METH_KEYWORDS },
     { "arrayvar", (PyCFunction) Cursor_ArrayVar, METH_VARARGS },
     { "bindnames", (PyCFunction) Cursor_BindNames, METH_NOARGS },
     { "close", (PyCFunction) Cursor_Close, METH_NOARGS },
@@ -1918,26 +1918,29 @@ static PyObject *Cursor_SetOutputSize(
 //-----------------------------------------------------------------------------
 static PyObject *Cursor_Var(
     udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args)                     // arguments
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
+    static char *keywordList[] = { "type", "size", "arraysize", NULL };
     udt_VariableType *varType;
+    int size, arraySize;
     PyObject *type;
-    int length;
 
     // parse arguments
-    length = 0;
-    if (!PyArg_ParseTuple(args, "O|i", &type, &length))
+    size = 0;
+    arraySize = self->bindArraySize;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|ii", keywordList,
+            &type, &size, &arraySize))
         return NULL;
 
     // determine the type of variable
     varType = Variable_TypeByPythonType(self, type);
     if (!varType)
         return NULL;
-    if (varType->isVariableLength && length == 0)
-        length = varType->elementLength;
+    if (varType->isVariableLength && size == 0)
+        size = varType->elementLength;
 
-    return (PyObject*) Variable_New(self, self->bindArraySize, varType,
-            length);
+    return (PyObject*) Variable_New(self, arraySize, varType, size);
 }
 
 
