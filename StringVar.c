@@ -404,6 +404,7 @@ static int StringVar_SetValue(
     var->actualLength[pos] = actualLength;
     if (bufferSize)
         memcpy(var->data + var->maxLength * pos, buffer, bufferSize);
+    Py_XDECREF(encodedString);
 
     return 0;
 }
