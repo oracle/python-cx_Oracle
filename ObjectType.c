@@ -405,7 +405,7 @@ static PyObject *ObjectType_Repr(
 {
     PyObject *module, *name, *result;
 
-    if (GetModuleAndName(self->ob_type, &module, &name) < 0)
+    if (GetModuleAndName(Py_TYPE(self), &module, &name) < 0)
         return NULL;
     result = PyString_FromFormat("<%s.%s %s.%s>",
             PyString_AS_STRING(module), PyString_AS_STRING(name),
@@ -506,7 +506,7 @@ static PyObject *ObjectAttribute_Repr(
 {
     PyObject *module, *name, *result;
 
-    if (GetModuleAndName(self->ob_type, &module, &name) < 0)
+    if (GetModuleAndName(Py_TYPE(self), &module, &name) < 0)
         return NULL;
     result = PyString_FromFormat("<%s.%s %s>",
             PyString_AS_STRING(module), PyString_AS_STRING(name),

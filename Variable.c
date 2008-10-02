@@ -267,24 +267,24 @@ static int Variable_Resize(
 static int Variable_Check(
     PyObject *object)                   // Python object to check
 {
-    return (object->ob_type == &g_CursorVarType ||
-            object->ob_type == &g_DateTimeVarType ||
-            object->ob_type == &g_BFILEVarType ||
-            object->ob_type == &g_BLOBVarType ||
-            object->ob_type == &g_CLOBVarType ||
-            object->ob_type == &g_NCLOBVarType ||
-            object->ob_type == &g_LongStringVarType ||
-            object->ob_type == &g_LongBinaryVarType ||
-            object->ob_type == &g_NumberVarType ||
-            object->ob_type == &g_StringVarType ||
-            object->ob_type == &g_FixedCharVarType ||
-            object->ob_type == &g_UnicodeVarType ||
-            object->ob_type == &g_FixedUnicodeVarType ||
-            object->ob_type == &g_RowidVarType ||
-            object->ob_type == &g_BinaryVarType ||
-            object->ob_type == &g_TimestampVarType
+    return (Py_TYPE(object) == &g_CursorVarType ||
+            Py_TYPE(object) == &g_DateTimeVarType ||
+            Py_TYPE(object) == &g_BFILEVarType ||
+            Py_TYPE(object) == &g_BLOBVarType ||
+            Py_TYPE(object) == &g_CLOBVarType ||
+            Py_TYPE(object) == &g_NCLOBVarType ||
+            Py_TYPE(object) == &g_LongStringVarType ||
+            Py_TYPE(object) == &g_LongBinaryVarType ||
+            Py_TYPE(object) == &g_NumberVarType ||
+            Py_TYPE(object) == &g_StringVarType ||
+            Py_TYPE(object) == &g_FixedCharVarType ||
+            Py_TYPE(object) == &g_UnicodeVarType ||
+            Py_TYPE(object) == &g_FixedUnicodeVarType ||
+            Py_TYPE(object) == &g_RowidVarType ||
+            Py_TYPE(object) == &g_BinaryVarType ||
+            Py_TYPE(object) == &g_TimestampVarType
 #ifdef SQLT_BFLOAT
-            || object->ob_type == &g_NativeFloatVarType
+            || Py_TYPE(object) == &g_NativeFloatVarType
 #endif
             );
 }
@@ -405,7 +405,7 @@ static udt_VariableType *Variable_TypeByValue(
     if (PyDate_Check(value))
         return &vt_DateTime;
 #else
-    if (value->ob_type == &g_ExternalDateTimeVarType)
+    if (Py_TYPE(value) == &g_ExternalDateTimeVarType)
         return &vt_DateTime;
 #endif
     result = PyObject_IsInstance(value, (PyObject*) &g_CursorType);
@@ -413,9 +413,9 @@ static udt_VariableType *Variable_TypeByValue(
         return NULL;
     if (result)
         return &vt_Cursor;
-    if (value->ob_type == g_DateTimeType)
+    if (Py_TYPE(value) == g_DateTimeType)
         return &vt_DateTime;
-    if (value->ob_type == g_DecimalType)
+    if (Py_TYPE(value) == g_DecimalType)
         return &vt_NumberAsString;
 
     // handle arrays
@@ -430,7 +430,7 @@ static udt_VariableType *Variable_TypeByValue(
     }
 
     sprintf(buffer, "Variable_TypeByValue(): unhandled data type %.*s", 150,
-            value->ob_type->tp_name);
+            Py_TYPE(value)->tp_name);
     PyErr_SetString(g_NotSupportedErrorException, buffer);
     return NULL;
 }
@@ -1187,7 +1187,7 @@ static PyObject *Variable_ExternalCopy(
     // parse arguments; verify that copy is possible
     if (!PyArg_ParseTuple(args, "Oii", &sourceVar, &sourcePos, &targetPos))
         return NULL;
-    if (targetVar->ob_type != sourceVar->ob_type) {
+    if (Py_TYPE(targetVar) != Py_TYPE(sourceVar)) {
         PyErr_SetString(g_ProgrammingErrorException,
                 "source and target variable type must match");
         return NULL;
@@ -1323,7 +1323,7 @@ static PyObject *Variable_Repr(
     Py_DECREF(value);
     if (!valueRepr)
         return NULL;
-    if (GetModuleAndName(var->ob_type, &module, &name) < 0) {
+    if (GetModuleAndName(Py_TYPE(var), &module, &name) < 0) {
         Py_DECREF(valueRepr);
         return NULL;
     }

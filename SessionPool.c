@@ -308,7 +308,7 @@ static void SessionPool_Free(
     Py_XDECREF(self->username);
     Py_XDECREF(self->password);
     Py_XDECREF(self->dsn);
-    self->ob_type->tp_free((PyObject*) self);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 

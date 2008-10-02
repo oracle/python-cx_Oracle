@@ -444,7 +444,7 @@ static int NumberVar_SetValue(
         return NumberVar_SetValueFromFloat(var, pos, value);
     else if (PyLong_Check(value))
         return NumberVar_SetValueFromLong(var, pos, value);
-    else if (value->ob_type == g_DecimalType)
+    else if (Py_TYPE(value) == g_DecimalType)
         return NumberVar_SetValueFromDecimal(var, pos, value);
     PyErr_SetString(PyExc_TypeError, "expecting numeric data");
     return -1;

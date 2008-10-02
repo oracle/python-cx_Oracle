@@ -729,7 +729,7 @@ static void Connection_Free(
     Py_XDECREF(self->password);
     Py_XDECREF(self->dsn);
     Py_XDECREF(self->version);
-    self->ob_type->tp_free((PyObject*) self);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 
@@ -742,7 +742,7 @@ static PyObject *Connection_Repr(
 {
     PyObject *module, *name, *result;
 
-    if (GetModuleAndName(connection->ob_type, &module, &name) < 0)
+    if (GetModuleAndName(Py_TYPE(connection), &module, &name) < 0)
         return NULL;
     if (connection->username && connection->username != Py_None &&
             connection->dsn && connection->dsn != Py_None)

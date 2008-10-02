@@ -306,7 +306,7 @@ static PyObject *Cursor_Repr(
     connectionRepr = PyObject_Repr((PyObject*) cursor->connection);
     if (!connectionRepr)
         return NULL;
-    if (GetModuleAndName(cursor->ob_type, &module, &name) < 0) {
+    if (GetModuleAndName(Py_TYPE(cursor), &module, &name) < 0) {
         Py_DECREF(connectionRepr);
         return NULL;
     }
@@ -334,7 +334,7 @@ static void Cursor_Free(
     Py_XDECREF(self->fetchVariables);
     Py_XDECREF(self->connection);
     Py_XDECREF(self->rowFactory);
-    self->ob_type->tp_free((PyObject*) self);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 

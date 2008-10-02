@@ -172,7 +172,7 @@ static int TimestampVar_SetValue(
     uword valid;
 
     // make sure a date is being bound
-    if (value->ob_type != &g_ExternalDateTimeVarType) {
+    if (Py_TYPE(value) != &g_ExternalDateTimeVarType) {
         PyErr_SetString(PyExc_TypeError, "expecting date data");
         return -1;
     }

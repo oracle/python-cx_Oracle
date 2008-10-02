@@ -162,7 +162,7 @@ static int DateTimeVar_SetValue(
     uword valid;
 
     // handle internal cx_Oracle date type
-    if (value->ob_type == &g_ExternalDateTimeVarType) {
+    if (Py_TYPE(value) == &g_ExternalDateTimeVarType) {
         dateValue = (udt_ExternalDateTimeVar*) value;
         year = dateValue->year;
         month = dateValue->month;
@@ -172,7 +172,7 @@ static int DateTimeVar_SetValue(
         second = dateValue->second;
 
     // handle Python 2.3 datetime type
-    } else if (value->ob_type == g_DateTimeType) {
+    } else if (Py_TYPE(value) == g_DateTimeType) {
         if (DateTimeVar_GetAttribute(value, "year", &year) < 0)
             return -1;
         if (DateTimeVar_GetAttribute(value, "month", &month) < 0)

@@ -116,7 +116,7 @@ static udt_Error *Error_New(
 static void Error_Free(
     udt_Error *self)                    // error object
 {
-    self->ob_type->tp_free((PyObject*) self);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 
