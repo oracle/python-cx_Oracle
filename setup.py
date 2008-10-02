@@ -10,10 +10,15 @@ Unix platforms
 
 import sys
 
-if sys.platform == "win32":
-    if sys.version_info[:2] >= (2, 5):
-        import distutils.command.bdist_msi
+import distutils.command
+try:
+    import distutils.command.bdist_msi
+except ImportError:
+    distutils.command.bdist_msi = None
+try:
     import distutils.command.bdist_wininst
+except ImportError:
+    distutils.command.bdist_wininst = None
 import distutils.command.bdist_rpm
 import distutils.command.build
 import distutils.dist
@@ -231,20 +236,20 @@ class build(distutils.command.build.build):
 commandClasses = dict(build = build, bdist_rpm = bdist_rpm)
 
 # tweak the Windows installer names to include the Oracle version
-if sys.platform == "win32":
-    
-    if sys.version_info[:2] >= (2, 5):
+if distutils.command.bdist_msi is not None:
 
-        class bdist_msi(distutils.command.bdist_msi.bdist_msi):
+    class bdist_msi(distutils.command.bdist_msi.bdist_msi):
 
-            def run(self):
-                origMethod = self.distribution.get_fullname
-                self.distribution.get_fullname = \
-                        self.distribution.get_fullname_with_oracle_version
-                distutils.command.bdist_msi.bdist_msi.run(self)
-                self.distribution.get_fullname = origMethod
+        def run(self):
+            origMethod = self.distribution.get_fullname
+            self.distribution.get_fullname = \
+                    self.distribution.get_fullname_with_oracle_version
+            distutils.command.bdist_msi.bdist_msi.run(self)
+            self.distribution.get_fullname = origMethod
 
-        commandClasses["bdist_msi"] = bdist_msi
+    commandClasses["bdist_msi"] = bdist_msi
+
+if distutils.command.bdist_wininst is not None:
 
     class bdist_wininst(distutils.command.bdist_wininst.bdist_wininst):
 
