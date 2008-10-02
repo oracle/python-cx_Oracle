@@ -890,7 +890,6 @@ static udt_Variable *Variable_Define(
 static int Variable_InternalBind(
     udt_Variable *var)                  // variable to bind
 {
-    ub2 charsetId;
     sword status;
 
     // perform the bind
@@ -931,20 +930,20 @@ static int Variable_InternalBind(
 
     // set the charset form and id if applicable
     if (var->type->charsetForm != SQLCS_IMPLICIT) {
+        ub4 lengthInChars = var->maxLength / 2;
+        ub2 charsetId = OCI_UTF16ID;
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
                 (dvoid*) &var->type->charsetForm, 0, OCI_ATTR_CHARSET_FORM,
                 var->environment->errorHandle);
         if (Environment_CheckForError(var->environment, status,
                 "Variable_InternalBind(): set charset form") < 0)
             return -1;
-        charsetId = OCI_UTF16ID;
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
                  (dvoid*) &charsetId, 0, OCI_ATTR_CHARSET_ID,
                  var->environment->errorHandle);
         if (Environment_CheckForError(var->environment, status,
                  "Variable_InternalBind(): setting charset Id") < 0)
             return -1;
-        ub4 lengthInChars = var->maxLength / 2;
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
                 (dvoid*) &lengthInChars, 0, OCI_ATTR_CHAR_COUNT,
                 var->environment->errorHandle);
