@@ -68,7 +68,6 @@ typedef struct _udt_VariableType {
 // Declaration of common variable functions.
 //-----------------------------------------------------------------------------
 static void Variable_Free(udt_Variable *);
-static PyObject *Variable_GetAttr(udt_Variable *, PyObject *);
 static PyObject *Variable_Repr(udt_Variable *);
 static PyObject *Variable_ExternalCopy(udt_Variable *, PyObject *);
 static PyObject *Variable_ExternalSetValue(udt_Variable *, PyObject *);
@@ -79,6 +78,17 @@ static int Variable_Resize(udt_Variable *, unsigned);
 
 
 //-----------------------------------------------------------------------------
+// declaration of members for variables
+//-----------------------------------------------------------------------------
+static PyMemberDef g_VariableMembers[] = {
+    { "maxlength", T_INT, offsetof(udt_Variable, maxLength), READONLY },
+    { "allocelems", T_INT, offsetof(udt_Variable, allocatedElements),
+            READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
 // declaration of methods for variables
 //-----------------------------------------------------------------------------
 static PyMethodDef g_VariableMethods[] = {
@@ -86,7 +96,43 @@ static PyMethodDef g_VariableMethods[] = {
     { "setvalue", (PyCFunction) Variable_ExternalSetValue, METH_VARARGS },
     { "getvalue", (PyCFunction) Variable_ExternalGetValue,
               METH_VARARGS  | METH_KEYWORDS },
-    { NULL, NULL }
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// The base variable type
+//-----------------------------------------------------------------------------
+static PyTypeObject g_BaseVarType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "cx_Oracle._BASEVARTYPE",           // tp_name
+    sizeof(udt_Variable),               // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) Variable_Free,         // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    (reprfunc) Variable_Repr,           // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    g_VariableMethods,                  // tp_methods
+    g_VariableMembers                   // tp_members
 };
 
 
@@ -1279,27 +1325,6 @@ static PyObject *Variable_ExternalGetValue(
             &pos))
         return NULL;
     return Variable_GetValue(var, pos);
-}
-
-
-//-----------------------------------------------------------------------------
-// Variable_GetAttr()
-//   Retrieve an attribute on the variable object.
-//-----------------------------------------------------------------------------
-static PyObject *Variable_GetAttr(
-    udt_Variable *var,                  // variable object
-    PyObject *nameObject)               // name of attribute
-{
-    char *name;
-
-    name = PyString_AS_STRING(nameObject);
-    if (name[0] == 'm' && strcmp(name, "maxlength") == 0)
-        return PyInt_FromLong(var->maxLength);
-    if (name[0] == 'a' && strcmp(name, "allocelems") == 0)
-        return PyInt_FromLong(var->allocatedElements);
-
-    return Py_FindMethod(g_VariableMethods, (PyObject*) var,
-            PyString_AS_STRING(nameObject));
 }
 
 

@@ -22,11 +22,18 @@ typedef struct {
 //-----------------------------------------------------------------------------
 static int ObjectVar_Initialize(udt_ObjectVar*, udt_Cursor*);
 static void ObjectVar_Finalize(udt_ObjectVar*);
-static PyObject *ObjectVar_GetAttr(udt_ObjectVar*, PyObject*);
 static PyObject *ObjectVar_GetValue(udt_ObjectVar*, unsigned);
 static int ObjectVar_PreDefine(udt_ObjectVar*, OCIParam*);
 static int ObjectVar_PostDefine(udt_ObjectVar*);
 static int ObjectVar_IsNull(udt_ObjectVar*, unsigned);
+
+//-----------------------------------------------------------------------------
+// declaration of members for Oracle objects
+//-----------------------------------------------------------------------------
+static PyMemberDef g_ObjectVarMembers[] = {
+    { "type", T_OBJECT, offsetof(udt_ObjectVar, objectType), READONLY },
+    { NULL }
+};
 
 
 //-----------------------------------------------------------------------------
@@ -37,23 +44,31 @@ static PyTypeObject g_ObjectVarType = {
     "cx_Oracle.OBJECTVAR",              // tp_name
     sizeof(udt_ObjectVar),              // tp_basicsize
     0,                                  // tp_itemsize
-    (destructor) Variable_Free,         // tp_dealloc
+    0,                                  // tp_dealloc
     0,                                  // tp_print
     0,                                  // tp_getattr
     0,                                  // tp_setattr
     0,                                  // tp_compare
-    (reprfunc) Variable_Repr,           // tp_repr
+    0,                                  // tp_repr
     0,                                  // tp_as_number
     0,                                  // tp_as_sequence
     0,                                  // tp_as_mapping
     0,                                  // tp_hash
     0,                                  // tp_call
     0,                                  // tp_str
-    (getattrofunc) ObjectVar_GetAttr,   // tp_getattro
+    0,                                  // tp_getattro
     0,                                  // tp_setattro
     0,                                  // tp_as_buffer
     Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0                                   // tp_doc
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    0,                                  // tp_methods
+    g_ObjectVarMembers                 // tp_members
 };
 
 
@@ -124,25 +139,6 @@ static void ObjectVar_Finalize(
     Py_XDECREF(self->objectType);
     if (self->objectIndicator)
         PyMem_Free(self->objectIndicator);
-}
-
-
-//-----------------------------------------------------------------------------
-// ObjectVar_GetAttr()
-//   Retrieve an attribute on the variable object.
-//-----------------------------------------------------------------------------
-static PyObject *ObjectVar_GetAttr(
-    udt_ObjectVar *self,                // variable object
-    PyObject *nameObject)               // name of attribute
-{
-    char *name;
-
-    name = PyString_AS_STRING(nameObject);
-    if (name[0] == 't' && strcmp(name, "type") == 0) {
-        Py_INCREF(self->objectType);
-        return (PyObject*) self->objectType;
-    }
-    return Variable_GetAttr((udt_Variable*) self, nameObject);
 }
 
 

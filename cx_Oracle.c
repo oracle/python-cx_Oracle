@@ -65,10 +65,13 @@ typedef int Py_ssize_t;
     if (PyModule_AddObject(module, name, (PyObject*) type) < 0) \
         return;
 
-// define macro for making a type ready
+// define macros for making types ready
 #define MAKE_TYPE_READY(type) \
     if (PyType_Ready(type) < 0) \
         return;
+#define MAKE_VARIABLE_TYPE_READY(type) \
+    (type)->tp_base = &g_BaseVarType;  \
+    MAKE_TYPE_READY(type)
 
 // define macros to get the build version as a string and the driver name
 #define xstr(s)                 str(s)
@@ -347,33 +350,33 @@ void initcx_Oracle(void)
     MAKE_TYPE_READY(&g_CursorType);
     MAKE_TYPE_READY(&g_ErrorType);
 #ifndef NATIVE_DATETIME
-    MAKE_TYPE_READY(&g_ExternalDateTimeVarType);
+    MAKE_TYPE_READY(&g_ExternalDateTimeVarType); // not an udt_Variable type
 #endif
     MAKE_TYPE_READY(&g_SessionPoolType);
-    MAKE_TYPE_READY(&g_TimestampVarType);
     MAKE_TYPE_READY(&g_EnvironmentType);
     MAKE_TYPE_READY(&g_ObjectTypeType);
     MAKE_TYPE_READY(&g_ObjectAttributeType);
-    MAKE_TYPE_READY(&g_StringVarType);
-    MAKE_TYPE_READY(&g_FixedCharVarType);
-    MAKE_TYPE_READY(&g_RowidVarType);
-    MAKE_TYPE_READY(&g_BinaryVarType);
-    MAKE_TYPE_READY(&g_LongStringVarType);
-    MAKE_TYPE_READY(&g_LongBinaryVarType);
-    MAKE_TYPE_READY(&g_NumberVarType);
     MAKE_TYPE_READY(&g_ExternalLobVarType);
-    MAKE_TYPE_READY(&g_DateTimeVarType);
-    MAKE_TYPE_READY(&g_CLOBVarType);
-    MAKE_TYPE_READY(&g_NCLOBVarType);
-    MAKE_TYPE_READY(&g_BLOBVarType);
-    MAKE_TYPE_READY(&g_BFILEVarType);
-    MAKE_TYPE_READY(&g_CursorVarType);
-    MAKE_TYPE_READY(&g_ObjectVarType);
     MAKE_TYPE_READY(&g_ExternalObjectVarType);
-    MAKE_TYPE_READY(&g_UnicodeVarType);
-    MAKE_TYPE_READY(&g_FixedUnicodeVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_StringVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_FixedCharVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_RowidVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_BinaryVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_LongStringVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_LongBinaryVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_NumberVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_DateTimeVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_TimestampVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_CLOBVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_NCLOBVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_BLOBVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_BFILEVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_CursorVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_ObjectVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_UnicodeVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_FixedUnicodeVarType);
 #ifdef SQLT_BFLOAT
-    MAKE_TYPE_READY(&g_NativeFloatVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_NativeFloatVarType);
 #endif
 
     // initialize module and retrieve the dictionary
