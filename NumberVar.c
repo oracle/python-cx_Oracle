@@ -42,8 +42,7 @@ static PyObject *NativeFloatVar_GetValue(udt_NativeFloatVar*, unsigned);
 // Python type declaration
 //-----------------------------------------------------------------------------
 static PyTypeObject g_NumberVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.NUMBER",                 // tp_name
     sizeof(udt_NumberVar),              // tp_basicsize
     0,                                  // tp_itemsize
@@ -69,8 +68,7 @@ static PyTypeObject g_NumberVarType = {
 
 #ifdef SQLT_BFLOAT
 static PyTypeObject g_NativeFloatVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.NATIVE_FLOAT",           // tp_name
     sizeof(udt_NativeFloatVar),         // tp_basicsize
     0,                                  // tp_itemsize

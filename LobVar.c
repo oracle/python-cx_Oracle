@@ -28,8 +28,7 @@ static int LobVar_SetValue(udt_LobVar*, unsigned, PyObject*);
 // Python type declarations
 //-----------------------------------------------------------------------------
 static PyTypeObject g_CLOBVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.CLOB",                   // tp_name
     sizeof(udt_LobVar),                 // tp_basicsize
     0,                                  // tp_itemsize
@@ -54,8 +53,7 @@ static PyTypeObject g_CLOBVarType = {
 
 
 static PyTypeObject g_NCLOBVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.NCLOB",                  // tp_name
     sizeof(udt_LobVar),                 // tp_basicsize
     0,                                  // tp_itemsize
@@ -80,8 +78,7 @@ static PyTypeObject g_NCLOBVarType = {
 
 
 static PyTypeObject g_BLOBVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.BLOB",                   // tp_name
     sizeof(udt_LobVar),                 // tp_basicsize
     0,                                  // tp_itemsize
@@ -106,8 +103,7 @@ static PyTypeObject g_BLOBVarType = {
 
 
 static PyTypeObject g_BFILEVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.BFILE",                  // tp_name
     sizeof(udt_LobVar),                 // tp_basicsize
     0,                                  // tp_itemsize

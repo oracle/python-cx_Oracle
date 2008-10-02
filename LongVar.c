@@ -23,8 +23,7 @@ static PyObject *LongVar_GetValue(udt_LongVar*, unsigned);
 // Python type declarations
 //-----------------------------------------------------------------------------
 static PyTypeObject g_LongStringVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.LONG_STRING",            // tp_name
     sizeof(udt_LongVar),                // tp_basicsize
     0,                                  // tp_itemsize
@@ -49,8 +48,7 @@ static PyTypeObject g_LongStringVarType = {
 
 
 static PyTypeObject g_LongBinaryVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.LONG_BINARY",            // tp_name
     sizeof(udt_LongVar),                // tp_basicsize
     0,                                  // tp_itemsize

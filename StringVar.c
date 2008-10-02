@@ -24,8 +24,7 @@ static PyObject *StringVar_GetValue(udt_StringVar*, unsigned);
 // Python type declarations
 //-----------------------------------------------------------------------------
 static PyTypeObject g_StringVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.STRING",                 // tp_name
     sizeof(udt_StringVar),              // tp_basicsize
     0,                                  // tp_itemsize
@@ -50,8 +49,7 @@ static PyTypeObject g_StringVarType = {
 
 
 static PyTypeObject g_UnicodeVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.UNICODE",                // tp_name
     sizeof(udt_StringVar),              // tp_basicsize
     0,                                  // tp_itemsize
@@ -76,8 +74,7 @@ static PyTypeObject g_UnicodeVarType = {
 
 
 static PyTypeObject g_FixedCharVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.FIXED_CHAR",             // tp_name
     sizeof(udt_StringVar),              // tp_basicsize
     0,                                  // tp_itemsize
@@ -102,8 +99,7 @@ static PyTypeObject g_FixedCharVarType = {
 
 
 static PyTypeObject g_FixedUnicodeVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.FIXED_UNICODE",          // tp_name
     sizeof(udt_StringVar),              // tp_basicsize
     0,                                  // tp_itemsize
@@ -128,8 +124,7 @@ static PyTypeObject g_FixedUnicodeVarType = {
 
 
 static PyTypeObject g_RowidVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.ROWID",                  // tp_name
     sizeof(udt_StringVar),              // tp_basicsize
     0,                                  // tp_itemsize
@@ -154,8 +149,7 @@ static PyTypeObject g_RowidVarType = {
 
 
 static PyTypeObject g_BinaryVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.BINARY",                 // tp_name
     sizeof(udt_StringVar),              // tp_basicsize
     0,                                  // tp_itemsize

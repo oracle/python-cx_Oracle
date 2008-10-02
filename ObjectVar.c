@@ -33,8 +33,7 @@ static int ObjectVar_IsNull(udt_ObjectVar*, unsigned);
 // Python type declarations
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ObjectVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.OBJECTVAR",              // tp_name
     sizeof(udt_ObjectVar),              // tp_basicsize
     0,                                  // tp_itemsize

@@ -30,8 +30,7 @@ static int Environment_CheckForError(udt_Environment*, sword, const char*);
 // declaration of Python type
 //-----------------------------------------------------------------------------
 static PyTypeObject g_EnvironmentType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "OracleEnvironment",                // tp_name
     sizeof(udt_Environment),            // tp_basicsize
     0,                                  // tp_itemsize

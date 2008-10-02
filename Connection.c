@@ -139,8 +139,7 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
 // declaration of Python type "Connection"
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ConnectionType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.Connection",             // tp_name
     sizeof(udt_Connection),             // tp_basicsize
     0,                                  // tp_itemsize

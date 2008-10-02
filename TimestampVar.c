@@ -25,8 +25,7 @@ static PyObject *TimestampVar_GetValue(udt_TimestampVar*, unsigned);
 // Python type declarations
 //-----------------------------------------------------------------------------
 static PyTypeObject g_TimestampVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.TIMESTAMP",              // tp_name
     sizeof(udt_TimestampVar),           // tp_basicsize
     0,                                  // tp_itemsize

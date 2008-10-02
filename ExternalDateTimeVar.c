@@ -57,8 +57,7 @@ static PyMethodDef g_ExternalDateTimeVarMethods[] = {
 // Python type declaration
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ExternalDateTimeVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.Timestamp",              // tp_name
     sizeof(udt_ExternalDateTimeVar),    // tp_basicsize
     0,                                  // tp_itemsize

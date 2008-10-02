@@ -41,8 +41,7 @@ static PyObject *ExternalLobVar_Reduce(udt_ExternalLobVar*);
 // Python type declaration
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ExternalLobVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.LOB",                    // tp_name
     sizeof(udt_ExternalLobVar),         // tp_basicsize
     0,                                  // tp_itemsize

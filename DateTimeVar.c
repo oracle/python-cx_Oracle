@@ -23,8 +23,7 @@ static PyObject *DateTimeVar_GetValue(udt_DateTimeVar*, unsigned);
 // Python type declarations
 //-----------------------------------------------------------------------------
 static PyTypeObject g_DateTimeVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.DATETIME",               // tp_name
     sizeof(udt_DateTimeVar),            // tp_basicsize
     0,                                  // tp_itemsize

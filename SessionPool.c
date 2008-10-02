@@ -91,8 +91,7 @@ static PyGetSetDef g_SessionPoolCalcMembers[] = {
 // declaration of Python type "SessionPool"
 //-----------------------------------------------------------------------------
 static PyTypeObject g_SessionPoolType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "OracleSessionPool",                // tp_name
     sizeof(udt_SessionPool),            // tp_basicsize
     0,                                  // tp_itemsize

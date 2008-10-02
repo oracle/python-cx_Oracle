@@ -63,8 +63,7 @@ static PyMemberDef g_ObjectAttributeMembers[] = {
 // Python type declarations
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ObjectTypeType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.ObjectType",             // tp_name
     sizeof(udt_ObjectType),             // tp_basicsize
     0,                                  // tp_itemsize
@@ -109,8 +108,7 @@ static PyTypeObject g_ObjectTypeType = {
 
 
 static PyTypeObject g_ObjectAttributeType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.ObjectAttribute",        // tp_name
     sizeof(udt_ObjectAttribute),        // tp_basicsize
     0,                                  // tp_itemsize

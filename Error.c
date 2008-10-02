@@ -36,8 +36,7 @@ static PyMemberDef g_ErrorMembers[] = {
 // declaration of Python type
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ErrorType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle._Error",                 // tp_name
     sizeof(udt_Error),                  // tp_basicsize
     0,                                  // tp_itemsize

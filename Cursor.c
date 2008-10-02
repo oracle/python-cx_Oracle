@@ -129,8 +129,7 @@ static PyGetSetDef g_CursorCalcMembers[] = {
 // declaration of Python type "Cursor"
 //-----------------------------------------------------------------------------
 static PyTypeObject g_CursorType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "OracleCursor",                     // tp_name
     sizeof(udt_Cursor),                 // tp_basicsize
     0,                                  // tp_itemsize

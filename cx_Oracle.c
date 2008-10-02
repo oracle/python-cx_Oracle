@@ -44,6 +44,12 @@ typedef int Py_ssize_t;
 #define Py_TYPE(ob)             (((PyObject*)(ob))->ob_type)
 #endif
 
+// define PyVarObject_HEAD_INIT for versions before Python 2.6
+#ifndef PyVarObject_HEAD_INIT
+#define PyVarObject_HEAD_INIT(type, size) \
+        PyObject_HEAD_INIT(type) size,
+#endif
+
 // define simple construct for determining endianness of the platform
 // Oracle uses native encoding with OCI_UTF16 but bails when a BOM is written
 #define IS_LITTLE_ENDIAN (int)*(unsigned char*) &one

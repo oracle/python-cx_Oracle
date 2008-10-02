@@ -30,8 +30,7 @@ static PyObject *ExternalObjectVar_ConvertToPython(udt_Environment*,
 // Python type declaration
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ExternalObjectVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.OBJECT",                 // tp_name
     sizeof(udt_ExternalObjectVar),      // tp_basicsize
     0,                                  // tp_itemsize

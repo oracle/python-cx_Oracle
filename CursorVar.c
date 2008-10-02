@@ -27,8 +27,7 @@ static PyObject *CursorVar_GetValue(udt_CursorVar*, unsigned);
 // Python type declarations
 //-----------------------------------------------------------------------------
 static PyTypeObject g_CursorVarType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                                  // ob_size
+    PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.CURSOR",                 // tp_name
     sizeof(udt_CursorVar),              // tp_basicsize
     0,                                  // tp_itemsize
