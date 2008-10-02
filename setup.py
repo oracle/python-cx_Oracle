@@ -114,14 +114,14 @@ if userOracleHome is not None:
     if not CheckOracleHome(userOracleHome):
         messageFormat = "Oracle home (%s) does not refer to an " \
                 "9i, 10g or 11g installation."
-        raise DistutilsSetupError, messageFormat % userOracleHome
+        raise DistutilsSetupError(messageFormat % userOracleHome)
 else:
     for path in os.environ["PATH"].split(os.pathsep):
         if CheckOracleHome(path):
             break
     if oracleHome is None:
-        raise DistutilsSetupError, "cannot locate an Oracle software " \
-                "installation"
+        raise DistutilsSetupError("cannot locate an Oracle software " \
+                "installation")
 
 # define some variables
 if sys.platform == "win32":
@@ -133,7 +133,7 @@ if sys.platform == "win32":
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
-        raise DistutilsSetupError, "cannot locate Oracle include files"
+        raise DistutilsSetupError("cannot locate Oracle include files")
     libs = ["oci"]
 elif sys.platform == "cygwin":
     includeDirs = ["/usr/include", "rdbms/demo", "rdbms/public", \
@@ -159,7 +159,7 @@ else:
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
-        raise DistutilsSetupError, "cannot locate Oracle include files"
+        raise DistutilsSetupError("cannot locate Oracle include files")
     libPath = os.path.join(oracleHome, "lib")
     if sys.maxint == 2 ** 31 - 1:
         alternatePath = os.path.join(oracleHome, "lib32")
