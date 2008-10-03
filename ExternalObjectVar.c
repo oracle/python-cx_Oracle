@@ -25,6 +25,14 @@ static PyObject *ExternalObjectVar_GetAttr(udt_ExternalObjectVar*, PyObject*);
 static PyObject *ExternalObjectVar_ConvertToPython(udt_Environment*,
         OCITypeCode, dvoid*, dvoid*, PyObject*, udt_ObjectType*);
 
+//-----------------------------------------------------------------------------
+// Declaration of external object variable members.
+//-----------------------------------------------------------------------------
+static PyMemberDef g_ExternalObjectVarMembers[] = {
+    { "type", T_OBJECT, offsetof(udt_ExternalObjectVar, objectType),
+            READONLY },
+    { NULL }
+};
 
 //-----------------------------------------------------------------------------
 // Python type declaration
@@ -52,7 +60,15 @@ static PyTypeObject g_ExternalObjectVarType = {
     0,                                  // tp_setattro
     0,                                  // tp_as_buffer
     Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0                                   // tp_doc
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    0,                                  // tp_methods
+    g_ExternalObjectVarMembers          // tp_members
 };
 
 
@@ -272,19 +288,12 @@ static PyObject *ExternalObjectVar_GetAttr(
     PyObject *nameObject)               // name of attribute
 {
     udt_ObjectAttribute *attribute;
-    char *name;
 
     attribute = (udt_ObjectAttribute*)
             PyDict_GetItem(self->objectType->attributesByName, nameObject);
     if (attribute)
         return ExternalObjectVar_GetAttributeValue(self, attribute);
-    name = PyString_AS_STRING(nameObject);
-    if (name[0] == 't' && strcmp(name, "type") == 0) {
-        Py_INCREF(self->objectType);
-        return (PyObject*) self->objectType;
-    }
 
-    PyErr_SetString(PyExc_AttributeError, name);
-    return NULL;
+    return PyObject_GenericGetAttr( (PyObject*) self, nameObject);
 }
 
