@@ -8,8 +8,6 @@ Unix platforms
 
 """
 
-import sys
-
 import distutils.command
 try:
     import distutils.command.bdist_msi
@@ -24,6 +22,7 @@ import distutils.command.build
 import distutils.dist
 import distutils.util
 import os
+import struct
 import sys
 
 from distutils.errors import DistutilsSetupError
@@ -161,7 +160,7 @@ else:
     if not includeDirs:
         raise DistutilsSetupError("cannot locate Oracle include files")
     libPath = os.path.join(oracleHome, "lib")
-    if sys.maxint == 2 ** 31 - 1:
+    if struct.calcsize("i") == 4:
         alternatePath = os.path.join(oracleHome, "lib32")
     else:
         alternatePath = os.path.join(oracleHome, "lib64")
