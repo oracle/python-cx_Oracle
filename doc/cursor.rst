@@ -115,7 +115,9 @@ Cursor Object
    same string object is passed in again, the cursor will execute that
    statement again without performing a prepare or rebinding and redefining.
    This is most effective for algorithms where the same statement is used, but
-   different parameters are bound to it (many times).
+   different parameters are bound to it (many times). Note that parameters that
+   are not passed in during subsequent executions will retain the value passed
+   in during the last execution that contained them.
 
    For maximum efficiency when reusing an statement, it is best to use the
    setinputsizes() method to specify the parameter types and sizes ahead of
