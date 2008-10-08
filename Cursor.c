@@ -16,6 +16,7 @@ typedef struct {
     PyObject *bindVariables;
     PyObject *fetchVariables;
     PyObject *rowFactory;
+    PyObject *inputTypeHandler;
     PyObject *outputTypeHandler;
     int arraySize;
     int bindArraySize;
@@ -110,6 +111,8 @@ static PyMemberDef g_CursorMembers[] = {
     { "connection", T_OBJECT_EX, offsetof(udt_Cursor, connection), READONLY },
     { "numbersAsStrings", T_INT, offsetof(udt_Cursor, numbersAsStrings), 0 },
     { "rowfactory", T_OBJECT, offsetof(udt_Cursor, rowFactory), 0 },
+    { "inputtypehandler", T_OBJECT, offsetof(udt_Cursor, inputTypeHandler),
+            0 },
     { "outputtypehandler", T_OBJECT, offsetof(udt_Cursor, outputTypeHandler),
             0 },
     { NULL }
@@ -333,6 +336,8 @@ static void Cursor_Free(
     Py_XDECREF(self->fetchVariables);
     Py_XDECREF(self->connection);
     Py_XDECREF(self->rowFactory);
+    Py_XDECREF(self->inputTypeHandler);
+    Py_XDECREF(self->outputTypeHandler);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 

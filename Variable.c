@@ -610,10 +610,10 @@ static int Variable_MakeArray(
 
 
 //-----------------------------------------------------------------------------
-// Variable_NewByValue()
-//   Allocate a new variable by looking at the type of the data.
+// Variable_DefaultNewByValue()
+//   Default method for determining the type of variable to use for the data.
 //-----------------------------------------------------------------------------
-static udt_Variable *Variable_NewByValue(
+static udt_Variable *Variable_DefaultNewByValue(
     udt_Cursor *cursor,                 // cursor to associate variable with
     PyObject *value,                    // Python value to associate
     unsigned numElements)               // number of elements to allocate
@@ -655,6 +655,56 @@ static udt_Variable *Variable_NewByValue(
     }
 
     return var;
+}
+
+
+//-----------------------------------------------------------------------------
+// Variable_NewByInputTypeHandler()
+//   Allocate a new variable by looking at the type of the data.
+//-----------------------------------------------------------------------------
+static udt_Variable *Variable_NewByInputTypeHandler(
+    udt_Cursor *cursor,                 // cursor to associate variable with
+    PyObject *inputTypeHandler,         // input type handler
+    PyObject *value,                    // Python value to associate
+    unsigned numElements)               // number of elements to allocate
+{
+    PyObject *var;
+
+    var = PyObject_CallFunction(inputTypeHandler, "OOi", cursor, value,
+            numElements);
+    if (!var)
+        return NULL;
+    if (var != Py_None) {
+        if (!Variable_Check(var)) {
+            Py_DECREF(var);
+            PyErr_SetString(PyExc_TypeError,
+                    "expecting variable from input type handler");
+            return NULL;
+        }
+        return (udt_Variable*) var;
+    }
+    Py_DECREF(var);
+    return Variable_DefaultNewByValue(cursor, value, numElements);
+}
+
+
+//-----------------------------------------------------------------------------
+// Variable_NewByValue()
+//   Allocate a new variable by looking at the type of the data.
+//-----------------------------------------------------------------------------
+static udt_Variable *Variable_NewByValue(
+    udt_Cursor *cursor,                 // cursor to associate variable with
+    PyObject *value,                    // Python value to associate
+    unsigned numElements)               // number of elements to allocate
+{
+    if (cursor->inputTypeHandler && cursor->inputTypeHandler != Py_None)
+        return Variable_NewByInputTypeHandler(cursor, cursor->inputTypeHandler,
+                value, numElements);
+    if (cursor->connection->outputTypeHandler &&
+            cursor->connection->outputTypeHandler != Py_None)
+        return Variable_NewByInputTypeHandler(cursor,
+                cursor->connection->inputTypeHandler, value, numElements);
+    return Variable_DefaultNewByValue(cursor, value, numElements);
 }
 
 

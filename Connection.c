@@ -13,6 +13,7 @@ typedef struct {
     OCISession *sessionHandle;
     udt_Environment *environment;
     udt_SessionPool *sessionPool;
+    PyObject *inputTypeHandler;
     PyObject *outputTypeHandler;
     PyObject *username;
     PyObject *password;
@@ -106,6 +107,8 @@ static PyMemberDef g_ConnectionMembers[] = {
     { "dsn", T_OBJECT, offsetof(udt_Connection, dsn), READONLY },
     { "tnsentry", T_OBJECT, offsetof(udt_Connection, dsn), READONLY },
     { "autocommit", T_INT, offsetof(udt_Connection, autocommit), 0 },
+    { "inputtypehandler", T_OBJECT,
+            offsetof(udt_Connection, inputTypeHandler), 0 },
     { "outputtypehandler", T_OBJECT,
             offsetof(udt_Connection, outputTypeHandler), 0 },
     { NULL }
@@ -728,6 +731,8 @@ static void Connection_Free(
     Py_XDECREF(self->password);
     Py_XDECREF(self->dsn);
     Py_XDECREF(self->version);
+    Py_XDECREF(self->inputTypeHandler);
+    Py_XDECREF(self->outputTypeHandler);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
