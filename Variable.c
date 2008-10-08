@@ -13,6 +13,8 @@ struct _udt_VariableType;
     OCIDefine *defineHandle; \
     OCIStmt *boundCursorHandle; \
     PyObject *boundName; \
+    PyObject *inConverter; \
+    PyObject *outConverter; \
     ub4 boundPos; \
     udt_Environment *environment; \
     ub4 allocatedElements; \
@@ -84,6 +86,8 @@ static PyMemberDef g_VariableMembers[] = {
     { "maxlength", T_INT, offsetof(udt_Variable, maxLength), READONLY },
     { "allocelems", T_INT, offsetof(udt_Variable, allocatedElements),
             READONLY },
+    { "inconverter", T_OBJECT, offsetof(udt_Variable, inConverter), 0 },
+    { "outconverter", T_OBJECT, offsetof(udt_Variable, outConverter), 0 },
     { NULL }
 };
 
@@ -176,6 +180,8 @@ static udt_Variable *Variable_New(
     var->bindHandle = NULL;
     var->defineHandle = NULL;
     var->boundName = NULL;
+    var->inConverter = NULL;
+    var->outConverter = NULL;
     var->boundPos = 0;
     if (numElements < 1)
         var->allocatedElements = 1;
@@ -265,6 +271,8 @@ static void Variable_Free(
     }
     Py_DECREF(var->environment);
     Py_XDECREF(var->boundName);
+    Py_XDECREF(var->inConverter);
+    Py_XDECREF(var->outConverter);
     PyObject_DEL(var);
 }
 
@@ -1072,6 +1080,7 @@ static PyObject *Variable_GetSingleValue(
     udt_Variable *var,                  // variable to get the value for
     unsigned arrayPos)                  // array position
 {
+    PyObject *value, *result;
     int isNull;
 
     // ensure we do not exceed the number of allocated elements
@@ -1094,7 +1103,15 @@ static PyObject *Variable_GetSingleValue(
     if (Variable_VerifyFetch(var, arrayPos) < 0)
         return NULL;
 
-    return (*var->type->getValueProc)(var, arrayPos);
+    // calculate value to return
+    value = (*var->type->getValueProc)(var, arrayPos);
+    if (value && var->outConverter && var->outConverter != Py_None) {
+        result = PyObject_CallFunctionObjArgs(var->outConverter, value, NULL);
+        Py_DECREF(value);
+        return result;
+    }
+
+    return value;
 }
 
 
@@ -1149,6 +1166,9 @@ static int Variable_SetSingleValue(
     unsigned arrayPos,                  // array position
     PyObject *value)                    // value to set
 {
+    PyObject *convertedValue = NULL;
+    int result;
+
     // ensure we do not exceed the number of allocated elements
     if (arrayPos >= var->allocatedElements) {
         PyErr_SetString(PyExc_IndexError,
@@ -1156,16 +1176,28 @@ static int Variable_SetSingleValue(
         return -1;
     }
 
+    // convert value, if necessary
+    if (value != Py_None && var->inConverter && var->inConverter != Py_None) {
+        convertedValue = PyObject_CallFunctionObjArgs(var->inConverter, value,
+                NULL);
+        if (!convertedValue)
+            return -1;
+        value = convertedValue;
+    }
+
     // check for a NULL value
     if (value == Py_None) {
         var->indicator[arrayPos] = OCI_IND_NULL;
+        Py_XDECREF(convertedValue);
         return 0;
     }
 
     var->indicator[arrayPos] = OCI_IND_NOTNULL;
     if (var->type->isVariableLength)
         var->returnCode[arrayPos] = 0;
-    return (*var->type->setValueProc)(var, arrayPos, value);
+    result = (*var->type->setValueProc)(var, arrayPos, value);
+    Py_XDECREF(convertedValue);
+    return result;
 }
 
 

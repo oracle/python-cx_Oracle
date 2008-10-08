@@ -1920,16 +1920,20 @@ static PyObject *Cursor_Var(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
-    static char *keywordList[] = { "type", "size", "arraysize", NULL };
+    static char *keywordList[] = { "type", "size", "arraysize",
+            "inconverter", "outconverter", NULL };
+    PyObject *inConverter, *outConverter;
     udt_VariableType *varType;
     int size, arraySize;
+    udt_Variable *var;
     PyObject *type;
 
     // parse arguments
     size = 0;
     arraySize = self->bindArraySize;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|ii", keywordList,
-            &type, &size, &arraySize))
+    inConverter = outConverter = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOO", keywordList,
+            &type, &size, &arraySize, &inConverter, &outConverter))
         return NULL;
 
     // determine the type of variable
@@ -1939,7 +1943,14 @@ static PyObject *Cursor_Var(
     if (varType->isVariableLength && size == 0)
         size = varType->elementLength;
 
-    return (PyObject*) Variable_New(self, arraySize, varType, size);
+    // create the variable
+    var = Variable_New(self, arraySize, varType, size);
+    Py_XINCREF(inConverter);
+    var->inConverter = inConverter;
+    Py_XINCREF(outConverter);
+    var->outConverter = outConverter;
+
+    return (PyObject*) var;
 }
 
 
