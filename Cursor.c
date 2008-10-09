@@ -665,11 +665,6 @@ static PyObject *Cursor_ItemDescriptionHelper(
         }
         else displaySize = 127;
     } else if (type == (PyObject*) &g_DateTimeVarType) {
-#ifdef NATIVE_DATETIME
-        type = (PyObject*) PyDateTimeAPI->DateTimeType;
-#else
-        type = (PyObject*) &g_ExternalDateTimeVarType;
-#endif
         displaySize = 23;
     } else {
         displaySize = -1;

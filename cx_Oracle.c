@@ -439,11 +439,7 @@ void initcx_Oracle(void)
     ADD_TYPE_OBJECT("CLOB", &g_CLOBVarType)
     ADD_TYPE_OBJECT("CURSOR", &g_CursorVarType)
     ADD_TYPE_OBJECT("OBJECT", &g_ObjectVarType)
-#ifdef NATIVE_DATETIME
-    ADD_TYPE_OBJECT("DATETIME", PyDateTimeAPI->DateTimeType)
-#else
-    ADD_TYPE_OBJECT("DATETIME", &g_ExternalDateTimeVarType)
-#endif
+    ADD_TYPE_OBJECT("DATETIME", &g_DateTimeVarType)
     ADD_TYPE_OBJECT("FIXED_CHAR", &g_FixedCharVarType)
     ADD_TYPE_OBJECT("FIXED_UNICODE", &g_FixedUnicodeVarType)
     ADD_TYPE_OBJECT("LOB", &g_ExternalLobVarType)

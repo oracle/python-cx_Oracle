@@ -398,6 +398,8 @@ static udt_VariableType *Variable_TypeByPythonType(
     if (type == (PyObject*) &PyBool_Type)
         return &vt_Boolean;
 #endif
+    if (type == (PyObject*) &g_DateTimeVarType)
+        return &vt_DateTime;
 #ifdef NATIVE_DATETIME
     if (type == (PyObject*) PyDateTimeAPI->DateType)
         return &vt_Date;
