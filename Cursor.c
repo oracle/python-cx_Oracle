@@ -1945,6 +1945,8 @@ static PyObject *Cursor_Var(
 
     // create the variable
     var = Variable_New(self, arraySize, varType, size);
+    if (!var)
+        return NULL;
     Py_XINCREF(inConverter);
     var->inConverter = inConverter;
     Py_XINCREF(outConverter);
