@@ -700,8 +700,8 @@ static udt_Variable *Variable_NewByValue(
     if (cursor->inputTypeHandler && cursor->inputTypeHandler != Py_None)
         return Variable_NewByInputTypeHandler(cursor, cursor->inputTypeHandler,
                 value, numElements);
-    if (cursor->connection->outputTypeHandler &&
-            cursor->connection->outputTypeHandler != Py_None)
+    if (cursor->connection->inputTypeHandler &&
+            cursor->connection->inputTypeHandler != Py_None)
         return Variable_NewByInputTypeHandler(cursor,
                 cursor->connection->inputTypeHandler, value, numElements);
     return Variable_DefaultNewByValue(cursor, value, numElements);
