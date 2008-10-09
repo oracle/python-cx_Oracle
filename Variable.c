@@ -1227,7 +1227,7 @@ static int Variable_SetSingleValue(
     }
 
     // convert value, if necessary
-    if (value != Py_None && var->inConverter && var->inConverter != Py_None) {
+    if (var->inConverter && var->inConverter != Py_None) {
         convertedValue = PyObject_CallFunctionObjArgs(var->inConverter, value,
                 NULL);
         if (!convertedValue)
