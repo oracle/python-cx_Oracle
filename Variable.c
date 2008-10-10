@@ -394,10 +394,8 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_Integer;
     if (type == (PyObject*) &PyLong_Type)
         return &vt_LongInteger;
-#if (PY_VERSION_HEX >= 0x02030000)
     if (type == (PyObject*) &PyBool_Type)
         return &vt_Boolean;
-#endif
     if (type == (PyObject*) &g_DateTimeVarType)
         return &vt_DateTime;
 #ifdef NATIVE_DATETIME
@@ -451,10 +449,8 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_Float;
     if (PyBuffer_Check(value))
         return &vt_Binary;
-#if (PY_VERSION_HEX >= 0x02030000)
     if (PyBool_Check(value))
         return &vt_Boolean;
-#endif
 #ifdef NATIVE_DATETIME
     if (PyDateTime_Check(value))
         return &vt_DateTime;

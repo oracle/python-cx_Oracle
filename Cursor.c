@@ -1300,10 +1300,8 @@ static int Cursor_Call(
         if (i > 0)
             *ptr++ = ',';
         ptr += sprintf(ptr, ":%d", i + offset + 1);
-#if (PY_VERSION_HEX >= 0x02030000)
         if (PyBool_Check(PySequence_Fast_GET_ITEM(arguments, i)))
             ptr += sprintf(ptr, " = 1");
-#endif
     }
     strcpy(ptr, "); end;");
     Py_DECREF(arguments);

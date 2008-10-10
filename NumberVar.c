@@ -244,7 +244,6 @@ static int NumberVar_PreDefine(
 }
 
 
-#if (PY_VERSION_HEX >= 0x02030000)
 //-----------------------------------------------------------------------------
 // NumberVar_SetValueFromBoolean()
 //   Set the value of the variable from a Python boolean.
@@ -263,7 +262,6 @@ static int NumberVar_SetValueFromBoolean(
     return Environment_CheckForError(var->environment, status,
             "NumberVar_SetValueFromBoolean()");
 }
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -434,10 +432,8 @@ static int NumberVar_SetValue(
 {
     if (PyInt_Check(value))
         return NumberVar_SetValueFromInteger(var, pos, value);
-#if (PY_VERSION_HEX >= 0x02030000)
     else if (PyBool_Check(value))
         return NumberVar_SetValueFromBoolean(var, pos, value);
-#endif
     else if (PyFloat_Check(value))
         return NumberVar_SetValueFromFloat(var, pos, value);
     else if (PyLong_Check(value))
@@ -471,9 +467,7 @@ static PyObject *NumberVar_GetValue(
             return NULL;
         if (var->type == &vt_Integer)
             return PyInt_FromLong(integerValue);
-#if (PY_VERSION_HEX >= 0x02030000)
         return PyBool_FromLong(integerValue);
-#endif
     }
 
     if (var->type == &vt_NumberAsString || var->type == &vt_LongInteger) {

@@ -521,11 +521,7 @@ static PyObject *ExternalLobVar_IsOpen(
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_IsOpen()") < 0)
         return NULL;
-#if (PY_VERSION_HEX >= 0x02030000)
     return PyBool_FromLong(isOpen);
-#else
-    return PyInt_FromLong(isOpen);
-#endif
 }
 
 
