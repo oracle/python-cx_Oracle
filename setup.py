@@ -288,8 +288,9 @@ extension = Extension(
                 "DateTimeVar.c", "Environment.c", "Error.c",
                 "ExternalDateTimeVar.c", "ExternalLobVar.c",
                 "ExternalObjectVar.c", "LobVar.c", "LongVar.c", "NumberVar.c",
-                "ObjectType.c", "ObjectVar.c", "SessionPool.c", "StringVar.c",
-                "TimestampVar.c", "Transforms.c", "Variable.c"])
+                "ObjectType.c", "ObjectVar.c", "SessionPool.c",
+                "StringUtils.c", "StringVar.c", "TimestampVar.c",
+                "Transforms.c", "Variable.c"])
 
 # perform the setup
 setup(
