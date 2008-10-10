@@ -1112,11 +1112,13 @@ static int Variable_VerifyFetch(
     if (var->type->isVariableLength) {
         if (var->returnCode[arrayPos] != 0) {
             error = Error_New(var->environment, "Variable_VerifyFetch()", 0);
-            error->errorNumber = var->returnCode[arrayPos];
-            sprintf(error->errorText,
+            error->code = var->returnCode[arrayPos];
+            error->message = PyString_FromFormat(
                     "column at array pos %d fetched with error: %d",
                     arrayPos, var->returnCode[arrayPos]);
-            PyErr_SetObject(g_DatabaseErrorException, (PyObject*) error);
+            if (!error->message)
+                Py_DECREF(error);
+            else PyErr_SetObject(g_DatabaseErrorException, (PyObject*) error);
             return -1;
         }
     }

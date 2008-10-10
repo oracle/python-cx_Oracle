@@ -73,6 +73,24 @@ typedef int Py_ssize_t;
     (type)->tp_base = &g_BaseVarType;  \
     MAKE_TYPE_READY(type)
 
+// define macros for handling unicode
+#ifdef WITH_UNICODE
+    #define CXORA_CHARSETID             OCI_UTF16ID
+    #define CXORA_ERROR_TEXT_LENGTH     2048
+    #ifdef Py_UNICODE_WIDE
+        #define CXORA_TO_STRING_OBJ(buffer, chars) \
+            PyUnicode_DecodeUTF16(buffer, (chars) * 2, NULL, NULL)
+    #else
+        #define CXORA_TO_STRING_OBJ(buffer, chars) \
+            PyUnicode_FromUnicode((Py_UNICODE*) (buffer), chars)
+    #endif
+#else
+    #define CXORA_CHARSETID             0
+    #define CXORA_ERROR_TEXT_LENGTH     1024
+    #define CXORA_TO_STRING_OBJ(buffer, chars) \
+        PyString_FromStringAndSize(buffer, chars)
+#endif
+
 // define macros to get the build version as a string and the driver name
 #define xstr(s)                 str(s)
 #define str(s)                  #s

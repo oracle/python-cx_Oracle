@@ -89,8 +89,8 @@ static udt_Environment *Environment_New(
 #endif
 
     // create the environment handle
-    status = OCIEnvCreate(&environment->handle, mode, NULL, NULL,
-            NULL, NULL, 0, NULL);
+    status = OCIEnvNlsCreate(&environment->handle, mode, NULL, NULL, NULL,
+            NULL, 0, NULL, CXORA_CHARSETID, CXORA_CHARSETID);
     if (!environment->handle) {
         Py_DECREF(environment);
         PyErr_SetString(g_InterfaceErrorException,
@@ -170,7 +170,7 @@ static void Environment_RaiseError(
 
     error = Error_New(environment, context, 1);
     if (error) {
-        switch (error->errorNumber) {
+        switch (error->code) {
             case 1:
             case 1400:
             case 2290:

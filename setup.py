@@ -181,6 +181,8 @@ if sys.platform == "aix4":
     extraCompileArgs.append("-qcpluscmt")
 elif sys.platform == "cygwin":
     extraCompileArgs.append("-mno-cygwin")
+if "WITH_UNICODE" in os.environ or sys.version_info[0] >= 3:
+    extraCompileArgs.append("-DWITH_UNICODE")
 
 # force the inclusion of an RPATH linker directive if desired; this will
 # eliminate the need for setting LD_LIBRARY_PATH but it also means that this

@@ -8,8 +8,8 @@
 //-----------------------------------------------------------------------------
 typedef struct {
     PyObject_HEAD
-    sb4 errorNumber;
-    char errorText[1024];
+    sb4 code;
+    PyObject *message;
     const char *context;
 } udt_Error;
 
@@ -25,8 +25,8 @@ static PyObject *Error_Str(udt_Error*);
 // declaration of members
 //-----------------------------------------------------------------------------
 static PyMemberDef g_ErrorMembers[] = {
-    { "code", T_INT, offsetof(udt_Error, errorNumber), READONLY },
-    { "message", T_STRING_INPLACE, offsetof(udt_Error, errorText), READONLY },
+    { "code", T_INT, offsetof(udt_Error, code), READONLY },
+    { "message", T_OBJECT, offsetof(udt_Error, message), READONLY },
     { "context", T_STRING, offsetof(udt_Error, context), READONLY },
     { NULL }
 };
@@ -78,6 +78,7 @@ static udt_Error *Error_New(
     const char *context,                // context in which error occurred
     int retrieveError)                  // retrieve error from OCI?
 {
+    char errorText[CXORA_ERROR_TEXT_LENGTH];
     udt_Error *error;
     ub4 handleType;
     dvoid *handle;
@@ -95,15 +96,29 @@ static udt_Error *Error_New(
             handle = environment->handle;
             handleType = OCI_HTYPE_ENV;
         }
-        status = OCIErrorGet(handle, 1, 0, &error->errorNumber,
-                (unsigned char*) error->errorText, sizeof(error->errorText),
-                handleType);
+        status = OCIErrorGet(handle, 1, 0, &error->code,
+                (unsigned char*) errorText, sizeof(errorText), handleType);
         if (status != OCI_SUCCESS) {
             Py_DECREF(error);
             PyErr_SetString(g_InternalErrorException, "No Oracle error?");
             return NULL;
         }
+#ifdef WITH_UNICODE
+        Py_ssize_t len;
+	    for (len = 0; len < sizeof(errorText); len += 2) {
+	        if (errorText[len] == 0 && errorText[len + 1] == 0)
+		        break;
+	    }
+        error->message = CXORA_TO_STRING_OBJ(errorText, len / 2);
+#else
+        error->message = PyString_FromString(errorText);
+#endif
+        if (!error->message) {
+            Py_DECREF(error);
+            return NULL;
+        }
     }
+
     return error;
 }
 
@@ -115,6 +130,7 @@ static udt_Error *Error_New(
 static void Error_Free(
     udt_Error *self)                    // error object
 {
+    Py_XDECREF(self->message);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
@@ -126,6 +142,14 @@ static void Error_Free(
 static PyObject *Error_Str(
     udt_Error *self)                    // variable to return the string for
 {
-    return PyString_FromString(self->errorText);
+    if (self->message) {
+        Py_INCREF(self->message);
+        return self->message;
+    }
+#ifdef WITH_UNICODE
+    return PyUnicode_DecodeASCII("", 0, NULL);
+#else
+    return PyString_FromString("");
+#endif
 }
 
