@@ -415,13 +415,12 @@ static PyObject *StringVar_GetValue(
     char *data;
 
     data = var->data + pos * var->maxLength;
+#ifdef WTIH_UNICODE
     if (var->type->charsetForm == SQLCS_IMPLICIT)
-        return PyString_FromStringAndSize(data, var->actualLength[pos]);
-#ifdef Py_UNICODE_WIDE
-    ub4 bytes = var->actualLength[pos] * 2;
-    return PyUnicode_DecodeUTF16(data, bytes, NULL, NULL);
 #else
-    return PyUnicode_FromUnicode((Py_UNICODE*) data, var->actualLength[pos]);
+    if (var->type == &vt_Binary)
 #endif
+        return PyString_FromStringAndSize(data, var->actualLength[pos]);
+    return CXORA_TO_STRING_OBJ(data, var->actualLength[pos]);
 }
 

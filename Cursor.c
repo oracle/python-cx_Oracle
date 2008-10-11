@@ -676,7 +676,7 @@ static PyObject *Cursor_ItemDescriptionHelper(
         return NULL;
 
     // set each of the items in the tuple
-    PyTuple_SET_ITEM(tuple, 0, PyString_FromStringAndSize(name, nameLength));
+    PyTuple_SET_ITEM(tuple, 0, CXORA_TO_STRING_OBJ(name, nameLength));
     Py_INCREF(type);
     PyTuple_SET_ITEM(tuple, 1, type);
     PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(displaySize));
@@ -1078,11 +1078,10 @@ static PyObject *Cursor_CreateRow(
 static int Cursor_InternalPrepare(
     udt_Cursor *self,                   // cursor to perform prepare on
     PyObject *statement,                // statement to prepare
-    PyObject *statementTag)		// tag of statement to prepare
+    PyObject *statementTag)             // tag of statement to prepare
 {
-    ub4 tagLength;
+    udt_StringBuffer statementBuffer, tagBuffer;
     sword status;
-    char *tag;
 
     // make sure we don't get a situation where nothing is to be executed
     if (statement == Py_None && !self->statement) {
@@ -1092,6 +1091,7 @@ static int Cursor_InternalPrepare(
     }
 
     // nothing to do if the statement is identical to the one already stored
+    // but go ahead and prepare anyway for create, alter and drop statments
     if (statement == Py_None || statement == self->statement) {
         if (self->statementType != OCI_STMT_CREATE &&
                 self->statementType != OCI_STMT_DROP &&
@@ -1115,19 +1115,19 @@ static int Cursor_InternalPrepare(
     // prepare statement
     Py_BEGIN_ALLOW_THREADS
     self->isOwned = 0;
-    if (statementTag) {
-        tag = PyString_AS_STRING(statementTag);
-        tagLength = PyString_GET_SIZE(statementTag);
-    } else {
-        tag = NULL;
-        tagLength = 0;
+    if (StringBuffer_Fill(&statementBuffer, statement) < 0)
+        return -1;
+    if (StringBuffer_Fill(&tagBuffer, statementTag) < 0) {
+        StringBuffer_CLEAR(&statementBuffer);
+        return -1;
     }
     status = OCIStmtPrepare2(self->connection->handle, &self->handle,
-            self->environment->errorHandle,
-            (text*) PyString_AS_STRING(statement),
-            PyString_GET_SIZE(statement), (text*) tag, tagLength,
+            self->environment->errorHandle, (text*) statementBuffer.ptr,
+            statementBuffer.size, (text*) tagBuffer.ptr, tagBuffer.size,
             OCI_NTV_SYNTAX, OCI_DEFAULT);
     Py_END_ALLOW_THREADS
+    StringBuffer_CLEAR(&statementBuffer);
+    StringBuffer_CLEAR(&tagBuffer);
     if (Environment_CheckForError(self->environment, status,
             "Cursor_InternalPrepare(): prepare") < 0) {
         // this is needed to avoid "invalid handle" errors since Oracle doesn't
@@ -1205,7 +1205,8 @@ static PyObject *Cursor_Prepare(
 
     // statement text and optional tag is expected
     statementTag = NULL;
-    if (!PyArg_ParseTuple(args, "S|S", &statement, &statementTag))
+    if (!PyArg_ParseTuple(args, "O!|O!", CXORA_STRING_TYPE, &statement,
+            CXORA_STRING_TYPE, &statementTag))
         return NULL;
 
     // make sure the cursor is open
@@ -1228,12 +1229,12 @@ static PyObject *Cursor_Prepare(
 static int Cursor_Call(
     udt_Cursor *self,                   // cursor to call procedure/function
     udt_Variable *returnValue,          // return value variable (optional)
-    const char *name,                   // name of procedure/function to call
-    unsigned nameLength,                // length of name of procedure/function
+    PyObject *name,                     // name of procedure/function to call
     PyObject *listOfArguments)          // arguments to procedure/function
 {
-    PyObject *bindVariables, *results, *arguments;
+    PyObject *bindVariables, *results, *arguments, *statementObj;
     int numArguments, statementSize, i, offset;
+    PyObject *format, *formatArgs;
     char *statement, *ptr;
 
     // determine the number of arguments passed
@@ -1258,7 +1259,7 @@ static int Cursor_Call(
 
     // determine the statement size add the return value, if applicable
     offset = 0;
-    statementSize = nameLength + numArguments * 9 + 15;
+    statementSize = numArguments * 9 + 17;
     if (returnValue) {
         offset = 1;
         statementSize += 10;
@@ -1293,7 +1294,7 @@ static int Cursor_Call(
     strcpy(statement, "begin ");
     if (returnValue)
         strcat(statement, ":1 := ");
-    strcat(statement, name);
+    strcat(statement, "%s");
     ptr = statement + strlen(statement);
     *ptr++ = '(';
     for (i = 0; i < numArguments; i++) {
@@ -1306,10 +1307,33 @@ static int Cursor_Call(
     strcpy(ptr, "); end;");
     Py_DECREF(arguments);
 
-    // execute the statement on the cursor
-    results = PyObject_CallMethod( (PyObject*) self, "execute", "sO",
-            statement, bindVariables);
+    // create the statement object
+    format = PyString_FromString(statement);
     PyMem_Free(statement);
+    if (!format) {
+        Py_DECREF(bindVariables);
+        return -1;
+    }
+    formatArgs = PyTuple_New(1);
+    if (!formatArgs) {
+        Py_DECREF(bindVariables);
+        Py_DECREF(format);
+        return -1;
+    }
+    Py_INCREF(name);
+    PyTuple_SET_ITEM(formatArgs, 0, name);
+    statementObj = CXORA_STRING_FROM_FORMAT(format, formatArgs);
+    Py_DECREF(format);
+    Py_DECREF(formatArgs);
+    if (!statementObj) {
+        Py_DECREF(bindVariables);
+        return -1;
+    }
+
+    // execute the statement on the cursor
+    results = PyObject_CallMethod( (PyObject*) self, "execute", "OO",
+            statementObj, bindVariables);
+    Py_DECREF(statementObj);
     Py_DECREF(bindVariables);
     if (!results)
         return -1;
@@ -1329,16 +1353,14 @@ static PyObject *Cursor_CallFunc(
     PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "name", "returnType", "parameters", NULL };
-    PyObject *listOfArguments, *returnType, *results;
+    PyObject *listOfArguments, *returnType, *results, *name;
     udt_Variable *var;
-    int nameLength;
-    char *name;
 
     // expect stored function name, return type and optionally a list of
     // arguments
     listOfArguments = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "s#O|O", keywordList,
-            &name, &nameLength, &returnType, &listOfArguments))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O|O", keywordList,
+            CXORA_STRING_TYPE, &name, &returnType, &listOfArguments))
         return NULL;
 
     // create the return variable
@@ -1347,7 +1369,7 @@ static PyObject *Cursor_CallFunc(
         return NULL;
 
     // call the function
-    if (Cursor_Call(self, var, name, nameLength, listOfArguments) < 0)
+    if (Cursor_Call(self, var, name, listOfArguments) < 0)
         return NULL;
 
     // determine the results
@@ -1367,18 +1389,17 @@ static PyObject *Cursor_CallProc(
     PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "name", "parameters", NULL };
-    PyObject *listOfArguments, *results, *var, *temp;
-    int nameLength, numArgs, i;
-    char *name;
+    PyObject *listOfArguments, *results, *var, *temp, *name;
+    int numArgs, i;
 
     // expect stored procedure name and optionally a list of arguments
     listOfArguments = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "s#|O", keywordList,
-            &name, &nameLength, &listOfArguments))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|O", keywordList,
+            CXORA_STRING_TYPE, &name, &listOfArguments))
         return NULL;
 
     // call the stored procedure
-    if (Cursor_Call(self, NULL, name, nameLength, listOfArguments) < 0)
+    if (Cursor_Call(self, NULL, name, listOfArguments) < 0)
         return NULL;
 
     // create the return value
@@ -1415,8 +1436,13 @@ static PyObject *Cursor_Execute(
     executeArgs = NULL;
     if (!PyArg_ParseTuple(args, "O|O", &statement, &executeArgs))
         return NULL;
+#ifdef WITH_UNICODE
+    if (statement != Py_None && !PyUnicode_Check(statement)) {
+        PyErr_SetString(PyExc_TypeError, "expecting None or unicode string");
+#else
     if (statement != Py_None && !PyString_Check(statement)) {
         PyErr_SetString(PyExc_TypeError, "expecting None or a string");
+#endif
         return NULL;
     }
     if (executeArgs && keywordArgs) {

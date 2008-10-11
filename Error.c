@@ -109,7 +109,7 @@ static udt_Error *Error_New(
 	        if (errorText[len] == 0 && errorText[len + 1] == 0)
 		        break;
 	    }
-        error->message = CXORA_TO_STRING_OBJ(errorText, len / 2);
+        error->message = CXORA_TO_STRING_OBJ(errorText, len);
 #else
         error->message = PyString_FromString(errorText);
 #endif
