@@ -479,7 +479,7 @@ static PyObject *NumberVar_GetValue(
         if (Environment_CheckForError(var->environment, status,
                 "NumberVar_GetValue(): as string") < 0)
             return NULL;
-        stringObj = CXORA_BUFFER_TO_STRING(stringValue, stringLength);
+        stringObj = cxString_FromEncodedString(stringValue, stringLength);
         if (!stringObj)
             return NULL;
         if (var->type == &vt_NumberAsString)

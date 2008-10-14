@@ -357,7 +357,7 @@ static udt_VariableType *Variable_TypeByPythonType(
 {
     if (type == (PyObject*) &g_StringVarType)
         return &vt_String;
-    if (type == (PyObject*) CXORA_STRING_TYPE)
+    if (type == (PyObject*) cxString_Type)
         return &vt_String;
     if (type == (PyObject*) &g_FixedCharVarType)
         return &vt_FixedChar;
@@ -441,7 +441,7 @@ static udt_VariableType *Variable_TypeByValue(
     // handle scalars
     if (value == Py_None)
         return &vt_String;
-    if (CXORA_STRING_CHECK(value))
+    if (cxString_Check(value))
         return &vt_String;
 #ifndef WITH_UNICODE
     if (PyUnicode_Check(value))

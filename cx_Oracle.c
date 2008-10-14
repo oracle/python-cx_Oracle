@@ -349,7 +349,7 @@ void initcx_Oracle(void)
     PyErr_Clear();
 
     // set up the string and buffer for converting numbers to strings
-    g_NumberToStringFormatObj = CXORA_ASCII_TO_STRING("TM9");
+    g_NumberToStringFormatObj = cxString_FromAscii("TM9");
     if (!g_NumberToStringFormatObj)
         return;
     if (StringBuffer_Fill(&g_NumberToStringFormatBuffer,

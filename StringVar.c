@@ -427,7 +427,7 @@ static PyObject *StringVar_GetValue(
 #ifdef WITH_UNICODE
     if (var->type == &vt_Binary)
         return PyBytes_FromStringAndSize(data, var->actualLength[pos]);
-    return CXORA_BUFFER_TO_STRING(data, var->actualLength[pos]);
+    return cxString_FromEncodedString(data, var->actualLength[pos]);
 #else
     if (var->type->charsetForm == SQLCS_IMPLICIT)
         return PyBytes_FromStringAndSize(data, var->actualLength[pos]);

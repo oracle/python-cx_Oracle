@@ -372,7 +372,7 @@ static int Connection_SetOCIAttr(
         return -1;
 
     // set the value in the OCI
-    if (!CXORA_STRING_CHECK(value)) {
+    if (!cxString_Check(value)) {
         PyErr_SetString(PyExc_TypeError, "value must be a string");
         return -1;
     }
@@ -672,10 +672,10 @@ static int Connection_Init(
     purity = OCI_ATTR_PURITY_DEFAULT;
 #endif
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|O!O!O!iiO!OOOO!i",
-            keywordList, CXORA_STRING_TYPE, &usernameObj, CXORA_STRING_TYPE,
-            &passwordObj, CXORA_STRING_TYPE, &dsnObj, &connectMode, &handle,
+            keywordList, cxString_Type, &usernameObj, cxString_Type,
+            &passwordObj, cxString_Type, &dsnObj, &connectMode, &handle,
             &g_SessionPoolType, &pool, &threadedObj, &twophaseObj, &eventsObj,
-            CXORA_STRING_TYPE, &cclassObj, &purity))
+            cxString_Type, &cclassObj, &purity))
         return -1;
     if (threadedObj) {
         threaded = PyObject_IsTrue(threadedObj);
@@ -958,7 +958,7 @@ static PyObject *Connection_GetVersion(
     PyList_SET_ITEM(listOfArguments, 1, (PyObject*) compatVar);
 
     // create the string variable
-    procName = CXORA_ASCII_TO_STRING("dbms_utility.db_version");
+    procName = cxString_FromAscii("dbms_utility.db_version");
     if (!procName) {
         Py_DECREF(listOfArguments);
         Py_DECREF(cursor);

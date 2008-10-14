@@ -192,8 +192,8 @@ static int SessionPool_Init(
     connectionType = &g_ConnectionType;
     getMode = OCI_SPOOL_ATTRVAL_NOWAIT;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O!O!iii|OObOO",
-            keywordList, CXORA_STRING_TYPE, &self->username,
-            CXORA_STRING_TYPE, &self->password, CXORA_STRING_TYPE, &self->dsn,
+            keywordList, cxString_Type, &self->username,
+            cxString_Type, &self->password, cxString_Type, &self->dsn,
             &minSessions, &maxSessions, &sessionIncrement, &connectionType,
             &threadedObj, &getMode, &eventsObj, &homogeneousObj))
         return -1;
@@ -279,7 +279,7 @@ static int SessionPool_Init(
         return -1;
 
     // create the string for the pool name
-    self->name = CXORA_BUFFER_TO_STRING(poolName, poolNameLength);
+    self->name = cxString_FromEncodedString(poolName, poolNameLength);
     if (!self->name)
         return -1;
 

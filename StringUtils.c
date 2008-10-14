@@ -67,31 +67,31 @@ static int StringBuffer_Fill(
 #ifdef WITH_UNICODE
     #define CXORA_CHARSETID             OCI_UTF16ID
     #define CXORA_ERROR_TEXT_LENGTH     2048
-    #define CXORA_STRING_TYPE           &PyUnicode_Type
-    #define CXORA_STRING_FROM_FORMAT    PyUnicode_Format
-    #define CXORA_STRING_CHECK          PyUnicode_Check
-    #define CXORA_ASCII_TO_STRING(str) \
+    #define cxString_Type               &PyUnicode_Type
+    #define cxString_Format             PyUnicode_Format
+    #define cxString_Check              PyUnicode_Check
+    #define cxString_FromAscii(str) \
         PyUnicode_DecodeASCII(str, strlen(str), NULL)
     #ifdef Py_UNICODE_WIDE
         #define StringBuffer_CLEAR(buffer) \
             Py_XDECREF((buffer)->encodedString)
-        #define CXORA_BUFFER_TO_STRING(buffer, numBytes) \
+        #define cxString_FromEncodedString(buffer, numBytes) \
             PyUnicode_DecodeUTF16(buffer, numBytes, NULL, NULL)
     #else
         #define StringBuffer_CLEAR(buffer)
-        #define CXORA_BUFFER_TO_STRING(buffer, numBytes) \
+        #define cxString_FromEncodedString(buffer, numBytes) \
             PyUnicode_FromUnicode((Py_UNICODE*) (buffer), (numBytes) / 2)
     #endif
 #else
     #define CXORA_CHARSETID             0
     #define CXORA_ERROR_TEXT_LENGTH     1024
-    #define CXORA_STRING_TYPE           &PyBytes_Type
-    #define CXORA_STRING_FROM_FORMAT    PyBytes_Format
-    #define CXORA_STRING_CHECK          PyBytes_Check
+    #define cxString_Type               &PyBytes_Type
+    #define cxString_Format             PyBytes_Format
+    #define cxString_Check              PyBytes_Check
     #define StringBuffer_CLEAR(buffer)
-    #define CXORA_ASCII_TO_STRING(str) \
+    #define cxString_FromAscii(str) \
         PyBytes_FromString(str)
-    #define CXORA_BUFFER_TO_STRING(buffer, numBytes) \
+    #define cxString_FromEncodedString(buffer, numBytes) \
         PyBytes_FromStringAndSize(buffer, numBytes)
 #endif
 

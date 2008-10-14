@@ -408,7 +408,8 @@ static int Cursor_GetBindNames(
     // process the bind information returned
     for (i = 0; i < foundElements; i++) {
         if (!duplicate[i]) {
-            temp = CXORA_BUFFER_TO_STRING(bindNames[i], bindNameLengths[i]);
+            temp = cxString_FromEncodedString(bindNames[i],
+                    bindNameLengths[i]);
             if (!temp) {
                 Py_DECREF(*names);
                 PyMem_Free(buffer);
@@ -672,7 +673,7 @@ static PyObject *Cursor_ItemDescriptionHelper(
         return NULL;
 
     // set each of the items in the tuple
-    PyTuple_SET_ITEM(tuple, 0, CXORA_BUFFER_TO_STRING(name, nameLength));
+    PyTuple_SET_ITEM(tuple, 0, cxString_FromEncodedString(name, nameLength));
     Py_INCREF(type);
     PyTuple_SET_ITEM(tuple, 1, type);
     PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(displaySize));
@@ -1201,8 +1202,8 @@ static PyObject *Cursor_Prepare(
 
     // statement text and optional tag is expected
     statementTag = NULL;
-    if (!PyArg_ParseTuple(args, "O!|O!", CXORA_STRING_TYPE, &statement,
-            CXORA_STRING_TYPE, &statementTag))
+    if (!PyArg_ParseTuple(args, "O!|O!", cxString_Type, &statement,
+            cxString_Type, &statementTag))
         return NULL;
 
     // make sure the cursor is open
@@ -1318,7 +1319,7 @@ static int Cursor_Call(
     }
     Py_INCREF(name);
     PyTuple_SET_ITEM(formatArgs, 0, name);
-    statementObj = CXORA_STRING_FROM_FORMAT(format, formatArgs);
+    statementObj = cxString_Format(format, formatArgs);
     Py_DECREF(format);
     Py_DECREF(formatArgs);
     if (!statementObj) {
@@ -1356,7 +1357,7 @@ static PyObject *Cursor_CallFunc(
     // arguments
     listOfArguments = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O|O", keywordList,
-            CXORA_STRING_TYPE, &name, &returnType, &listOfArguments))
+            cxString_Type, &name, &returnType, &listOfArguments))
         return NULL;
 
     // create the return variable
@@ -1391,7 +1392,7 @@ static PyObject *Cursor_CallProc(
     // expect stored procedure name and optionally a list of arguments
     listOfArguments = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|O", keywordList,
-            CXORA_STRING_TYPE, &name, &listOfArguments))
+            cxString_Type, &name, &listOfArguments))
         return NULL;
 
     // call the stored procedure
@@ -1432,7 +1433,7 @@ static PyObject *Cursor_Execute(
     executeArgs = NULL;
     if (!PyArg_ParseTuple(args, "O|O", &statement, &executeArgs))
         return NULL;
-    if (statement != Py_None && !CXORA_STRING_CHECK(statement)) {
+    if (statement != Py_None && !cxString_Check(statement)) {
         PyErr_SetString(PyExc_TypeError, "expecting None or a string");
         return NULL;
     }
@@ -1511,7 +1512,7 @@ static PyObject *Cursor_ExecuteMany(
     if (!PyArg_ParseTuple(args, "OO!", &statement, &PyList_Type,
             &listOfArguments))
         return NULL;
-    if (statement != Py_None && !CXORA_STRING_CHECK(statement)) {
+    if (statement != Py_None && !cxString_Check(statement)) {
         PyErr_SetString(PyExc_TypeError, "expecting None or string");
         return NULL;
     }
