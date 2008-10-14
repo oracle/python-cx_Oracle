@@ -124,6 +124,40 @@ static int SetException(
 
 
 //-----------------------------------------------------------------------------
+// AddOCIVersionInfo()
+//   Add information about the version of the OCI if available.
+//-----------------------------------------------------------------------------
+static int AddOCIVersionInfo(
+    PyObject *module)                   // module object
+{
+    PyObject *versionInfo;
+#ifdef OCI_MAJOR_VERSION
+    PyObject *majorVersion, *minorVersion;
+    majorVersion = PyInt_FromLong(OCI_MAJOR_VERSION);
+    if (!majorVersion)
+        return -1;
+    minorVersion = PyInt_FromLong(OCI_MINOR_VERSION);
+    if (!minorVersion) {
+        Py_DECREF(majorVersion);
+        return -1;
+    }
+    versionInfo = PyTuple_New(2);
+    if (!versionInfo) {
+        Py_DECREF(majorVersion);
+        Py_DECREF(minorVersion);
+        return -1;
+    }
+    PyTuple_SET_ITEM(versionInfo, 0, majorVersion);
+    PyTuple_SET_ITEM(versionInfo, 1, minorVersion);
+#else
+    Py_INCREF(Py_None);
+    versionInfo = Py_None;
+#endif
+    return PyModule_AddObject(module, "ociversion", versionInfo);
+}
+
+
+//-----------------------------------------------------------------------------
 // GetModuleAndName()
 //   Return the module and name for the type.
 //-----------------------------------------------------------------------------
@@ -486,6 +520,10 @@ void initcx_Oracle(void)
             __DATE__ " " __TIME__) < 0)
         return;
 
+    // add OCI information if available
+    if (AddOCIVersionInfo(module) < 0)
+        return;
+    
     // add constants for registering callbacks
     ADD_OCI_CONSTANT(SYSDBA)
     ADD_OCI_CONSTANT(SYSOPER)
