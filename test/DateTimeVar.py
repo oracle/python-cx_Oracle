@@ -1,6 +1,6 @@
 """Module for testing date/time variables."""
 
-import sys
+import datetime
 import time
 
 class TestDateTimeVar(BaseTestCase):
@@ -31,15 +31,13 @@ class TestDateTimeVar(BaseTestCase):
                 p_Value = cx_Oracle.Timestamp(2002, 12, 13, 9, 36, 0))
         self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
-    if sys.version_info[:2] != (2, 2):
-        def testBindDateTime(self):
-            "test binding in a Python 2.3 and higher date time"
-            import datetime
-            self.cursor.execute("""
-                    select * from TestDates
-                    where DateCol = :value""",
-                    value = datetime.datetime(2002, 12, 13, 9, 36, 0))
-            self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[4]])
+    def testBindDateTime(self):
+        "test binding in a Python 2.3 and higher date time"
+        self.cursor.execute("""
+                select * from TestDates
+                where DateCol = :value""",
+                value = datetime.datetime(2002, 12, 13, 9, 36, 0))
+        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
     def testBindDateAfterString(self):
         "test binding in a date after setting input sizes to a string"
