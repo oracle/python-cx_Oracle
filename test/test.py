@@ -27,7 +27,8 @@ if hasattr(cx_Oracle, "UNICODE") or sys.version_info[0] >= 3:
     ]
 else:
     moduleNames = [
-            "uConnection"
+            "uConnection",
+            "uCursor"
     ]
 
 class BaseTestCase(unittest.TestCase):

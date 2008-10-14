@@ -73,12 +73,12 @@ static int StringBuffer_Fill(
     #define cxString_FromAscii(str) \
         PyUnicode_DecodeASCII(str, strlen(str), NULL)
     #ifdef Py_UNICODE_WIDE
-        #define StringBuffer_CLEAR(buffer) \
+        #define StringBuffer_Clear(buffer) \
             Py_XDECREF((buffer)->encodedString)
         #define cxString_FromEncodedString(buffer, numBytes) \
             PyUnicode_DecodeUTF16(buffer, numBytes, NULL, NULL)
     #else
-        #define StringBuffer_CLEAR(buffer)
+        #define StringBuffer_Clear(buffer)
         #define cxString_FromEncodedString(buffer, numBytes) \
             PyUnicode_FromUnicode((Py_UNICODE*) (buffer), (numBytes) / 2)
     #endif
@@ -88,7 +88,7 @@ static int StringBuffer_Fill(
     #define cxString_Type               &PyBytes_Type
     #define cxString_Format             PyBytes_Format
     #define cxString_Check              PyBytes_Check
-    #define StringBuffer_CLEAR(buffer)
+    #define StringBuffer_Clear(buffer)
     #define cxString_FromAscii(str) \
         PyBytes_FromString(str)
     #define cxString_FromEncodedString(buffer, numBytes) \

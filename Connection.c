@@ -264,11 +264,11 @@ static int Connection_GetConnection(
                     environment->errorHandle);
             if (Environment_CheckForError(environment, status,
                     "Connection_GetConnection(): set user name") < 0) {
-                StringBuffer_CLEAR(&buffer);
+                StringBuffer_Clear(&buffer);
                 return -1;
             }
         }
-        StringBuffer_CLEAR(&buffer);
+        StringBuffer_Clear(&buffer);
 
         // set the password, if applicable
         if (StringBuffer_Fill(&buffer, self->password) < 0)
@@ -280,11 +280,11 @@ static int Connection_GetConnection(
                     environment->errorHandle);
             if (Environment_CheckForError(environment, status,
                     "Connection_GetConnection(): set password") < 0) {
-                StringBuffer_CLEAR(&buffer);
+                StringBuffer_Clear(&buffer);
                 return -1;
             }
         }
-        StringBuffer_CLEAR(&buffer);
+        StringBuffer_Clear(&buffer);
 
         // if no user name or password are set, using external credentials
         if (!pool && externalCredentials)
@@ -300,11 +300,11 @@ static int Connection_GetConnection(
                     environment->errorHandle);
             if (Environment_CheckForError(environment, status,
                     "Connection_GetConnection(): set connection class") < 0) {
-                StringBuffer_CLEAR(&buffer);
+                StringBuffer_Clear(&buffer);
                 return -1;
             }
         }
-        StringBuffer_CLEAR(&buffer);
+        StringBuffer_Clear(&buffer);
 
         // set the purity, if applicable
         if (purity != OCI_ATTR_PURITY_DEFAULT) {
@@ -326,7 +326,7 @@ static int Connection_GetConnection(
             &self->handle, authInfo, (text*) buffer.ptr, buffer.size, NULL, 0,
             NULL, NULL, &found, mode);
     Py_END_ALLOW_THREADS
-    StringBuffer_CLEAR(&buffer);
+    StringBuffer_Clear(&buffer);
     if (Environment_CheckForError(environment, status,
             "Connection_GetConnection(): get connection") < 0)
         return -1;
@@ -469,7 +469,7 @@ static int Connection_Connect(
             self->environment->errorHandle, (text*) buffer.ptr, buffer.size,
             OCI_DEFAULT);
     Py_END_ALLOW_THREADS
-    StringBuffer_CLEAR(&buffer);
+    StringBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->environment, status,
             "Connection_Connect(): server attach") < 0)
         return -1;
@@ -522,11 +522,11 @@ static int Connection_Connect(
                 self->environment->errorHandle);
         if (Environment_CheckForError(self->environment, status,
                 "Connection_Connect(): set user name") < 0) {
-            StringBuffer_CLEAR(&buffer);
+            StringBuffer_Clear(&buffer);
             return -1;
         }
     }
-    StringBuffer_CLEAR(&buffer);
+    StringBuffer_Clear(&buffer);
 
     // set password in session handle
     if (StringBuffer_Fill(&buffer, self->password) < 0)
@@ -538,11 +538,11 @@ static int Connection_Connect(
                 self->environment->errorHandle);
         if (Environment_CheckForError(self->environment, status,
                 "Connection_Connect(): set password") < 0) {
-            StringBuffer_CLEAR(&buffer);
+            StringBuffer_Clear(&buffer);
             return -1;
         }
     }
-    StringBuffer_CLEAR(&buffer);
+    StringBuffer_Clear(&buffer);
 
 #ifdef OCI_ATTR_DRIVER_NAME
     status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,

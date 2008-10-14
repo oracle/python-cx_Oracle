@@ -1006,22 +1006,24 @@ static int Variable_InternalBind(
 
     // perform the bind
     if (var->boundName) {
+        udt_StringBuffer buffer;
+        if (StringBuffer_Fill(&buffer, var->boundName) < 0)
+            return -1;
         if (var->isArray) {
             status = OCIBindByName(var->boundCursorHandle, &var->bindHandle,
-                    var->environment->errorHandle,
-                    (unsigned char*) PyString_AS_STRING(var->boundName),
-                    PyString_GET_SIZE(var->boundName), var->data,
-                    var->maxLength, var->type->oracleType, var->indicator,
-                    var->actualLength, var->returnCode, var->allocatedElements,
+                    var->environment->errorHandle, (text*) buffer.ptr,
+                    buffer.size, var->data, var->maxLength,
+                    var->type->oracleType, var->indicator, var->actualLength,
+                    var->returnCode, var->allocatedElements,
                     &var->actualElements, OCI_DEFAULT);
         } else {
             status = OCIBindByName(var->boundCursorHandle, &var->bindHandle,
-                    var->environment->errorHandle,
-                    (unsigned char*) PyString_AS_STRING(var->boundName),
-                    PyString_GET_SIZE(var->boundName), var->data,
-                    var->maxLength, var->type->oracleType, var->indicator,
-                    var->actualLength, var->returnCode, 0, 0, OCI_DEFAULT);
+                    var->environment->errorHandle, (text*) buffer.ptr,
+                    buffer.size, var->data, var->maxLength,
+                    var->type->oracleType, var->indicator, var->actualLength,
+                    var->returnCode, 0, 0, OCI_DEFAULT);
         }
+        StringBuffer_Clear(&buffer);
     } else {
         if (var->isArray) {
             status = OCIBindByPos(var->boundCursorHandle, &var->bindHandle,
@@ -1095,11 +1097,19 @@ static int Variable_Bind(
         return 0;
 
     // set the instance variables specific for binding
-    Py_XDECREF(var->boundName);
-    Py_XINCREF(name);
-    var->boundName = name;
     var->boundPos = pos;
     var->boundCursorHandle = cursor->handle;
+    Py_XDECREF(var->boundName);
+#if defined(WITH_UNICODE) && Py_MAJOR_VERSION < 3
+    if (name && PyBytes_Check(name)) {
+        var->boundName = PyObject_Unicode(name);
+        if (!var->boundName)
+            return -1;
+        return Variable_InternalBind(var);
+    }
+#endif
+    Py_XINCREF(name);
+    var->boundName = name;
 
     // perform the bind
     return Variable_InternalBind(var);

@@ -358,10 +358,14 @@ static int StringVar_SetValue(
 
     // get the buffer data and size for binding
     encodedString = NULL;
+#ifdef WITH_UNICODE
+    if (var->type == &vt_Binary) {
+#else
     if (var->type->charsetForm == SQLCS_IMPLICIT) {
-        if (PyString_Check(value)) {
-            buffer = PyString_AS_STRING(value);
-            bufferSize = PyString_GET_SIZE(value);
+#endif
+        if (PyBytes_Check(value)) {
+            buffer = PyBytes_AS_STRING(value);
+            bufferSize = PyBytes_GET_SIZE(value);
         } else if (PyBuffer_Check(value)) {
             if (PyObject_AsReadBuffer(value, &buffer, &bufferSize) < 0)
                 return -1;

@@ -255,12 +255,12 @@ static int SessionPool_Init(
     if (StringBuffer_Fill(&username, self->username) < 0)
         return -1;
     if (StringBuffer_Fill(&password, self->password) < 0) {
-        StringBuffer_CLEAR(&username);
+        StringBuffer_Clear(&username);
         return -1;
     }
     if (StringBuffer_Fill(&dsn, self->dsn) < 0) {
-        StringBuffer_CLEAR(&username);
-        StringBuffer_CLEAR(&password);
+        StringBuffer_Clear(&username);
+        StringBuffer_Clear(&password);
         return -1;
     }
     Py_BEGIN_ALLOW_THREADS
@@ -271,9 +271,9 @@ static int SessionPool_Init(
             (OraText*) username.ptr, username.size, (OraText*) password.ptr,
             password.size, poolMode);
     Py_END_ALLOW_THREADS
-    StringBuffer_CLEAR(&username);
-    StringBuffer_CLEAR(&password);
-    StringBuffer_CLEAR(&dsn);
+    StringBuffer_Clear(&username);
+    StringBuffer_Clear(&password);
+    StringBuffer_Clear(&dsn);
     if (Environment_CheckForError(self->environment, status,
             "SessionPool_New(): create pool") < 0)
         return -1;

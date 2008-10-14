@@ -216,7 +216,7 @@ static int Cursor_FreeHandle(
             status = OCIStmtRelease(self->handle,
                     self->environment->errorHandle, (text*) buffer.ptr,
                     buffer.size, OCI_DEFAULT);
-            StringBuffer_CLEAR(&buffer);
+            StringBuffer_Clear(&buffer);
             if (raiseException && Environment_CheckForError(
                     self->environment, status, "Cursor_FreeHandle()") < 0)
                 return -1;
@@ -1115,7 +1115,7 @@ static int Cursor_InternalPrepare(
     if (StringBuffer_Fill(&statementBuffer, statement) < 0)
         return -1;
     if (StringBuffer_Fill(&tagBuffer, statementTag) < 0) {
-        StringBuffer_CLEAR(&statementBuffer);
+        StringBuffer_Clear(&statementBuffer);
         return -1;
     }
     status = OCIStmtPrepare2(self->connection->handle, &self->handle,
@@ -1123,8 +1123,8 @@ static int Cursor_InternalPrepare(
             statementBuffer.size, (text*) tagBuffer.ptr, tagBuffer.size,
             OCI_NTV_SYNTAX, OCI_DEFAULT);
     Py_END_ALLOW_THREADS
-    StringBuffer_CLEAR(&statementBuffer);
-    StringBuffer_CLEAR(&tagBuffer);
+    StringBuffer_Clear(&statementBuffer);
+    StringBuffer_Clear(&tagBuffer);
     if (Environment_CheckForError(self->environment, status,
             "Cursor_InternalPrepare(): prepare") < 0) {
         // this is needed to avoid "invalid handle" errors since Oracle doesn't
