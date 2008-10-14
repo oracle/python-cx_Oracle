@@ -434,7 +434,8 @@ static PyObject *StringVar_GetValue(
     #ifdef Py_UNICODE_WIDE
     return PyUnicode_DecodeUTF16(data, var->actualLength[pos], NULL, NULL);
     #else
-    return PyUnicode_FromUnicode((Py_UNICODE*) data, var->actualLength[pos]);
+    return PyUnicode_FromUnicode((Py_UNICODE*) data,
+            var->actualLength[pos] / 2);
     #endif
 #endif
 }
