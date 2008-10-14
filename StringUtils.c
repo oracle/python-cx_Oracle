@@ -3,6 +3,7 @@
 //   Defines constants and routines specific to handling strings.
 //-----------------------------------------------------------------------------
 
+// define structure for abstracting string buffers
 typedef struct {
     char *ptr;
     Py_ssize_t size;
@@ -10,6 +11,19 @@ typedef struct {
     PyObject *encodedString;
 #endif
 } udt_StringBuffer;
+
+
+// use the bytes methods in cx_Oracle and define them as the equivalent string
+// type methods as is done in Python 2.6
+#ifndef PyBytes_Check
+    #define PyBytes_Type                PyString_Type
+    #define PyBytes_AS_STRING           PyString_AS_STRING
+    #define PyBytes_GET_SIZE            PyString_GET_SIZE
+    #define PyBytes_Check               PyString_Check
+    #define PyBytes_Format              PyString_Format
+    #define PyBytes_FromString          PyString_FromString
+    #define PyBytes_FromStringAndSize   PyString_FromStringAndSize
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -36,15 +50,15 @@ static int StringBuffer_Fill(
                 PyUnicode_GET_SIZE(obj), NULL, byteOrder);
         if (!buf->encodedString)
             return -1;
-        buf->ptr = PyString_AS_STRING(buf->encodedString);
-        buf->size = PyString_GET_SIZE(buf->encodedString);
+        buf->ptr = PyBytes_AS_STRING(buf->encodedString);
+        buf->size = PyBytes_GET_SIZE(buf->encodedString);
     #else
         buf->ptr = (char*) PyUnicode_AS_UNICODE(obj);
         buf->size = PyUnicode_GET_DATA_SIZE(obj);
     #endif
 #else
-    buf->ptr = PyString_AS_STRING(obj);
-    buf->size = PyString_GET_SIZE(obj);
+    buf->ptr = PyBytes_AS_STRING(obj);
+    buf->size = PyBytes_GET_SIZE(obj);
 #endif
     return 0;
 }
@@ -55,23 +69,29 @@ static int StringBuffer_Fill(
     #define CXORA_ERROR_TEXT_LENGTH     2048
     #define CXORA_STRING_TYPE           &PyUnicode_Type
     #define CXORA_STRING_FROM_FORMAT    PyUnicode_Format
+    #define CXORA_STRING_CHECK          PyUnicode_Check
+    #define CXORA_ASCII_TO_STRING(str) \
+        PyUnicode_DecodeASCII(str, strlen(str), NULL)
     #ifdef Py_UNICODE_WIDE
         #define StringBuffer_CLEAR(buffer) \
             Py_XDECREF((buffer)->encodedString)
-        #define CXORA_TO_STRING_OBJ(buffer, numBytes) \
+        #define CXORA_BUFFER_TO_STRING(buffer, numBytes) \
             PyUnicode_DecodeUTF16(buffer, numBytes, NULL, NULL)
     #else
         #define StringBuffer_CLEAR(buffer)
-        #define CXORA_TO_STRING_OBJ(buffer, numBytes) \
+        #define CXORA_BUFFER_TO_STRING(buffer, numBytes) \
             PyUnicode_FromUnicode((Py_UNICODE*) (buffer), (numBytes) / 2)
     #endif
 #else
     #define CXORA_CHARSETID             0
     #define CXORA_ERROR_TEXT_LENGTH     1024
-    #define CXORA_STRING_TYPE           &PyString_Type
-    #define CXORA_STRING_FROM_FORMAT    PyString_Format
+    #define CXORA_STRING_TYPE           &PyBytes_Type
+    #define CXORA_STRING_FROM_FORMAT    PyBytes_Format
+    #define CXORA_STRING_CHECK          PyBytes_Check
     #define StringBuffer_CLEAR(buffer)
-    #define CXORA_TO_STRING_OBJ(buffer, numBytes) \
-        PyString_FromStringAndSize(buffer, numBytes)
+    #define CXORA_ASCII_TO_STRING(str) \
+        PyBytes_FromString(str)
+    #define CXORA_BUFFER_TO_STRING(buffer, numBytes) \
+        PyBytes_FromStringAndSize(buffer, numBytes)
 #endif
 

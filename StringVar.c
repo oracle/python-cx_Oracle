@@ -16,7 +16,9 @@ typedef struct {
 // Declaration of string variable functions.
 //-----------------------------------------------------------------------------
 static int StringVar_Initialize(udt_StringVar*, udt_Cursor*);
+#ifndef WITH_UNICODE
 static int StringVar_PostDefine(udt_StringVar*);
+#endif
 static int StringVar_SetValue(udt_StringVar*, unsigned, PyObject*);
 static PyObject *StringVar_GetValue(udt_StringVar*, unsigned);
 
@@ -48,6 +50,7 @@ static PyTypeObject g_StringVarType = {
 };
 
 
+#ifndef WITH_UNICODE
 static PyTypeObject g_UnicodeVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.UNICODE",                // tp_name
@@ -71,6 +74,7 @@ static PyTypeObject g_UnicodeVarType = {
     Py_TPFLAGS_DEFAULT,                 // tp_flags
     0                                   // tp_doc
 };
+#endif
 
 
 static PyTypeObject g_FixedCharVarType = {
@@ -98,6 +102,7 @@ static PyTypeObject g_FixedCharVarType = {
 };
 
 
+#ifndef WITH_UNICODE
 static PyTypeObject g_FixedUnicodeVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.FIXED_UNICODE",          // tp_name
@@ -121,6 +126,7 @@ static PyTypeObject g_FixedUnicodeVarType = {
     Py_TPFLAGS_DEFAULT,                 // tp_flags
     0                                   // tp_doc
 };
+#endif
 
 
 static PyTypeObject g_RowidVarType = {
@@ -194,6 +200,7 @@ static udt_VariableType vt_String = {
 };
 
 
+#ifndef WITH_UNICODE
 static udt_VariableType vt_NationalCharString = {
     (InitializeProc) StringVar_Initialize,
     (FinalizeProc) NULL,
@@ -210,6 +217,7 @@ static udt_VariableType vt_NationalCharString = {
     1,                                  // can be copied
     1                                   // can be in array
 };
+#endif
 
 
 static udt_VariableType vt_FixedChar = {
@@ -230,6 +238,7 @@ static udt_VariableType vt_FixedChar = {
 };
 
 
+#ifndef WITH_UNICODE
 static udt_VariableType vt_FixedNationalChar = {
     (InitializeProc) StringVar_Initialize,
     (FinalizeProc) NULL,
@@ -246,6 +255,7 @@ static udt_VariableType vt_FixedNationalChar = {
     1,                                  // can be copied
     1                                   // can be in array
 };
+#endif
 
 
 static udt_VariableType vt_Rowid = {
@@ -302,6 +312,7 @@ static int StringVar_Initialize(
 }
 
 
+#ifndef WITH_UNICODE
 //-----------------------------------------------------------------------------
 // StringVar_PostDefine()
 //   Set the character set information when values are fetched from this
@@ -329,6 +340,7 @@ static int StringVar_PostDefine(
 
     return 0;
 }
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -343,7 +355,6 @@ static int StringVar_SetValue(
     PyObject *encodedString;
     Py_ssize_t bufferSize;
     const void *buffer;
-    ub2 actualLength;
 
     // get the buffer data and size for binding
     encodedString = NULL;
@@ -359,7 +370,6 @@ static int StringVar_SetValue(
                     "expecting string or buffer data");
             return -1;
         }
-        actualLength = (ub2) bufferSize;
     } else {
         if (!PyUnicode_Check(value)) {
             PyErr_SetString(PyExc_TypeError, "expecting unicode data");
@@ -372,13 +382,12 @@ static int StringVar_SetValue(
                 PyUnicode_GET_SIZE(value), NULL, byteOrder);
         if (!encodedString)
             return -1;
-        buffer = PyString_AS_STRING(encodedString);
-        bufferSize = PyString_GET_SIZE(encodedString);
+        buffer = PyBytes_AS_STRING(encodedString);
+        bufferSize = PyBytes_GET_SIZE(encodedString);
 #else
         buffer = PyUnicode_AS_UNICODE(value);
-        bufferSize = sizeof(Py_UNICODE) * PyUnicode_GET_SIZE(value);
+        bufferSize = PyUnicode_GET_DATA_SIZE(value);
 #endif
-        actualLength = bufferSize / 2;
     }
 
     // ensure that the buffer is not too large
@@ -395,7 +404,7 @@ static int StringVar_SetValue(
     }
 
     // keep a copy of the string
-    var->actualLength[pos] = actualLength;
+    var->actualLength[pos] = (ub2) bufferSize;
     if (bufferSize)
         memcpy(var->data + var->maxLength * pos, buffer, bufferSize);
     Py_XDECREF(encodedString);
@@ -415,12 +424,18 @@ static PyObject *StringVar_GetValue(
     char *data;
 
     data = var->data + pos * var->maxLength;
-#ifdef WTIH_UNICODE
-    if (var->type->charsetForm == SQLCS_IMPLICIT)
-#else
+#ifdef WITH_UNICODE
     if (var->type == &vt_Binary)
+        return PyBytes_FromStringAndSize(data, var->actualLength[pos]);
+    return CXORA_BUFFER_TO_STRING(data, var->actualLength[pos]);
+#else
+    if (var->type->charsetForm == SQLCS_IMPLICIT)
+        return PyBytes_FromStringAndSize(data, var->actualLength[pos]);
+    #ifdef Py_UNICODE_WIDE
+    return PyUnicode_DecodeUTF16(data, var->actualLength[pos], NULL, NULL);
+    #else
+    return PyUnicode_FromUnicode((Py_UNICODE*) data, var->actualLength[pos]);
+    #endif
 #endif
-        return PyString_FromStringAndSize(data, var->actualLength[pos]);
-    return CXORA_TO_STRING_OBJ(data, var->actualLength[pos]);
 }
 

@@ -204,29 +204,22 @@ static int Cursor_FreeHandle(
     udt_Cursor *self,                   // cursor object
     int raiseException)                 // raise an exception, if necesary?
 {
-    ub4 tagLength;
+    udt_StringBuffer buffer;
     sword status;
-    char *tag;
 
     if (self->handle) {
         if (self->isOwned) {
             OCIHandleFree(self->handle, OCI_HTYPE_STMT);
-        } else {
-            if (self->statementTag) {
-                tag = PyString_AS_STRING(self->statementTag);
-                tagLength = PyString_GET_SIZE(self->statementTag);
-            } else {
-                tag = NULL;
-                tagLength = 0;
-            }
-            if (self->connection->handle != 0) {
-                status = OCIStmtRelease(self->handle,
-                        self->environment->errorHandle, (text*) tag, tagLength,
-                        OCI_DEFAULT);
-                if (raiseException && Environment_CheckForError(
-                        self->environment, status, "Cursor_FreeHandle()") < 0)
-                    return -1;
-            }
+        } else if (self->connection->handle != 0) {
+            if (!StringBuffer_Fill(&buffer, self->statementTag) < 0)
+                return (raiseException) ? -1 : 0;
+            status = OCIStmtRelease(self->handle,
+                    self->environment->errorHandle, (text*) buffer.ptr,
+                    buffer.size, OCI_DEFAULT);
+            StringBuffer_CLEAR(&buffer);
+            if (raiseException && Environment_CheckForError(
+                    self->environment, status, "Cursor_FreeHandle()") < 0)
+                return -1;
         }
     }
     return 0;
@@ -415,8 +408,7 @@ static int Cursor_GetBindNames(
     // process the bind information returned
     for (i = 0; i < foundElements; i++) {
         if (!duplicate[i]) {
-            temp = PyString_FromStringAndSize(bindNames[i],
-                    bindNameLengths[i]);
+            temp = CXORA_BUFFER_TO_STRING(bindNames[i], bindNameLengths[i]);
             if (!temp) {
                 Py_DECREF(*names);
                 PyMem_Free(buffer);
@@ -649,14 +641,18 @@ static PyObject *Cursor_ItemDescriptionHelper(
     type = (PyObject*) varType->pythonType;
     if (type == (PyObject*) &g_StringVarType)
         displaySize = internalSize;
+#ifndef WITH_UNICODE
     else if (type == (PyObject*) &g_UnicodeVarType)
         displaySize = internalSize / 2;
+#endif
     else if (type == (PyObject*) &g_BinaryVarType)
         displaySize = internalSize;
     else if (type == (PyObject*) &g_FixedCharVarType)
         displaySize = internalSize;
+#ifndef WITH_UNICODE
     else if (type == (PyObject*) &g_FixedUnicodeVarType)
         displaySize = internalSize / 2;
+#endif
     else if (type == (PyObject*) &g_NumberVarType) {
         if (precision) {
             displaySize = precision + 1;
@@ -676,7 +672,7 @@ static PyObject *Cursor_ItemDescriptionHelper(
         return NULL;
 
     // set each of the items in the tuple
-    PyTuple_SET_ITEM(tuple, 0, CXORA_TO_STRING_OBJ(name, nameLength));
+    PyTuple_SET_ITEM(tuple, 0, CXORA_BUFFER_TO_STRING(name, nameLength));
     Py_INCREF(type);
     PyTuple_SET_ITEM(tuple, 1, type);
     PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(displaySize));
@@ -1308,7 +1304,7 @@ static int Cursor_Call(
     Py_DECREF(arguments);
 
     // create the statement object
-    format = PyString_FromString(statement);
+    format = PyBytes_FromString(statement);
     PyMem_Free(statement);
     if (!format) {
         Py_DECREF(bindVariables);
@@ -1436,13 +1432,8 @@ static PyObject *Cursor_Execute(
     executeArgs = NULL;
     if (!PyArg_ParseTuple(args, "O|O", &statement, &executeArgs))
         return NULL;
-#ifdef WITH_UNICODE
-    if (statement != Py_None && !PyUnicode_Check(statement)) {
-        PyErr_SetString(PyExc_TypeError, "expecting None or unicode string");
-#else
-    if (statement != Py_None && !PyString_Check(statement)) {
+    if (statement != Py_None && !CXORA_STRING_CHECK(statement)) {
         PyErr_SetString(PyExc_TypeError, "expecting None or a string");
-#endif
         return NULL;
     }
     if (executeArgs && keywordArgs) {
@@ -1520,8 +1511,8 @@ static PyObject *Cursor_ExecuteMany(
     if (!PyArg_ParseTuple(args, "OO!", &statement, &PyList_Type,
             &listOfArguments))
         return NULL;
-    if (statement != Py_None && !PyString_Check(statement)) {
-        PyErr_SetString(PyExc_TypeError, "expecting None or a string");
+    if (statement != Py_None && !CXORA_STRING_CHECK(statement)) {
+        PyErr_SetString(PyExc_TypeError, "expecting None or string");
         return NULL;
     }
 

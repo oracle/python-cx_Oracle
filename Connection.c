@@ -56,7 +56,7 @@ static PyObject *Connection_GetVersion(udt_Connection*, void*);
 static PyObject *Connection_GetMaxBytesPerCharacter(udt_Connection*, void*);
 static PyObject *Connection_ContextManagerEnter(udt_Connection*, PyObject*);
 static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
-#ifdef OCI_NLS_CHARSET_MAXBYTESZ
+#ifndef WITH_UNICODE
 static PyObject *Connection_GetEncoding(udt_Connection*, void*);
 static PyObject *Connection_GetNationalEncoding(udt_Connection*, void*);
 #endif
@@ -119,7 +119,7 @@ static PyMemberDef g_ConnectionMembers[] = {
 // declaration of calculated members for Python type "Connection"
 //-----------------------------------------------------------------------------
 static PyGetSetDef g_ConnectionCalcMembers[] = {
-#ifdef OCI_NLS_CHARSET_MAXBYTESZ
+#ifndef WITH_UNICODE
     { "encoding", (getter) Connection_GetEncoding, 0, 0, 0 },
     { "nencoding", (getter) Connection_GetNationalEncoding, 0, 0, 0 },
 #endif
@@ -364,6 +364,7 @@ static int Connection_SetOCIAttr(
     PyObject *value,                    // value to set
     ub4 *attribute)                     // OCI attribute type
 {
+    udt_StringBuffer buffer;
     sword status;
 
     // make sure connection is connected
@@ -371,13 +372,15 @@ static int Connection_SetOCIAttr(
         return -1;
 
     // set the value in the OCI
-    if (!PyString_Check(value)) {
+    if (!CXORA_STRING_CHECK(value)) {
         PyErr_SetString(PyExc_TypeError, "value must be a string");
         return -1;
     }
+    if (StringBuffer_Fill(&buffer, value))
+        return -1;
     status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-            PyString_AS_STRING(value), PyString_GET_SIZE(value),
-            *attribute, self->environment->errorHandle);
+            buffer.ptr, buffer.size, *attribute,
+            self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
             "Connection_SetOCIAttr()") < 0)
         return -1;
@@ -786,7 +789,7 @@ static PyObject *Connection_Repr(
 }
 
 
-#ifdef OCI_NLS_CHARSET_MAXBYTESZ
+#ifndef WITH_UNICODE
 //-----------------------------------------------------------------------------
 // Connection_GetCharacterSetName()
 //   Retrieve the IANA character set name for the attribute.
@@ -911,8 +914,8 @@ static PyObject *Connection_GetVersion(
     udt_Connection *self,               // connection object
     void *arg)                          // optional argument (ignored)
 {
+    PyObject *procName, *listOfArguments;
     udt_Variable *versionVar, *compatVar;
-    PyObject *results, *temp;
     udt_Cursor *cursor;
 
     // if version has already been determined, no need to determine again
@@ -943,29 +946,37 @@ static PyObject *Connection_GetVersion(
         return NULL;
     }
 
-    // create the parameters for the function call
-    temp = Py_BuildValue("(s,[OO])",
-            "begin dbms_utility.db_version(:ver, :compat); end;",
-            versionVar, compatVar);
-    Py_DECREF(versionVar);
-    Py_DECREF(compatVar);
-    if (!temp) {
+    // create the list of arguments
+    listOfArguments = PyList_New(2);
+    if (!listOfArguments) {
+        Py_DECREF(versionVar);
+        Py_DECREF(compatVar);
+        Py_DECREF(cursor);
+        return NULL;
+    }
+    PyList_SET_ITEM(listOfArguments, 0, (PyObject*) versionVar);
+    PyList_SET_ITEM(listOfArguments, 1, (PyObject*) compatVar);
+
+    // create the string variable
+    procName = CXORA_ASCII_TO_STRING("dbms_utility.db_version");
+    if (!procName) {
+        Py_DECREF(listOfArguments);
         Py_DECREF(cursor);
         return NULL;
     }
 
-    // execute the cursor
-    results = Cursor_Execute(cursor, temp, NULL);
-    if (!results) {
-        Py_DECREF(temp);
+    // call stored procedure
+    if (Cursor_Call(cursor, NULL, procName, listOfArguments) < 0) {
+        Py_DECREF(procName);
+        Py_DECREF(listOfArguments);
         Py_DECREF(cursor);
         return NULL;
     }
-    Py_DECREF(results);
+    Py_DECREF(procName);
 
     // retrieve value
     self->version = Variable_GetValue(versionVar, 0);
-    Py_DECREF(temp);
+    Py_DECREF(listOfArguments);
     Py_DECREF(cursor);
     Py_XINCREF(self->version);
     return self->version;

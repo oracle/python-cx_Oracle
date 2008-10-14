@@ -75,7 +75,11 @@ static udt_Environment *Environment_New(
         return NULL;
     environment->handle = NULL;
     environment->errorHandle = NULL;
+#ifdef WITH_UNICODE
+    environment->maxBytesPerCharacter = 2;
+#else
     environment->maxBytesPerCharacter = 1;
+#endif
     environment->fixedWidth = 1;
     environment->maxStringBytes = MAX_STRING_CHARS;
 
@@ -114,7 +118,7 @@ static udt_Environment *Environment_New(
     }
 
     // acquire max bytes per character
-#ifdef OCI_NLS_CHARSET_MAXBYTESZ
+#ifndef WITH_UNICODE
     status = OCINlsNumericInfoGet(environment->handle,
             environment->errorHandle, &environment->maxBytesPerCharacter,
             OCI_NLS_CHARSET_MAXBYTESZ);

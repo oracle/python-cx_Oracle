@@ -109,7 +109,7 @@ static udt_Error *Error_New(
 	        if (errorText[len] == 0 && errorText[len + 1] == 0)
 		        break;
 	    }
-        error->message = CXORA_TO_STRING_OBJ(errorText, len);
+        error->message = CXORA_BUFFER_TO_STRING(errorText, len);
 #else
         error->message = PyString_FromString(errorText);
 #endif
@@ -146,10 +146,6 @@ static PyObject *Error_Str(
         Py_INCREF(self->message);
         return self->message;
     }
-#ifdef WITH_UNICODE
-    return PyUnicode_DecodeASCII("", 0, NULL);
-#else
-    return PyString_FromString("");
-#endif
+    return CXORA_ASCII_TO_STRING("");
 }
 

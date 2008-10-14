@@ -169,12 +169,13 @@ static int SessionPool_Init(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
-    unsigned usernameLength, passwordLength, dsnLength, poolNameLength;
     unsigned minSessions, maxSessions, sessionIncrement;
     PyObject *threadedObj, *eventsObj, *homogeneousObj;
-    const char *username, *password, *dsn, *poolName;
+    udt_StringBuffer username, password, dsn;
     int threaded, events, homogeneous;
     PyTypeObject *connectionType;
+    unsigned poolNameLength;
+    const char *poolName;
     sword status;
     ub4 poolMode;
     ub1 getMode;
@@ -190,11 +191,11 @@ static int SessionPool_Init(
     threadedObj = eventsObj = homogeneousObj = NULL;
     connectionType = &g_ConnectionType;
     getMode = OCI_SPOOL_ATTRVAL_NOWAIT;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "s#s#s#iii|OObOO",
-            keywordList, &username, &usernameLength, &password,
-            &passwordLength, &dsn, &dsnLength, &minSessions, &maxSessions,
-            &sessionIncrement, &connectionType, &threadedObj, &getMode,
-            &eventsObj, &homogeneousObj))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O!O!iii|OObOO",
+            keywordList, CXORA_STRING_TYPE, &self->username,
+            CXORA_STRING_TYPE, &self->password, CXORA_STRING_TYPE, &self->dsn,
+            &minSessions, &maxSessions, &sessionIncrement, &connectionType,
+            &threadedObj, &getMode, &eventsObj, &homogeneousObj))
         return -1;
     if (!PyType_Check(connectionType)) {
         PyErr_SetString(g_ProgrammingErrorException,
@@ -225,6 +226,9 @@ static int SessionPool_Init(
     // initialize the object's members
     Py_INCREF(connectionType);
     self->connectionType = connectionType;
+    Py_INCREF(self->dsn);
+    Py_INCREF(self->username);
+    Py_INCREF(self->password);
     self->minSessions = minSessions;
     self->maxSessions = maxSessions;
     self->sessionIncrement = sessionIncrement;
@@ -233,21 +237,6 @@ static int SessionPool_Init(
     // set up the environment
     self->environment = Environment_New(threaded, events);
     if (!self->environment)
-        return -1;
-
-    // create the string for the username
-    self->username = PyString_FromStringAndSize(username, usernameLength);
-    if (!self->username)
-        return -1;
-
-    // create the string for the password
-    self->password = PyString_FromStringAndSize(password, passwordLength);
-    if (!self->password)
-        return -1;
-
-    // create the string for the TNS entry
-    self->dsn = PyString_FromStringAndSize(dsn, dsnLength);
-    if (!self->dsn)
         return -1;
 
     // create the session pool handle
@@ -263,19 +252,34 @@ static int SessionPool_Init(
         poolMode |= OCI_SPC_HOMOGENEOUS;
 
     // create the session pool
+    if (StringBuffer_Fill(&username, self->username) < 0)
+        return -1;
+    if (StringBuffer_Fill(&password, self->password) < 0) {
+        StringBuffer_CLEAR(&username);
+        return -1;
+    }
+    if (StringBuffer_Fill(&dsn, self->dsn) < 0) {
+        StringBuffer_CLEAR(&username);
+        StringBuffer_CLEAR(&password);
+        return -1;
+    }
     Py_BEGIN_ALLOW_THREADS
     status = OCISessionPoolCreate(self->environment->handle,
             self->environment->errorHandle, self->handle,
-            (OraText**) &poolName, &poolNameLength, (OraText*) dsn, dsnLength,
-            minSessions, maxSessions, sessionIncrement, (OraText*) username,
-            usernameLength, (OraText*) password, passwordLength, poolMode);
+            (OraText**) &poolName, &poolNameLength, (OraText*) dsn.ptr,
+            dsn.size, minSessions, maxSessions, sessionIncrement,
+            (OraText*) username.ptr, username.size, (OraText*) password.ptr,
+            password.size, poolMode);
     Py_END_ALLOW_THREADS
+    StringBuffer_CLEAR(&username);
+    StringBuffer_CLEAR(&password);
+    StringBuffer_CLEAR(&dsn);
     if (Environment_CheckForError(self->environment, status,
             "SessionPool_New(): create pool") < 0)
         return -1;
 
     // create the string for the pool name
-    self->name = PyString_FromStringAndSize(poolName, poolNameLength);
+    self->name = CXORA_BUFFER_TO_STRING(poolName, poolNameLength);
     if (!self->name)
         return -1;
 

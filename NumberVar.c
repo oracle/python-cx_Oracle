@@ -453,10 +453,10 @@ static PyObject *NumberVar_GetValue(
     udt_NumberVar *var,                 // variable to determine value for
     unsigned pos)                       // array position
 {
+    PyObject *result, *stringObj;
     char stringValue[200];
     long integerValue;
     ub4 stringLength;
-    PyObject *result;
     sword status;
 
     if (var->type == &vt_Integer || var->type == &vt_Boolean) {
@@ -473,18 +473,19 @@ static PyObject *NumberVar_GetValue(
     if (var->type == &vt_NumberAsString || var->type == &vt_LongInteger) {
         stringLength = sizeof(stringValue);
         status = OCINumberToText(var->environment->errorHandle,
-                &var->data[pos], (unsigned char*) "TM9", 3, NULL, 0,
-                &stringLength, (unsigned char*) stringValue);
+                &var->data[pos], (text*) g_NumberToStringFormatBuffer.ptr,
+                g_NumberToStringFormatBuffer.size, NULL, 0, &stringLength,
+                (unsigned char*) stringValue);
         if (Environment_CheckForError(var->environment, status,
                 "NumberVar_GetValue(): as string") < 0)
             return NULL;
+        stringObj = CXORA_BUFFER_TO_STRING(stringValue, stringLength);
+        if (!stringObj)
+            return NULL;
         if (var->type == &vt_NumberAsString)
-            return PyString_FromStringAndSize(stringValue, stringLength);
-        result = PyInt_FromString(stringValue, NULL, 10);
-        if (result || !PyErr_ExceptionMatches(PyExc_ValueError))
-            return result;
-        PyErr_Clear();
-        result = PyLong_FromString(stringValue, NULL, 10);
+            return stringObj;
+        result = PyNumber_Int(stringObj);
+        Py_DECREF(stringObj);
         if (result || !PyErr_ExceptionMatches(PyExc_ValueError))
             return result;
         PyErr_Clear();

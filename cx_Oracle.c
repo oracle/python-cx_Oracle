@@ -79,6 +79,7 @@ typedef int Py_ssize_t;
 #define BUILD_VERSION_STRING    xstr(BUILD_VERSION)
 #define DRIVER_NAME             "cx_Oracle-"BUILD_VERSION_STRING
 
+#include "StringUtils.c"
 
 //-----------------------------------------------------------------------------
 // Globals
@@ -98,6 +99,8 @@ static PyObject *g_ProgrammingErrorException = NULL;
 static PyObject *g_NotSupportedErrorException = NULL;
 static PyTypeObject *g_DateTimeType = NULL;
 static PyTypeObject *g_DecimalType = NULL;
+static PyObject *g_NumberToStringFormatObj = NULL;
+static udt_StringBuffer g_NumberToStringFormatBuffer;
 
 
 //-----------------------------------------------------------------------------
@@ -141,7 +144,6 @@ static int GetModuleAndName(
 }
 
 
-#include "StringUtils.c"
 #include "Environment.c"
 #include "SessionPool.c"
 
@@ -346,6 +348,14 @@ void initcx_Oracle(void)
                 "Decimal");
     PyErr_Clear();
 
+    // set up the string and buffer for converting numbers to strings
+    g_NumberToStringFormatObj = CXORA_ASCII_TO_STRING("TM9");
+    if (!g_NumberToStringFormatObj)
+        return;
+    if (StringBuffer_Fill(&g_NumberToStringFormatBuffer,
+            g_NumberToStringFormatObj) < 0)
+        return;
+
     // prepare the types for use by the module
     MAKE_TYPE_READY(&g_ConnectionType);
     MAKE_TYPE_READY(&g_CursorType);
@@ -374,8 +384,10 @@ void initcx_Oracle(void)
     MAKE_VARIABLE_TYPE_READY(&g_BFILEVarType);
     MAKE_VARIABLE_TYPE_READY(&g_CursorVarType);
     MAKE_VARIABLE_TYPE_READY(&g_ObjectVarType);
+#ifndef WITH_UNICODE
     MAKE_VARIABLE_TYPE_READY(&g_UnicodeVarType);
     MAKE_VARIABLE_TYPE_READY(&g_FixedUnicodeVarType);
+#endif
 #ifdef SQLT_BFLOAT
     MAKE_VARIABLE_TYPE_READY(&g_NativeFloatVarType);
 #endif
@@ -442,7 +454,10 @@ void initcx_Oracle(void)
     ADD_TYPE_OBJECT("OBJECT", &g_ObjectVarType)
     ADD_TYPE_OBJECT("DATETIME", &g_DateTimeVarType)
     ADD_TYPE_OBJECT("FIXED_CHAR", &g_FixedCharVarType)
+#ifndef WITH_UNICODE
     ADD_TYPE_OBJECT("FIXED_UNICODE", &g_FixedUnicodeVarType)
+    ADD_TYPE_OBJECT("UNICODE", &g_UnicodeVarType)
+#endif
     ADD_TYPE_OBJECT("LOB", &g_ExternalLobVarType)
     ADD_TYPE_OBJECT("LONG_BINARY", &g_LongBinaryVarType)
     ADD_TYPE_OBJECT("LONG_STRING", &g_LongStringVarType)
@@ -451,7 +466,6 @@ void initcx_Oracle(void)
     ADD_TYPE_OBJECT("ROWID", &g_RowidVarType)
     ADD_TYPE_OBJECT("STRING", &g_StringVarType)
     ADD_TYPE_OBJECT("TIMESTAMP", &g_TimestampVarType)
-    ADD_TYPE_OBJECT("UNICODE", &g_UnicodeVarType)
 #ifdef SQLT_BFLOAT
     ADD_TYPE_OBJECT("NATIVE_FLOAT", &g_NativeFloatVarType)
 #endif

@@ -332,8 +332,10 @@ static int Variable_Check(
             Py_TYPE(object) == &g_NumberVarType ||
             Py_TYPE(object) == &g_StringVarType ||
             Py_TYPE(object) == &g_FixedCharVarType ||
+#ifndef WITH_UNICODE
             Py_TYPE(object) == &g_UnicodeVarType ||
             Py_TYPE(object) == &g_FixedUnicodeVarType ||
+#endif
             Py_TYPE(object) == &g_RowidVarType ||
             Py_TYPE(object) == &g_BinaryVarType ||
             Py_TYPE(object) == &g_TimestampVarType
@@ -355,16 +357,18 @@ static udt_VariableType *Variable_TypeByPythonType(
 {
     if (type == (PyObject*) &g_StringVarType)
         return &vt_String;
-    if (type == (PyObject*) &PyString_Type)
+    if (type == (PyObject*) CXORA_STRING_TYPE)
         return &vt_String;
     if (type == (PyObject*) &g_FixedCharVarType)
         return &vt_FixedChar;
+#ifndef WITH_UNICODE
     if (type == (PyObject*) &g_UnicodeVarType)
         return &vt_NationalCharString;
     if (type == (PyObject*) &PyUnicode_Type)
         return &vt_NationalCharString;
     if (type == (PyObject*) &g_FixedUnicodeVarType)
         return &vt_FixedNationalChar;
+#endif
     if (type == (PyObject*) &g_RowidVarType)
         return &vt_Rowid;
     if (type == (PyObject*) &g_BinaryVarType)
@@ -437,10 +441,12 @@ static udt_VariableType *Variable_TypeByValue(
     // handle scalars
     if (value == Py_None)
         return &vt_String;
-    if (PyString_Check(value))
+    if (CXORA_STRING_CHECK(value))
         return &vt_String;
+#ifndef WITH_UNICODE
     if (PyUnicode_Check(value))
         return &vt_NationalCharString;
+#endif
     if (PyInt_Check(value))
         return &vt_Integer;
     if (PyLong_Check(value))
@@ -503,12 +509,16 @@ static udt_VariableType *Variable_TypeByOracleDataType (
         case SQLT_LNG:
             return &vt_LongString;
         case SQLT_AFC:
+#ifndef WITH_UNICODE
             if (charsetForm == SQLCS_NCHAR)
                 return &vt_FixedNationalChar;
+#endif
             return &vt_FixedChar;
         case SQLT_CHR:
+#ifndef WITH_UNICODE
             if (charsetForm == SQLCS_NCHAR)
                 return &vt_NationalCharString;
+#endif
             return &vt_String;
         case SQLT_RDD:
             return &vt_Rowid;
@@ -1031,8 +1041,8 @@ static int Variable_InternalBind(
         return -1;
 
     // set the charset form and id if applicable
+#ifndef WITH_UNICODE
     if (var->type->charsetForm != SQLCS_IMPLICIT) {
-        ub4 lengthInChars = var->maxLength / 2;
         ub2 charsetId = OCI_UTF16ID;
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
                 (dvoid*) &var->type->charsetForm, 0, OCI_ATTR_CHARSET_FORM,
@@ -1047,12 +1057,13 @@ static int Variable_InternalBind(
                  "Variable_InternalBind(): setting charset Id") < 0)
             return -1;
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
-                (dvoid*) &lengthInChars, 0, OCI_ATTR_CHAR_COUNT,
+                (dvoid*) &var->maxLength, 0, OCI_ATTR_MAXDATA_SIZE,
                 var->environment->errorHandle);
         if (Environment_CheckForError(var->environment, status,
-                "Variable_InternalBind(): set char count") < 0)
+                "Variable_InternalBind(): set max data size") < 0)
             return -1;
     }
+#endif
 
     // set the max data size for strings
     if ((var->type == &vt_String || var->type == &vt_FixedChar)
