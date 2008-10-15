@@ -194,6 +194,7 @@ static udt_VariableType vt_String = {
     SQLT_CHR,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     MAX_STRING_CHARS,                   // element length (default)
+    1,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -213,6 +214,7 @@ static udt_VariableType vt_NationalCharString = {
     SQLT_CHR,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
     MAX_STRING_CHARS,                   // element length (default)
+    1,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -232,6 +234,7 @@ static udt_VariableType vt_FixedChar = {
     SQLT_AFC,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     2000,                               // element length (default)
+    1,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -251,6 +254,7 @@ static udt_VariableType vt_FixedNationalChar = {
     SQLT_AFC,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
     2000,                               // element length (default)
+    1,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -270,6 +274,7 @@ static udt_VariableType vt_Rowid = {
     SQLT_CHR,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     18,                                 // element length (default)
+    1,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -287,7 +292,8 @@ static udt_VariableType vt_Binary = {
     &g_BinaryVarType,                   // Python type
     SQLT_BIN,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
-    MAX_STRING_CHARS,                   // element length (default)
+    MAX_BINARY_BYTES,                   // element length (default)
+    0,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -352,26 +358,34 @@ static int StringVar_SetValue(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
-    PyObject *encodedString;
-    Py_ssize_t bufferSize;
-    const void *buffer;
+    udt_StringBuffer buffer;
 
     // get the buffer data and size for binding
-    encodedString = NULL;
+    StringBuffer_Init(&buffer);
 #ifdef WITH_UNICODE
-    if (var->type == &vt_Binary) {
+    if (!var->type->isCharacterData) {
 #else
     if (var->type->charsetForm == SQLCS_IMPLICIT) {
 #endif
         if (PyBytes_Check(value)) {
-            buffer = PyBytes_AS_STRING(value);
-            bufferSize = PyBytes_GET_SIZE(value);
+            StringBuffer_FromBytes(&buffer, value);
         } else if (PyBuffer_Check(value)) {
-            if (PyObject_AsReadBuffer(value, &buffer, &bufferSize) < 0)
+            if (PyObject_AsReadBuffer(value, &buffer.ptr, &buffer.size) < 0)
                 return -1;
         } else {
             PyErr_SetString(PyExc_TypeError,
                     "expecting string or buffer data");
+            return -1;
+        }
+        if (var->type->isCharacterData
+                && buffer.size > var->environment->maxStringBytes) {
+            StringBuffer_Clear(&buffer);
+            PyErr_SetString(PyExc_ValueError, "string data too large");
+            return -1;
+        } else if (!var->type->isCharacterData
+                && buffer.size > MAX_BINARY_BYTES) {
+            StringBuffer_Clear(&buffer);
+            PyErr_SetString(PyExc_ValueError, "binary data too large");
             return -1;
         }
     } else {
@@ -379,39 +393,27 @@ static int StringVar_SetValue(
             PyErr_SetString(PyExc_TypeError, "expecting unicode data");
             return -1;
         }
-#ifdef Py_UNICODE_WIDE
-        int one = 1;
-        int byteOrder = (IS_LITTLE_ENDIAN) ? -1 : 1;
-        encodedString = PyUnicode_EncodeUTF16(PyUnicode_AS_UNICODE(value),
-                PyUnicode_GET_SIZE(value), NULL, byteOrder);
-        if (!encodedString)
+        if (PyUnicode_GET_SIZE(value) > MAX_STRING_CHARS) {
+            PyErr_SetString(PyExc_ValueError, "unicode data too large");
             return -1;
-        buffer = PyBytes_AS_STRING(encodedString);
-        bufferSize = PyBytes_GET_SIZE(encodedString);
-#else
-        buffer = PyUnicode_AS_UNICODE(value);
-        bufferSize = PyUnicode_GET_DATA_SIZE(value);
-#endif
+        }
+        if (StringBuffer_FromUnicode(&buffer, value) < 0)
+            return -1;
     }
 
     // ensure that the buffer is not too large
-    if (bufferSize > var->maxLength) {
-        if (bufferSize > var->environment->maxStringBytes) {
-            PyErr_SetString(PyExc_ValueError, "string data too large");
-            Py_XDECREF(encodedString);
-            return -1;
-        }
-        if (Variable_Resize( (udt_Variable*) var, bufferSize) < 0) {
-            Py_XDECREF(encodedString);
+    if (buffer.size > var->maxLength) {
+        if (Variable_Resize( (udt_Variable*) var, buffer.size) < 0) {
+            StringBuffer_Clear(&buffer);
             return -1;
         }
     }
 
     // keep a copy of the string
-    var->actualLength[pos] = (ub2) bufferSize;
-    if (bufferSize)
-        memcpy(var->data + var->maxLength * pos, buffer, bufferSize);
-    Py_XDECREF(encodedString);
+    var->actualLength[pos] = (ub2) buffer.size;
+    if (buffer.size)
+        memcpy(var->data + var->maxLength * pos, buffer.ptr, buffer.size);
+    StringBuffer_Clear(&buffer);
 
     return 0;
 }

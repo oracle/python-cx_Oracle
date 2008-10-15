@@ -66,6 +66,7 @@ static udt_VariableType vt_Cursor = {
     SQLT_RSET,                          // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(OCIStmt*),                   // element length
+    0,                                  // is character data
     0,                                  // is variable length
     0,                                  // can be copied
     0                                   // can be in array

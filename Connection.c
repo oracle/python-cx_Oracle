@@ -379,7 +379,7 @@ static int Connection_SetOCIAttr(
     if (StringBuffer_Fill(&buffer, value))
         return -1;
     status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-            buffer.ptr, buffer.size, *attribute,
+            (text*) buffer.ptr, buffer.size, *attribute,
             self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
             "Connection_SetOCIAttr()") < 0)

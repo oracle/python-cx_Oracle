@@ -206,7 +206,8 @@ static PyObject *ExternalObjectVar_ConvertToPython(
     PyObject *referencedObject,         // referenced object (for sub objects)
     udt_ObjectType *subType)            // sub type (for sub objects)
 {
-    OraText *stringValue;
+    text *stringValue;
+    ub4 stringSize;
 
     // null values returned as None
     if (* (OCIInd*) indicator == OCI_IND_NULL) {
@@ -220,7 +221,9 @@ static PyObject *ExternalObjectVar_ConvertToPython(
         case OCI_TYPECODE_VARCHAR2:
             stringValue = OCIStringPtr(environment->handle,
                     * (OCIString**) value);
-            return PyString_FromString((char*) stringValue);
+            stringSize = OCIStringSize(environment->handle,
+                    * (OCIString**) value);
+            return cxString_FromEncodedString(stringValue, stringSize);
         case OCI_TYPECODE_NUMBER:
             return OracleNumberToPythonFloat(environment, (OCINumber*) value);
         case OCI_TYPECODE_DATE:

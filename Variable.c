@@ -60,6 +60,7 @@ typedef struct _udt_VariableType {
     ub2 oracleType;
     ub1 charsetForm;
     ub4 elementLength;
+    int isCharacterData;
     int isVariableLength;
     int canBeCopied;
     int canBeInArray;
@@ -202,10 +203,17 @@ static udt_Variable *Variable_New(
     if (type->isVariableLength) {
         if (elementLength < sizeof(ub2))
             elementLength = sizeof(ub2);
-        if (type->charsetForm == SQLCS_IMPLICIT)
+        var->maxLength = elementLength;
+    }
+    if (type->isCharacterData) {
+#ifdef WITH_UNICODE
+        var->maxLength = var->maxLength * CXORA_BYTES_PER_CHAR;
+#else
+        if (type->charsetForm != SQLCS_IMPLICIT)
             var->maxLength =
-                    elementLength * cursor->environment->maxBytesPerCharacter;
+                    var->maxLength * cursor->environment->maxBytesPerCharacter;
         else var->maxLength = elementLength * 2;
+#endif
     }
 
     // allocate the indicator and data
@@ -326,13 +334,13 @@ static int Variable_Check(
             Py_TYPE(object) == &g_BFILEVarType ||
             Py_TYPE(object) == &g_BLOBVarType ||
             Py_TYPE(object) == &g_CLOBVarType ||
-            Py_TYPE(object) == &g_NCLOBVarType ||
             Py_TYPE(object) == &g_LongStringVarType ||
             Py_TYPE(object) == &g_LongBinaryVarType ||
             Py_TYPE(object) == &g_NumberVarType ||
             Py_TYPE(object) == &g_StringVarType ||
             Py_TYPE(object) == &g_FixedCharVarType ||
 #ifndef WITH_UNICODE
+            Py_TYPE(object) == &g_NCLOBVarType ||
             Py_TYPE(object) == &g_UnicodeVarType ||
             Py_TYPE(object) == &g_FixedUnicodeVarType ||
 #endif
@@ -368,6 +376,8 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_NationalCharString;
     if (type == (PyObject*) &g_FixedUnicodeVarType)
         return &vt_FixedNationalChar;
+    if (type == (PyObject*) &g_NCLOBVarType)
+        return &vt_NCLOB;
 #endif
     if (type == (PyObject*) &g_RowidVarType)
         return &vt_Rowid;
@@ -385,8 +395,6 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_BLOB;
     if (type == (PyObject*) &g_CLOBVarType)
         return &vt_CLOB;
-    if (type == (PyObject*) &g_NCLOBVarType)
-        return &vt_NCLOB;
     if (type == (PyObject*) &g_NumberVarType) {
         if (cursor->numbersAsStrings)
             return &vt_NumberAsString;
@@ -432,20 +440,38 @@ static udt_VariableType *Variable_TypeByPythonType(
 // object does not have a corresponding variable type.
 //-----------------------------------------------------------------------------
 static udt_VariableType *Variable_TypeByValue(
-    PyObject* value)                    // Python type
+    PyObject* value,                    // Python type
+    ub4* size,                          // size to use (OUT)
+    unsigned *numElements)              // number of elements (OUT)
 {
+    udt_VariableType *varType;
     PyObject *elementValue;
     char buffer[200];
     int i, result;
 
     // handle scalars
-    if (value == Py_None)
+    if (value == Py_None) {
+        *size = 1;
         return &vt_String;
-    if (cxString_Check(value))
+    }
+    if (cxString_Check(value)) {
+        *size = cxString_GetSize(value);
+        if (*size > MAX_STRING_CHARS)
+            return &vt_LongString;
         return &vt_String;
-#ifndef WITH_UNICODE
-    if (PyUnicode_Check(value))
+    }
+#ifdef WITH_UNICODE
+    if (PyBytes_Check(value)) {
+        *size = PyBytes_GET_SIZE(value);
+        if (*size > MAX_BINARY_BYTES)
+            return &vt_LongBinary;
+        return &vt_Binary;
+    }
+#else
+    if (PyUnicode_Check(value)) {
+        *size = PyUnicode_GET_SIZE(value);
         return &vt_NationalCharString;
+    }
 #endif
     if (PyInt_Check(value))
         return &vt_Integer;
@@ -453,8 +479,14 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_LongInteger;
     if (PyFloat_Check(value))
         return &vt_Float;
-    if (PyBuffer_Check(value))
+    if (PyBuffer_Check(value)) {
+        const void *buffer;
+        if (PyObject_AsReadBuffer(value, &buffer, size) < 0)
+            return NULL;
+        if (*size > MAX_BINARY_BYTES)
+            return &vt_LongBinary;
         return &vt_Binary;
+    }
     if (PyBool_Check(value))
         return &vt_Boolean;
 #ifdef NATIVE_DATETIME
@@ -484,7 +516,12 @@ static udt_VariableType *Variable_TypeByValue(
             if (elementValue != Py_None)
                 break;
         }
-        return Variable_TypeByValue(elementValue);
+        varType = Variable_TypeByValue(elementValue, size, numElements);
+        if (!varType)
+            return NULL;
+        *numElements = PyList_GET_SIZE(value);
+        *size = varType->elementLength;
+        return varType;
     }
 
     sprintf(buffer, "Variable_TypeByValue(): unhandled data type %.*s", 150,
@@ -545,8 +582,10 @@ static udt_VariableType *Variable_TypeByOracleDataType (
         case SQLT_TIMESTAMP_LTZ:
             return &vt_Timestamp;
         case SQLT_CLOB:
+#ifndef WITH_UNICODE
             if (charsetForm == SQLCS_NCHAR)
                 return &vt_NCLOB;
+#endif
             return &vt_CLOB;
         case SQLT_BLOB:
             return &vt_BLOB;
@@ -627,31 +666,12 @@ static udt_Variable *Variable_DefaultNewByValue(
     unsigned numElements)               // number of elements to allocate
 {
     udt_VariableType *varType;
-    Py_ssize_t bufferSize;
-    const void *buffer;
     udt_Variable *var;
     ub4 size = 0;
 
-    varType = Variable_TypeByValue(value);
+    varType = Variable_TypeByValue(value, &size, &numElements);
     if (!varType)
         return NULL;
-    if (value == Py_None)
-        size = 1;
-    else if (PyString_Check(value)) {
-        size = PyString_GET_SIZE(value);
-        if (size > cursor->environment->maxStringBytes)
-            varType = &vt_LongString;
-    } else if (PyBuffer_Check(value)) {
-        if (PyObject_AsReadBuffer(value, &buffer, &bufferSize) < 0)
-            return NULL;
-        size = (ub4) bufferSize;
-        if (size > cursor->environment->maxStringBytes)
-            varType = &vt_LongBinary;
-    }
-    if (PyList_Check(value)) {
-        numElements = PyList_GET_SIZE(value);
-        size = varType->elementLength;
-    }
     var = Variable_New(cursor, numElements, varType, size);
     if (!var)
         return NULL;
@@ -1042,8 +1062,8 @@ static int Variable_InternalBind(
             "Variable_InternalBind()") < 0)
         return -1;
 
-    // set the charset form and id if applicable
 #ifndef WITH_UNICODE
+    // set the charset form and id if applicable
     if (var->type->charsetForm != SQLCS_IMPLICIT) {
         ub2 charsetId = OCI_UTF16ID;
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,

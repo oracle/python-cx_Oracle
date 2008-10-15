@@ -87,6 +87,7 @@ static udt_VariableType vt_Object = {
     SQLT_NTY,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(dvoid*),                     // element length
+    0,                                  // is character data
     0,                                  // is variable length
     0,                                  // can be copied
     0                                   // can be in array

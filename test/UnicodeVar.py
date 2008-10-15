@@ -232,7 +232,3 @@ class TestUnicodeVar(BaseTestCase):
         self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[4])
         self.failUnlessEqual(self.cursor.fetchone(), None)
 
-if __name__ == "__main__":
-    print "Testing cx_Oracle version", cx_Oracle.version
-    unittest.main()
-

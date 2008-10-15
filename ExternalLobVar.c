@@ -180,7 +180,8 @@ static int ExternalLobVar_InternalRead(
     status = OCILobRead(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle,
             var->lobVar->data[var->pos], length, offset, buffer,
-            bufferSize, NULL, NULL, 0, var->lobVar->type->charsetForm); 
+            bufferSize, NULL, NULL, CXORA_CHARSETID,
+            var->lobVar->type->charsetForm); 
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_LobRead()") < 0) {
@@ -253,7 +254,13 @@ static PyObject *ExternalLobVar_Value(
             amount = 1;
     }
     length = amount;
-    bufferSize = amount * var->lobVar->environment->maxBytesPerCharacter;
+    if (var->lobVar->type == &vt_CLOB)
+        bufferSize = amount * var->lobVar->environment->maxBytesPerCharacter;
+#ifndef WITH_UNICODE
+    else if (var->lobVar->type == &vt_NCLOB)
+        bufferSize = amount * 2;
+#endif
+    else bufferSize = amount;
 
     // create a string for retrieving the value
     buffer = (char*) PyMem_Malloc(bufferSize);
@@ -266,9 +273,21 @@ static PyObject *ExternalLobVar_Value(
     }
 
     // return the result
-    if (var->lobVar->environment->fixedWidth)
-        length = length * var->lobVar->environment->maxBytesPerCharacter;
-    result = PyString_FromStringAndSize(buffer, length);
+    if (var->lobVar->type == &vt_CLOB) {
+        if (var->lobVar->environment->fixedWidth)
+            length = length * var->lobVar->environment->maxBytesPerCharacter;
+        result = cxString_FromEncodedString(buffer, length);
+#ifndef WITH_UNICODE
+    } else if (var->lobVar->type == &vt_NCLOB) {
+    #ifdef Py_UNICODE_WIDE
+        result = PyUnicode_DecodeUTF16(buffer, length * 2, NULL, NULL);
+    #else
+        result = PyUnicode_FromUnicode((Py_UNICODE*) buffer, length);
+    #endif
+#endif
+    } else {
+        result = PyBytes_FromStringAndSize(buffer, length);
+    }
     PyMem_Free(buffer);
     return result;
 }
@@ -390,34 +409,26 @@ static PyObject *ExternalLobVar_Write(
     PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "data", "offset", NULL };
-    int offset, bufferLength, length;
-    char *buffer;
-    sword status;
+    PyObject *dataObj;
+    ub4 amount;
+    int offset;
 
     // buffer and offset are expected, offset is optional
     offset = -1;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "s#|i", keywordList,
-            &buffer, &bufferLength, &offset))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|i", keywordList,
+            &dataObj, &offset))
         return NULL;
     if (offset < 0)
         offset = 1;
 
-    // create a string for retrieving the value
+    // perform the write, if possible
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
-    length = bufferLength;
-    Py_BEGIN_ALLOW_THREADS
-    status = OCILobWrite(var->lobVar->connection->handle,
-            var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
-            (unsigned int*) &length, offset, buffer, bufferLength,
-            OCI_ONE_PIECE, NULL, NULL, 0, var->lobVar->type->charsetForm);
-    Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(var->lobVar->environment, status,
-            "ExternalLobVar_Write()") < 0)
+    if (LobVar_Write(var->lobVar, var->pos, dataObj, offset, &amount) < 0)
         return NULL;
 
     // return the result
-    return PyInt_FromLong(length);
+    return PyInt_FromLong(amount);
 }
 
 

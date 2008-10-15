@@ -64,6 +64,7 @@ static udt_VariableType vt_Timestamp = {
     SQLT_TIMESTAMP,                     // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(OCIDateTime*),               // element length (default)
+    0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array

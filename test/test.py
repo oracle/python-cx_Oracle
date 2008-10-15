@@ -11,7 +11,7 @@ print "Running tests for cx_Oracle version", cx_Oracle.version
 import TestEnv
 
 if len(sys.argv) > 1:
-    moduleNames = sys.argv[1:]
+    moduleNames = [os.path.splitext(v)[0] for v in sys.argv[1:]]
 elif hasattr(cx_Oracle, "UNICODE") or sys.version_info[0] >= 3:
     moduleNames = [
             "Connection",
@@ -33,7 +33,14 @@ else:
             "uConnection",
             "uCursor",
             "uCursorVar",
-            "uDateTimeVar"
+            "uDateTimeVar",
+            "uLobVar",
+            "uLongVar",
+            "uNumberVar",
+            "uObjectVar",
+            "uSessionPool",
+            "uStringVar",
+            "uTimestampVar"
     ]
 
 class BaseTestCase(unittest.TestCase):

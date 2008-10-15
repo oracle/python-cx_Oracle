@@ -99,6 +99,8 @@ static PyObject *g_ProgrammingErrorException = NULL;
 static PyObject *g_NotSupportedErrorException = NULL;
 static PyTypeObject *g_DateTimeType = NULL;
 static PyTypeObject *g_DecimalType = NULL;
+static PyObject *g_ShortNumberToStringFormatObj = NULL;
+static udt_StringBuffer g_ShortNumberToStringFormatBuffer;
 static PyObject *g_NumberToStringFormatObj = NULL;
 static udt_StringBuffer g_NumberToStringFormatBuffer;
 
@@ -349,7 +351,14 @@ void initcx_Oracle(void)
     PyErr_Clear();
 
     // set up the string and buffer for converting numbers to strings
-    g_NumberToStringFormatObj = cxString_FromAscii("TM9");
+    g_ShortNumberToStringFormatObj = cxString_FromAscii("TM9");
+    if (!g_ShortNumberToStringFormatObj)
+        return;
+    if (StringBuffer_Fill(&g_ShortNumberToStringFormatBuffer,
+            g_ShortNumberToStringFormatObj) < 0)
+        return;
+    g_NumberToStringFormatObj = cxString_FromAscii(
+            "999999999999999999999999999999999999999999999999999999999999999");
     if (!g_NumberToStringFormatObj)
         return;
     if (StringBuffer_Fill(&g_NumberToStringFormatBuffer,
@@ -379,7 +388,6 @@ void initcx_Oracle(void)
     MAKE_VARIABLE_TYPE_READY(&g_DateTimeVarType);
     MAKE_VARIABLE_TYPE_READY(&g_TimestampVarType);
     MAKE_VARIABLE_TYPE_READY(&g_CLOBVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_NCLOBVarType);
     MAKE_VARIABLE_TYPE_READY(&g_BLOBVarType);
     MAKE_VARIABLE_TYPE_READY(&g_BFILEVarType);
     MAKE_VARIABLE_TYPE_READY(&g_CursorVarType);
@@ -387,6 +395,7 @@ void initcx_Oracle(void)
 #ifndef WITH_UNICODE
     MAKE_VARIABLE_TYPE_READY(&g_UnicodeVarType);
     MAKE_VARIABLE_TYPE_READY(&g_FixedUnicodeVarType);
+    MAKE_VARIABLE_TYPE_READY(&g_NCLOBVarType);
 #endif
 #ifdef SQLT_BFLOAT
     MAKE_VARIABLE_TYPE_READY(&g_NativeFloatVarType);
@@ -457,11 +466,11 @@ void initcx_Oracle(void)
 #ifndef WITH_UNICODE
     ADD_TYPE_OBJECT("FIXED_UNICODE", &g_FixedUnicodeVarType)
     ADD_TYPE_OBJECT("UNICODE", &g_UnicodeVarType)
+    ADD_TYPE_OBJECT("NCLOB", &g_NCLOBVarType)
 #endif
     ADD_TYPE_OBJECT("LOB", &g_ExternalLobVarType)
     ADD_TYPE_OBJECT("LONG_BINARY", &g_LongBinaryVarType)
     ADD_TYPE_OBJECT("LONG_STRING", &g_LongStringVarType)
-    ADD_TYPE_OBJECT("NCLOB", &g_NCLOBVarType)
     ADD_TYPE_OBJECT("NUMBER", &g_NumberVarType)
     ADD_TYPE_OBJECT("ROWID", &g_RowidVarType)
     ADD_TYPE_OBJECT("STRING", &g_StringVarType)

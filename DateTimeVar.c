@@ -62,6 +62,7 @@ static udt_VariableType vt_DateTime = {
     SQLT_ODT,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(OCIDate),                    // element length (default)
+    0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -81,6 +82,7 @@ static udt_VariableType vt_Date = {
     SQLT_ODT,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(OCIDate),                    // element length (default)
+    0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array

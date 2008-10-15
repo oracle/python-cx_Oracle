@@ -4,12 +4,6 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// define number format used for acquiring long integers
-//-----------------------------------------------------------------------------
-static const char gc_NumberFormat[63] =
-        "999999999999999999999999999999999999999999999999999999999999999";
-
-//-----------------------------------------------------------------------------
 // Number types
 //-----------------------------------------------------------------------------
 typedef struct {
@@ -108,6 +102,7 @@ static udt_VariableType vt_Float = {
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(OCINumber),                  // element length
+    0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -127,6 +122,7 @@ static udt_VariableType vt_NativeFloat = {
     SQLT_BDOUBLE,                       // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(double),                     // element length
+    0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -146,6 +142,7 @@ static udt_VariableType vt_Integer = {
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(OCINumber),                  // element length
+    0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -164,6 +161,7 @@ static udt_VariableType vt_LongInteger = {
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(OCINumber),                  // element length
+    0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -182,6 +180,7 @@ static udt_VariableType vt_NumberAsString = {
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(OCINumber),                  // element length
+    0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -200,6 +199,7 @@ static udt_VariableType vt_Boolean = {
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(OCINumber),                  // element length
+    0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
     1                                   // can be in array
@@ -313,16 +313,19 @@ static int NumberVar_SetValueFromLong(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
+    udt_StringBuffer textBuffer;
     PyObject *textValue;
     sword status;
 
-    textValue = PyObject_Str(value);
+    textValue = cxString_FromObject(value);
     if (!textValue)
         return -1;
+    if (StringBuffer_Fill(&textBuffer, textValue) < 0)
+        return -1;
     status = OCINumberFromText(var->environment->errorHandle,
-            (OraText*) PyString_AS_STRING(textValue),
-            PyString_GET_SIZE(textValue), (OraText*) gc_NumberFormat,
-            sizeof(gc_NumberFormat), NULL, 0, &var->data[pos]);
+            (text*) textBuffer.ptr, textBuffer.size,
+            (text*) g_NumberToStringFormatBuffer.ptr,
+            g_NumberToStringFormatBuffer.size, NULL, 0, &var->data[pos]);
     Py_DECREF(textValue);
     return Environment_CheckForError(var->environment, status,
             "NumberVar_SetValueFromLong()");
@@ -335,11 +338,11 @@ static int NumberVar_SetValueFromLong(
 //-----------------------------------------------------------------------------
 static int NumberVar_GetFormatAndTextFromDecimal(
     PyObject *tupleValue,               // decimal as_tuple() value
-    char **textValue,                   // text string for conversion
-    char **format)                      // format for conversion
+    PyObject **textObj,                 // text string for conversion
+    PyObject **formatObj)               // format for conversion
 {
     long numDigits, scale, i, sign, length, digit;
-    char *valuePtr, *formatPtr;
+    char *textValue, *format, *textPtr, *formatPtr;
     PyObject *digits;
 
     // acquire basic information from the value tuple
@@ -350,41 +353,52 @@ static int NumberVar_GetFormatAndTextFromDecimal(
 
     // allocate memory for the string and format to use in conversion
     length = numDigits + abs(scale) + 3;
-    *textValue = valuePtr = PyMem_Malloc(length);
-    if (!*textValue) {
+    textValue = textPtr = PyMem_Malloc(length);
+    if (!textValue) {
         PyErr_NoMemory();
         return -1;
     }
-    *format = formatPtr = PyMem_Malloc(length);
-    if (!*format) {
-        PyMem_Free(*textValue);
+    format = formatPtr = PyMem_Malloc(length);
+    if (!format) {
+        PyMem_Free(textValue);
         PyErr_NoMemory();
         return -1;
     }
 
     // populate the string and format
     if (sign)
-        *valuePtr++ = '-';
+        *textPtr++ = '-';
     for (i = 0; i < numDigits + scale; i++) {
         *formatPtr++ = '9';
         if (i < numDigits)
             digit = PyInt_AS_LONG(PyTuple_GetItem(digits, i));
         else digit = 0;
-        *valuePtr++ = '0' + (char) digit;
+        *textPtr++ = '0' + (char) digit;
     }
     if (scale < 0) {
         *formatPtr++ = 'D';
-        *valuePtr++ = '.';
+        *textPtr++ = '.';
         for (i = scale; i < 0; i++) {
             *formatPtr++ = '9';
             if (numDigits + i < 0)
                 digit = 0;
             else digit = PyInt_AS_LONG(PyTuple_GetItem(digits, numDigits + i));
-            *valuePtr++ = '0' + (char) digit;
+            *textPtr++ = '0' + (char) digit;
         }
     }
     *formatPtr = '\0';
-    *valuePtr = '\0';
+    *textPtr = '\0';
+    *textObj = cxString_FromAscii(textValue);
+    PyMem_Free(textValue);
+    if (!*textObj) {
+        PyMem_Free(format);
+        return -1;
+    }
+    *formatObj = cxString_FromAscii(format);
+    PyMem_Free(format);
+    if (!*formatObj)
+        return -1;
+
     return 0;
 }
 
@@ -398,8 +412,8 @@ static int NumberVar_SetValueFromDecimal(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
-    char *textValue, *format;
-    PyObject *tupleValue;
+    PyObject *textValue, *format, *tupleValue;
+    udt_StringBuffer textBuffer, formatBuffer;
     sword status;
 
     tupleValue = PyObject_CallMethod(value, "as_tuple", NULL);
@@ -410,12 +424,20 @@ static int NumberVar_SetValueFromDecimal(
         Py_DECREF(tupleValue);
         return -1;
     }
-    status = OCINumberFromText(var->environment->errorHandle,
-            (OraText*) textValue, strlen(textValue), (OraText*) format,
-            strlen(format), NULL, 0, &var->data[pos]);
     Py_DECREF(tupleValue);
-    PyMem_Free(textValue);
-    PyMem_Free(format);
+    if (StringBuffer_Fill(&textBuffer, textValue) < 0)
+        return -1;
+    if (StringBuffer_Fill(&formatBuffer, format) < 0) {
+        StringBuffer_Clear(&textBuffer);
+        return -1;
+    }
+    status = OCINumberFromText(var->environment->errorHandle,
+            (text*) textBuffer.ptr, textBuffer.size, (text*) formatBuffer.ptr,
+            formatBuffer.size, NULL, 0, &var->data[pos]);
+    StringBuffer_Clear(textBuffer);
+    StringBuffer_Clear(formatBuffer);
+    Py_DECREF(textValue);
+    Py_DECREF(format);
     return Environment_CheckForError(var->environment, status,
             "NumberVar_SetValueFromDecimal()");
 }
@@ -473,8 +495,8 @@ static PyObject *NumberVar_GetValue(
     if (var->type == &vt_NumberAsString || var->type == &vt_LongInteger) {
         stringLength = sizeof(stringValue);
         status = OCINumberToText(var->environment->errorHandle,
-                &var->data[pos], (text*) g_NumberToStringFormatBuffer.ptr,
-                g_NumberToStringFormatBuffer.size, NULL, 0, &stringLength,
+                &var->data[pos], (text*) g_ShortNumberToStringFormatBuffer.ptr,
+                g_ShortNumberToStringFormatBuffer.size, NULL, 0, &stringLength,
                 (unsigned char*) stringValue);
         if (Environment_CheckForError(var->environment, status,
                 "NumberVar_GetValue(): as string") < 0)

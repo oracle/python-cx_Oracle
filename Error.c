@@ -78,7 +78,7 @@ static udt_Error *Error_New(
     const char *context,                // context in which error occurred
     int retrieveError)                  // retrieve error from OCI?
 {
-    char errorText[CXORA_ERROR_TEXT_LENGTH];
+    char errorText[1024 * CXORA_BYTES_PER_CHAR];
     udt_Error *error;
     ub4 handleType;
     dvoid *handle;

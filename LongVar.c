@@ -87,6 +87,7 @@ static udt_VariableType vt_LongString = {
     SQLT_LVC,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     128 * 1024,                         // element length (default)
+    1,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
     0                                   // can be in array
@@ -105,6 +106,7 @@ static udt_VariableType vt_LongBinary = {
     SQLT_LVB,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     128 * 1024,                         // element length (default)
+    0,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
     0                                   // can be in array
@@ -120,32 +122,45 @@ static int LongVar_SetValue(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
-    Py_ssize_t bufferSize;
-    const void *buffer;
+    udt_StringBuffer buffer;
     char *ptr;
 
     // get the buffer data and size for binding
-    if (PyString_Check(value)) {
-        buffer = PyString_AS_STRING(value);
-        bufferSize = PyString_GET_SIZE(value);
-    } else if (PyBuffer_Check(value)) {
-        if (PyObject_AsReadBuffer(value, &buffer, &bufferSize) < 0)
+    if (var->type == &vt_LongBinary) {
+        if (PyBytes_Check(value)) {
+            if (StringBuffer_FromBytes(&buffer, value) < 0)
+                return -1;
+        } else if (PyBuffer_Check(value)) {
+            StringBuffer_Init(&buffer);
+            if (PyObject_AsReadBuffer(value, &buffer.ptr, &buffer.size) < 0)
+                return -1;
+        } else {
+            PyErr_SetString(PyExc_TypeError,
+                    "expecting string or buffer data");
             return -1;
+        }
     } else {
-        PyErr_SetString(PyExc_TypeError, "expecting string or buffer data");
-        return -1;
+        if (!cxString_Check(value)) {
+            PyErr_SetString(PyExc_TypeError, "expecting string data");
+            return -1;
+        }
+        if (StringBuffer_Fill(&buffer, value) < 0)
+            return -1;
     }
 
     // copy the string to the Oracle buffer
-    if (bufferSize + sizeof(ub4) > var->maxLength) {
+    if (buffer.size + sizeof(ub4) > var->maxLength) {
         if (Variable_Resize( (udt_Variable*) var,
-                bufferSize + sizeof(ub4)) < 0)
+                buffer.size + sizeof(ub4)) < 0) {
+            StringBuffer_Clear(&buffer);
             return -1;
+        }
     }
     ptr = var->data + var->maxLength * pos;
-    *((ub4 *) ptr) = (ub4) bufferSize;
-    if (bufferSize)
-        memcpy(ptr + sizeof(ub4), buffer, bufferSize);
+    *((ub4 *) ptr) = (ub4) buffer.size;
+    if (buffer.size)
+        memcpy(ptr + sizeof(ub4), buffer.ptr, buffer.size);
+    StringBuffer_Clear(&buffer);
 
     return 0;
 }
@@ -164,6 +179,9 @@ static PyObject *LongVar_GetValue(
 
     ptr = var->data + var->maxLength * pos;
     size = *((ub4 *) ptr);
-    return PyString_FromStringAndSize(ptr + sizeof(ub4), size);
+    ptr += sizeof(ub4);
+    if (var->type == &vt_LongBinary)
+        return PyBytes_FromStringAndSize(ptr, size);
+    return cxString_FromEncodedString(ptr, size);
 }
 

@@ -16,9 +16,10 @@ typedef struct {
 } udt_Environment;
 
 //-----------------------------------------------------------------------------
-// maximum number of characters applicable to strings
+// maximum number of characters/bytes applicable to strings/binaries
 //-----------------------------------------------------------------------------
 #define MAX_STRING_CHARS                4000
+#define MAX_BINARY_BYTES                4000
 
 //-----------------------------------------------------------------------------
 // forward declarations
@@ -75,13 +76,9 @@ static udt_Environment *Environment_New(
         return NULL;
     environment->handle = NULL;
     environment->errorHandle = NULL;
-#ifdef WITH_UNICODE
-    environment->maxBytesPerCharacter = 2;
-#else
-    environment->maxBytesPerCharacter = 1;
-#endif
     environment->fixedWidth = 1;
-    environment->maxStringBytes = MAX_STRING_CHARS;
+    environment->maxBytesPerCharacter = CXORA_BYTES_PER_CHAR;
+    environment->maxStringBytes = MAX_STRING_CHARS * CXORA_BYTES_PER_CHAR;
 
     // turn threading mode on, if desired
     mode = OCI_OBJECT;
@@ -117,8 +114,8 @@ static udt_Environment *Environment_New(
         return NULL;
     }
 
-    // acquire max bytes per character
 #ifndef WITH_UNICODE
+    // acquire max bytes per character
     status = OCINlsNumericInfoGet(environment->handle,
             environment->errorHandle, &environment->maxBytesPerCharacter,
             OCI_NLS_CHARSET_MAXBYTESZ);
