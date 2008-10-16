@@ -4,6 +4,7 @@
 //-----------------------------------------------------------------------------
 
 #include <Python.h>
+#include <datetime.h>
 #include <structmember.h>
 #include <time.h>
 #include <oci.h>
@@ -19,12 +20,6 @@
 #endif
 #ifdef OCI_ATTR_CONNECTION_CLASS
 #define ORACLE_11G
-#endif
-
-// define whether or not we are building with the native datetime module
-#if (PY_VERSION_HEX >= 0x02040000)
-#include <datetime.h>
-#define NATIVE_DATETIME
 #endif
 
 // PY_LONG_LONG was called LONG_LONG before Python 2.3
@@ -217,20 +212,6 @@ static PyObject* TimeFromTicks(
 }
 
 
-#ifndef NATIVE_DATETIME
-//-----------------------------------------------------------------------------
-// Date()
-//   Returns a date value suitable for binding.
-//-----------------------------------------------------------------------------
-static PyObject* Date(
-    PyObject* self,                     // passthrough argument
-    PyObject* args)                     // arguments to function
-{
-    return ExternalDateTimeVar_New(&g_ExternalDateTimeVarType, args, NULL);
-}
-#endif
-
-
 //-----------------------------------------------------------------------------
 // DateFromTicks()
 //   Returns a date value suitable for binding.
@@ -239,23 +220,7 @@ static PyObject* DateFromTicks(
     PyObject* self,                     // passthrough argument
     PyObject* args)                     // arguments to function
 {
-#ifdef NATIVE_DATETIME
     return PyDate_FromTimestamp(args);
-#else
-    struct tm *time;
-    time_t ticks;
-    int ticksArg;
-
-    if (!PyArg_ParseTuple(args, "i", &ticksArg))
-        return NULL;
-
-    ticks = ticksArg;
-    time = localtime(&ticks);
-    if (time == NULL)
-        return PyErr_SetFromErrno(g_DataErrorException);
-    return ExternalDateTimeVar_NewFromC(&g_ExternalDateTimeVarType,
-            time->tm_year + 1900, time->tm_mon + 1, time->tm_mday, 0, 0, 0, 0);
-#endif
 }
 
 
@@ -267,24 +232,7 @@ static PyObject* TimestampFromTicks(
     PyObject* self,                     // passthrough argument
     PyObject* args)                     // arguments to function
 {
-#ifdef NATIVE_DATETIME
     return PyDateTime_FromTimestamp(args);
-#else
-    struct tm *time;
-    time_t ticks;
-    int ticksArg;
-
-    if (!PyArg_ParseTuple(args, "i", &ticksArg))
-        return NULL;
-
-    ticks = ticksArg;
-    time = localtime(&ticks);
-    if (time == NULL)
-        return PyErr_SetFromErrno(g_DataErrorException);
-    return ExternalDateTimeVar_NewFromC(&g_ExternalDateTimeVarType,
-            time->tm_year + 1900, time->tm_mon + 1, time->tm_mday,
-            time->tm_hour, time->tm_min, time->tm_sec, 0);
-#endif
 }
 
 
@@ -293,9 +241,6 @@ static PyObject* TimestampFromTicks(
 //-----------------------------------------------------------------------------
 static PyMethodDef g_ModuleMethods[] = {
     { "makedsn", MakeDSN, METH_VARARGS },
-#ifndef NATIVE_DATETIME
-    { "Date", Date, METH_VARARGS },
-#endif
     { "Time", Time, METH_VARARGS },
     { "DateFromTicks", DateFromTicks, METH_VARARGS },
     { "TimeFromTicks", TimeFromTicks, METH_VARARGS },
@@ -325,28 +270,18 @@ void initcx_Oracle(void)
     PyThreadState_Swap(threadState);
 #endif
 
-    // manage the use of the datetime module; in Python 2.4 and up, the native
-    // datetime type is used since a C API is exposed; in all other cases, the
-    // internal datetime type is used and if the datetime module exists,
-    // binding to that type is permitted
-#ifdef NATIVE_DATETIME
+    // import the datetime module for datetime support
     PyDateTime_IMPORT;
     if (PyErr_Occurred())
         return;
-#else
-    module = PyImport_ImportModule("datetime");
-    if (module)
-        g_DateTimeType = (PyTypeObject*) PyObject_GetAttrString(module,
-                "datetime");
-    PyErr_Clear();
-#endif
 
-    // attempt to import the decimal module
+    // import the decimal module for decimal support
     module = PyImport_ImportModule("decimal");
-    if (module)
-        g_DecimalType = (PyTypeObject*) PyObject_GetAttrString(module,
-                "Decimal");
-    PyErr_Clear();
+    if (!module)
+        return;
+    g_DecimalType = (PyTypeObject*) PyObject_GetAttrString(module, "Decimal");
+    if (!g_DecimalType)
+        return;
 
     // set up the string and buffer for converting numbers to strings
     g_ShortNumberToStringFormatObj = cxString_FromAscii("TM9");
@@ -367,9 +302,6 @@ void initcx_Oracle(void)
     MAKE_TYPE_READY(&g_ConnectionType);
     MAKE_TYPE_READY(&g_CursorType);
     MAKE_TYPE_READY(&g_ErrorType);
-#ifndef NATIVE_DATETIME
-    MAKE_TYPE_READY(&g_ExternalDateTimeVarType); // not an udt_Variable type
-#endif
     MAKE_TYPE_READY(&g_SessionPoolType);
     MAKE_TYPE_READY(&g_EnvironmentType);
     MAKE_TYPE_READY(&g_ObjectTypeType);
@@ -440,12 +372,8 @@ void initcx_Oracle(void)
     ADD_TYPE_OBJECT("Binary", &PyBuffer_Type)
     ADD_TYPE_OBJECT("Connection", &g_ConnectionType)
     ADD_TYPE_OBJECT("Cursor", &g_CursorType)
-#ifdef NATIVE_DATETIME
     ADD_TYPE_OBJECT("Timestamp", PyDateTimeAPI->DateTimeType)
     ADD_TYPE_OBJECT("Date", PyDateTimeAPI->DateType)
-#else
-    ADD_TYPE_OBJECT("Timestamp", &g_ExternalDateTimeVarType)
-#endif
     ADD_TYPE_OBJECT("SessionPool", &g_SessionPoolType)
     ADD_TYPE_OBJECT("_Error", &g_ErrorType)
 

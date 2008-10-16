@@ -4,9 +4,7 @@
 // setting Oracle data from Python objects.
 //-----------------------------------------------------------------------------
 
-#ifdef NATIVE_DATETIME
 static udt_VariableType vt_Date;
-#endif
 
 //-----------------------------------------------------------------------------
 // OracleDateToPythonDate()
@@ -22,15 +20,10 @@ static PyObject *OracleDateToPythonDate(
     OCIDateGetDate(value, &year, &month, &day);
     OCIDateGetTime(value, &hour, &minute, &second);
 
-#ifdef NATIVE_DATETIME
     if (varType == &vt_Date)
         return PyDate_FromDate(year, month, day);
     return PyDateTime_FromDateAndTime(year, month, day, hour, minute, second,
             0);
-#else
-    return ExternalDateTimeVar_NewFromC(&g_ExternalDateTimeVarType, year,
-            month, day, hour, minute, second, 0);
-#endif
 }
 
 
@@ -57,13 +50,8 @@ static PyObject *OracleTimestampToPythonDate(
     if (Environment_CheckForError(environment, status,
             "OracleTimestampToPythonDate(): time portion") < 0)
         return NULL;
-#ifdef NATIVE_DATETIME
     return PyDateTime_FromDateAndTime(year, month, day, hour, minute, second,
             fsecond / 1000);
-#else
-    return ExternalDateTimeVar_NewFromC(&g_ExternalDateTimeVarType, year,
-            month, day, hour, minute, second, fsecond / 1000);
-#endif
 }
 
 

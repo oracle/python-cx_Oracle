@@ -69,7 +69,6 @@ static udt_VariableType vt_DateTime = {
 };
 
 
-#ifdef NATIVE_DATETIME
 static udt_VariableType vt_Date = {
     (InitializeProc) NULL,
     (FinalizeProc) NULL,
@@ -124,90 +123,6 @@ static int DateTimeVar_SetValue(
 
     return 0;
 }
-
-#else
-
-//-----------------------------------------------------------------------------
-// DateTimeVar_GetAttribute()
-//   Get the attribute from the object and convert it to an integer.
-//-----------------------------------------------------------------------------
-static int DateTimeVar_GetAttribute(
-    PyObject *value,                    // value to get attribute for
-    char *name,                         // name to acquire
-    unsigned *outputValue)              // output value
-{
-    PyObject *attrValue;
-
-    attrValue = PyObject_GetAttrString(value, name);
-    if (!attrValue)
-        return -1;
-    *outputValue = PyInt_AsLong(attrValue);
-    if (PyErr_Occurred())
-        return -1;
-
-    return 0;
-}
-
-//-----------------------------------------------------------------------------
-// DateTimeVar_SetValue()
-//   Set the value of the variable.
-//-----------------------------------------------------------------------------
-static int DateTimeVar_SetValue(
-    udt_DateTimeVar *var,               // variable to set value for
-    unsigned pos,                       // array position to set
-    PyObject *value)                    // value to set
-{
-    unsigned year, month, day, hour, minute, second;
-    udt_ExternalDateTimeVar *dateValue;
-    sword status;
-    uword valid;
-
-    // handle internal cx_Oracle date type
-    if (Py_TYPE(value) == &g_ExternalDateTimeVarType) {
-        dateValue = (udt_ExternalDateTimeVar*) value;
-        year = dateValue->year;
-        month = dateValue->month;
-        day = dateValue->day;
-        hour = dateValue->hour;
-        minute = dateValue->minute;
-        second = dateValue->second;
-
-    // handle Python 2.3 datetime type
-    } else if (Py_TYPE(value) == g_DateTimeType) {
-        if (DateTimeVar_GetAttribute(value, "year", &year) < 0)
-            return -1;
-        if (DateTimeVar_GetAttribute(value, "month", &month) < 0)
-            return -1;
-        if (DateTimeVar_GetAttribute(value, "day", &day) < 0)
-            return -1;
-        if (DateTimeVar_GetAttribute(value, "hour", &hour) < 0)
-            return -1;
-        if (DateTimeVar_GetAttribute(value, "minute", &minute) < 0)
-            return -1;
-        if (DateTimeVar_GetAttribute(value, "second", &second) < 0)
-            return -1;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "expecting date data");
-        return -1;
-    }
-
-    // store a copy of the value
-    OCIDateSetDate(&var->data[pos], (sb2) year, (ub1) month, (ub1) day);
-    OCIDateSetTime(&var->data[pos], (ub1) hour, (ub1) minute, (ub1) second);
-    status = OCIDateCheck(var->environment->errorHandle, &var->data[pos],
-            &valid);
-    if (Environment_CheckForError(var->environment, status,
-            "DateTimeVar_SetValue()") < 0)
-        return -1;
-    if (valid != 0) {
-        PyErr_Format(g_DataErrorException, "invalid date: %d/%d/%d %d:%d:%d",
-                year, month, day, hour, minute, second);
-        return -1;
-    }
-
-    return 0;
-}
-#endif
 
 
 //-----------------------------------------------------------------------------

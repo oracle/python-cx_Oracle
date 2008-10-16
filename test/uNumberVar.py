@@ -1,7 +1,7 @@
 """Module for testing number variables."""
 
 import cx_Oracle
-import sys
+import decimal
 
 class TestNumberVar(BaseTestCase):
 
@@ -21,17 +21,15 @@ class TestNumberVar(BaseTestCase):
           self.rawData.append(dataTuple)
           self.dataByKey[i] = dataTuple
 
-    if sys.version_info[:2] > (2, 3):
-        def testBindDecimal(self):
-            "test binding in a decimal.Decimal"
-            import decimal
-            self.cursor.execute(u"""
-                    select * from TestNumbers
-                    where NumberCol - :value1 - :value2 = trunc(NumberCol)""",
-                    value1 = decimal.Decimal("0.20"),
-                    value2 = decimal.Decimal("0.05"))
-            self.failUnlessEqual(self.cursor.fetchall(),
-                    [self.dataByKey[1], self.dataByKey[5], self.dataByKey[9]])
+    def testBindDecimal(self):
+        "test binding in a decimal.Decimal"
+        self.cursor.execute(u"""
+                select * from TestNumbers
+                where NumberCol - :value1 - :value2 = trunc(NumberCol)""",
+                value1 = decimal.Decimal("0.20"),
+                value2 = decimal.Decimal("0.05"))
+        self.failUnlessEqual(self.cursor.fetchall(),
+                [self.dataByKey[1], self.dataByKey[5], self.dataByKey[9]])
 
     def testBindFloat(self):
         "test binding in a float"

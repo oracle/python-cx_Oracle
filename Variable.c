@@ -141,9 +141,6 @@ static PyTypeObject g_BaseVarType = {
 };
 
 
-#ifndef NATIVE_DATETIME
-#include "ExternalDateTimeVar.c"
-#endif
 #include "Transforms.c"
 #include "StringVar.c"
 #include "LongVar.c"
@@ -410,15 +407,10 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_Boolean;
     if (type == (PyObject*) &g_DateTimeVarType)
         return &vt_DateTime;
-#ifdef NATIVE_DATETIME
     if (type == (PyObject*) PyDateTimeAPI->DateType)
         return &vt_Date;
     if (type == (PyObject*) PyDateTimeAPI->DateTimeType)
         return &vt_DateTime;
-#else
-    if (type == (PyObject*) &g_ExternalDateTimeVarType)
-        return &vt_DateTime;
-#endif
     if (type == (PyObject*) &g_TimestampVarType)
         return &vt_Timestamp;
     if (type == (PyObject*) &g_CursorVarType)
@@ -489,15 +481,10 @@ static udt_VariableType *Variable_TypeByValue(
     }
     if (PyBool_Check(value))
         return &vt_Boolean;
-#ifdef NATIVE_DATETIME
     if (PyDateTime_Check(value))
         return &vt_DateTime;
     if (PyDate_Check(value))
         return &vt_DateTime;
-#else
-    if (Py_TYPE(value) == &g_ExternalDateTimeVarType)
-        return &vt_DateTime;
-#endif
     result = PyObject_IsInstance(value, (PyObject*) &g_CursorType);
     if (result < 0)
         return NULL;

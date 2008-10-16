@@ -111,7 +111,6 @@ static void TimestampVar_Finalize(
 }
 
 
-#ifdef NATIVE_DATETIME
 //-----------------------------------------------------------------------------
 // TimestampVar_SetValue()
 //   Set the value of the variable.
@@ -155,51 +154,6 @@ static int TimestampVar_SetValue(
 
     return 0;
 }
-
-#else
-
-//-----------------------------------------------------------------------------
-// TimestampVar_SetValue()
-//   Set the value of the variable.
-//-----------------------------------------------------------------------------
-static int TimestampVar_SetValue(
-    udt_TimestampVar *var,              // variable to set value for
-    unsigned pos,                       // array position to set
-    PyObject *value)                    // value to set
-{
-    udt_ExternalDateTimeVar *dateValue;
-    sword status;
-    uword valid;
-
-    // make sure a date is being bound
-    if (Py_TYPE(value) != &g_ExternalDateTimeVarType) {
-        PyErr_SetString(PyExc_TypeError, "expecting date data");
-        return -1;
-    }
-
-    // store a copy of the value
-    dateValue = (udt_ExternalDateTimeVar*) value;
-    status = OCIDateTimeConstruct(var->environment->handle,
-            var->environment->errorHandle, var->data[pos],
-            dateValue->year, dateValue->month, dateValue->day, dateValue->hour,
-            dateValue->minute, dateValue->second, dateValue->fsecond * 1000,
-            NULL, 0);
-    if (Environment_CheckForError(var->environment, status,
-            "TimestampVar_SetValue(): create structure") < 0)
-        return -1;
-    status = OCIDateTimeCheck(var->environment->handle,
-            var->environment->errorHandle, var->data[pos], &valid);
-    if (Environment_CheckForError(var->environment, status,
-            "TimestampVar_SetValue()") < 0)
-        return -1;
-    if (valid != 0) {
-        PyErr_SetString(g_DataErrorException, "invalid date");
-        return -1;
-    }
-
-    return 0;
-}
-#endif
 
 
 //-----------------------------------------------------------------------------
