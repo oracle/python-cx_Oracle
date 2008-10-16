@@ -51,8 +51,8 @@ class TestLobVar(BaseTestCase):
                     actualValue = str(lob)
                 longString += char * 25000
                 self.failUnlessEqual(lob.size(), len(longString))
-#                self.failUnlessEqual(lob.read(), longString)
-#                self.failUnlessEqual(actualValue, longString)
+                self.failUnlessEqual(lob.read(), longString)
+                self.failUnlessEqual(actualValue, longString)
                 self.failUnlessEqual(lob.read(len(longString)), char)
             if integerValue > 1:
                 offset = (integerValue - 1) * 25000 - 4
