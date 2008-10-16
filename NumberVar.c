@@ -130,6 +130,7 @@ static udt_VariableType vt_NativeFloat = {
 #endif
 
 
+#if PY_MAJOR_VERSION < 3
 static udt_VariableType vt_Integer = {
     (InitializeProc) NULL,
     (FinalizeProc) NULL,
@@ -147,6 +148,7 @@ static udt_VariableType vt_Integer = {
     1,                                  // can be copied
     1                                   // can be in array
 };
+#endif
 
 
 static udt_VariableType vt_LongInteger = {
@@ -234,10 +236,13 @@ static int NumberVar_PreDefine(
         if (Environment_CheckForError(var->environment, status,
                 "NumberVar_PreDefine(): precision") < 0)
             return -1;
-        if (scale == 0 && precision > 0 && precision < 10)
-            var->type = &vt_Integer;
-        else if (scale == 0 || (scale == -127 && precision == 0))
+        if (scale == 0 || (scale == -127 && precision == 0)) {
             var->type = &vt_LongInteger;
+#if PY_MAJOR_VERSION < 3
+        if (precision > 0 && precision < 10)
+            var->type = &vt_Integer;
+#endif
+        }
     }
 
     return 0;
@@ -264,6 +269,7 @@ static int NumberVar_SetValueFromBoolean(
 }
 
 
+#if PY_MAJOR_VERSION < 3
 //-----------------------------------------------------------------------------
 // NumberVar_SetValueFromInteger()
 //   Set the value of the variable from a Python integer.
@@ -282,6 +288,7 @@ static int NumberVar_SetValueFromInteger(
     return Environment_CheckForError(var->environment, status,
             "NumberVar_SetValueFromInteger()");
 }
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -455,15 +462,17 @@ static int NumberVar_SetValue(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
+#if PY_MAJOR_VERSION < 3
     if (PyInt_Check(value))
         return NumberVar_SetValueFromInteger(var, pos, value);
-    else if (PyBool_Check(value))
-        return NumberVar_SetValueFromBoolean(var, pos, value);
-    else if (PyFloat_Check(value))
-        return NumberVar_SetValueFromFloat(var, pos, value);
-    else if (PyLong_Check(value))
+#endif
+    if (PyLong_Check(value))
         return NumberVar_SetValueFromLong(var, pos, value);
-    else if (Py_TYPE(value) == g_DecimalType)
+    if (PyBool_Check(value))
+        return NumberVar_SetValueFromBoolean(var, pos, value);
+    if (PyFloat_Check(value))
+        return NumberVar_SetValueFromFloat(var, pos, value);
+    if (Py_TYPE(value) == g_DecimalType)
         return NumberVar_SetValueFromDecimal(var, pos, value);
     PyErr_SetString(PyExc_TypeError, "expecting numeric data");
     return -1;
@@ -484,14 +493,20 @@ static PyObject *NumberVar_GetValue(
     ub4 stringLength;
     sword status;
 
+#if PY_MAJOR_VERSION < 3
     if (var->type == &vt_Integer || var->type == &vt_Boolean) {
+#else
+    if (var->type == &vt_Boolean) {
+#endif
         status = OCINumberToInt(var->environment->errorHandle, &var->data[pos],
                 sizeof(long), OCI_NUMBER_SIGNED, (dvoid*) &integerValue);
         if (Environment_CheckForError(var->environment, status,
                 "NumberVar_GetValue(): as integer") < 0)
             return NULL;
+#if PY_MAJOR_VERSION < 3
         if (var->type == &vt_Integer)
             return PyInt_FromLong(integerValue);
+#endif
         return PyBool_FromLong(integerValue);
     }
 

@@ -380,7 +380,7 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_Rowid;
     if (type == (PyObject*) &g_BinaryVarType)
         return &vt_Binary;
-    if (type == (PyObject*) &PyBuffer_Type)
+    if (type == (PyObject*) &cxBinary_Type)
         return &vt_Binary;
     if (type == (PyObject*) &g_LongStringVarType)
         return &vt_LongString;
@@ -399,8 +399,10 @@ static udt_VariableType *Variable_TypeByPythonType(
     }
     if (type == (PyObject*) &PyFloat_Type)
         return &vt_Float;
+#if PY_MAJOR_VERSION < 3
     if (type == (PyObject*) &PyInt_Type)
         return &vt_Integer;
+#endif
     if (type == (PyObject*) &PyLong_Type)
         return &vt_LongInteger;
     if (type == (PyObject*) &PyBool_Type)
@@ -465,16 +467,20 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_NationalCharString;
     }
 #endif
+#if PY_MAJOR_VERSION < 3
     if (PyInt_Check(value))
         return &vt_Integer;
+#endif
     if (PyLong_Check(value))
         return &vt_LongInteger;
     if (PyFloat_Check(value))
         return &vt_Float;
-    if (PyBuffer_Check(value)) {
-        const void *buffer;
-        if (PyObject_AsReadBuffer(value, &buffer, (sb4*) size) < 0)
+    if (cxBinary_Check(value)) {
+        udt_StringBuffer temp;
+        if (StringBuffer_FromBinary(&temp, value) < 0)
             return NULL;
+        *size = temp.size;
+        StringBuffer_Clear(&temp);
         if (*size > MAX_BINARY_BYTES)
             return &vt_LongBinary;
         return &vt_Binary;
@@ -1107,7 +1113,7 @@ static int Variable_Bind(
     var->boundPos = pos;
     var->boundCursorHandle = cursor->handle;
     Py_XDECREF(var->boundName);
-#if defined(WITH_UNICODE) && Py_MAJOR_VERSION < 3
+#if defined(WITH_UNICODE) && PY_MAJOR_VERSION < 3
     if (name && PyBytes_Check(name)) {
         var->boundName = PyObject_Unicode(name);
         if (!var->boundName)

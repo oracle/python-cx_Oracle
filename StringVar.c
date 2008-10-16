@@ -361,7 +361,6 @@ static int StringVar_SetValue(
     udt_StringBuffer buffer;
 
     // get the buffer data and size for binding
-    StringBuffer_Init(&buffer);
 #ifdef WITH_UNICODE
     if (!var->type->isCharacterData) {
 #else
@@ -369,9 +368,11 @@ static int StringVar_SetValue(
 #endif
         if (PyBytes_Check(value)) {
             StringBuffer_FromBytes(&buffer, value);
-        } else if (PyBuffer_Check(value)) {
-            if (PyObject_AsReadBuffer(value, &buffer.ptr, &buffer.size) < 0)
+#if PY_MAJOR_VERSION < 3
+        } else if (cxBinary_Check(value)) {
+            if (StringBuffer_FromBinary(&buffer, value) < 0)
                 return -1;
+#endif
         } else {
             PyErr_SetString(PyExc_TypeError,
                     "expecting string or buffer data");

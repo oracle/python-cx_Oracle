@@ -49,6 +49,14 @@ typedef int Py_ssize_t;
 #ifndef PyInt_Check
 #define PyInt_Check             PyLong_Check
 #define PyInt_FromLong          PyLong_FromLong
+#define PyInt_Type              PyLong_Type
+#endif
+
+// define base exception
+#if PY_MAJOR_VERSION >= 3
+#define CXORA_BASE_EXCEPTION    NULL
+#else
+#define CXORA_BASE_EXCEPTION    PyExc_StandardError
 #endif
 
 // define simple construct for determining endianness of the platform
@@ -344,10 +352,10 @@ void initcx_Oracle(void)
 
     // create exception object and add it to the dictionary
     if (SetException(module, &g_WarningException,
-            "Warning", PyExc_StandardError) < 0)
+            "Warning", CXORA_BASE_EXCEPTION) < 0)
         return;
     if (SetException(module, &g_ErrorException,
-            "Error", PyExc_StandardError) < 0)
+            "Error", CXORA_BASE_EXCEPTION) < 0)
         return;
     if (SetException(module, &g_InterfaceErrorException,
             "InterfaceError", g_ErrorException) < 0)
@@ -375,7 +383,7 @@ void initcx_Oracle(void)
         return;
 
     // set up the types that are available
-    ADD_TYPE_OBJECT("Binary", &PyBuffer_Type)
+    ADD_TYPE_OBJECT("Binary", &cxBinary_Type)
     ADD_TYPE_OBJECT("Connection", &g_ConnectionType)
     ADD_TYPE_OBJECT("Cursor", &g_CursorType)
     ADD_TYPE_OBJECT("Timestamp", PyDateTimeAPI->DateTimeType)

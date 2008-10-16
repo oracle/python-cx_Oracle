@@ -26,6 +26,16 @@ typedef struct {
 #endif
 
 
+// define binary type and methods
+#if PY_MAJOR_VERSION >= 3
+    #define cxBinary_Type               PyBytes_Type
+    #define cxBinary_Check              PyBytes_Check
+#else
+    #define cxBinary_Type               PyBuffer_Type
+    #define cxBinary_Check              PyBuffer_Check
+#endif
+
+
 //-----------------------------------------------------------------------------
 // StringBuffer_Init()
 //   Initialize the string buffer with an empty string. Returns 0 as a
@@ -89,6 +99,34 @@ static int StringBuffer_FromBytes(
 }
 
 
+#if PY_MAJOR_VERSION < 3
+//-----------------------------------------------------------------------------
+// StringBuffer_FromBuffer()
+//   Populate the string buffer from a buffer object.
+//-----------------------------------------------------------------------------
+static int StringBuffer_FromBuffer(
+    udt_StringBuffer *buf,              // buffer to fill
+    PyObject *obj)                      // bytes object expected
+{
+    if (!obj)
+        return StringBuffer_Init(buf);
+    if (PyObject_AsReadBuffer(obj, &buf->ptr, &buf->size) < 0)
+        return -1;
+#ifdef Py_UNICODE_WIDE
+    buf->encodedString = NULL;
+#endif
+    return 0;
+}
+#endif
+
+
+#if PY_MAJOR_VERSION >= 3
+#define StringBuffer_FromBinary         StringBuffer_FromBytes
+#else
+#define StringBuffer_FromBinary         StringBuffer_FromBuffer
+#endif
+
+
 #ifdef WITH_UNICODE
     #define CXORA_CHARSETID             OCI_UTF16ID
     #define CXORA_BYTES_PER_CHAR        2
@@ -96,7 +134,11 @@ static int StringBuffer_FromBytes(
     #define cxString_Format             PyUnicode_Format
     #define cxString_Check              PyUnicode_Check
     #define cxString_GetSize            PyUnicode_GET_SIZE
-    #define cxString_FromObject         PyObject_Unicode
+    #if PY_MAJOR_VERSION >= 3
+        #define cxString_FromObject     PyObject_Str
+    #else
+        #define cxString_FromObject     PyObject_Unicode
+    #endif
     #define cxString_FromAscii(str) \
         PyUnicode_DecodeASCII(str, strlen(str), NULL)
     #ifdef Py_UNICODE_WIDE

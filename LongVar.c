@@ -130,10 +130,11 @@ static int LongVar_SetValue(
         if (PyBytes_Check(value)) {
             if (StringBuffer_FromBytes(&buffer, value) < 0)
                 return -1;
-        } else if (PyBuffer_Check(value)) {
-            StringBuffer_Init(&buffer);
-            if (PyObject_AsReadBuffer(value, &buffer.ptr, &buffer.size) < 0)
+#if PY_MAJOR_VERSION < 3
+        } else if (cxBinary_Check(value)) {
+            if (StringBuffer_FromBinary(&buffer, value) < 0)
                 return -1;
+#endif
         } else {
             PyErr_SetString(PyExc_TypeError,
                     "expecting string or buffer data");
