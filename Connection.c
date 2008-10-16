@@ -767,24 +767,36 @@ static void Connection_Free(
 static PyObject *Connection_Repr(
     udt_Connection *connection)         // connection to return the string for
 {
-    PyObject *module, *name, *result;
+    PyObject *module, *name, *result, *format, *formatArgs = NULL;
 
     if (GetModuleAndName(Py_TYPE(connection), &module, &name) < 0)
         return NULL;
     if (connection->username && connection->username != Py_None &&
-            connection->dsn && connection->dsn != Py_None)
-        result = PyString_FromFormat("<%s.%s to %s@%s>",
-                PyString_AS_STRING(module), PyString_AS_STRING(name),
-                PyString_AS_STRING(connection->username),
-                PyString_AS_STRING(connection->dsn));
-    else if (connection->username && connection->username != Py_None)
-        result = PyString_FromFormat("<%s.%s to user %s@local>",
-                PyString_AS_STRING(module), PyString_AS_STRING(name),
-                PyString_AS_STRING(connection->username));
-    else result = PyString_FromFormat("<%s.%s to externally identified user>",
-                PyString_AS_STRING(module), PyString_AS_STRING(name));
+            connection->dsn && connection->dsn != Py_None) {
+        format = cxString_FromAscii("<%s.%s to %s@%s>");
+        if (format)
+            formatArgs = PyTuple_Pack(4, module, name, connection->username,
+                    connection->dsn);
+    } else if (connection->username && connection->username != Py_None) {
+        format = cxString_FromAscii("<%s.%s to user %s@local>");
+        if (format)
+            formatArgs = PyTuple_Pack(3, module, name, connection->username);
+    } else {
+        format = cxString_FromAscii("<%s.%s to externally identified user>");
+        if (format)
+            formatArgs = PyTuple_Pack(2, module, name);
+    }
     Py_DECREF(module);
     Py_DECREF(name);
+    if (!format)
+        return NULL;
+    if (!formatArgs) {
+        Py_DECREF(format);
+        return NULL;
+    }
+    result = cxString_Format(format, formatArgs);
+    Py_DECREF(format);
+    Py_DECREF(formatArgs);
     return result;
 }
 
@@ -824,7 +836,7 @@ static PyObject *Connection_GetCharacterSetName(
             "Connection_GetCharacterSetName(): translate NLS charset") < 0)
         return NULL;
 
-    return PyString_FromString(ianaCharsetName);
+    return PyBytes_FromString(ianaCharsetName);
 }
 
 
