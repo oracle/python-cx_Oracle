@@ -396,8 +396,10 @@ static int NumberVar_GetFormatAndTextFromDecimal(
     }
     *formatObj = cxString_FromAscii(format);
     PyMem_Free(format);
-    if (!*formatObj)
+    if (!*formatObj) {
+        Py_DECREF(*textObj);
         return -1;
+    }
 
     return 0;
 }
@@ -434,8 +436,8 @@ static int NumberVar_SetValueFromDecimal(
     status = OCINumberFromText(var->environment->errorHandle,
             (text*) textBuffer.ptr, textBuffer.size, (text*) formatBuffer.ptr,
             formatBuffer.size, NULL, 0, &var->data[pos]);
-    StringBuffer_Clear(textBuffer);
-    StringBuffer_Clear(formatBuffer);
+    StringBuffer_Clear(&textBuffer);
+    StringBuffer_Clear(&formatBuffer);
     Py_DECREF(textValue);
     Py_DECREF(format);
     return Environment_CheckForError(var->environment, status,
