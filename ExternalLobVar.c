@@ -19,7 +19,6 @@ typedef struct {
 //-----------------------------------------------------------------------------
 static void ExternalLobVar_Free(udt_ExternalLobVar*);
 static PyObject *ExternalLobVar_Str(udt_ExternalLobVar*);
-static PyObject *ExternalLobVar_GetAttr(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_Size(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_Open(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_Close(udt_ExternalLobVar*, PyObject*);
@@ -35,35 +34,6 @@ static PyObject *ExternalLobVar_GetFileName(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_SetFileName(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_FileExists(udt_ExternalLobVar*, PyObject*);
 static PyObject *ExternalLobVar_Reduce(udt_ExternalLobVar*);
-
-
-//-----------------------------------------------------------------------------
-// Python type declaration
-//-----------------------------------------------------------------------------
-static PyTypeObject g_ExternalLobVarType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.LOB",                    // tp_name
-    sizeof(udt_ExternalLobVar),         // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) ExternalLobVar_Free,   // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    (reprfunc) ExternalLobVar_Str,      // tp_str
-    (getattrofunc) ExternalLobVar_GetAttr,
-                                        // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0                                   // tp_doc
-};
 
 
 //-----------------------------------------------------------------------------
@@ -86,6 +56,54 @@ static PyMethodDef g_ExternalLobVarMethods[] = {
     { "fileexists", (PyCFunction) ExternalLobVar_FileExists, METH_NOARGS },
     { "__reduce__", (PyCFunction) ExternalLobVar_Reduce, METH_NOARGS },
     { NULL, NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declaration
+//-----------------------------------------------------------------------------
+static PyTypeObject g_ExternalLobVarType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "cx_Oracle.LOB",                    // tp_name
+    sizeof(udt_ExternalLobVar),         // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) ExternalLobVar_Free,   // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    (reprfunc) ExternalLobVar_Str,      // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    g_ExternalLobVarMethods,            // tp_methods
+    0,                                  // tp_members
+    0,                                  // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    0,                                  // tp_init
+    0,                                  // tp_alloc
+    0,                                  // tp_new
+    0,                                  // tp_free
+    0,                                  // tp_is_gc
+    0                                   // tp_bases
 };
 
 
@@ -136,19 +154,6 @@ static int ExternalLobVar_Verify(
         return -1;
     }
     return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// ExternalLobVar_GetAttr()
-//   Retrieve an attribute on the external LOB variable object.
-//-----------------------------------------------------------------------------
-static PyObject *ExternalLobVar_GetAttr(
-    udt_ExternalLobVar *var,            // cursor object
-    PyObject *name)                     // name of attribute
-{
-    return Py_FindMethod(g_ExternalLobVarMethods, (PyObject*) var,
-            PyString_AS_STRING(name));
 }
 
 
@@ -481,7 +486,7 @@ static PyObject *ExternalLobVar_Reduce(
     value = ExternalLobVar_Str(self);
     if (!value)
         return NULL;
-    result = Py_BuildValue("(O(O))", &PyString_Type, value);
+    result = Py_BuildValue("(O(O))", Py_TYPE(value), value);
     Py_DECREF(value);
     return result;
 }
@@ -544,7 +549,7 @@ static PyObject *ExternalLobVar_GetFileName(
     udt_ExternalLobVar *var,            // variable to get file name for
     PyObject *args)                     // arguments
 {
-    char dirAlias[30], name[255];
+    char dirAlias[30 * CXORA_BYTES_PER_CHAR], name[255 * CXORA_BYTES_PER_CHAR];
     ub2 dirAliasLength, nameLength;
     PyObject *result, *temp;
     sword status;
@@ -565,13 +570,13 @@ static PyObject *ExternalLobVar_GetFileName(
     result = PyTuple_New(2);
     if (!result)
         return NULL;
-    temp = PyString_FromStringAndSize(dirAlias, dirAliasLength);
+    temp = cxString_FromEncodedString(dirAlias, dirAliasLength);
     if (!temp) {
         Py_DECREF(result);
         return NULL;
     }
     PyTuple_SET_ITEM(result, 0, temp);
-    temp = PyString_FromStringAndSize(name, nameLength);
+    temp = cxString_FromEncodedString(name, nameLength);
     if (!temp) {
         Py_DECREF(result);
         return NULL;

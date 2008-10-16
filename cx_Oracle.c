@@ -158,17 +158,15 @@ static PyObject* MakeDSN(
     PyObject* self,                     // passthrough argument
     PyObject* args)                     // arguments to function
 {
-    char *host, *sid;
-    int port;
+    PyObject *format, *result;
 
-    // parse arguments
-    if (!PyArg_ParseTuple(args, "sis", &host, &port, &sid))
+    format = cxString_FromAscii("(DESCRIPTION=(ADDRESS_LIST=(ADDRESS="
+            "(PROTOCOL=TCP)(HOST=%s)(PORT=%s)))(CONNECT_DATA=(SID=%s)))");
+    if (!format)
         return NULL;
-
-    // return the formatted string
-    return PyString_FromFormat("(DESCRIPTION=(ADDRESS_LIST=(ADDRESS="
-            "(PROTOCOL=TCP)(HOST=%s)(PORT=%d)))(CONNECT_DATA=(SID=%s)))",
-            host, port, sid);
+    result = cxString_Format(format, args);
+    Py_DECREF(format);
+    return result;
 }
 
 

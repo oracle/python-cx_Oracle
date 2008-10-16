@@ -111,7 +111,7 @@ static udt_Error *Error_New(
 	    }
         error->message = cxString_FromEncodedString(errorText, len);
 #else
-        error->message = PyString_FromString(errorText);
+        error->message = PyBytes_FromString(errorText);
 #endif
         if (!error->message) {
             Py_DECREF(error);

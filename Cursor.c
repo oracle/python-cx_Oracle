@@ -296,21 +296,32 @@ static int Cursor_Init(
 static PyObject *Cursor_Repr(
     udt_Cursor *cursor)                 // cursor to return the string for
 {
-    PyObject *connectionRepr, *module, *name, *result;
+    PyObject *connectionRepr, *module, *name, *result, *format, *formatArgs;
 
-    connectionRepr = PyObject_Repr((PyObject*) cursor->connection);
-    if (!connectionRepr)
+    format = cxString_FromAscii("<%s.%s on %s>");
+    if (!format)
         return NULL;
+    connectionRepr = PyObject_Repr((PyObject*) cursor->connection);
+    if (!connectionRepr) {
+        Py_DECREF(format);
+        return NULL;
+    }
     if (GetModuleAndName(Py_TYPE(cursor), &module, &name) < 0) {
+        Py_DECREF(format);
         Py_DECREF(connectionRepr);
         return NULL;
     }
-    result = PyString_FromFormat("<%s.%s on %s>",
-            PyString_AS_STRING(module), PyString_AS_STRING(name),
-            PyString_AS_STRING(connectionRepr));
-    Py_DECREF(connectionRepr);
+    formatArgs = PyTuple_Pack(3, module, name, connectionRepr);
     Py_DECREF(module);
     Py_DECREF(name);
+    Py_DECREF(connectionRepr);
+    if (!formatArgs) {
+        Py_DECREF(format);
+        return NULL;
+    }
+    result = cxString_Format(format, formatArgs);
+    Py_DECREF(format);
+    Py_DECREF(formatArgs);
     return result;
 }
 

@@ -401,15 +401,26 @@ static void ObjectType_Free(
 static PyObject *ObjectType_Repr(
     udt_ObjectType *self)               // object type to return the string for
 {
-    PyObject *module, *name, *result;
+    PyObject *module, *name, *result, *format, *formatArgs;
 
     if (GetModuleAndName(Py_TYPE(self), &module, &name) < 0)
         return NULL;
-    result = PyString_FromFormat("<%s.%s %s.%s>",
-            PyString_AS_STRING(module), PyString_AS_STRING(name),
-            PyString_AS_STRING(self->schema), PyString_AS_STRING(self->name));
+    format = cxString_FromAscii("<%s.%s %s.%s>");
+    if (!format) {
+        Py_DECREF(module);
+        Py_DECREF(name);
+        return NULL;
+    }
+    formatArgs = PyTuple_Pack(4, module, name, self->schema, self->name);
     Py_DECREF(module);
     Py_DECREF(name);
+    if (!formatArgs) {
+        Py_DECREF(format);
+        return NULL;
+    }
+    result = cxString_Format(format, formatArgs);
+    Py_DECREF(format);
+    Py_DECREF(formatArgs);
     return result;
 }
 
@@ -502,15 +513,26 @@ static void ObjectAttribute_Free(
 static PyObject *ObjectAttribute_Repr(
     udt_ObjectAttribute *self)          // attribute to return the string for
 {
-    PyObject *module, *name, *result;
+    PyObject *module, *name, *result, *format, *formatArgs;
 
     if (GetModuleAndName(Py_TYPE(self), &module, &name) < 0)
         return NULL;
-    result = PyString_FromFormat("<%s.%s %s>",
-            PyString_AS_STRING(module), PyString_AS_STRING(name),
-            PyString_AS_STRING(self->name));
+    format = cxString_FromAscii("<%s.%s %s>");
+    if (!format) {
+        Py_DECREF(module);
+        Py_DECREF(name);
+        return NULL;
+    }
+    formatArgs = PyTuple_Pack(3, module, name, self->name);
     Py_DECREF(module);
     Py_DECREF(name);
+    if (!formatArgs) {
+        Py_DECREF(format);
+        return NULL;
+    }
+    result = cxString_Format(format, formatArgs);
+    Py_DECREF(format);
+    Py_DECREF(formatArgs);
     return result;
 }
 

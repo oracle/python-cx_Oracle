@@ -1144,15 +1144,17 @@ static int Variable_VerifyFetch(
   udt_Variable *var,                    // variable to check fetch for
   unsigned arrayPos)                    // array position
 {
+    char messageText[200];
     udt_Error *error;
 
     if (var->type->isVariableLength) {
         if (var->returnCode[arrayPos] != 0) {
             error = Error_New(var->environment, "Variable_VerifyFetch()", 0);
             error->code = var->returnCode[arrayPos];
-            error->message = PyString_FromFormat(
+            sprintf(messageText, 
                     "column at array pos %d fetched with error: %d",
                     arrayPos, var->returnCode[arrayPos]);
+            error->message = cxString_FromAscii(messageText);
             if (!error->message)
                 Py_DECREF(error);
             else PyErr_SetObject(g_DatabaseErrorException, (PyObject*) error);
@@ -1458,7 +1460,7 @@ static PyObject *Variable_ExternalGetValue(
 static PyObject *Variable_Repr(
     udt_Variable *var)                  // variable to return the string for
 {
-    PyObject *valueRepr, *value, *module, *name, *result;
+    PyObject *valueRepr, *value, *module, *name, *result, *format, *formatArgs;
 
     if (var->isArray)
         value = Variable_GetArrayValue(var, var->actualElements);
@@ -1471,16 +1473,27 @@ static PyObject *Variable_Repr(
     Py_DECREF(value);
     if (!valueRepr)
         return NULL;
-    if (GetModuleAndName(Py_TYPE(var), &module, &name) < 0) {
+    format = cxString_FromAscii("<%s.%s with value %s>");
+    if (!format) {
         Py_DECREF(valueRepr);
         return NULL;
     }
-    result = PyString_FromFormat("<%s.%s with value %s>",
-            PyString_AS_STRING(module), PyString_AS_STRING(name),
-            PyString_AS_STRING(valueRepr));
-    Py_DECREF(valueRepr);
+    if (GetModuleAndName(Py_TYPE(var), &module, &name) < 0) {
+        Py_DECREF(valueRepr);
+        Py_DECREF(format);
+        return NULL;
+    }
+    formatArgs = PyTuple_Pack(3, module, name, valueRepr);
     Py_DECREF(module);
     Py_DECREF(name);
+    Py_DECREF(valueRepr);
+    if (!formatArgs) {
+        Py_DECREF(format);
+        return NULL;
+    }
+    result = cxString_Format(format, formatArgs);
+    Py_DECREF(format);
+    Py_DECREF(formatArgs);
     return result;
 }
 
