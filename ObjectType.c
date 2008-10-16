@@ -295,7 +295,7 @@ static int ObjectType_Initialize(
     if (Environment_CheckForError(self->environment, status,
             "ObjectType_Initialize(): get schema name") < 0)
         return -1;
-    self->schema = PyString_FromStringAndSize(name, size);
+    self->schema = cxString_FromEncodedString(name, size);
     if (!self->schema)
         return -1;
 
@@ -305,7 +305,7 @@ static int ObjectType_Initialize(
     if (Environment_CheckForError(self->environment, status,
             "ObjectType_Initialize(): get name") < 0)
         return -1;
-    self->name = PyString_FromStringAndSize(name, size);
+    self->name = cxString_FromEncodedString(name, size);
     if (!self->name)
         return -1;
 
@@ -433,7 +433,7 @@ static int ObjectAttribute_Initialize(
     if (Environment_CheckForError(connection->environment, status,
             "ObjectAttribute_Initialize(): get name") < 0)
         return -1;
-    self->name = PyString_FromStringAndSize(name, size);
+    self->name = cxString_FromEncodedString(name, size);
     if (!self->name)
         return -1;
 

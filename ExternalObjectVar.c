@@ -256,19 +256,18 @@ static PyObject *ExternalObjectVar_GetAttributeValue(
 {
     dvoid *valueIndicator, *value;
     OCIInd scalarValueIndicator;
-    ub4 nameLength;
+    udt_StringBuffer buffer;
     sword status;
     OCIType *tdo;
-    char *name;
 
     // get the value for the attribute
-    name = PyString_AS_STRING(attribute->name);
-    nameLength = PyString_GET_SIZE(attribute->name);
+    if (StringBuffer_Fill(&buffer, attribute->name) < 0)
+        return NULL;
     status = OCIObjectGetAttr(self->objectType->environment->handle,
             self->objectType->environment->errorHandle, self->instance,
-            self->indicator, self->objectType->tdo, (const OraText**) &name,
-            &nameLength, 1, 0, 0, &scalarValueIndicator, &valueIndicator,
-            &value, &tdo);
+            self->indicator, self->objectType->tdo,
+            (const OraText**) &buffer.ptr, (ub4*) &buffer.size, 1, 0, 0,
+            &scalarValueIndicator, &valueIndicator, &value, &tdo);
     if (Environment_CheckForError(self->objectType->environment, status,
             "ExternalObjectVar_GetAttributeValue(): getting value") < 0)
         return NULL;

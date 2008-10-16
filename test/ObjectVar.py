@@ -38,3 +38,16 @@ class TestObjectVar(BaseTestCase):
                 cx_Oracle.Timestamp(2007, 6, 21, 0, 0, 0),
                 cx_Oracle.Timestamp(2007, 12, 13, 7, 30, 45)), None)
 
+    def testObjectType(self):
+        "test object type data"
+        self.cursor.execute("""
+                select ObjectCol
+                from TestObjects
+                where ObjectCol is not null
+                  and rownum <= 1""")
+        objValue, = self.cursor.fetchone()
+        self.failUnlessEqual(objValue.type.schema,
+                self.connection.username.upper())
+        self.failUnlessEqual(objValue.type.name, "UDT_OBJECT")
+        self.failUnlessEqual(objValue.type.attributes[0].name, "NUMBERVALUE")
+
