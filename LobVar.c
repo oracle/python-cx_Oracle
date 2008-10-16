@@ -316,8 +316,10 @@ static int LobVar_Write(
     }
 
     // nothing to do if no data to write
-    if (*amount == 0)
+    if (*amount == 0) {
+        StringBuffer_Clear(&buffer);
         return 0;
+    }
 
     Py_BEGIN_ALLOW_THREADS
     status = OCILobWrite(var->connection->handle,
@@ -325,6 +327,7 @@ static int LobVar_Write(
             (void*) buffer.ptr, buffer.size, OCI_ONE_PIECE, NULL, NULL,
             CXORA_CHARSETID, var->type->charsetForm);
     Py_END_ALLOW_THREADS
+    StringBuffer_Clear(&buffer);
     if (Environment_CheckForError(var->environment, status,
             "LobVar_Write()") < 0)
         return -1;

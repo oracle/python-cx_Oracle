@@ -268,6 +268,7 @@ static PyObject *ExternalObjectVar_GetAttributeValue(
             self->indicator, self->objectType->tdo,
             (const OraText**) &buffer.ptr, (ub4*) &buffer.size, 1, 0, 0,
             &scalarValueIndicator, &valueIndicator, &value, &tdo);
+    StringBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->objectType->environment, status,
             "ExternalObjectVar_GetAttributeValue(): getting value") < 0)
         return NULL;

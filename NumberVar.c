@@ -326,6 +326,7 @@ static int NumberVar_SetValueFromLong(
             (text*) textBuffer.ptr, textBuffer.size,
             (text*) g_NumberToStringFormatBuffer.ptr,
             g_NumberToStringFormatBuffer.size, NULL, 0, &var->data[pos]);
+    StringBuffer_Clear(&textBuffer);
     Py_DECREF(textValue);
     return Environment_CheckForError(var->environment, status,
             "NumberVar_SetValueFromLong()");
