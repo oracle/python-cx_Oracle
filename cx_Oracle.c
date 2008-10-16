@@ -46,7 +46,7 @@ typedef int Py_ssize_t;
 #endif
 
 // define Py_Int_* macros for Python 3.x
-#ifndef Py_Int_Check
+#ifndef PyInt_Check
 #define PyInt_Check             PyLong_Check
 #define PyInt_FromLong          PyLong_FromLong
 #endif
