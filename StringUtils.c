@@ -7,7 +7,7 @@
 typedef struct {
     const void *ptr;
     Py_ssize_t size;
-#if defined(WITH_UNICODE) && defined(Py_UNICODE_WIDE)
+#ifdef Py_UNICODE_WIDE
     PyObject *encodedString;
 #endif
 } udt_StringBuffer;
@@ -36,7 +36,7 @@ static int StringBuffer_Init(
 {
     buf->ptr = NULL;
     buf->size = 0;
-#if defined(WITH_UNICODE) && defined(Py_UNICODE_WIDE)
+#ifdef Py_UNICODE_WIDE
     buf->encodedString = NULL;
 #endif
     return 0;
@@ -82,6 +82,9 @@ static int StringBuffer_FromBytes(
         return StringBuffer_Init(buf);
     buf->ptr = PyBytes_AS_STRING(obj);
     buf->size = PyBytes_GET_SIZE(obj);
+#ifdef Py_UNICODE_WIDE
+    buf->encodedString = NULL;
+#endif
     return 0;
 }
 

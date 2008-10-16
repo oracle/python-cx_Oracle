@@ -223,7 +223,8 @@ static PyObject *ExternalObjectVar_ConvertToPython(
                     * (OCIString**) value);
             stringSize = OCIStringSize(environment->handle,
                     * (OCIString**) value);
-            return cxString_FromEncodedString(stringValue, stringSize);
+            return cxString_FromEncodedString( (char*) stringValue,
+                    stringSize);
         case OCI_TYPECODE_NUMBER:
             return OracleNumberToPythonFloat(environment, (OCINumber*) value);
         case OCI_TYPECODE_DATE:

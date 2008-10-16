@@ -481,7 +481,7 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_Float;
     if (PyBuffer_Check(value)) {
         const void *buffer;
-        if (PyObject_AsReadBuffer(value, &buffer, size) < 0)
+        if (PyObject_AsReadBuffer(value, &buffer, (int*) size) < 0)
             return NULL;
         if (*size > MAX_BINARY_BYTES)
             return &vt_LongBinary;
