@@ -45,7 +45,7 @@ typedef int Py_ssize_t;
         PyObject_HEAD_INIT(type) size,
 #endif
 
-// define Py_Int_* macros for Python 3.x
+// define PyInt_* macros for Python 3.x
 #ifndef PyInt_Check
 #define PyInt_Check             PyLong_Check
 #define PyInt_FromLong          PyLong_FromLong
