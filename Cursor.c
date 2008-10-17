@@ -1316,7 +1316,7 @@ static int Cursor_Call(
     Py_DECREF(arguments);
 
     // create the statement object
-    format = PyBytes_FromString(statement);
+    format = cxString_FromAscii(statement);
     PyMem_Free(statement);
     if (!format) {
         Py_DECREF(bindVariables);
