@@ -1,5 +1,6 @@
 """Module for testing cursor variables."""
 
+import struct
 import sys
 
 class TestCursorVar(BaseTestCase):
@@ -36,10 +37,7 @@ class TestCursorVar(BaseTestCase):
                   cursor(select IntCol + 1 from dual) CursorValue
                 from TestNumbers
                 order by IntCol""")
-        if len(str(sys.maxint)) == 10:
-            size = 4
-        else:
-            size = 8
+        size = len(struct.pack("i", 1))
         self.failUnlessEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   ('CURSORVALUE', cx_Oracle.CURSOR, -1, size, 0, 0, 1) ])

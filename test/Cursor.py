@@ -1,6 +1,7 @@
 """Module for testing cursor objects."""
 
 import cx_Oracle
+import sys
 
 class TestCursor(BaseTestCase):
 
@@ -175,9 +176,15 @@ class TestCursor(BaseTestCase):
                 where IntCol between 1 and 3
                 order by IntCol""")
         testIter = iter(self.cursor)
-        value, = testIter.next()
+        if sys.version_info[0] >= 3:
+            value, = next(testIter)
+        else:
+            value, = testIter.next()
         self.cursor.execute("insert into TestExecuteMany values (1)")
-        self.failUnlessRaises(cx_Oracle.InterfaceError, testIter.next) 
+        if sys.version_info[0] >= 3:
+            self.failUnlessRaises(cx_Oracle.InterfaceError, next, testIter) 
+        else:
+            self.failUnlessRaises(cx_Oracle.InterfaceError, testIter.next) 
 
     def testBindNames(self):
         """test that bindnames() works correctly."""
