@@ -206,7 +206,7 @@ static udt_Variable *Variable_New(
 #ifdef WITH_UNICODE
         var->maxLength = var->maxLength * CXORA_BYTES_PER_CHAR;
 #else
-        if (type->charsetForm != SQLCS_IMPLICIT)
+        if (type->charsetForm == SQLCS_IMPLICIT)
             var->maxLength =
                     var->maxLength * cursor->environment->maxBytesPerCharacter;
         else var->maxLength = elementLength * 2;
