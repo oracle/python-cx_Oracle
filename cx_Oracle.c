@@ -67,18 +67,18 @@ typedef int Py_ssize_t;
 // define macro for adding OCI constants
 #define ADD_OCI_CONSTANT(x) \
     if (PyModule_AddIntConstant(module, #x, OCI_ ##x) < 0) \
-        return;
+        return NULL;
 
 // define macro for adding type objects
 #define ADD_TYPE_OBJECT(name, type) \
     Py_INCREF(type); \
     if (PyModule_AddObject(module, name, (PyObject*) type) < 0) \
-        return;
+        return NULL;
 
 // define macros for making types ready
 #define MAKE_TYPE_READY(type) \
     if (PyType_Ready(type) < 0) \
-        return;
+        return NULL;
 #define MAKE_VARIABLE_TYPE_READY(type) \
     (type)->tp_base = &g_BaseVarType;  \
     MAKE_TYPE_READY(type)
@@ -266,11 +266,30 @@ static PyMethodDef g_ModuleMethods[] = {
     { NULL }
 };
 
+
+#if PY_MAJOR_VERSION >= 3
 //-----------------------------------------------------------------------------
-// initcx_Oracle()
-//   Initialization routine for the shared libary.
+//   Declaration of module definition for Python 3.x.
 //-----------------------------------------------------------------------------
-void initcx_Oracle(void)
+static struct PyModuleDef g_ModuleDef = {
+    PyModuleDef_HEAD_INIT,
+    "cx_Oracle",
+    NULL,
+    -1,
+    g_ModuleMethods,                       // methods
+    NULL,                                  // m_reload
+    NULL,                                  // traverse
+    NULL,                                  // clear
+    NULL                                   // free
+};
+#endif
+
+
+//-----------------------------------------------------------------------------
+// Module_Initialize()
+//   Initialization routine for the module.
+//-----------------------------------------------------------------------------
+static PyObject *Module_Initialize(void)
 {
     PyThreadState *threadState;
     PyObject *module;
@@ -280,7 +299,7 @@ void initcx_Oracle(void)
     PyEval_InitThreads();
     threadState = PyThreadState_Swap(NULL);
     if (!threadState)
-        return;
+        return NULL;
     g_InterpreterState = threadState->interp;
     PyThreadState_Swap(threadState);
 #endif
@@ -288,30 +307,30 @@ void initcx_Oracle(void)
     // import the datetime module for datetime support
     PyDateTime_IMPORT;
     if (PyErr_Occurred())
-        return;
+        return NULL;
 
     // import the decimal module for decimal support
     module = PyImport_ImportModule("decimal");
     if (!module)
-        return;
+        return NULL;
     g_DecimalType = (PyTypeObject*) PyObject_GetAttrString(module, "Decimal");
     if (!g_DecimalType)
-        return;
+        return NULL;
 
     // set up the string and buffer for converting numbers to strings
     g_ShortNumberToStringFormatObj = cxString_FromAscii("TM9");
     if (!g_ShortNumberToStringFormatObj)
-        return;
+        return NULL;
     if (StringBuffer_Fill(&g_ShortNumberToStringFormatBuffer,
             g_ShortNumberToStringFormatObj) < 0)
-        return;
+        return NULL;
     g_NumberToStringFormatObj = cxString_FromAscii(
             "999999999999999999999999999999999999999999999999999999999999999");
     if (!g_NumberToStringFormatObj)
-        return;
+        return NULL;
     if (StringBuffer_Fill(&g_NumberToStringFormatBuffer,
             g_NumberToStringFormatObj) < 0)
-        return;
+        return NULL;
 
     // prepare the types for use by the module
     MAKE_TYPE_READY(&g_ConnectionType);
@@ -347,41 +366,45 @@ void initcx_Oracle(void)
 #endif
 
     // initialize module and retrieve the dictionary
+#if PY_MAJOR_VERSION >= 3
+    module = PyModule_Create(&g_ModuleDef);
+#else
     module = Py_InitModule("cx_Oracle", g_ModuleMethods);
+#endif
     if (!module)
-        return;
+        return NULL;
 
     // create exception object and add it to the dictionary
     if (SetException(module, &g_WarningException,
             "Warning", CXORA_BASE_EXCEPTION) < 0)
-        return;
+        return NULL;
     if (SetException(module, &g_ErrorException,
             "Error", CXORA_BASE_EXCEPTION) < 0)
-        return;
+        return NULL;
     if (SetException(module, &g_InterfaceErrorException,
             "InterfaceError", g_ErrorException) < 0)
-        return;
+        return NULL;
     if (SetException(module, &g_DatabaseErrorException,
             "DatabaseError", g_ErrorException) < 0)
-        return;
+        return NULL;
     if (SetException(module, &g_DataErrorException,
             "DataError", g_DatabaseErrorException) < 0)
-        return;
+        return NULL;
     if (SetException(module, &g_OperationalErrorException,
             "OperationalError", g_DatabaseErrorException) < 0)
-        return;
+        return NULL;
     if (SetException(module, &g_IntegrityErrorException,
             "IntegrityError", g_DatabaseErrorException) < 0)
-        return;
+        return NULL;
     if (SetException(module, &g_InternalErrorException,
             "InternalError", g_DatabaseErrorException) < 0)
-        return;
+        return NULL;
     if (SetException(module, &g_ProgrammingErrorException,
             "ProgrammingError", g_DatabaseErrorException) < 0)
-        return;
+        return NULL;
     if (SetException(module, &g_NotSupportedErrorException,
             "NotSupportedError", g_DatabaseErrorException) < 0)
-        return;
+        return NULL;
 
     // set up the types that are available
     ADD_TYPE_OBJECT("Binary", &cxBinary_Type)
@@ -422,19 +445,19 @@ void initcx_Oracle(void)
 
     // create constants required by Python DB API 2.0
     if (PyModule_AddStringConstant(module, "apilevel", "2.0") < 0)
-        return;
+        return NULL;
     if (PyModule_AddIntConstant(module, "threadsafety", 2) < 0)
-        return;
+        return NULL;
     if (PyModule_AddStringConstant(module, "paramstyle", "named") < 0)
-        return;
+        return NULL;
 
     // add version and build time for easier support
     if (PyModule_AddStringConstant(module, "version",
             BUILD_VERSION_STRING) < 0)
-        return;
+        return NULL;
     if (PyModule_AddStringConstant(module, "buildtime",
             __DATE__ " " __TIME__) < 0)
-        return;
+        return NULL;
 
     // add constants for registering callbacks
     ADD_OCI_CONSTANT(SYSDBA)
@@ -464,5 +487,23 @@ void initcx_Oracle(void)
     ADD_OCI_CONSTANT(ATTR_PURITY_NEW)
     ADD_OCI_CONSTANT(ATTR_PURITY_SELF)
 #endif
+
+    return module;
 }
+
+
+//-----------------------------------------------------------------------------
+// Start routine for the module.
+//-----------------------------------------------------------------------------
+#if PY_MAJOR_VERSION >= 3
+PyMODINIT_FUNC PyInit_cx_Oracle(void)
+{
+    return Module_Initialize();
+}
+#else
+void initcx_Oracle(void)
+{
+    Module_Initialize();
+}
+#endif
 
