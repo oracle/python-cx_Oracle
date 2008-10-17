@@ -737,8 +737,9 @@ static udt_Variable *Variable_NewArrayByType(
     udt_Cursor *cursor,                 // cursor to bind variable to
     PyObject *value)                    // value to bind
 {
-    PyObject *type, *numElements;
+    PyObject *typeObj, *numElementsObj;
     udt_VariableType *varType;
+    unsigned numElements;
     udt_Variable *var;
 
     if (PyList_GET_SIZE(value) != 2) {
@@ -747,20 +748,22 @@ static udt_Variable *Variable_NewArrayByType(
         return NULL;
     }
 
-    type = PyList_GET_ITEM(value, 0);
-    numElements = PyList_GET_ITEM(value, 1);
-    if (!PyInt_Check(numElements)) {
+    typeObj = PyList_GET_ITEM(value, 0);
+    numElementsObj = PyList_GET_ITEM(value, 1);
+    if (!PyInt_Check(numElementsObj)) {
         PyErr_SetString(g_ProgrammingErrorException,
                 "number of elements must be an integer");
         return NULL;
     }
 
-    varType = Variable_TypeByPythonType(cursor, type);
+    varType = Variable_TypeByPythonType(cursor, typeObj);
     if (!varType)
         return NULL;
 
-    var = Variable_New(cursor, PyInt_AS_LONG(numElements), varType,
-            varType->elementLength);
+    numElements = PyInt_AsLong(numElementsObj);
+    if (PyErr_Occurred())
+        return NULL;
+    var = Variable_New(cursor, numElements, varType, varType->elementLength);
     if (!var)
         return NULL;
     if (Variable_MakeArray(var) < 0) {
@@ -786,7 +789,9 @@ static udt_Variable *Variable_NewByType(
 
     // passing an integer is assumed to be a string
     if (PyInt_Check(value)) {
-        maxLength = PyInt_AS_LONG(value);
+        maxLength = PyInt_AsLong(value);
+        if (PyErr_Occurred())
+            return NULL;
         if (maxLength > MAX_STRING_CHARS)
             varType = &vt_LongString;
         else varType = &vt_String;

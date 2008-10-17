@@ -2011,9 +2011,11 @@ static PyObject *Cursor_ArrayVar(
     // determine the number of elements to create
     if (PyList_Check(value))
         numElements = PyList_GET_SIZE(value);
-    else if (PyInt_Check(value))
-        numElements = PyInt_AS_LONG(value);
-    else {
+    else if (PyInt_Check(value)) {
+        numElements = PyInt_AsLong(value);
+        if (PyErr_Occurred())
+            return NULL;
+    } else {
         PyErr_SetString(PyExc_TypeError,
                 "expecting integer or list of values");
         return NULL;

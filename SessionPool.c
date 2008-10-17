@@ -515,7 +515,9 @@ static int SessionPool_SetOCIAttr(
         PyErr_SetString(PyExc_TypeError, "value must be an integer");
         return -1;
     }
-    ociValue = PyInt_AS_LONG(value);
+    ociValue = PyInt_AsLong(value);
+    if (PyErr_Occurred())
+        return -1;
     status = OCIAttrSet(self->handle, OCI_HTYPE_SPOOL, &ociValue, 0,
             *attribute, self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,

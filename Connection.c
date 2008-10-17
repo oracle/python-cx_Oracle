@@ -623,8 +623,10 @@ static int Connection_SplitComponent(
     posObj = PyObject_CallMethod(*sourceObj, "find", "s", splitString);
     if (!posObj)
         return -1;
-    pos = PyInt_AS_LONG(posObj);
+    pos = PyInt_AsLong(posObj);
     Py_DECREF(posObj);
+    if (PyErr_Occurred())
+        return -1;
     if (pos >= 0) {
         size = PySequence_Size(*sourceObj);
         if (PyErr_Occurred())
@@ -907,7 +909,9 @@ static int Connection_SetStmtCacheSize(
         PyErr_SetString(PyExc_TypeError, "value must be an integer");
         return -1;
     }
-    valueToSet = (ub4) PyInt_AS_LONG(value);
+    valueToSet = (ub4) PyInt_AsLong(value);
+    if (PyErr_Occurred())
+        return -1;
     status = OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX, (dvoid*) &valueToSet,
             0, OCI_ATTR_STMTCACHESIZE, self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,

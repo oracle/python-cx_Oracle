@@ -354,9 +354,13 @@ static int NumberVar_GetFormatAndTextFromDecimal(
     PyObject *digits;
 
     // acquire basic information from the value tuple
-    sign = PyInt_AS_LONG(PyTuple_GET_ITEM(tupleValue, 0));
+    sign = PyInt_AsLong(PyTuple_GET_ITEM(tupleValue, 0));
+    if (PyErr_Occurred())
+        return -1;
     digits = PyTuple_GET_ITEM(tupleValue, 1);
-    scale = PyInt_AS_LONG(PyTuple_GET_ITEM(tupleValue, 2));
+    scale = PyInt_AsLong(PyTuple_GET_ITEM(tupleValue, 2));
+    if (PyErr_Occurred())
+        return -1;
     numDigits = PyTuple_GET_SIZE(digits);
 
     // allocate memory for the string and format to use in conversion
@@ -378,8 +382,13 @@ static int NumberVar_GetFormatAndTextFromDecimal(
         *textPtr++ = '-';
     for (i = 0; i < numDigits + scale; i++) {
         *formatPtr++ = '9';
-        if (i < numDigits)
-            digit = PyInt_AS_LONG(PyTuple_GetItem(digits, i));
+        if (i < numDigits) {
+            digit = PyInt_AsLong(PyTuple_GetItem(digits, i));
+            if (PyErr_Occurred()) {
+                PyMem_Free(textValue);
+                return -1;
+            }
+        }
         else digit = 0;
         *textPtr++ = '0' + (char) digit;
     }
@@ -390,7 +399,13 @@ static int NumberVar_GetFormatAndTextFromDecimal(
             *formatPtr++ = '9';
             if (numDigits + i < 0)
                 digit = 0;
-            else digit = PyInt_AS_LONG(PyTuple_GetItem(digits, numDigits + i));
+            else {
+                digit = PyInt_AsLong(PyTuple_GetItem(digits, numDigits + i));
+                if (PyErr_Occurred()) {
+                    PyMem_Free(textValue);
+                    return -1;
+                }
+            }
             *textPtr++ = '0' + (char) digit;
         }
     }

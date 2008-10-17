@@ -49,6 +49,7 @@ typedef int Py_ssize_t;
 #ifndef PyInt_Check
 #define PyInt_Check             PyLong_Check
 #define PyInt_FromLong          PyLong_FromLong
+#define PyInt_AsLong            PyLong_AsLong
 #define PyInt_Type              PyLong_Type
 #endif
 
