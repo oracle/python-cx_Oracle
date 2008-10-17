@@ -111,6 +111,8 @@ static PyMemberDef g_CursorMembers[] = {
     { "connection", T_OBJECT_EX, offsetof(udt_Cursor, connection), READONLY },
     { "numbersAsStrings", T_INT, offsetof(udt_Cursor, numbersAsStrings), 0 },
     { "rowfactory", T_OBJECT, offsetof(udt_Cursor, rowFactory), 0 },
+    { "bindvars", T_OBJECT, offsetof(udt_Cursor, bindVariables), READONLY },
+    { "fetchvars", T_OBJECT, offsetof(udt_Cursor, fetchVariables), READONLY },
     { "inputtypehandler", T_OBJECT, offsetof(udt_Cursor, inputTypeHandler),
             0 },
     { "outputtypehandler", T_OBJECT, offsetof(udt_Cursor, outputTypeHandler),
@@ -1495,10 +1497,10 @@ static PyObject *Cursor_Execute(
     self->outputSize = -1;
     self->outputSizeColumn = -1;
 
-    // for queries, return the defined variables for possible use
+    // for queries, return the cursor for convenience
     if (isQuery) {
-        Py_INCREF(self->fetchVariables);
-        return self->fetchVariables;
+        Py_INCREF(self);
+        return (PyObject*) self;
     }
 
     // for all other statements, simply return None
