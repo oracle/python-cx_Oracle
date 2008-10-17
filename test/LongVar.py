@@ -1,5 +1,7 @@
 """Module for testing long and long raw variables."""
 
+import sys
+
 class TestLongVar(BaseTestCase):
 
     def __PerformTest(self, a_Type, a_InputType):
@@ -9,6 +11,10 @@ class TestLongVar(BaseTestCase):
             char = chr(ord('A') + i - 1)
             longString += char * 25000
             self.cursor.setinputsizes(p_LongString = a_InputType)
+            if a_Type == "LongRaw" and sys.version_info[0] >= 3:
+                bindValue = longString.encode("ascii")
+            else:
+                bindValue = longString
             self.cursor.execute("""
                     insert into Test%ss (
                       IntCol,
@@ -18,7 +24,7 @@ class TestLongVar(BaseTestCase):
                       :p_LongString
                     )""" % (a_Type, a_Type),
                     p_IntegerValue = i,
-                    p_LongString = longString)
+                    p_LongString = bindValue)
         self.connection.commit()
         self.cursor.setoutputsize(250000, 2)
         self.cursor.execute("""
@@ -33,8 +39,12 @@ class TestLongVar(BaseTestCase):
             integerValue, fetchedValue = row
             char = chr(ord('A') + integerValue - 1)
             longString += char * 25000
+            if a_Type == "LongRaw" and sys.version_info[0] >= 3:
+                actualValue = longString.encode("ascii")
+            else:
+                actualValue = longString
             self.failUnlessEqual(len(fetchedValue), integerValue * 25000)
-            self.failUnlessEqual(fetchedValue, longString)
+            self.failUnlessEqual(fetchedValue, actualValue)
 
     def testLongs(self):
         "test binding and fetching long data"
@@ -62,13 +72,12 @@ class TestLongVar(BaseTestCase):
         "test setoutputsizes is valid (all)"
         self.cursor.setoutputsize(25000)
         longVar = self.cursor.execute("select * from TestLongRaws")[1]
-        self.failUnlessEqual(longVar.maxlength,
-                25004 * self.connection.maxBytesPerCharacter)
+        self.failUnlessEqual(longVar.maxlength, 25004)
 
     def testSetOutputSizesWrongColumn(self):
         "test setoutputsizes is valid (wrong column)"
         self.cursor.setoutputsize(25000, 1)
-        longVar = self.cursor.execute("select * from TestLongRaws")[1]
+        longVar = self.cursor.execute("select * from TestLongs")[1]
         self.failUnlessEqual(longVar.maxlength,
                 131072 * self.connection.maxBytesPerCharacter)
 
@@ -76,8 +85,7 @@ class TestLongVar(BaseTestCase):
         "test setoutputsizes is valid (right column)"
         self.cursor.setoutputsize(35000, 2)
         longVar = self.cursor.execute("select * from TestLongRaws")[1]
-        self.failUnlessEqual(longVar.maxlength,
-                35004 * self.connection.maxBytesPerCharacter)
+        self.failUnlessEqual(longVar.maxlength, 35004)
 
     def testArraySizeTooLarge(self):
         "test array size too large generates an exception"
