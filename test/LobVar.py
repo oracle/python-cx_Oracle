@@ -1,5 +1,7 @@
 """Module for testing LOB (CLOB and BLOB) variables."""
 
+import sys
+
 class TestLobVar(BaseTestCase):
 
     def __PerformTest(self, type, inputType):
@@ -13,6 +15,10 @@ class TestLobVar(BaseTestCase):
             elif inputType != directType:
                 continue
             self.cursor.setinputsizes(longString = inputType)
+            if type == "BLOB" and sys.version_info[0] >= 3:
+                bindValue = longString.encode("ascii")
+            else:
+                bindValue = longString
             self.cursor.execute("""
                     insert into Test%ss (
                       IntCol,
@@ -22,7 +28,7 @@ class TestLobVar(BaseTestCase):
                       :longString
                     )""" % (type, type),
                     integerValue = i,
-                    longString = longString)
+                    longString = bindValue)
         self.connection.commit()
         self.cursor.execute("""
                 select *
@@ -33,15 +39,25 @@ class TestLobVar(BaseTestCase):
             integerValue, lob = row
             if integerValue == 0:
                 self.failUnlessEqual(lob.size(), 0)
-                self.failUnlessEqual(lob.read(), "")
+                expectedValue = ""
+                if type == "BLOB" and sys.version_info[0] >= 3:
+                    expectedValue = expectedValue.encode("ascii")
+                self.failUnlessEqual(lob.read(), expectedValue)
             else:
                 char = chr(ord('A') + integerValue - 1)
                 prevChar = chr(ord('A') + integerValue - 2)
                 longString += char * 25000
-                self.failUnlessEqual(lob.size(), len(longString))
-                self.failUnlessEqual(lob.read(), longString)
-                self.failUnlessEqual(str(lob), longString)
-                self.failUnlessEqual(lob.read(len(longString)), char)
+                if type == "BLOB" and sys.version_info[0] >= 3:
+                    actualValue = longString.encode("ascii")
+                    char = char.encode("ascii")
+                    prevChar = prevChar.encode("ascii")
+                else:
+                    actualValue = longString
+                self.failUnlessEqual(lob.size(), len(actualValue))
+                self.failUnlessEqual(lob.read(), actualValue)
+                if type == "CLOB":
+                    self.failUnlessEqual(str(lob), actualValue)
+                self.failUnlessEqual(lob.read(len(actualValue)), char)
             if integerValue > 1:
                 offset = (integerValue - 1) * 25000 - 4
                 string = prevChar * 5 + char * 5
@@ -50,6 +66,9 @@ class TestLobVar(BaseTestCase):
     def __TestTrim(self, type):
         self.cursor.execute("truncate table Test%ss" % type)
         self.cursor.setinputsizes(longString = getattr(cx_Oracle, type))
+        longString = "X" * 75000
+        if type == "BLOB" and sys.version_info[0] >= 3:
+            longString = longString.encode("ascii")
         self.cursor.execute("""
                 insert into Test%ss (
                   IntCol,
@@ -59,7 +78,7 @@ class TestLobVar(BaseTestCase):
                   :longString
                 )""" % (type, type),
                 integerValue = 1,
-                longString = "X" * 75000)
+                longString = longString)
         self.cursor.execute("""
                 select %sCol
                 from Test%ss
