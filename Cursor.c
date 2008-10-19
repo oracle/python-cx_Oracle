@@ -110,14 +110,13 @@ static PyMemberDef g_CursorMembers[] = {
     { "statement", T_OBJECT, offsetof(udt_Cursor, statement), READONLY },
     { "connection", T_OBJECT_EX, offsetof(udt_Cursor, connection), READONLY },
     { "numbersAsStrings", T_INT, offsetof(udt_Cursor, numbersAsStrings), 0 },
-    { "row_factory", T_OBJECT, offsetof(udt_Cursor, rowFactory), 0 },
+    { "rowfactory", T_OBJECT, offsetof(udt_Cursor, rowFactory), 0 },
     { "bindvars", T_OBJECT, offsetof(udt_Cursor, bindVariables), READONLY },
     { "fetchvars", T_OBJECT, offsetof(udt_Cursor, fetchVariables), READONLY },
     { "inputtypehandler", T_OBJECT, offsetof(udt_Cursor, inputTypeHandler),
             0 },
     { "outputtypehandler", T_OBJECT, offsetof(udt_Cursor, outputTypeHandler),
             0 },
-    { "rowfactory", T_OBJECT, offsetof(udt_Cursor, rowFactory), 0 },
     { NULL }
 };
 
