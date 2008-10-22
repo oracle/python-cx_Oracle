@@ -37,7 +37,7 @@ class TestCursorVar(BaseTestCase):
                   cursor(select IntCol + 1 from dual) CursorValue
                 from TestNumbers
                 order by IntCol""")
-        size = len(struct.pack("i", 1))
+        size = struct.calcsize('P')
         self.failUnlessEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   ('CURSORVALUE', cx_Oracle.CURSOR, -1, size, 0, 0, 1) ])
