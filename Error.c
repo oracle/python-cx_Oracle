@@ -83,6 +83,9 @@ static udt_Error *Error_New(
     ub4 handleType;
     dvoid *handle;
     sword status;
+#ifdef WITH_UNICODE
+    Py_ssize_t len;
+#endif
 
     error = PyObject_NEW(udt_Error, &g_ErrorType);
     if (!error)
@@ -104,7 +107,6 @@ static udt_Error *Error_New(
             return NULL;
         }
 #ifdef WITH_UNICODE
-        Py_ssize_t len;
 	    for (len = 0; len < sizeof(errorText); len += 2) {
 	        if (errorText[len] == 0 && errorText[len + 1] == 0)
 		        break;
