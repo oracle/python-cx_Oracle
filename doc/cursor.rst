@@ -54,6 +54,18 @@ Cursor Object
       The DB API definition does not define this method.
 
 
+.. attribute:: Cursor.bindvars
+
+   This read-only attribute specifies the bind variables used for the last
+   execute. The value will be either a list or a dictionary depending on
+   whether binding was done by position or name. Care should be taken when
+   referencing this attribute. In particular, elements should not be removed.
+
+   .. note::
+
+      The DB API definition does not define this attribute.
+
+
 .. method:: Cursor.callfunc(name, returnType, [parameters=[]])
 
    Call a function with the given name. The return type is specified in the
@@ -205,6 +217,17 @@ Cursor Object
    .. note::
 
       The DB API definition does not define this method.
+
+
+.. attribute:: Cursor.fetchvars
+
+   This read-only attribute specifies the list of variables created for the
+   last query that was executed on the cursor.  Care should be taken when
+   referencing this attribute. In particular, elements should not be removed.
+
+   .. note::
+
+      The DB API definition does not define this attribute.
 
 
 .. method:: Cursor.__iter__()
