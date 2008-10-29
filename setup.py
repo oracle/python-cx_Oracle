@@ -181,6 +181,7 @@ if sys.platform == "aix4":
     extraCompileArgs.append("-qcpluscmt")
 elif sys.platform == "cygwin":
     extraCompileArgs.append("-mno-cygwin")
+    extraLinkArgs.append("-Wl,--enable-runtime-pseudo-reloc")
 if "WITH_UNICODE" in os.environ or sys.version_info[0] >= 3:
     extraCompileArgs.append("-DWITH_UNICODE")
 
