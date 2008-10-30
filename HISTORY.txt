@@ -1,3 +1,35 @@
+Changes from 4.4 to 4.4.1
+ 1) Make the bind variables and fetch variables accessible although they need
+    to be treated carefully since they are used internally; support added for
+    forward compatibility with version 5.x.
+ 2) Include the "cannot insert null value" in the list of errors that are
+    treated as integrity errors as requested by Matt Boersma.
+ 3) Use a cx_Oracle.Error instance rather than a string to hold the error when
+    truncation (ORA-1406) takes place as requested by Helge Tesdal.
+ 4) Added support for fixed char, old style varchar and timestamp attribute
+    values in objects.
+ 5) Tweaked setup.py to check for the Oracle version up front rather than
+    during the build in order to produce more meaningful errors and simplify
+    the code.
+ 6) In setup.py added proper detection for the instant client on Mac OS X as
+    recommended by Martijn Pieters.
+ 7) In setup.py, avoided resetting the extraLinkArgs on Mac OS X as doing so
+    prevents simple modification where desired as expressed by Christian
+    Zagrodnick.
+ 8) Added documentation on exception handling as requested by Andreas Mock, who
+    also graciously provided an initial patch.
+ 9) Modified documentation indicating that the password attribute on connection
+    objects can be written.
+10) Added documentation warning that parameters not passed in during subsequent
+    executions of a statement will retain their original values as requested by
+    Harald Armin Massa.
+11) Added comments indicating that an Oracle client is required since so many
+    people find this surprising.
+12) Removed all references to Oracle 8i from the documentation and version 5.x
+    will eliminate all vestiges of support for this version of the Oracle
+    client.
+13) Added additional link arguments for Cygwin as requested by Rob Gillen.
+
 Changes from 4.3.3 to 4.4
  1) Fix setup.py to handle the Oracle instant client and Oracle XE on both
     Linux and Windows as pointed out by many. Thanks also to the many people
