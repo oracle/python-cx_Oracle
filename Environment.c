@@ -13,7 +13,7 @@ typedef struct {
     int maxBytesPerCharacter;
     int fixedWidth;
     ub4 maxStringBytes;
-    int cloned;
+    PyObject *cloneEnv;
 } udt_Environment;
 
 //-----------------------------------------------------------------------------
@@ -78,7 +78,7 @@ static udt_Environment *Environment_New(
     env->fixedWidth = 1;
     env->maxBytesPerCharacter = CXORA_BYTES_PER_CHAR;
     env->maxStringBytes = MAX_STRING_CHARS * CXORA_BYTES_PER_CHAR;
-    env->cloned = 0;
+    env->cloneEnv = NULL;
 
     // create the error handle
     status = OCIHandleAlloc(handle, (dvoid**) &env->errorHandle,
@@ -174,7 +174,8 @@ static udt_Environment *Environment_Clone(
     env->maxBytesPerCharacter = cloneEnv->maxBytesPerCharacter;
     env->maxStringBytes = cloneEnv->maxStringBytes;
     env->fixedWidth = cloneEnv->fixedWidth;
-    env->cloned = 1;
+    Py_INCREF(cloneEnv);
+    env->cloneEnv = (PyObject*) cloneEnv;
     return env;
 }
 
@@ -189,8 +190,9 @@ static void Environment_Free(
 {
     if (environment->errorHandle)
         OCIHandleFree(environment->errorHandle, OCI_HTYPE_ERROR);
-    if (environment->handle && !environment->cloned)
+    if (environment->handle && !environment->cloneEnv)
         OCIHandleFree(environment->handle, OCI_HTYPE_ENV);
+    Py_CLEAR(environment->cloneEnv);
     PyObject_DEL(environment);
 }
 
