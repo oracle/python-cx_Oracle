@@ -12,6 +12,13 @@ class TestConnection(TestCase):
         count, = cursor.fetchone()
         self.failUnlessEqual(count, 10)
 
+    def __ConnectAndGenerateError(self):
+        """Connect to the database, perform a query which raises an error"""
+        connection = self.pool.acquire()
+        cursor = connection.cursor()
+        self.failUnlessRaises(cx_Oracle.DatabaseError, cursor.execute,
+                "select 1 / 0 from dual")
+
     def testPool(self):
         """test that the pool is created and has the right attributes"""
         pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3)
@@ -91,6 +98,18 @@ class TestConnection(TestCase):
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__ConnectAndDrop)
+            threads.append(thread)
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+    def testThreadingWithErrors(self):
+        """test session pool to database with multiple threads (with errors)"""
+        self.pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 5, 20,
+                2, threaded = True)
+        threads = []
+        for i in range(20):
+            thread = threading.Thread(None, self.__ConnectAndGenerateError)
             threads.append(thread)
             thread.start()
         for thread in threads:
