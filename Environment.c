@@ -13,6 +13,7 @@ typedef struct {
     int maxBytesPerCharacter;
     int fixedWidth;
     ub4 maxStringBytes;
+    int cloned;
 } udt_Environment;
 
 //-----------------------------------------------------------------------------
@@ -63,22 +64,48 @@ static PyTypeObject g_EnvironmentType = {
 //   Create a new environment object.
 //-----------------------------------------------------------------------------
 static udt_Environment *Environment_New(
+    OCIEnv *handle)                     // handle to use
+{
+    udt_Environment *env;
+    sword status;
+
+    // create a new object for the Oracle environment
+    env = PyObject_NEW(udt_Environment, &g_EnvironmentType);
+    if (!env)
+        return NULL;
+    env->handle = NULL;
+    env->errorHandle = NULL;
+    env->fixedWidth = 1;
+    env->maxBytesPerCharacter = CXORA_BYTES_PER_CHAR;
+    env->maxStringBytes = MAX_STRING_CHARS * CXORA_BYTES_PER_CHAR;
+    env->cloned = 0;
+
+    // create the error handle
+    status = OCIHandleAlloc(handle, (dvoid**) &env->errorHandle,
+            OCI_HTYPE_ERROR, 0, 0);
+    if (Environment_CheckForError(env, status,
+            "Environment_New(): create error handle") < 0) {
+        Py_DECREF(env);
+        return NULL;
+    }
+
+    env->handle = handle;
+    return env;
+}
+
+
+//-----------------------------------------------------------------------------
+// Environment_NewFromScratch()
+//   Create a new environment object from scratch.
+//-----------------------------------------------------------------------------
+static udt_Environment *Environment_NewFromScratch(
     int threaded,                       // use threaded mode?
     int events)                         // use events mode?
 {
-    udt_Environment *environment;
+    udt_Environment *env;
+    OCIEnv *handle;
     sword status;
     ub4 mode;
-
-    // create a new object for the Oracle environment
-    environment = PyObject_NEW(udt_Environment, &g_EnvironmentType);
-    if (!environment)
-        return NULL;
-    environment->handle = NULL;
-    environment->errorHandle = NULL;
-    environment->fixedWidth = 1;
-    environment->maxBytesPerCharacter = CXORA_BYTES_PER_CHAR;
-    environment->maxStringBytes = MAX_STRING_CHARS * CXORA_BYTES_PER_CHAR;
 
     // turn threading mode on, if desired
     mode = OCI_OBJECT;
@@ -89,56 +116,66 @@ static udt_Environment *Environment_New(
         mode |= OCI_EVENTS;
 #endif
 
-    // create the environment handle
-    status = OCIEnvNlsCreate(&environment->handle, mode, NULL, NULL, NULL,
+    // create the new environment handle
+    status = OCIEnvNlsCreate(&handle, mode, NULL, NULL, NULL,
             NULL, 0, NULL, CXORA_CHARSETID, CXORA_CHARSETID);
-    if (!environment->handle) {
-        Py_DECREF(environment);
+    if (!handle ||
+            (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)) {
         PyErr_SetString(g_InterfaceErrorException,
                 "Unable to acquire Oracle environment handle");
         return NULL;
     }
-    if (Environment_CheckForError(environment, status,
-            "Environment_New(): create env handle") < 0) {
-        environment->handle = NULL;
-        Py_DECREF(environment);
-        return NULL;
-    }
 
-    // create the error handle
-    status = OCIHandleAlloc(environment->handle,
-            (dvoid**) &environment->errorHandle, OCI_HTYPE_ERROR, 0, 0);
-    if (Environment_CheckForError(environment, status,
-            "Environment_New(): create error handle") < 0) {
-        Py_DECREF(environment);
+    // create the environment object
+    env = Environment_New(handle);
+    if (!env) {
+        OCIHandleFree(handle, OCI_HTYPE_ENV);
         return NULL;
     }
 
 #ifndef WITH_UNICODE
     // acquire max bytes per character
-    status = OCINlsNumericInfoGet(environment->handle,
-            environment->errorHandle, &environment->maxBytesPerCharacter,
-            OCI_NLS_CHARSET_MAXBYTESZ);
-    if (Environment_CheckForError(environment, status,
+    status = OCINlsNumericInfoGet(env->handle, env->errorHandle,
+            &env->maxBytesPerCharacter, OCI_NLS_CHARSET_MAXBYTESZ);
+    if (Environment_CheckForError(env, status,
             "Environment_New(): get max bytes per character") < 0) {
-        Py_DECREF(environment);
+        Py_DECREF(env);
         return NULL;
     }
-    environment->maxStringBytes =
-            MAX_STRING_CHARS * environment->maxBytesPerCharacter;
+    env->maxStringBytes = MAX_STRING_CHARS * env->maxBytesPerCharacter;
 
     // acquire whether character set is fixed width
-    status = OCINlsNumericInfoGet(environment->handle,
-            environment->errorHandle, &environment->fixedWidth,
-            OCI_NLS_CHARSET_FIXEDWIDTH);
-    if (Environment_CheckForError(environment, status,
-            "Environment_New(): determine if charset is fixed width") < 0) {
-        Py_DECREF(environment);
+    status = OCINlsNumericInfoGet(env->handle, env->errorHandle,
+            &env->fixedWidth, OCI_NLS_CHARSET_FIXEDWIDTH);
+    if (Environment_CheckForError(env, status,
+            "Environment_New(): determine if charset fixed width") < 0) {
+        Py_DECREF(env);
         return NULL;
     }
 #endif
 
-    return environment;
+    return env;
+}
+
+
+//-----------------------------------------------------------------------------
+// Environment_Clone()
+//   Clone an existing environment which is used when acquiring a connection
+// from a session pool, for example.
+//-----------------------------------------------------------------------------
+static udt_Environment *Environment_Clone(
+    udt_Environment *cloneEnv)          // environment to clone
+{
+    udt_Environment *env;
+
+    env = Environment_New(cloneEnv->handle);
+    if (!env)
+        return NULL;
+    env->maxBytesPerCharacter = cloneEnv->maxBytesPerCharacter;
+    env->maxStringBytes = cloneEnv->maxStringBytes;
+    env->fixedWidth = cloneEnv->fixedWidth;
+    env->cloned = 1;
+    return env;
 }
 
 
@@ -150,7 +187,9 @@ static udt_Environment *Environment_New(
 static void Environment_Free(
     udt_Environment *environment)       // environment object
 {
-    if (environment->handle)
+    if (environment->errorHandle)
+        OCIHandleFree(environment->errorHandle, OCI_HTYPE_ERROR);
+    if (environment->handle && !environment->cloned)
         OCIHandleFree(environment->handle, OCI_HTYPE_ENV);
     PyObject_DEL(environment);
 }

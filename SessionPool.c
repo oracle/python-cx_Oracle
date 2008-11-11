@@ -235,7 +235,7 @@ static int SessionPool_Init(
     self->homogeneous = homogeneous;
 
     // set up the environment
-    self->environment = Environment_New(threaded, events);
+    self->environment = Environment_NewFromScratch(threaded, events);
     if (!self->environment)
         return -1;
 

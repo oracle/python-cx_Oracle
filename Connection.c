@@ -707,7 +707,9 @@ static int Connection_Init(
     }
 
     // set up the environment
-    self->environment = Environment_New(threaded, events);
+    if (pool)
+        self->environment = Environment_Clone(pool->environment);
+    else self->environment = Environment_NewFromScratch(threaded, events);
     if (!self->environment)
         return -1;
 
