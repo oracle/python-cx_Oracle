@@ -162,7 +162,7 @@ static void Environment_Free(
 // exception for Python. At this point it is assumed that the Oracle
 // environment is fully initialized.
 //-----------------------------------------------------------------------------
-static void Environment_RaiseError(
+static int Environment_RaiseError(
     udt_Environment *environment,       // environment to raise error for
     const char *context)                // context in which error occurred
 {
@@ -197,6 +197,7 @@ static void Environment_RaiseError(
         PyErr_SetObject(exceptionType, (PyObject*) error);
         Py_DECREF(error);
     }
+    return -1;
 }
 
 
@@ -210,10 +211,19 @@ static int Environment_CheckForError(
     sword status,                       // status of last call
     const char *context)                // context
 {
+    udt_Error *error;
+
     if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO) {
-        if (status == OCI_INVALID_HANDLE)
-            PyErr_SetString(g_DatabaseErrorException, "Invalid handle!");
-        else Environment_RaiseError(environment, context);
+        if (status != OCI_INVALID_HANDLE)
+            return Environment_RaiseError(environment, context);
+        error = Error_New(environment, context, 0);
+        if (!error)
+            return -1;
+        error->code = 0;
+        error->message = cxString_FromAscii("Invalid handle!");
+        if (!error->message)
+            Py_DECREF(error);
+        else PyErr_SetObject(g_DatabaseErrorException, (PyObject*) error);
         return -1;
     }
     return 0;
