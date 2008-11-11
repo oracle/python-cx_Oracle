@@ -364,23 +364,33 @@ static int Connection_SetOCIAttr(
     PyObject *value,                    // value to set
     ub4 *attribute)                     // OCI attribute type
 {
+    OCISession *sessionHandle;
     udt_StringBuffer buffer;
     sword status;
+
+    // verify arguments
+    if (!cxString_Check(value)) {
+        PyErr_SetString(PyExc_TypeError, "value must be a string");
+        return -1;
+    }
 
     // make sure connection is connected
     if (Connection_IsConnected(self) < 0)
         return -1;
 
-    // set the value in the OCI
-    if (!cxString_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "value must be a string");
+    // acquire the session handle
+    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
+            (dvoid**) &sessionHandle, 0, OCI_ATTR_SESSION,
+            self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_SetOCIAttr(): determine session handle") < 0)
         return -1;
-    }
+
+    // set the value in the OCI
     if (StringBuffer_Fill(&buffer, value))
         return -1;
-    status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-            (text*) buffer.ptr, buffer.size, *attribute,
-            self->environment->errorHandle);
+    status = OCIAttrSet(sessionHandle, OCI_HTYPE_SESSION, (text*) buffer.ptr,
+            buffer.size, *attribute, self->environment->errorHandle);
     StringBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->environment, status,
             "Connection_SetOCIAttr()") < 0)
