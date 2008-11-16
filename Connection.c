@@ -56,6 +56,7 @@ static PyObject *Connection_GetVersion(udt_Connection*, void*);
 static PyObject *Connection_GetMaxBytesPerCharacter(udt_Connection*, void*);
 static PyObject *Connection_ContextManagerEnter(udt_Connection*, PyObject*);
 static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
+static PyObject *Connection_ChangePasswordExternal(udt_Connection*, PyObject*);
 #ifndef WITH_UNICODE
 static PyObject *Connection_GetEncoding(udt_Connection*, void*);
 static PyObject *Connection_GetNationalEncoding(udt_Connection*, void*);
@@ -94,6 +95,8 @@ static PyMethodDef g_ConnectionMethods[] = {
     { "startup", (PyCFunction) Connection_Startup,
             METH_VARARGS | METH_KEYWORDS},
 #endif
+    { "changepassword", (PyCFunction) Connection_ChangePasswordExternal,
+            METH_VARARGS },
     { NULL }
 };
 
@@ -495,6 +498,29 @@ static int Connection_ChangePassword(
     Py_INCREF(newPasswordObj);
     self->password = newPasswordObj;
     return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_ChangePasswordExternal()
+//   Change the password for the given connection.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_ChangePasswordExternal(
+    udt_Connection *self,               // connection
+    PyObject *args)                     // arguments
+{
+    PyObject *oldPasswordObj, *newPasswordObj;
+
+    // parse the arguments
+    if (!PyArg_ParseTuple(args, "O!O!", cxString_Type, &oldPasswordObj,
+            cxString_Type, &newPasswordObj))
+        return NULL;
+
+    if (Connection_ChangePassword(self, oldPasswordObj, newPasswordObj) < 0)
+        return NULL;
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 
