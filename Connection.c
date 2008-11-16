@@ -453,13 +453,60 @@ static int Connection_Attach(
 
 
 //-----------------------------------------------------------------------------
+// Connection_ChangePassword()
+//   Change the password for the given connection.
+//-----------------------------------------------------------------------------
+static int Connection_ChangePassword(
+    udt_Connection *self,               // connection
+    PyObject *oldPasswordObj,           // old password
+    PyObject *newPasswordObj)           // new password
+{
+    udt_StringBuffer usernameBuffer, oldPasswordBuffer, newPasswordBuffer;
+    sword status;
+
+    if (StringBuffer_Fill(&usernameBuffer, self->username) < 0)
+        return -1;
+    if (StringBuffer_Fill(&oldPasswordBuffer, oldPasswordObj) < 0) {
+        StringBuffer_Clear(&usernameBuffer);
+        return -1;
+    }
+    if (StringBuffer_Fill(&newPasswordBuffer, newPasswordObj) < 0) {
+        StringBuffer_Clear(&usernameBuffer);
+        StringBuffer_Clear(&oldPasswordBuffer);
+        return -1;
+    }
+
+    // begin the session
+    Py_BEGIN_ALLOW_THREADS
+    status = OCIPasswordChange(self->handle, self->environment->errorHandle,
+            (text*) usernameBuffer.ptr, usernameBuffer.size,
+            (text*) oldPasswordBuffer.ptr, oldPasswordBuffer.size,
+            (text*) newPasswordBuffer.ptr, newPasswordBuffer.size,
+            OCI_AUTH);
+    Py_END_ALLOW_THREADS
+    StringBuffer_Clear(&usernameBuffer);
+    StringBuffer_Clear(&oldPasswordBuffer);
+    StringBuffer_Clear(&newPasswordBuffer);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_ChangePassword(): change password") < 0)
+        return -1;
+
+    Py_XDECREF(self->password);
+    Py_INCREF(newPasswordObj);
+    self->password = newPasswordObj;
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // Connection_Connect()
 //   Create a new connection object by connecting to the database.
 //-----------------------------------------------------------------------------
 static int Connection_Connect(
     udt_Connection *self,               // connection
     ub4 mode,                           // mode to connect as
-    int twophase)                       // allow two phase commit?
+    int twophase,                       // allow two phase commit?
+    PyObject *newPasswordObj)           // new password (if desired)
 {
     ub4 credentialType = OCI_CRED_EXT;
     udt_StringBuffer buffer;
@@ -573,6 +620,11 @@ static int Connection_Connect(
             "Connection_Connect(): set session handle") < 0)
         return -1;
 
+    // if a new password has been specified, change it which will also
+    // establish the session
+    if (newPasswordObj)
+        return Connection_ChangePassword(self, self->password, newPasswordObj);
+
     // begin the session
     Py_BEGIN_ALLOW_THREADS
     status = OCISessionBegin(self->handle, self->environment->errorHandle,
@@ -662,8 +714,8 @@ static int Connection_Init(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
+    PyObject *threadedObj, *twophaseObj, *eventsObj, *newPasswordObj;
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj;
-    PyObject *threadedObj, *twophaseObj, *eventsObj;
     int threaded, twophase, events;
     ub4 connectMode, purity;
     udt_SessionPool *pool;
@@ -672,23 +724,24 @@ static int Connection_Init(
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "mode",
             "handle", "pool", "threaded", "twophase", "events", "cclass",
-            "purity", NULL };
+            "purity", "newpassword", NULL };
 
     // parse arguments
     pool = NULL;
     handle = NULL;
     connectMode = OCI_DEFAULT;
     usernameObj = passwordObj = dsnObj = cclassObj = NULL;
-    threadedObj = twophaseObj = eventsObj = NULL;
+    threadedObj = twophaseObj = eventsObj = newPasswordObj = NULL;
     threaded = twophase = events = purity = 0;
 #ifdef ORACLE_11G
     purity = OCI_ATTR_PURITY_DEFAULT;
 #endif
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|O!O!O!iiO!OOOO!i",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|O!O!O!iiO!OOOO!iO!",
             keywordList, cxString_Type, &usernameObj, cxString_Type,
             &passwordObj, cxString_Type, &dsnObj, &connectMode, &handle,
             &g_SessionPoolType, &pool, &threadedObj, &twophaseObj, &eventsObj,
-            cxString_Type, &cclassObj, &purity))
+            cxString_Type, &cclassObj, &purity, cxString_Type,
+            &newPasswordObj))
         return -1;
     if (threadedObj) {
         threaded = PyObject_IsTrue(threadedObj);
@@ -732,7 +785,7 @@ static int Connection_Init(
         return Connection_Attach(self, handle);
     if (pool || cclassObj)
         return Connection_GetConnection(self, pool, cclassObj, purity);
-    return Connection_Connect(self, connectMode, twophase);
+    return Connection_Connect(self, connectMode, twophase, newPasswordObj);
 }
 
 
