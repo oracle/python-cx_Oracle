@@ -33,6 +33,7 @@ typedef struct {
 static ub4 gc_ModuleAttribute = OCI_ATTR_MODULE;
 static ub4 gc_ActionAttribute = OCI_ATTR_ACTION;
 static ub4 gc_ClientInfoAttribute = OCI_ATTR_CLIENT_INFO;
+static ub4 gc_CurrentSchemaAttribute = OCI_ATTR_CURRENT_SCHEMA;
 #endif
 
 
@@ -64,6 +65,7 @@ static PyObject *Connection_GetNationalEncoding(udt_Connection*, void*);
 static PyObject *Connection_GetStmtCacheSize(udt_Connection*, void*);
 static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
 #ifdef ORACLE_10G
+static PyObject *Connection_GetOCIAttr(udt_Connection*, ub4*);
 static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 #endif
 #ifdef ORACLE_10GR2
@@ -136,6 +138,8 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
     { "action", 0, (setter) Connection_SetOCIAttr, 0, &gc_ActionAttribute },
     { "clientinfo", 0, (setter) Connection_SetOCIAttr, 0,
             &gc_ClientInfoAttribute },
+    { "current_schema", (getter) Connection_GetOCIAttr,
+            (setter) Connection_SetOCIAttr, 0, &gc_CurrentSchemaAttribute },
 #endif
     { NULL }
 };
@@ -358,6 +362,42 @@ static int Connection_GetConnection(
 
 
 #ifdef ORACLE_10G
+//-----------------------------------------------------------------------------
+// Connection_GetOCIAttr()
+//   Get the value of the OCI attribute.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetOCIAttr(
+    udt_Connection *self,               // connection to set
+    ub4 *attribute)                     // OCI attribute type
+{
+    OCISession *sessionHandle;
+    udt_StringBuffer buffer;
+    sword status;
+
+    // make sure connection is connected
+    if (Connection_IsConnected(self) < 0)
+        return NULL;
+
+    // acquire the session handle
+    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
+            (dvoid**) &sessionHandle, 0, OCI_ATTR_SESSION,
+            self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_SetOCIAttr(): determine session handle") < 0)
+        return NULL;
+
+    // get the value from the OCI
+    status = OCIAttrGet(sessionHandle, OCI_HTYPE_SESSION,
+            (text**) &buffer.ptr, (ub4*) &buffer.size, *attribute,
+            self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_GetOCIAttr()") < 0)
+        return NULL;
+
+    return cxString_FromEncodedString(buffer.ptr, buffer.size);
+}
+
+
 //-----------------------------------------------------------------------------
 // Connection_SetOCIAttr()
 //   Set the value of the OCI attribute.
