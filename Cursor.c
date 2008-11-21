@@ -403,8 +403,10 @@ static int Cursor_GetBindNames(
             indicatorNameLengths, duplicate, bindHandles);
     if (status != OCI_NO_DATA &&
             Environment_CheckForError(self->environment, status,
-            "Cursor_GetBindNames()") < 0)
+            "Cursor_GetBindNames()") < 0) {
+        PyMem_Free(buffer);
         return -1;
+    }
     if (foundElements < 0) {
         *names = NULL;
         PyMem_Free(buffer);
