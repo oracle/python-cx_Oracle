@@ -28,6 +28,28 @@ static PyObject *OracleDateToPythonDate(
 
 
 //-----------------------------------------------------------------------------
+// OracleIntervalToPythonDelta()
+//   Return a Python delta object given an Oracle interval.
+//-----------------------------------------------------------------------------
+static PyObject *OracleIntervalToPythonDelta(
+    udt_Environment *environment,       // environment
+    OCIInterval *value)                 // value to convert
+{
+    sb4 days, hours, minutes, seconds, fseconds;
+    sword status;
+
+    status = OCIIntervalGetDaySecond(environment->handle,
+            environment->errorHandle, &days, &hours, &minutes, &seconds,
+            &fseconds, value);
+    if (Environment_CheckForError(environment, status,
+            "OracleIntervalToPythonDelta()") < 0)
+        return NULL;
+    seconds = hours * 60 * 60 + minutes * 60 + seconds;
+    return PyDelta_FromDSU(days, seconds, fseconds / 1000);
+}
+
+
+//-----------------------------------------------------------------------------
 // OracleTimestampToPythonDate()
 //   Return a Python date object given an Oracle timestamp.
 //-----------------------------------------------------------------------------

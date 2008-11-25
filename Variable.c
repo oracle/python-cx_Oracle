@@ -150,6 +150,7 @@ static PyTypeObject g_BaseVarType = {
 #include "LobVar.c"
 #include "CursorVar.c"
 #include "ObjectVar.c"
+#include "IntervalVar.c"
 
 
 //-----------------------------------------------------------------------------
@@ -343,7 +344,8 @@ static int Variable_Check(
 #endif
             Py_TYPE(object) == &g_RowidVarType ||
             Py_TYPE(object) == &g_BinaryVarType ||
-            Py_TYPE(object) == &g_TimestampVarType
+            Py_TYPE(object) == &g_TimestampVarType ||
+            Py_TYPE(object) == &g_IntervalVarType
 #ifdef SQLT_BFLOAT
             || Py_TYPE(object) == &g_NativeFloatVarType
 #endif
@@ -413,6 +415,10 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_Date;
     if (type == (PyObject*) PyDateTimeAPI->DateTimeType)
         return &vt_DateTime;
+    if (type == (PyObject*) &g_IntervalVarType)
+        return &vt_Interval;
+    if (type == (PyObject*) PyDateTimeAPI->DeltaType)
+        return &vt_Interval;
     if (type == (PyObject*) &g_TimestampVarType)
         return &vt_Timestamp;
     if (type == (PyObject*) &g_CursorVarType)
@@ -491,6 +497,8 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_DateTime;
     if (PyDate_Check(value))
         return &vt_DateTime;
+    if (PyDelta_Check(value))
+        return &vt_Interval;
     result = PyObject_IsInstance(value, (PyObject*) &g_CursorType);
     if (result < 0)
         return NULL;
@@ -574,6 +582,8 @@ static udt_VariableType *Variable_TypeByOracleDataType (
         case SQLT_TIMESTAMP_TZ:
         case SQLT_TIMESTAMP_LTZ:
             return &vt_Timestamp;
+        case SQLT_INTERVAL_DS:
+            return &vt_Interval;
         case SQLT_CLOB:
 #ifndef WITH_UNICODE
             if (charsetForm == SQLCS_NCHAR)

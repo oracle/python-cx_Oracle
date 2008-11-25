@@ -111,9 +111,15 @@ create table cx_Oracle.TestObjects (
 );
 
 create table cx_Oracle.TestTimestamps (
-  IntCol			number(9) not null,
-  TimestampCol			timestamp not null,
-  NullableCol			timestamp
+  IntCol			    number(9) not null,
+  TimestampCol          timestamp not null,
+  NullableCol           timestamp
+) tablespace users;
+
+create table cx_Oracle.TestIntervals (
+  IntCol			    number(9) not null,
+  IntervalCol           interval day to second not null,
+  NullableCol           interval day to second
 ) tablespace users;
 
 alter table cx_Oracle.testexecutemany
@@ -198,6 +204,18 @@ begin
         to_timestamp('20021209', 'YYYYMMDD') +
             to_dsinterval(to_char(i + 1) || ' 00:00:' ||
                     to_char(i * 3) || '.' || to_char(i * 125))));
+  end loop;
+end;
+/
+
+begin
+  for i in 1..10 loop
+    insert into cx_Oracle.TestIntervals
+    values (i, to_dsinterval(to_char(i) || ' ' || to_char(i) || ':' ||
+            to_char(i * 2) || ':' || to_char(i * 3)),
+            decode(mod(i, 2), 0, to_dsinterval(null),
+            to_dsinterval(to_char(i + 5) || ' ' || to_char(i + 2) || ':' ||
+            to_char(i * 2 + 5) || ':' || to_char(i * 3 + 5))));
   end loop;
 end;
 /

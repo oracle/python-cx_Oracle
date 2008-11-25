@@ -364,6 +364,7 @@ static PyObject *Module_Initialize(void)
 #ifdef SQLT_BFLOAT
     MAKE_VARIABLE_TYPE_READY(&g_NativeFloatVarType);
 #endif
+    MAKE_VARIABLE_TYPE_READY(&g_IntervalVarType);
 
     // initialize module and retrieve the dictionary
 #if PY_MAJOR_VERSION >= 3
@@ -432,6 +433,7 @@ static PyObject *Module_Initialize(void)
     ADD_TYPE_OBJECT("UNICODE", &g_UnicodeVarType)
     ADD_TYPE_OBJECT("NCLOB", &g_NCLOBVarType)
 #endif
+    ADD_TYPE_OBJECT("INTERVAL", &g_IntervalVarType)
     ADD_TYPE_OBJECT("LOB", &g_ExternalLobVarType)
     ADD_TYPE_OBJECT("LONG_BINARY", &g_LongBinaryVarType)
     ADD_TYPE_OBJECT("LONG_STRING", &g_LongStringVarType)
