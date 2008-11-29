@@ -160,7 +160,7 @@ else:
     if not includeDirs:
         raise DistutilsSetupError("cannot locate Oracle include files")
     libPath = os.path.join(oracleHome, "lib")
-    if struct.calcsize("i") == 4:
+    if struct.calcsize("P") == 4:
         alternatePath = os.path.join(oracleHome, "lib32")
     else:
         alternatePath = os.path.join(oracleHome, "lib64")
