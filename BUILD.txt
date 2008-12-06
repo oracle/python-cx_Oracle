@@ -1,52 +1,84 @@
 Linux Build Hints
 -----------------
 (Tested on RedHat 4.x, Gentoo 2008.0, Ubuntu 8.x, and Debian 4.x)
-These hints are based on using Oracle's instantclient_11_1.  It is necessary to 
-download both 'instantclient-linux-basic' and 'instantclient-sdk-linux' from 
+These hints are based on using Oracle's instantclient_11_1.  It is necessary
+to download both 'instantclient-linux-basic' and 'instantclient-sdk-linux' from
 oracle.com in order to successfully compile.  
 
 http://www.oracle.com/technology/software/tech/oci/instantclient/index.html
 
 Each compressed tarball needs to be extracted to the exact same location.
 Uncompress and untar each file from the same location in order to achieve this
-result. If placing into a system area such as /opt, /usr/local, make sure you
-have the correct permissions to write to these filesystems and/or directories.
-It is advisable to use the same account from start to finish for installing
-cx_Oracle in order to prevent confusion with overwriting environment settings.
+result. If placing into a system area such as /opt or /usr/local, make sure to
+have the correct permissions for writing to these filesystems and/or
+directories. It is advisable to use the same account from start to finish while
+installing cx_Oracle in order not to clobber the pre-set environment variables
+set below.
 
-After both packages are untarred a link needs to be made inside the
-instantclient_11_1 directory.  For instantclient_11_1 the link looks like
-libclntsh.so -> libclntsh.so.10.1.  If you are using a different version
-of the instant client simply adjust the link per the version of libclntsh.so.
-For example, from inside the instantclient directory, type
+It is necessary to set environment variables ORACLE_HOME and LD_LIBRARY_PATH
+inside $HOME/.profile in order for cx_Oracle to import properly after
+installation and in order to build correctly. Using a text editor add the
+settings below to $HOME/.profile making sure to change the location of your 
+actual installation path.
 
-ln -s libclntsh.so.x.x linbclntsh.so
+   Example ($HOME/.profile):
+   -------------------------
+   export ORACLE_HOME=[your installation path]/instantclient_11_1
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME
 
-Before building and compiling you must set ORACLE_HOME and LD_LIBRARY_PATH for
-the installation user, presumably 'root' but not mandatory.  Pay careful
-attention not to lose environment settings if you change users via 'su' or
-'sudo', etc.
+To put these variables into the working shell env, either source .profile
+(. $HOME/.profile) or execute each export statement above from a shell
+individually to set these variables. If these are not added to $HOME/.profile
+they will need to be manually set each time cx_Oracle is loaded into Python.
+
+After both packages are untarred to there installation location a link needs
+to be made inside the instantclient_11_1 directory. If you are using a
+different version of the instant client simply adjust the link per the version
+of libclntsh.so.
+
+   Steps:
+   ------
+   cd $ORACLE_HOME
+   ln -s libclntsh.so.x.x linbclntsh.so
+
+Continue to step: Building and Compilation.
 
 
 OS X Build Hints
 ----------------
 (Tested on Leopard 10.5.x)
-The procedures for OS X are almost idential to Linux except for the package 
+The procedures for OS X are almost idential to Linux except for the package
 names and a few environmental caveats. For OS X it is necessary to download
-both 'instantclient-basic-macosx' and 'instantclient-sdk-macosx'.
+both 'instantclient-basic-macosx' and 'instantclient-sdk-macosx'. Download and
+extract each file per the build hints for Linux.
 
-For OS X it is mandatory to set DYLD_LIBRARY_PATH to $ORACLE_HOME. For the
-instant client this is the location where you installed the packages. It is
-necessary to set this environment variable as well as those specified for Linux
-(ORACLE_HOME and LD_LIBRARY_PATH) inside $HOME/.profile and start a new shell
-before testing cx_Oracle. If .profile does not exist, simply create one with
-your favorite editor and add the necessary path info to these variables.
+For OS X it is necessary to set environment variables ORACLE_HOME,
+LD_LIBRARY_PATH and DYLD_LIBRARY_PATH inside $HOME/.profile and start a new
+shell before testing cx_Oracle. If .profile does not exist, simply create one
+with a text editor and add the necessary path info to these variables.
 
    Example ($HOME/.profile):
    -------------------------
-   export ORACLE_HOME=/usr/local/instantclient_11_1
+   export ORACLE_HOME=[your installation path]/instantclient_11_1
    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME
    export DYLD_LIBRARY_PATH=$ORACLE_HOME
+
+The variables placed inside $HOME/.profile need to be set prior to building.
+Therefore, source .profile (. $HOME/.profile) or execute each export statement
+above from a shell individually to set these variables.  Not having
+DYLD_LIBRARY_PATH set inside $HOME/.profile prior to building will cause a
+compilation error regardless of being set in the current shell's env.
+
+After both packages are untarred a link needs to be made inside the
+instantclient_11_1 directory.  If you are using a different version of the
+instant client simply adjust the link per the version of libclntsh.dylib.
+
+   Steps:
+   ------
+   cd $ORACLE_HOME
+   ln -s libclntsh.dylib.x.x libclntsh.dylib
+
+Continue to step: Building and Compilation.
 
 
 Building and Compilation
@@ -69,9 +101,9 @@ cx_Oracle there should be a line containing only '>>>' which indicates the
 library successfully loaded.
 
     $ python
-    Python 2.5.2 (r252:60911, Oct 25 2008, 19:37:28) 
+    Python 2.5.2 (r252:60911, Oct 25 2008, 19:37:28)
     [GCC 4.1.2 (Gentoo 4.1.2 p1.1)] on linux2
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import cx_Oracle
-    >>> 
+    >>>
 
