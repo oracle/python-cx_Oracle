@@ -1206,6 +1206,7 @@ static PyObject *Connection_Commit(
     if (Environment_CheckForError(self->environment, status,
             "Connection_Commit()") < 0)
         return NULL;
+    self->commitMode = OCI_DEFAULT;
 
     Py_INCREF(Py_None);
     return Py_None;
