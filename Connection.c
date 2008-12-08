@@ -1322,10 +1322,17 @@ static PyObject *Connection_Prepare(
     if (Environment_CheckForError(self->environment, status,
             "Connection_Prepare()") < 0)
         return NULL;
-    self->commitMode = OCI_TRANS_TWOPHASE;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    // if nothing available to prepare, return False in order to allow for
+    // avoiding the call to commit() which will fail with ORA-24756
+    // (transaction does not exist)
+    if (status == OCI_SUCCESS_WITH_INFO) {
+        Py_INCREF(Py_False);
+        return Py_False;
+    }
+    self->commitMode = OCI_TRANS_TWOPHASE;
+    Py_INCREF(Py_True);
+    return Py_True;
 }
 
 
