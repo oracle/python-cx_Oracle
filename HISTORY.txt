@@ -1,3 +1,33 @@
+Changes from 4.4.1 to 5.0
+ 1) Added support for Python 3.0 with much help from Amaury Forgeot d'Arc.
+ 2) Removed support for Python 2.3 and Oracle 8i.
+ 3) Added support for full unicode mode in Python 2.x where all strings are
+    passed in and returned as unicode (module must be built in this mode)
+    rather than encoded strings
+ 4) nchar and nvarchar columns now return unicode instead of encoded strings
+ 5) Added support for an output type handler and/or an input type handler to be
+    specified at the connection and cursor levels.
+ 6) Added support for specifying both input and output converters for variables
+ 7) Added support for specifying the array size of variables that are created
+    using the cursor.var() method
+ 8) Added support for events mode and database resident connection pooling
+    (DRCP) in Oracle 11g.
+ 9) Added support for changing the password during construction of a new
+    connection object as well as after the connection object has been created
+10) Added support for the interval day to second data type in Oracle,
+    represented as datetime.timedelta objects in Python.
+11) Added support for getting and setting the current_schema attribute for a
+    session
+12) Added support for proxy authentication in session pools as requested by
+    Michael Wegrzynek (and thanks for the initial patch as well).
+13) Modified connection.prepare() to return a boolean indicating if a
+    transaction was actually prepared in order to avoid the error ORA-24756
+    (transaction does not exist).
+14) Raise a cx_Oracle.Error instance rather than a string for column
+    truncation errors as requested by Helge Tesdal.
+15) Fixed handling of environment handles in session pools in order to allow
+    session pools to fetch objects without exceptions taking place.
+
 Changes from 4.4 to 4.4.1
  1) Make the bind variables and fetch variables accessible although they need
     to be treated carefully since they are used internally; support added for
