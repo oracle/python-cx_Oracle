@@ -23,30 +23,58 @@ Module Interface
       available in Oracle 10g Release 2 and higher.
 
 
-.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, twophase])
-              connect([user, password, dsn, mode, handle, pool, threaded, twophase])
+.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword])
+              connect([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword])
 
    Constructor for creating a connection to the database. Return a Connection
    object (:ref:`connobj`). All arguments are optional and can be specified as
-   keyword parameters. The dsn (data source name) is the TNS entry (from the
-   Oracle names server or tnsnames.ora file) or is a string like the one
-   returned from makedsn(). If only one parameter is passed, a connect string
-   is assumed which is to be of the format ``user/password@dsn``, the same
-   format accepted by Oracle applications such as SQL\*Plus. If the mode is
-   specified, it must be one of :data:`SYSDBA` or :data:`SYSOPER` which are
-   defined at the module level; otherwise it defaults to the normal mode of
-   connecting. If the handle is specified, it must be of type OCISvcCtx\* and
-   is only of use when embedding Python in an application (like PowerBuilder)
-   which has already made the connection. The pool is only valid in Oracle 9i
-   and is a session pool object (:ref:`sesspool`) which is the equivalent of
-   calling pool.acquire(). The threaded attribute is expected to be a boolean
-   expression which indicates whether or not Oracle should use the mode
-   OCI_THREADED to wrap accesses to connections with a mutex. Doing so in
-   single threaded applications imposes a performance penalty of about 10-15%
-   which is why the default is False. The twophase attribute is expected to be
-   a boolean expression which indicates whether or not the attributes should be
-   set on the connection object to allow for two phase commit. The default for
-   this value is also False because of bugs in Oracle prior to Oracle 10g.
+   keyword parameters.
+  
+   The dsn (data source name) is the TNS entry (from the Oracle names server or
+   tnsnames.ora file) or is a string like the one returned from makedsn(). If
+   only one parameter is passed, a connect string is assumed which is to be of
+   the format ``user/password@dsn``, the same format accepted by Oracle
+   applications such as SQL\*Plus.
+  
+   If the mode is specified, it must be one of :data:`SYSDBA` or
+   :data:`SYSOPER` which are defined at the module level; otherwise it defaults
+   to the normal mode of connecting.
+  
+   If the handle is specified, it must be of type OCISvcCtx\* and is only of
+   use when embedding Python in an application (like PowerBuilder) which has
+   already made the connection.
+  
+   The pool argument is expected to be a session pool object (:ref:`sesspool`)
+   and the use of this argument is the equivalent of calling pool.acquire().
+  
+   The threaded argument is expected to be a boolean expression which
+   indicates whether or not Oracle should use the mode OCI_THREADED to wrap
+   accesses to connections with a mutex. Doing so in single threaded
+   applications imposes a performance penalty of about 10-15% which is why the
+   default is False.
+  
+   The twophase argument is expected to be a boolean expression which
+   indicates whether or not the attributes should be set on the connection
+   object to allow for two phase commit. The default for this value is also
+   False because of bugs in Oracle prior to Oracle 10g.
+
+   The events argument is expected to be a boolean expression which indicates
+   whether or not to initialize Oracle in events mode (only available in Oracle
+   11g and higher).
+
+   The cclass argument is expected to be a string and defines the connection
+   class for database resident connection pooling (DRCP) in Oracle 11g and
+   higher.
+
+   The purity argument is expected to be one of :data:`ATTR_PURITY_NEW` (the
+   session must be new without any prior session state),
+   :data:`ATTR_PURITY_NEW` (the session may have been used before) or
+   :data:`ATTR_PURITY_DEFAULT` (the default behavior which is defined by Oracle
+   in its documentation). This argument is only relevant in Oracle 11g and
+   higher.
+
+   The newpassword argument is expected to be a string if specified and sets
+   the password for the logon during the connection process.
 
 
 .. function:: Cursor(connection)
@@ -136,6 +164,39 @@ Constants
 .. data:: apilevel
 
    String constant stating the supported DB API level. Currently '2.0'.
+
+
+.. data:: ATTR_PURITY_DEFAULT
+
+   This constant is used when using database resident connection pooling (DRCP)
+   and specifies that the purity of the session is the default value used by
+   Oracle (see Oracle's documentation for more information).
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
+.. data:: ATTR_PURITY_NEW
+
+   This constant is used when using database resident connection pooling (DRCP)
+   and specifies that the session acquired from the pool should be new and not
+   have any prior session state.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
+.. data:: ATTR_PURITY_SELF
+
+   This constant is used when using database resident connection pooling (DRCP)
+   and specifies that the session acquired from the pool need not be new and
+   may have prior session state.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
 
 
 .. data:: buildtime
@@ -320,6 +381,16 @@ Constants
 
    This constant is used to register callbacks on the OCIStmtPrepare() function
    of the OCI.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
+.. data:: INTERVAL
+
+   This type object is used to describe columns in a database that are of type
+   interval day to second.
 
    .. note::
 

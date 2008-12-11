@@ -2,13 +2,13 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Variable Objects &mdash; cx_Oracle v4.4 documentation</title>
+    <title>Variable Objects &mdash; cx_Oracle v5.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:   '',
-        VERSION:    '4.4'
+        VERSION:    '5.0'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
@@ -17,7 +17,7 @@
     <link rel="contents" title="Global table of contents" href="contents.html" />
     <link rel="index" title="Global index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="cx_Oracle v4.4 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.0 documentation" href="index.html" />
     <link rel="next" title="SessionPool Object" href="session_pool.html" />
     <link rel="prev" title="Cursor Object" href="cursor.html" />
   </head>
@@ -29,7 +29,7 @@
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="session_pool.html" title="SessionPool Object" accesskey="N">next</a> |</li>
           <li class="right"><a href="cursor.html" title="Cursor Object" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="document">
@@ -56,9 +56,25 @@ array, or the number of scalar items that can be fetched into the variable.</dd>
 <dd>Return the value at the given position in the variable.</dd></dl>
 
 <dl class="attribute">
+<dt id="Variable.inconverter">
+<!--#Variable.inconverter#--><tt class="descclassname">Variable.</tt><tt class="descname">inconverter</tt><a class="headerlink" href="#Variable.inconverter" title="Permalink to this definition">¶</a></dt>
+<dd>This read-write attribute specifies the method used to convert data from
+Python to the Oracle database. The method signature is converter(value)
+and the expected return value is the value to bind to the database. If this
+attribute is None, the value is bound directly without any conversion.</dd></dl>
+
+<dl class="attribute">
 <dt id="Variable.maxlength">
 <!--#Variable.maxlength#--><tt class="descclassname">Variable.</tt><tt class="descname">maxlength</tt><a class="headerlink" href="#Variable.maxlength" title="Permalink to this definition">¶</a></dt>
 <dd>This read-only attribute returns the maximum length of the variable.</dd></dl>
+
+<dl class="attribute">
+<dt id="Variable.outconverter">
+<!--#Variable.outconverter#--><tt class="descclassname">Variable.</tt><tt class="descname">outconverter</tt><a class="headerlink" href="#Variable.outconverter" title="Permalink to this definition">¶</a></dt>
+<dd>This read-write attribute specifies the method used to convert data from
+from the Oracle to Python. The method signature is converter(value)
+and the expected return value is the value to return to Python. If this
+attribute is None, the value is returned directly without any conversion.</dd></dl>
 
 <dl class="method">
 <dt id="Variable.setvalue">
@@ -94,12 +110,12 @@ array, or the number of scalar items that can be fetched into the variable.</dd>
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="session_pool.html" title="SessionPool Object" accesskey="N">next</a> |</li>
           <li class="right"><a href="cursor.html" title="Cursor Object" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on Jun 06, 2008.
+      Last updated on Dec 11, 2008.
     </div>
   </body>
 </html>

@@ -2,13 +2,13 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>SessionPool Object &mdash; cx_Oracle v4.4 documentation</title>
+    <title>SessionPool Object &mdash; cx_Oracle v5.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:   '',
-        VERSION:    '4.4'
+        VERSION:    '5.0'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
@@ -17,7 +17,7 @@
     <link rel="contents" title="Global table of contents" href="contents.html" />
     <link rel="index" title="Global index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="cx_Oracle v4.4 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.0 documentation" href="index.html" />
     <link rel="next" title="LOB Objects" href="lob.html" />
     <link rel="prev" title="Variable Objects" href="variable.html" />
   </head>
@@ -29,7 +29,7 @@
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="lob.html" title="LOB Objects" accesskey="N">next</a> |</li>
           <li class="right"><a href="variable.html" title="Variable Objects" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="document">
@@ -66,6 +66,13 @@ longer usable (such as when the session is killed).</dd></dl>
 <!--#SessionPool.dsn#--><tt class="descclassname">SessionPool.</tt><tt class="descname">dsn</tt><a class="headerlink" href="#SessionPool.dsn" title="Permalink to this definition">¶</a></dt>
 <dd>This read-only attribute returns the TNS entry of the database to which a
 connection has been established.</dd></dl>
+
+<dl class="attribute">
+<dt id="SessionPool.homogeneous">
+<!--#SessionPool.homogeneous#--><tt class="descclassname">SessionPool.</tt><tt class="descname">homogeneous</tt><a class="headerlink" href="#SessionPool.homogeneous" title="Permalink to this definition">¶</a></dt>
+<dd>This read-write boolean attribute indicates whether the pool is considered
+homogeneous or not. If the pool is not homogeneous different authentication
+can be used for each connection acquired from the pool.</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.increment">
@@ -158,12 +165,12 @@ connection to the database.</dd></dl>
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="lob.html" title="LOB Objects" accesskey="N">next</a> |</li>
           <li class="right"><a href="variable.html" title="Variable Objects" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on Jun 06, 2008.
+      Last updated on Dec 11, 2008.
     </div>
   </body>
 </html>

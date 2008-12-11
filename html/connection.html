@@ -2,13 +2,13 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Connection Object &mdash; cx_Oracle v4.4 documentation</title>
+    <title>Connection Object &mdash; cx_Oracle v5.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:   '',
-        VERSION:    '4.4'
+        VERSION:    '5.0'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
@@ -17,7 +17,7 @@
     <link rel="contents" title="Global table of contents" href="contents.html" />
     <link rel="index" title="Global index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="cx_Oracle v4.4 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.0 documentation" href="index.html" />
     <link rel="next" title="Cursor Object" href="cursor.html" />
     <link rel="prev" title="Module Interface" href="module.html" />
   </head>
@@ -29,7 +29,7 @@
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="cursor.html" title="Cursor Object" accesskey="N">next</a> |</li>
           <li class="right"><a href="module.html" title="Module Interface" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="document">
@@ -111,8 +111,24 @@ the comments on the Connection constructor for more information
 <dl class="method">
 <dt id="Connection.cancel">
 <!--#Connection.cancel#--><tt class="descclassname">Connection.</tt><tt class="descname">cancel</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.cancel" title="Permalink to this definition">¶</a></dt>
-<dd>Cancel a long-running transaction. This is only effective on non-Windows
-platforms.</dd></dl>
+<dd><p>Cancel a long-running transaction. This is only effective on non-Windows
+platforms.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="Connection.changepassword">
+<!--#Connection.changepassword#--><tt class="descclassname">Connection.</tt><tt class="descname">changepassword</tt><big>(</big><em>oldpassword</em>, <em>newpassword</em><big>)</big><a class="headerlink" href="#Connection.changepassword" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the password of the logon. This method also modifies the attribute
+<a title="Connection.password" class="reference" href="#Connection.password"><tt class="xref docutils literal"><span class="pre">Connection.password</span></tt></a> upon successful completion.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Connection.clientinfo">
@@ -138,6 +154,16 @@ applies to any cursor objects trying to use the connection.</dd></dl>
 <!--#Connection.commit#--><tt class="descclassname">Connection.</tt><tt class="descname">commit</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.commit" title="Permalink to this definition">¶</a></dt>
 <dd>Commit any pending transactions to the database.</dd></dl>
 
+<dl class="attribute">
+<dt id="Connection.current_schema">
+<!--#Connection.current_schema#--><tt class="descclassname">Connection.</tt><tt class="descname">current_schema</tt><a class="headerlink" href="#Connection.current_schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>This read-write attribute sets the current schema attribute for the session.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This attribute is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
 <dl class="method">
 <dt id="Connection.cursor">
 <!--#Connection.cursor#--><tt class="descclassname">Connection.</tt><tt class="descname">cursor</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.cursor" title="Permalink to this definition">¶</a></dt>
@@ -159,6 +185,22 @@ connection has been established.</p>
 <!--#Connection.encoding#--><tt class="descclassname">Connection.</tt><tt class="descname">encoding</tt><a class="headerlink" href="#Connection.encoding" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-only attribute returns the IANA character set name of the
 character set in use by the Oracle client.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This attribute is an extension to the DB API definition and is only
+available in Python 2.x when not built in unicode mode.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Connection.inputtypehandler">
+<!--#Connection.inputtypehandler#--><tt class="descclassname">Connection.</tt><tt class="descname">inputtypehandler</tt><a class="headerlink" href="#Connection.inputtypehandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>This read-write attribute specifies a method called for each value that is
+bound to a statement executed on any cursor associated with this connection.
+The method signature is handler(cursor, value, arraysize) and the return
+value is expected to be a variable object or None in which case a default
+variable object will be created. If this attribute is None, the default
+behavior will take place for all values bound to statements.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This attribute is an extension to the DB API definition.</p>
@@ -190,6 +232,22 @@ is only available in Oracle 10g.</p>
 character set in use by the Oracle client.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
+<p class="last">This attribute is an extension to the DB API definition and is only
+available in Python 2.x when not built in unicode mode.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Connection.outputtypehandler">
+<!--#Connection.outputtypehandler#--><tt class="descclassname">Connection.</tt><tt class="descname">outputtypehandler</tt><a class="headerlink" href="#Connection.outputtypehandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>This read-write attribute specifies a method called for each value that is
+to be fetched from any cursor associated with this connection. The method
+signature is handler(cursor, name, defaultType, length, precision, scale)
+and the return value is expected to be a variable object or None in which
+case a default variable object will be created. If this attribute is None,
+the default behavior will take place for all values fetched from cursors.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">This attribute is an extension to the DB API definition.</p>
 </div>
 </dd></dl>
@@ -197,8 +255,8 @@ character set in use by the Oracle client.</p>
 <dl class="attribute">
 <dt id="Connection.password">
 <!--#Connection.password#--><tt class="descclassname">Connection.</tt><tt class="descname">password</tt><a class="headerlink" href="#Connection.password" title="Permalink to this definition">¶</a></dt>
-<dd><p>This read-only attribute returns the password of the user which established
-the connection to the database.</p>
+<dd><p>This read-write attribute initially contains the password of the user which
+established the connection to the database.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This attribute is an extension to the DB API definition.</p>
@@ -219,7 +277,9 @@ available in Oracle 10g R2 and higher.</p>
 <dl class="method">
 <dt id="Connection.prepare">
 <!--#Connection.prepare#--><tt class="descclassname">Connection.</tt><tt class="descname">prepare</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.prepare" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prepare the distributed (global) transaction for commit.</p>
+<dd><p>Prepare the distributed (global) transaction for commit. Return a boolean
+indicating if a transaction was actually prepared in order to avoid the
+error ORA-24756 (transaction does not exist).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method is an extension to the DB API definition.</p>
@@ -370,12 +430,12 @@ connection has been established.</p>
         <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
           <li class="right"><a href="cursor.html" title="Cursor Object" accesskey="N">next</a> |</li>
           <li class="right"><a href="module.html" title="Module Interface" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v4.4 documentation</a> &raquo;</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on Jun 06, 2008.
+      Last updated on Dec 11, 2008.
     </div>
   </body>
 </html>

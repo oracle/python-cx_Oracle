@@ -230,6 +230,21 @@ Cursor Object
       The DB API definition does not define this attribute.
 
 
+.. attribute:: Cursor.inputtypehandler
+
+   This read-write attribute specifies a method called for each value that is
+   bound to a statement executed on the cursor and overrides the attribute with
+   the same name on the connection if specified. The method signature is
+   handler(cursor, value, arraysize) and the return value is expected to be a
+   variable object or None in which case a default variable object will be
+   created. If this attribute is None, the value of the attribute with the same
+   name on the connection is used.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
 .. method:: Cursor.__iter__()
 
    Returns the cursor itself to be used as an iterator.
@@ -262,6 +277,20 @@ Cursor Object
    .. note::
 
       The DB API definition does not define this attribute.
+
+
+.. attribute:: Cursor.outputtypehandler
+
+   This read-write attribute specifies a method called for each value that is
+   to be fetched from this cursor. The method signature is
+   handler(cursor, name, defaultType, length, precision, scale) and the return
+   value is expected to be a variable object or None in which case a default
+   variable object will be created. If this attribute is None, the value of
+   the attribute with the same name on the connection is used instead.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
 
 
 .. method:: Cursor.parse(statement)
@@ -336,15 +365,22 @@ Cursor Object
       The DB API definition does not define this attribute.
 
 
-.. method:: Cursor.var(dataType, [size])
+.. method:: Cursor.var(dataType, [size, arraysize, inconverter, outconverter])
 
-   Create a variable associated with the cursor of the given type and size and
-   return a variable object (:ref:`varobj`). If the size is not specified and
-   the type is a string or binary, 4000 bytes (maximum allowable by Oracle) is
-   allocated; if the size is not specified and the type is a long string or
-   long binary, 128KB is allocated. This method was designed for use with
-   PL/SQL in/out variables where the length or type cannot be determined
-   automatically from the Python object passed in.
+   Create a variable associated with the cursor of the given type and
+   characteristics and return a variable object (:ref:`varobj`). If the size is
+   not specified and the type is a string or binary, 4000 bytes (maximum
+   allowable by Oracle) is allocated; if the size is not specified and the type
+   is a long string or long binary, 128KB is allocated. If the arraysize is not
+   specified, the bind array size (usually 1) is used. The inconverter and
+   outconverter specify methods used for converting values to/from the
+   database. More information can be found in the section on variable objects.
+  
+  
+   This method was designed for use with PL/SQL in/out variables where the
+   length or type cannot be determined automatically from the Python object
+   passed in or for use in input and output type handlers defined on cursors
+   or connections.
 
    .. note::
 

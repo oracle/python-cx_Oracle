@@ -74,6 +74,20 @@ Connection Object
    Cancel a long-running transaction. This is only effective on non-Windows
    platforms.
 
+   .. note::
+
+      This method is an extension to the DB API definition.
+
+
+.. method:: Connection.changepassword(oldpassword, newpassword)
+
+   Change the password of the logon. This method also modifies the attribute
+   :data:`Connection.password` upon successful completion.
+
+   .. note::
+
+      This method is an extension to the DB API definition.
+
 
 .. attribute:: Connection.clientinfo
 
@@ -98,6 +112,15 @@ Connection Object
    Commit any pending transactions to the database.
 
 
+.. attribute:: Connection.current_schema
+
+   This read-write attribute sets the current schema attribute for the session.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
 .. method:: Connection.cursor()
 
    Return a new Cursor object (:ref:`cursorobj`) using the connection.
@@ -117,6 +140,21 @@ Connection Object
 
    This read-only attribute returns the IANA character set name of the
    character set in use by the Oracle client.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition and is only
+      available in Python 2.x when not built in unicode mode.
+
+
+.. attribute:: Connection.inputtypehandler
+
+   This read-write attribute specifies a method called for each value that is
+   bound to a statement executed on any cursor associated with this connection.
+   The method signature is handler(cursor, value, arraysize) and the return
+   value is expected to be a variable object or None in which case a default
+   variable object will be created. If this attribute is None, the default
+   behavior will take place for all values bound to statements.
 
    .. note::
 
@@ -150,6 +188,21 @@ Connection Object
 
    .. note::
 
+      This attribute is an extension to the DB API definition and is only
+      available in Python 2.x when not built in unicode mode.
+
+
+.. attribute:: Connection.outputtypehandler
+
+   This read-write attribute specifies a method called for each value that is
+   to be fetched from any cursor associated with this connection. The method
+   signature is handler(cursor, name, defaultType, length, precision, scale)
+   and the return value is expected to be a variable object or None in which
+   case a default variable object will be created. If this attribute is None,
+   the default behavior will take place for all values fetched from cursors.
+
+   .. note::
+
       This attribute is an extension to the DB API definition.
 
 
@@ -175,7 +228,9 @@ Connection Object
 
 .. method:: Connection.prepare()
 
-   Prepare the distributed (global) transaction for commit.
+   Prepare the distributed (global) transaction for commit. Return a boolean
+   indicating if a transaction was actually prepared in order to avoid the
+   error ORA-24756 (transaction does not exist).
 
    .. note::
 
