@@ -51,7 +51,6 @@ Contents:
    variable
    session_pool
    lob
-   date
    license
 
 * :ref:`genindex`
