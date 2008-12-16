@@ -359,8 +359,8 @@ static PyObject *Module_Initialize(void)
 #ifndef WITH_UNICODE
     MAKE_VARIABLE_TYPE_READY(&g_UnicodeVarType);
     MAKE_VARIABLE_TYPE_READY(&g_FixedUnicodeVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_NCLOBVarType);
 #endif
+    MAKE_VARIABLE_TYPE_READY(&g_NCLOBVarType);
 #ifdef SQLT_BFLOAT
     MAKE_VARIABLE_TYPE_READY(&g_NativeFloatVarType);
 #endif
@@ -431,12 +431,12 @@ static PyObject *Module_Initialize(void)
 #ifndef WITH_UNICODE
     ADD_TYPE_OBJECT("FIXED_UNICODE", &g_FixedUnicodeVarType)
     ADD_TYPE_OBJECT("UNICODE", &g_UnicodeVarType)
-    ADD_TYPE_OBJECT("NCLOB", &g_NCLOBVarType)
 #endif
     ADD_TYPE_OBJECT("INTERVAL", &g_IntervalVarType)
     ADD_TYPE_OBJECT("LOB", &g_ExternalLobVarType)
     ADD_TYPE_OBJECT("LONG_BINARY", &g_LongBinaryVarType)
     ADD_TYPE_OBJECT("LONG_STRING", &g_LongStringVarType)
+    ADD_TYPE_OBJECT("NCLOB", &g_NCLOBVarType)
     ADD_TYPE_OBJECT("NUMBER", &g_NumberVarType)
     ADD_TYPE_OBJECT("ROWID", &g_RowidVarType)
     ADD_TYPE_OBJECT("STRING", &g_StringVarType)

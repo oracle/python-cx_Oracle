@@ -50,7 +50,6 @@ static PyTypeObject g_CLOBVarType = {
 };
 
 
-#ifndef WITH_UNICODE
 static PyTypeObject g_NCLOBVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.NCLOB",                  // tp_name
@@ -74,7 +73,6 @@ static PyTypeObject g_NCLOBVarType = {
     Py_TPFLAGS_DEFAULT,                 // tp_flags
     0                                   // tp_doc
 };
-#endif
 
 
 static PyTypeObject g_BLOBVarType = {
@@ -149,7 +147,6 @@ static udt_VariableType vt_CLOB = {
 };
 
 
-#ifndef WITH_UNICODE
 static udt_VariableType vt_NCLOB = {
     (InitializeProc) LobVar_Initialize,
     (FinalizeProc) LobVar_Finalize,
@@ -167,7 +164,6 @@ static udt_VariableType vt_NCLOB = {
     0,                                  // can be copied
     0                                   // can be in array
 };
-#endif
 
 
 static udt_VariableType vt_BLOB = {

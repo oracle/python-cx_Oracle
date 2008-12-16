@@ -168,6 +168,7 @@ static int ExternalLobVar_InternalRead(
     ub4 *length,                        // length of data (IN/OUT)
     int offset)                         // offset
 {
+    ub2 charsetId;
     sword status;
 
     if (var->lobVar->isFile) {
@@ -181,12 +182,15 @@ static int ExternalLobVar_InternalRead(
             return -1;
     }
 
+    if (var->lobVar->type == &vt_NCLOB)
+        charsetId = OCI_UTF16ID;
+    else charsetId = CXORA_CHARSETID;
+
     Py_BEGIN_ALLOW_THREADS
     status = OCILobRead(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle,
             var->lobVar->data[var->pos], length, offset, buffer,
-            bufferSize, NULL, NULL, CXORA_CHARSETID,
-            var->lobVar->type->charsetForm); 
+            bufferSize, NULL, NULL, charsetId, var->lobVar->type->charsetForm); 
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_LobRead()") < 0) {
@@ -261,10 +265,8 @@ static PyObject *ExternalLobVar_Value(
     length = amount;
     if (var->lobVar->type == &vt_CLOB)
         bufferSize = amount * var->lobVar->environment->maxBytesPerCharacter;
-#ifndef WITH_UNICODE
     else if (var->lobVar->type == &vt_NCLOB)
         bufferSize = amount * 2;
-#endif
     else bufferSize = amount;
 
     // create a string for retrieving the value
@@ -282,14 +284,12 @@ static PyObject *ExternalLobVar_Value(
         if (var->lobVar->environment->fixedWidth)
             length = length * var->lobVar->environment->maxBytesPerCharacter;
         result = cxString_FromEncodedString(buffer, length);
-#ifndef WITH_UNICODE
     } else if (var->lobVar->type == &vt_NCLOB) {
     #ifdef Py_UNICODE_WIDE
         result = PyUnicode_DecodeUTF16(buffer, length * 2, NULL, NULL);
     #else
         result = PyUnicode_FromUnicode((Py_UNICODE*) buffer, length);
     #endif
-#endif
     } else {
         result = PyBytes_FromStringAndSize(buffer, length);
     }

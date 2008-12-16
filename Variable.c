@@ -337,8 +337,8 @@ static int Variable_Check(
             Py_TYPE(object) == &g_NumberVarType ||
             Py_TYPE(object) == &g_StringVarType ||
             Py_TYPE(object) == &g_FixedCharVarType ||
-#ifndef WITH_UNICODE
             Py_TYPE(object) == &g_NCLOBVarType ||
+#ifndef WITH_UNICODE
             Py_TYPE(object) == &g_UnicodeVarType ||
             Py_TYPE(object) == &g_FixedUnicodeVarType ||
 #endif
@@ -375,9 +375,9 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_NationalCharString;
     if (type == (PyObject*) &g_FixedUnicodeVarType)
         return &vt_FixedNationalChar;
+#endif
     if (type == (PyObject*) &g_NCLOBVarType)
         return &vt_NCLOB;
-#endif
     if (type == (PyObject*) &g_RowidVarType)
         return &vt_Rowid;
     if (type == (PyObject*) &g_BinaryVarType)
@@ -585,10 +585,8 @@ static udt_VariableType *Variable_TypeByOracleDataType (
         case SQLT_INTERVAL_DS:
             return &vt_Interval;
         case SQLT_CLOB:
-#ifndef WITH_UNICODE
             if (charsetForm == SQLCS_NCHAR)
                 return &vt_NCLOB;
-#endif
             return &vt_CLOB;
         case SQLT_BLOB:
             return &vt_BLOB;
