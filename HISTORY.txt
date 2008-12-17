@@ -1,3 +1,9 @@
+Changes from 5.0 to 5.0.1
+ 1) Fix bug where NCLOB data would be corrupted upon retrieval (non Unicode
+    mode) or would generate exception ORA-24806 (LOB form mismatch). Oracle
+    insists upon differentiating between CLOB and NCLOB no mattter which
+    character set is being used for retrieval.
+
 Changes from 4.4.1 to 5.0
  1) Added support for Python 3.0 with much help from Amaury Forgeot d'Arc.
  2) Removed support for Python 2.3 and Oracle 8i.
