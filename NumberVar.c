@@ -98,6 +98,7 @@ static udt_VariableType vt_Float = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_NumberVarType,                   // Python type
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -118,6 +119,7 @@ static udt_VariableType vt_NativeFloat = {
     (IsNullProc) NULL,
     (SetValueProc) NativeFloatVar_SetValue,
     (GetValueProc) NativeFloatVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_NativeFloatVarType,              // Python type
     SQLT_BDOUBLE,                       // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -139,6 +141,7 @@ static udt_VariableType vt_Integer = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_NumberVarType,                   // Python type
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -159,6 +162,7 @@ static udt_VariableType vt_LongInteger = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_NumberVarType,                   // Python type
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -178,6 +182,7 @@ static udt_VariableType vt_NumberAsString = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_NumberVarType,                   // Python type
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -197,6 +202,7 @@ static udt_VariableType vt_Boolean = {
     (IsNullProc) NULL,
     (SetValueProc) NumberVar_SetValue,
     (GetValueProc) NumberVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_NumberVarType,                   // Python type
     SQLT_VNU,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form

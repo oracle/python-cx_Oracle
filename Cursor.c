@@ -846,7 +846,7 @@ static int Cursor_SetBindVariableHelper(
         // passes a value of 1 for the number of elements
         } else if (numElements > origVar->allocatedElements) {
             *newVar = Variable_New(self, numElements, origVar->type,
-                    origVar->maxLength);
+                    origVar->size);
             if (!*newVar)
                 return -1;
             if (Variable_SetValue(*newVar, arrayPos, value) < 0)
@@ -1972,7 +1972,7 @@ static PyObject *Cursor_Var(
     if (!varType)
         return NULL;
     if (varType->isVariableLength && size == 0)
-        size = varType->elementLength;
+        size = varType->size;
 
     // create the variable
     var = Variable_New(self, arraySize, varType, size);
@@ -1996,21 +1996,21 @@ static PyObject *Cursor_ArrayVar(
     PyObject *args)                     // arguments
 {
     udt_VariableType *varType;
-    int length, numElements;
     PyObject *type, *value;
+    int size, numElements;
     udt_Variable *var;
 
     // parse arguments
-    length = 0;
-    if (!PyArg_ParseTuple(args, "OO|i", &type, &value, &length))
+    size = 0;
+    if (!PyArg_ParseTuple(args, "OO|i", &type, &value, &size))
         return NULL;
 
     // determine the type of variable
     varType = Variable_TypeByPythonType(self, type);
     if (!varType)
         return NULL;
-    if (varType->isVariableLength && length == 0)
-        length = varType->elementLength;
+    if (varType->isVariableLength && size == 0)
+        size = varType->size;
 
     // determine the number of elements to create
     if (PyList_Check(value))
@@ -2026,7 +2026,7 @@ static PyObject *Cursor_ArrayVar(
     }
 
     // create the variable
-    var = Variable_New(self, numElements, varType, length);
+    var = Variable_New(self, numElements, varType, size);
     if (!var)
         return NULL;
     if (Variable_MakeArray(var) < 0) {

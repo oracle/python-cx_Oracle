@@ -1079,7 +1079,7 @@ static PyObject *Connection_GetVersion(
 
     // allocate version variable
     versionVar = Variable_New(cursor, cursor->arraySize, &vt_String,
-            vt_String.elementLength);
+            vt_String.size);
     if (!versionVar) {
         Py_DECREF(cursor);
         return NULL;
@@ -1087,7 +1087,7 @@ static PyObject *Connection_GetVersion(
 
     // allocate compatibility variable
     compatVar = Variable_New(cursor, cursor->arraySize, &vt_String,
-            vt_String.elementLength);
+            vt_String.size);
     if (!compatVar) {
         Py_DECREF(versionVar);
         Py_DECREF(cursor);

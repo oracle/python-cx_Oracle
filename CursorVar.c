@@ -62,6 +62,7 @@ static udt_VariableType vt_Cursor = {
     (IsNullProc) NULL,
     (SetValueProc) CursorVar_SetValue,
     (GetValueProc) CursorVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_CursorVarType,                   // Python type
     SQLT_RSET,                          // Oracle type
     SQLCS_IMPLICIT,                     // charset form

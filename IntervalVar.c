@@ -60,6 +60,7 @@ static udt_VariableType vt_Interval = {
     (IsNullProc) NULL,
     (SetValueProc) IntervalVar_SetValue,
     (GetValueProc) IntervalVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_IntervalVarType,                 // Python type
     SQLT_INTERVAL_DS,                   // Oracle type
     SQLCS_IMPLICIT,                     // charset form

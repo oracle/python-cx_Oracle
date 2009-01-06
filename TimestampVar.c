@@ -60,6 +60,7 @@ static udt_VariableType vt_Timestamp = {
     (IsNullProc) NULL,
     (SetValueProc) TimestampVar_SetValue,
     (GetValueProc) TimestampVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_TimestampVarType,                // Python type
     SQLT_TIMESTAMP,                     // Oracle type
     SQLCS_IMPLICIT,                     // charset form

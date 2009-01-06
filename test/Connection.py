@@ -82,7 +82,7 @@ class TestConnection(TestCase):
         otherConnection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
         otherCursor = otherConnection.cursor()
-        otherCursor.execute("insert into TestExecuteMany values (1)")
+        otherCursor.execute("insert into TestExecuteMany (IntCol) values (1)")
         otherConnection.close()
         cursor.execute("select count(*) from TestExecuteMany")
         count, = cursor.fetchone()
@@ -97,7 +97,7 @@ class TestConnection(TestCase):
         otherConnection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
         otherCursor = otherConnection.cursor()
-        otherCursor.execute("insert into TestExecuteMany values (1)")
+        otherCursor.execute("insert into TestExecuteMany (IntCol) values (1)")
         del otherCursor
         del otherConnection
         cursor.execute("select count(*) from TestExecuteMany")

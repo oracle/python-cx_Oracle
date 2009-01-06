@@ -83,6 +83,7 @@ static udt_VariableType vt_Object = {
     (IsNullProc) ObjectVar_IsNull,
     (SetValueProc) NULL,
     (GetValueProc) ObjectVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_ObjectVarType,                   // Python type
     SQLT_NTY,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form

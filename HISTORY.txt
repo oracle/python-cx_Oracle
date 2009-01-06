@@ -3,6 +3,12 @@ Changes from 5.0 to 5.0.1
     mode) or would generate exception ORA-24806 (LOB form mismatch). Oracle
     insists upon differentiating between CLOB and NCLOB no mattter which
     character set is being used for retrieval.
+ 2) Add new attributes size, bufferSize and numElements to variable objects,
+    deprecating allocelems (replaced by numElements) and maxlength (replaced
+    by bufferSize)
+ 3) Avoid increasing memory allocation for strings when using variable width
+    character sets and increasing the number of elements in a variable during
+    executemany().
 
 Changes from 4.4.1 to 5.0
  1) Added support for Python 3.0 with much help from Amaury Forgeot d'Arc.

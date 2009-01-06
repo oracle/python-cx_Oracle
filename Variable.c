@@ -25,7 +25,8 @@ struct _udt_VariableType;
     sb2 *indicator; \
     ub2 *returnCode; \
     ub2 *actualLength; \
-    ub4 maxLength; \
+    ub4 size; \
+    ub4 bufferSize; \
     struct _udt_VariableType *type;
 typedef struct {
     Variable_HEAD
@@ -43,6 +44,7 @@ typedef int (*PostDefineProc)(udt_Variable*);
 typedef int (*IsNullProc)(udt_Variable*, unsigned);
 typedef int (*SetValueProc)(udt_Variable*, unsigned, PyObject*);
 typedef PyObject * (*GetValueProc)(udt_Variable*, unsigned);
+typedef ub4  (*GetBufferSizeProc)(udt_Variable*);
 
 
 //-----------------------------------------------------------------------------
@@ -56,10 +58,11 @@ typedef struct _udt_VariableType {
     IsNullProc isNullProc;
     SetValueProc setValueProc;
     GetValueProc getValueProc;
+    GetBufferSizeProc getBufferSizeProc;
     PyTypeObject *pythonType;
     ub2 oracleType;
     ub1 charsetForm;
-    ub4 elementLength;
+    ub4 size;
     int isCharacterData;
     int isVariableLength;
     int canBeCopied;
@@ -84,11 +87,15 @@ static int Variable_Resize(udt_Variable *, unsigned);
 // declaration of members for variables
 //-----------------------------------------------------------------------------
 static PyMemberDef g_VariableMembers[] = {
-    { "maxlength", T_INT, offsetof(udt_Variable, maxLength), READONLY },
+    { "bufferSize", T_INT, offsetof(udt_Variable, bufferSize), READONLY },
+    { "inconverter", T_OBJECT, offsetof(udt_Variable, inConverter), 0 },
+    { "numElements", T_INT, offsetof(udt_Variable, allocatedElements),
+            READONLY },
+    { "outconverter", T_OBJECT, offsetof(udt_Variable, outConverter), 0 },
+    { "size", T_INT, offsetof(udt_Variable, size), READONLY },
+    { "maxlength", T_INT, offsetof(udt_Variable, bufferSize), READONLY },
     { "allocelems", T_INT, offsetof(udt_Variable, allocatedElements),
             READONLY },
-    { "inconverter", T_OBJECT, offsetof(udt_Variable, inConverter), 0 },
-    { "outconverter", T_OBJECT, offsetof(udt_Variable, outConverter), 0 },
     { NULL }
 };
 
@@ -154,6 +161,37 @@ static PyTypeObject g_BaseVarType = {
 
 
 //-----------------------------------------------------------------------------
+// Variable_AllocateData()
+//   Allocate the data for the variable.
+//-----------------------------------------------------------------------------
+static int Variable_AllocateData(
+    udt_Variable *self)                 // variable to allocate data for
+{
+    unsigned PY_LONG_LONG dataLength;
+
+    // set the buffer size for the variable
+    if (self->type->getBufferSizeProc)
+        self->bufferSize = (*self->type->getBufferSizeProc)(self);
+    else self->bufferSize = self->size;
+
+    // allocate the data as long as it is small enough
+    dataLength = (unsigned PY_LONG_LONG) self->allocatedElements *
+            (unsigned PY_LONG_LONG) self->bufferSize;
+    if (dataLength > INT_MAX) {
+        PyErr_SetString(PyExc_ValueError, "array size too large");
+        return -1;
+    }
+    self->data = PyMem_Malloc((size_t) dataLength);
+    if (!self->data) {
+        PyErr_NoMemory();
+        return -1;
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // Variable_New()
 //   Allocate a new variable.
 //-----------------------------------------------------------------------------
@@ -161,9 +199,8 @@ static udt_Variable *Variable_New(
     udt_Cursor *cursor,                 // cursor to associate variable with
     unsigned numElements,               // number of elements to allocate
     udt_VariableType *type,             // variable type
-    ub4 elementLength)                  // used only for variable length types
+    ub4 size)                           // used only for variable length types
 {
-    unsigned PY_LONG_LONG dataLength;
     udt_Variable *self;
     ub4 i;
 
@@ -197,46 +234,34 @@ static udt_Variable *Variable_New(
 
     // set the maximum length of the variable, ensure that a minimum of
     // 2 bytes is allocated to ensure that the array size check works
-    self->maxLength = type->elementLength;
+    self->size = type->size;
     if (type->isVariableLength) {
-        if (elementLength < sizeof(ub2))
-            elementLength = sizeof(ub2);
-        self->maxLength = elementLength;
-    }
-    if (type->isCharacterData) {
-#ifdef WITH_UNICODE
-        self->maxLength = self->maxLength * CXORA_BYTES_PER_CHAR;
-#else
-        if (type->charsetForm == SQLCS_IMPLICIT)
-            self->maxLength =
-                    self->maxLength * cursor->environment->maxBytesPerCharacter;
-        else self->maxLength = elementLength * 2;
-#endif
+        if (size < sizeof(ub2))
+            size = sizeof(ub2);
+        self->size = size;
     }
 
-    // allocate the indicator and data
-    dataLength = (unsigned PY_LONG_LONG) numElements *
-            (unsigned PY_LONG_LONG) self->maxLength;
-    if (dataLength > INT_MAX) {
-        PyErr_SetString(PyExc_ValueError, "array size too large");
+    // allocate the data for the variable
+    if (Variable_AllocateData(self) < 0) {
         Py_DECREF(self);
         return NULL;
     }
-    self->indicator = PyMem_Malloc(numElements * sizeof(sb2));
-    self->data = PyMem_Malloc((size_t) dataLength);
-    if (!self->indicator || !self->data) {
+
+    // allocate the indicator for the variable
+    self->indicator = PyMem_Malloc(self->allocatedElements * sizeof(sb2));
+    if (!self->indicator) {
         PyErr_NoMemory();
         Py_DECREF(self);
         return NULL;
     }
 
     // ensure that all variable values start out NULL
-    for (i = 0; i < numElements; i++)
+    for (i = 0; i < self->allocatedElements; i++)
         self->indicator[i] = OCI_IND_NULL;
 
     // for variable length data, also allocate the return code
     if (type->isVariableLength) {
-        self->returnCode = PyMem_Malloc(numElements * sizeof(ub2));
+        self->returnCode = PyMem_Malloc(self->allocatedElements * sizeof(ub2));
         if (!self->returnCode) {
             PyErr_NoMemory();
             Py_DECREF(self);
@@ -288,31 +313,29 @@ static void Variable_Free(
 //   Resize the variable.
 //-----------------------------------------------------------------------------
 static int Variable_Resize(
-    udt_Variable *var,                  // variable to resize
-    unsigned maxLength)                 // new length to use
+    udt_Variable *self,                 // variable to resize
+    unsigned size)                      // new size to use
 {
-    char *newData;
-    ub4 i;
+    ub4 origBufferSize, i;
+    char *origData;
 
-    // allocate new memory for the larger size
-    newData = (char*) PyMem_Malloc(var->allocatedElements * maxLength);
-    if (!newData) {
-        PyErr_NoMemory();
+    // allocate the data for the new array
+    origData = self->data;
+    origBufferSize = self->bufferSize;
+    self->size = size;
+    if (Variable_AllocateData(self) < 0)
         return -1;
-    }
 
     // copy the data from the original array to the new array
-    for (i = 0; i < var->allocatedElements; i++)
-        memcpy(newData + maxLength * i,
-                (void*) ( (char*) var->data + var->maxLength * i ),
-                var->maxLength);
-    PyMem_Free(var->data);
-    var->data = newData;
-    var->maxLength = maxLength;
+    for (i = 0; i < self->allocatedElements; i++)
+        memcpy(self->data + self->bufferSize * i,
+                (void*) ( (char*) origData + origBufferSize * i ),
+                origBufferSize);
+    PyMem_Free(origData);
 
     // force rebinding
-    if (var->boundName || var->boundPos > 0) {
-        if (Variable_InternalBind(var) < 0)
+    if (self->boundName || self->boundPos > 0) {
+        if (Variable_InternalBind(self) < 0)
             return -1;
     }
 
@@ -521,7 +544,7 @@ static udt_VariableType *Variable_TypeByValue(
         if (!varType)
             return NULL;
         *numElements = PyList_GET_SIZE(value);
-        *size = varType->elementLength;
+        *size = varType->size;
         return varType;
     }
 
@@ -771,7 +794,7 @@ static udt_Variable *Variable_NewArrayByType(
     numElements = PyInt_AsLong(numElementsObj);
     if (PyErr_Occurred())
         return NULL;
-    var = Variable_New(cursor, numElements, varType, varType->elementLength);
+    var = Variable_New(cursor, numElements, varType, varType->size);
     if (!var)
         return NULL;
     if (Variable_MakeArray(var) < 0) {
@@ -793,17 +816,17 @@ static udt_Variable *Variable_NewByType(
     unsigned numElements)               // number of elements to allocate
 {
     udt_VariableType *varType;
-    int maxLength;
+    int size;
 
     // passing an integer is assumed to be a string
     if (PyInt_Check(value)) {
-        maxLength = PyInt_AsLong(value);
+        size = PyInt_AsLong(value);
         if (PyErr_Occurred())
             return NULL;
-        if (maxLength > MAX_STRING_CHARS)
+        if (size > MAX_STRING_CHARS)
             varType = &vt_LongString;
         else varType = &vt_String;
-        return Variable_New(cursor, numElements, varType, maxLength);
+        return Variable_New(cursor, numElements, varType, size);
     }
 
     // passing an array of two elements to define an array
@@ -820,7 +843,7 @@ static udt_Variable *Variable_NewByType(
     varType = Variable_TypeByPythonType(cursor, value);
     if (!varType)
         return NULL;
-    return Variable_New(cursor, numElements, varType, varType->elementLength);
+    return Variable_New(cursor, numElements, varType, varType->size);
 }
 
 
@@ -833,7 +856,7 @@ static udt_Variable *Variable_NewByOutputTypeHandler(
     OCIParam *param,                    // parameter descriptor
     PyObject *outputTypeHandler,        // method to call to get type
     udt_VariableType *varType,          // variable type already chosen
-    ub4 maxLength,                      // maximum length of variable
+    ub4 size,                           // maximum size of variable
     unsigned numElements)               // number of elements
 {
     udt_Variable *var;
@@ -867,16 +890,15 @@ static udt_Variable *Variable_NewByOutputTypeHandler(
     }
 
     // call method, passing parameters
-    result = PyObject_CallFunction(outputTypeHandler, "Os#Oiii",
-            cursor, name, nameLength, varType->pythonType, maxLength,
-            precision, scale);
+    result = PyObject_CallFunction(outputTypeHandler, "Os#Oiii", cursor, name,
+            nameLength, varType->pythonType, size, precision, scale);
     if (!result)
         return NULL;
 
     // if result is None, assume default behavior
     if (result == Py_None) {
         Py_DECREF(result);
-        return Variable_New(cursor, numElements, varType, maxLength);
+        return Variable_New(cursor, numElements, varType, size);
     }
 
     // otherwise, verify that the result is an actual variable
@@ -912,10 +934,10 @@ static udt_Variable *Variable_DefineHelper(
     unsigned numElements)               // number of elements to create
 {
     udt_VariableType *varType;
-    ub2 lengthFromOracle;
+    ub2 sizeFromOracle;
     udt_Variable *var;
-    ub4 maxLength;
     sword status;
+    ub4 size;
 
     // determine data type
     varType = Variable_TypeByOracleDescriptor(param, cursor->environment);
@@ -925,41 +947,39 @@ static udt_Variable *Variable_DefineHelper(
         varType = &vt_NumberAsString;
 
     // retrieve size of the parameter
-    maxLength = varType->elementLength;
+    size = varType->size;
     if (varType->isVariableLength) {
 
         // determine the maximum length from Oracle
         status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE,
-                (dvoid*) &lengthFromOracle, 0, OCI_ATTR_DATA_SIZE,
+                (dvoid*) &sizeFromOracle, 0, OCI_ATTR_DATA_SIZE,
                 cursor->environment->errorHandle);
         if (Environment_CheckForError(cursor->environment, status,
                 "Variable_Define(): data size") < 0)
             return NULL;
 
         // use the length from Oracle directly if available
-        if (lengthFromOracle)
-            maxLength = lengthFromOracle;
+        if (sizeFromOracle)
+            size = sizeFromOracle;
 
-        // otherwise, use the value set with the setoutputsize() parameter but
-        // since long strings have the length embedded in them, increase the
-        // size by the size of an integer to make things work as expected
+        // otherwise, use the value set with the setoutputsize() parameter
         else if (cursor->outputSize >= 0) {
             if (cursor->outputSizeColumn < 0 ||
                     (int) position == cursor->outputSizeColumn)
-                maxLength = cursor->outputSize + sizeof(ub4);
+                size = cursor->outputSize;
         }
     }
 
     // create a variable of the correct type
     if (cursor->outputTypeHandler && cursor->outputTypeHandler != Py_None)
         var = Variable_NewByOutputTypeHandler(cursor, param,
-                cursor->outputTypeHandler, varType, maxLength, numElements);
+                cursor->outputTypeHandler, varType, size, numElements);
     else if (cursor->connection->outputTypeHandler &&
             cursor->connection->outputTypeHandler != Py_None)
         var = Variable_NewByOutputTypeHandler(cursor, param,
-                cursor->connection->outputTypeHandler, varType, maxLength,
+                cursor->connection->outputTypeHandler, varType, size,
                 numElements);
-    else var = Variable_New(cursor, numElements, varType, maxLength);
+    else var = Variable_New(cursor, numElements, varType, size);
     if (!var)
         return NULL;
 
@@ -974,7 +994,7 @@ static udt_Variable *Variable_DefineHelper(
     // perform the define
     status = OCIDefineByPos(cursor->handle, &var->defineHandle,
             var->environment->errorHandle, position, var->data,
-            var->maxLength, var->type->oracleType, var->indicator,
+            var->bufferSize, var->type->oracleType, var->indicator,
             var->actualLength, var->returnCode, OCI_DEFAULT);
     if (Environment_CheckForError(var->environment, status,
             "Variable_Define(): define") < 0) {
@@ -1038,14 +1058,14 @@ static int Variable_InternalBind(
         if (var->isArray) {
             status = OCIBindByName(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, (text*) buffer.ptr,
-                    buffer.size, var->data, var->maxLength,
+                    buffer.size, var->data, var->bufferSize,
                     var->type->oracleType, var->indicator, var->actualLength,
                     var->returnCode, var->allocatedElements,
                     &var->actualElements, OCI_DEFAULT);
         } else {
             status = OCIBindByName(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, (text*) buffer.ptr,
-                    buffer.size, var->data, var->maxLength,
+                    buffer.size, var->data, var->bufferSize,
                     var->type->oracleType, var->indicator, var->actualLength,
                     var->returnCode, 0, 0, OCI_DEFAULT);
         }
@@ -1054,13 +1074,13 @@ static int Variable_InternalBind(
         if (var->isArray) {
             status = OCIBindByPos(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, var->boundPos, var->data,
-                    var->maxLength, var->type->oracleType, var->indicator,
+                    var->bufferSize, var->type->oracleType, var->indicator,
                     var->actualLength, var->returnCode, var->allocatedElements,
                     &var->actualElements, OCI_DEFAULT);
         } else {
             status = OCIBindByPos(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, var->boundPos, var->data,
-                    var->maxLength, var->type->oracleType, var->indicator,
+                    var->bufferSize, var->type->oracleType, var->indicator,
                     var->actualLength, var->returnCode, 0, 0, OCI_DEFAULT);
         }
     }
@@ -1085,7 +1105,7 @@ static int Variable_InternalBind(
                  "Variable_InternalBind(): setting charset Id") < 0)
             return -1;
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
-                (dvoid*) &var->maxLength, 0, OCI_ATTR_MAXDATA_SIZE,
+                (dvoid*) &var->bufferSize, 0, OCI_ATTR_MAXDATA_SIZE,
                 var->environment->errorHandle);
         if (Environment_CheckForError(var->environment, status,
                 "Variable_InternalBind(): set max data size") < 0)
@@ -1095,9 +1115,9 @@ static int Variable_InternalBind(
 
     // set the max data size for strings
     if ((var->type == &vt_String || var->type == &vt_FixedChar)
-            && var->maxLength > var->type->elementLength) {
+            && var->size > var->type->size) {
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
-                (dvoid*) &var->type->elementLength, 0, OCI_ATTR_MAXDATA_SIZE,
+                (dvoid*) &var->type->size, 0, OCI_ATTR_MAXDATA_SIZE,
                 var->environment->errorHandle);
         if (Environment_CheckForError(var->environment, status,
                 "Variable_InternalBind(): set max data size") < 0)
@@ -1388,7 +1408,7 @@ static PyObject *Variable_ExternalCopy(
     }
 
     // ensure target can support amount data from the source
-    if (targetVar->maxLength < sourceVar->maxLength) {
+    if (targetVar->bufferSize < sourceVar->bufferSize) {
         PyErr_SetString(g_ProgrammingErrorException,
                 "target variable has insufficient space to copy source data");
         return NULL;
@@ -1409,9 +1429,9 @@ static PyObject *Variable_ExternalCopy(
         if (targetVar->returnCode)
             targetVar->returnCode[targetPos] =
                     sourceVar->returnCode[sourcePos];
-        memcpy( (char*) targetVar->data + targetPos * targetVar->maxLength,
-                (char*) sourceVar->data + sourcePos * sourceVar->maxLength,
-                sourceVar->maxLength);
+        memcpy( (char*) targetVar->data + targetPos * targetVar->bufferSize,
+                (char*) sourceVar->data + sourcePos * sourceVar->bufferSize,
+                sourceVar->bufferSize);
     }
 
     Py_INCREF(Py_None);

@@ -136,6 +136,7 @@ static udt_VariableType vt_CLOB = {
     (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_CLOBVarType,                     // Python type
     SQLT_CLOB,                          // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -155,6 +156,7 @@ static udt_VariableType vt_NCLOB = {
     (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_NCLOBVarType,                    // Python type
     SQLT_CLOB,                          // Oracle type
     SQLCS_NCHAR,                        // charset form
@@ -174,6 +176,7 @@ static udt_VariableType vt_BLOB = {
     (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_BLOBVarType,                     // Python type
     SQLT_BLOB,                          // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -193,6 +196,7 @@ static udt_VariableType vt_BFILE = {
     (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_BFILEVarType,                    // Python type
     SQLT_BFILE,                         // Oracle type
     SQLCS_IMPLICIT,                     // charset form

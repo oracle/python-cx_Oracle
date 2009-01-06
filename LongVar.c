@@ -17,6 +17,7 @@ typedef struct {
 //-----------------------------------------------------------------------------
 static int LongVar_SetValue(udt_LongVar*, unsigned, PyObject*);
 static PyObject *LongVar_GetValue(udt_LongVar*, unsigned);
+static ub4 LongVar_GetBufferSize(udt_LongVar*);
 
 
 //-----------------------------------------------------------------------------
@@ -83,6 +84,7 @@ static udt_VariableType vt_LongString = {
     (IsNullProc) NULL,
     (SetValueProc) LongVar_SetValue,
     (GetValueProc) LongVar_GetValue,
+    (GetBufferSizeProc) LongVar_GetBufferSize,
     &g_LongStringVarType,               // Python type
     SQLT_LVC,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -102,6 +104,7 @@ static udt_VariableType vt_LongBinary = {
     (IsNullProc) NULL,
     (SetValueProc) LongVar_SetValue,
     (GetValueProc) LongVar_GetValue,
+    (GetBufferSizeProc) LongVar_GetBufferSize,
     &g_LongBinaryVarType,               // Python type
     SQLT_LVB,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -124,6 +127,7 @@ static int LongVar_SetValue(
 {
     udt_StringBuffer buffer;
     char *ptr;
+    ub4 size;
 
     // get the buffer data and size for binding
     if (var->type == &vt_LongBinary) {
@@ -140,6 +144,7 @@ static int LongVar_SetValue(
                     "expecting string or buffer data");
             return -1;
         }
+        size = buffer.size;
     } else {
         if (!cxString_Check(value)) {
             PyErr_SetString(PyExc_TypeError, "expecting string data");
@@ -147,17 +152,19 @@ static int LongVar_SetValue(
         }
         if (StringBuffer_Fill(&buffer, value) < 0)
             return -1;
+        size = cxString_GetSize(value);
     }
 
-    // copy the string to the Oracle buffer
-    if (buffer.size + sizeof(ub4) > var->maxLength) {
-        if (Variable_Resize( (udt_Variable*) var,
-                buffer.size + sizeof(ub4)) < 0) {
+    // verify there is enough space to store the value
+    if (size > var->size) {
+        if (Variable_Resize((udt_Variable*) var, size) < 0) {
             StringBuffer_Clear(&buffer);
             return -1;
         }
     }
-    ptr = var->data + var->maxLength * pos;
+
+    // copy the string to the Oracle buffer
+    ptr = var->data + var->bufferSize * pos;
     *((ub4 *) ptr) = (ub4) buffer.size;
     if (buffer.size)
         memcpy(ptr + sizeof(ub4), buffer.ptr, buffer.size);
@@ -178,11 +185,28 @@ static PyObject *LongVar_GetValue(
     char *ptr;
     ub4 size;
 
-    ptr = var->data + var->maxLength * pos;
+    ptr = var->data + var->bufferSize * pos;
     size = *((ub4 *) ptr);
     ptr += sizeof(ub4);
     if (var->type == &vt_LongBinary)
         return PyBytes_FromStringAndSize(ptr, size);
     return cxString_FromEncodedString(ptr, size);
+}
+
+
+//-----------------------------------------------------------------------------
+// LongVar_GetBufferSize()
+//   Returns the size of the buffer to use for data of the given size.
+//-----------------------------------------------------------------------------
+static ub4 LongVar_GetBufferSize(
+    udt_LongVar *self)                  // variable to get buffer size
+{
+    if (!self->type->isCharacterData)
+        return self->size + sizeof(ub4);
+#ifdef WITH_UNICODE
+    return sizeof(ub4) + self->size * CXORA_BYTES_PER_CHAR;
+#else
+    return sizeof(ub4) + self->size * self->environment->maxBytesPerCharacter;
+#endif
 }
 

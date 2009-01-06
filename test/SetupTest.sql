@@ -101,7 +101,8 @@ create table cx_Oracle.TestLongRaws (
 ) tablespace users;
 
 create table cx_Oracle.TestExecuteMany (
-  IntCol                number(9) not null
+  IntCol                number(9) not null,
+  StringCol             varchar2(100)
 ) tablespace users;
 
 create table cx_Oracle.TestObjects (

@@ -21,6 +21,7 @@ static int StringVar_PostDefine(udt_StringVar*);
 #endif
 static int StringVar_SetValue(udt_StringVar*, unsigned, PyObject*);
 static PyObject *StringVar_GetValue(udt_StringVar*, unsigned);
+static ub4 StringVar_GetBufferSize(udt_StringVar*);
 
 //-----------------------------------------------------------------------------
 // Python type declarations
@@ -190,6 +191,7 @@ static udt_VariableType vt_String = {
     (IsNullProc) NULL,
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
+    (GetBufferSizeProc) StringVar_GetBufferSize,
     &g_StringVarType,                   // Python type
     SQLT_CHR,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -210,6 +212,7 @@ static udt_VariableType vt_NationalCharString = {
     (IsNullProc) NULL,
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
+    (GetBufferSizeProc) StringVar_GetBufferSize,
     &g_UnicodeVarType,                  // Python type
     SQLT_CHR,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
@@ -230,6 +233,7 @@ static udt_VariableType vt_FixedChar = {
     (IsNullProc) NULL,
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
+    (GetBufferSizeProc) StringVar_GetBufferSize,
     &g_FixedCharVarType,                // Python type
     SQLT_AFC,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -250,6 +254,7 @@ static udt_VariableType vt_FixedNationalChar = {
     (IsNullProc) NULL,
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
+    (GetBufferSizeProc) StringVar_GetBufferSize,
     &g_FixedUnicodeVarType,             // Python type
     SQLT_AFC,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
@@ -270,6 +275,7 @@ static udt_VariableType vt_Rowid = {
     (IsNullProc) NULL,
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
+    (GetBufferSizeProc) StringVar_GetBufferSize,
     &g_RowidVarType,                    // Python type
     SQLT_CHR,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -289,6 +295,7 @@ static udt_VariableType vt_Binary = {
     (IsNullProc) NULL,
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_BinaryVarType,                   // Python type
     SQLT_BIN,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -359,6 +366,7 @@ static int StringVar_SetValue(
     PyObject *value)                    // value to set
 {
     udt_StringBuffer buffer;
+    ub4 size;
 
     // get the buffer data and size for binding
 #ifdef WITH_UNICODE
@@ -368,10 +376,12 @@ static int StringVar_SetValue(
 #endif
         if (PyBytes_Check(value)) {
             StringBuffer_FromBytes(&buffer, value);
+            size = buffer.size;
 #if PY_MAJOR_VERSION < 3
         } else if (cxBinary_Check(value)) {
             if (StringBuffer_FromBinary(&buffer, value) < 0)
                 return -1;
+            size = buffer.size;
 #endif
         } else {
             PyErr_SetString(PyExc_TypeError,
@@ -394,7 +404,8 @@ static int StringVar_SetValue(
             PyErr_SetString(PyExc_TypeError, "expecting unicode data");
             return -1;
         }
-        if (PyUnicode_GET_SIZE(value) > MAX_STRING_CHARS) {
+        size = PyUnicode_GET_SIZE(value);
+        if (size > MAX_STRING_CHARS) {
             PyErr_SetString(PyExc_ValueError, "unicode data too large");
             return -1;
         }
@@ -402,9 +413,9 @@ static int StringVar_SetValue(
             return -1;
     }
 
-    // ensure that the buffer is not too large
-    if (buffer.size > var->maxLength) {
-        if (Variable_Resize( (udt_Variable*) var, buffer.size) < 0) {
+    // ensure that the buffer is large enough
+    if (buffer.size > var->bufferSize) {
+        if (Variable_Resize( (udt_Variable*) var, size) < 0) {
             StringBuffer_Clear(&buffer);
             return -1;
         }
@@ -413,7 +424,7 @@ static int StringVar_SetValue(
     // keep a copy of the string
     var->actualLength[pos] = (ub2) buffer.size;
     if (buffer.size)
-        memcpy(var->data + var->maxLength * pos, buffer.ptr, buffer.size);
+        memcpy(var->data + var->bufferSize * pos, buffer.ptr, buffer.size);
     StringBuffer_Clear(&buffer);
 
     return 0;
@@ -430,7 +441,7 @@ static PyObject *StringVar_GetValue(
 {
     char *data;
 
-    data = var->data + pos * var->maxLength;
+    data = var->data + pos * var->bufferSize;
 #ifdef WITH_UNICODE
     if (var->type == &vt_Binary)
         return PyBytes_FromStringAndSize(data, var->actualLength[pos]);
@@ -444,6 +455,23 @@ static PyObject *StringVar_GetValue(
     return PyUnicode_FromUnicode((Py_UNICODE*) data,
             var->actualLength[pos] / 2);
     #endif
+#endif
+}
+
+
+//-----------------------------------------------------------------------------
+// StringVar_GetBufferSize()
+//   Returns the buffer size to use for the variable.
+//-----------------------------------------------------------------------------
+static ub4 StringVar_GetBufferSize(
+    udt_StringVar* self)                // variable to get buffer size for
+{
+#ifdef WITH_UNICODE
+    return self->size * CXORA_BYTES_PER_CHAR;
+#else
+    if (self->type->charsetForm == SQLCS_IMPLICIT)
+        return self->size * self->environment->maxBytesPerCharacter;
+    return self->size * 2;
 #endif
 }
 

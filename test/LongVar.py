@@ -73,22 +73,25 @@ class TestLongVar(BaseTestCase):
         self.cursor.setoutputsize(25000)
         self.cursor.execute("select * from TestLongRaws")
         longVar = self.cursor.fetchvars[1]
-        self.failUnlessEqual(longVar.maxlength, 25004)
+        self.failUnlessEqual(longVar.size, 25000)
+        self.failUnlessEqual(longVar.bufferSize, 25004)
 
     def testSetOutputSizesWrongColumn(self):
         "test setoutputsizes is valid (wrong column)"
         self.cursor.setoutputsize(25000, 1)
         self.cursor.execute("select * from TestLongs")
         longVar = self.cursor.fetchvars[1]
-        self.failUnlessEqual(longVar.maxlength,
-                131072 * self.connection.maxBytesPerCharacter)
+        self.failUnlessEqual(longVar.size, 131072)
+        self.failUnlessEqual(longVar.bufferSize,
+                131072 * self.connection.maxBytesPerCharacter + 4)
 
     def testSetOutputSizesRightColumn(self):
         "test setoutputsizes is valid (right column)"
         self.cursor.setoutputsize(35000, 2)
         self.cursor.execute("select * from TestLongRaws")
         longVar = self.cursor.fetchvars[1]
-        self.failUnlessEqual(longVar.maxlength, 35004)
+        self.failUnlessEqual(longVar.size, 35000)
+        self.failUnlessEqual(longVar.bufferSize, 35004)
 
     def testArraySizeTooLarge(self):
         "test array size too large generates an exception"

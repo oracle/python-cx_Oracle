@@ -10,7 +10,7 @@
 static udt_Variable *Callback_NewVariable(
     udt_Connection *connection,         // connection to use
     ub2 oracleType,                     // Oracle type of data
-    ub4 maxLength,                      // maximum length of elements
+    ub4 bufferSize,                     // maximum length of elements
     void *data,                         // data pointer
     void *indicator,                    // indicator pointer
     ub2 *returnCode,                    // return code pointer
@@ -49,9 +49,10 @@ static udt_Variable *Callback_NewVariable(
     var->data = data;
     var->actualLength = actualLength;
     var->returnCode = returnCode;
-    var->maxLength = type->elementLength;
+    var->size = type->size;
+    var->bufferSize = type->size;
     if (type->isVariableLength)
-        var->maxLength = maxLength;
+        var->bufferSize = bufferSize;
 
     return var;
 }

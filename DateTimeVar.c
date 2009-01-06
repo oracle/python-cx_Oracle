@@ -58,6 +58,7 @@ static udt_VariableType vt_DateTime = {
     (IsNullProc) NULL,
     (SetValueProc) DateTimeVar_SetValue,
     (GetValueProc) DateTimeVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_DateTimeVarType,                 // Python type
     SQLT_ODT,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
@@ -77,6 +78,7 @@ static udt_VariableType vt_Date = {
     (IsNullProc) NULL,
     (SetValueProc) DateTimeVar_SetValue,
     (GetValueProc) DateTimeVar_GetValue,
+    (GetBufferSizeProc) NULL,
     &g_DateTimeVarType,                 // Python type
     SQLT_ODT,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form

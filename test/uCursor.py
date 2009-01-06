@@ -79,7 +79,7 @@ class TestCursor(BaseTestCase):
         self.cursor.execute(u"truncate table TestExecuteMany")
         rows = [ { u"value" : n } for n in range(250) ]
         self.cursor.arraysize = 100
-        statement = u"insert into TestExecuteMany values (:value)"
+        statement = u"insert into TestExecuteMany (IntCol) values (:value)"
         self.cursor.executemany(statement, rows)
         self.connection.commit()
         self.cursor.execute(u"select count(*) from TestExecuteMany")
@@ -91,7 +91,7 @@ class TestCursor(BaseTestCase):
         self.cursor.execute(u"truncate table TestExecuteMany")
         rows = [ [n] for n in range(230) ]
         self.cursor.arraysize = 100
-        statement = u"insert into TestExecuteMany values (:1)"
+        statement = u"insert into TestExecuteMany (IntCol) values (:1)"
         self.cursor.executemany(statement, rows)
         self.connection.commit()
         self.cursor.execute(u"select count(*) from TestExecuteMany")
@@ -103,7 +103,7 @@ class TestCursor(BaseTestCase):
         self.cursor.execute(u"truncate table TestExecuteMany")
         rows = [ [n] for n in range(225) ]
         self.cursor.arraysize = 100
-        statement = u"insert into TestExecuteMany values (:1)"
+        statement = u"insert into TestExecuteMany (IntCol) values (:1)"
         self.cursor.prepare(statement)
         self.cursor.executemany(None, rows)
         self.connection.commit()
@@ -116,7 +116,7 @@ class TestCursor(BaseTestCase):
         self.cursor.execute(u"truncate table TestExecuteMany")
         rows = [ [n] for n in range(235) ]
         self.cursor.arraysize = 100
-        statement = u"insert into TestExecuteMany values (:1)"
+        statement = u"insert into TestExecuteMany (IntCol) values (:1)"
         self.cursor.executemany(statement, rows[:50])
         self.cursor.executemany(statement, rows[50:])
         self.connection.commit()
@@ -128,7 +128,7 @@ class TestCursor(BaseTestCase):
         """test executing a statement multiple times (with exception)"""
         self.cursor.execute(u"truncate table TestExecuteMany")
         rows = [ { u"p_Value" : n } for n in (1, 2, 3, 2, 5) ]
-        statement = u"insert into TestExecuteMany values (:p_Value)"
+        statement = u"insert into TestExecuteMany (IntCol) values (:p_Value)"
         self.failUnlessRaises(cx_Oracle.DatabaseError, self.cursor.executemany,
                 statement, rows)
         self.failUnlessEqual(self.cursor.rowcount, 3)
@@ -176,7 +176,7 @@ class TestCursor(BaseTestCase):
                 order by IntCol""")
         testIter = iter(self.cursor)
         value, = testIter.next()
-        self.cursor.execute(u"insert into TestExecuteMany values (1)")
+        self.cursor.execute(u"insert into TestExecuteMany (IntCol) values (1)")
         self.failUnlessRaises(cx_Oracle.InterfaceError, testIter.next) 
 
     def testBindNames(self):
