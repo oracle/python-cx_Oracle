@@ -164,95 +164,95 @@ static udt_Variable *Variable_New(
     ub4 elementLength)                  // used only for variable length types
 {
     unsigned PY_LONG_LONG dataLength;
-    udt_Variable *var;
+    udt_Variable *self;
     ub4 i;
 
     // attempt to allocate the object
-    var = PyObject_NEW(udt_Variable, type->pythonType);
-    if (!var)
+    self = (udt_Variable*) type->pythonType->tp_alloc(type->pythonType, 0);
+    if (!self)
         return NULL;
 
     // perform basic initialization
     Py_INCREF(cursor->connection->environment);
-    var->environment = cursor->connection->environment;
-    var->boundCursorHandle = NULL;
-    var->bindHandle = NULL;
-    var->defineHandle = NULL;
-    var->boundName = NULL;
-    var->inConverter = NULL;
-    var->outConverter = NULL;
-    var->boundPos = 0;
+    self->environment = cursor->connection->environment;
+    self->boundCursorHandle = NULL;
+    self->bindHandle = NULL;
+    self->defineHandle = NULL;
+    self->boundName = NULL;
+    self->inConverter = NULL;
+    self->outConverter = NULL;
+    self->boundPos = 0;
     if (numElements < 1)
-        var->allocatedElements = 1;
-    else var->allocatedElements = numElements;
-    var->actualElements = 0;
-    var->internalFetchNum = 0;
-    var->isArray = 0;
-    var->isAllocatedInternally = 1;
-    var->type = type;
-    var->indicator = NULL;
-    var->data = NULL;
-    var->actualLength = NULL;
-    var->returnCode = NULL;
+        self->allocatedElements = 1;
+    else self->allocatedElements = numElements;
+    self->actualElements = 0;
+    self->internalFetchNum = 0;
+    self->isArray = 0;
+    self->isAllocatedInternally = 1;
+    self->type = type;
+    self->indicator = NULL;
+    self->data = NULL;
+    self->actualLength = NULL;
+    self->returnCode = NULL;
 
     // set the maximum length of the variable, ensure that a minimum of
     // 2 bytes is allocated to ensure that the array size check works
-    var->maxLength = type->elementLength;
+    self->maxLength = type->elementLength;
     if (type->isVariableLength) {
         if (elementLength < sizeof(ub2))
             elementLength = sizeof(ub2);
-        var->maxLength = elementLength;
+        self->maxLength = elementLength;
     }
     if (type->isCharacterData) {
 #ifdef WITH_UNICODE
-        var->maxLength = var->maxLength * CXORA_BYTES_PER_CHAR;
+        self->maxLength = self->maxLength * CXORA_BYTES_PER_CHAR;
 #else
         if (type->charsetForm == SQLCS_IMPLICIT)
-            var->maxLength =
-                    var->maxLength * cursor->environment->maxBytesPerCharacter;
-        else var->maxLength = elementLength * 2;
+            self->maxLength =
+                    self->maxLength * cursor->environment->maxBytesPerCharacter;
+        else self->maxLength = elementLength * 2;
 #endif
     }
 
     // allocate the indicator and data
     dataLength = (unsigned PY_LONG_LONG) numElements *
-            (unsigned PY_LONG_LONG) var->maxLength;
+            (unsigned PY_LONG_LONG) self->maxLength;
     if (dataLength > INT_MAX) {
         PyErr_SetString(PyExc_ValueError, "array size too large");
-        Py_DECREF(var);
+        Py_DECREF(self);
         return NULL;
     }
-    var->indicator = PyMem_Malloc(numElements * sizeof(sb2));
-    var->data = PyMem_Malloc((size_t) dataLength);
-    if (!var->indicator || !var->data) {
+    self->indicator = PyMem_Malloc(numElements * sizeof(sb2));
+    self->data = PyMem_Malloc((size_t) dataLength);
+    if (!self->indicator || !self->data) {
         PyErr_NoMemory();
-        Py_DECREF(var);
+        Py_DECREF(self);
         return NULL;
     }
 
     // ensure that all variable values start out NULL
     for (i = 0; i < numElements; i++)
-        var->indicator[i] = OCI_IND_NULL;
+        self->indicator[i] = OCI_IND_NULL;
 
     // for variable length data, also allocate the return code
     if (type->isVariableLength) {
-        var->returnCode = PyMem_Malloc(numElements * sizeof(ub2));
-        if (!var->returnCode) {
+        self->returnCode = PyMem_Malloc(numElements * sizeof(ub2));
+        if (!self->returnCode) {
             PyErr_NoMemory();
-            Py_DECREF(var);
+            Py_DECREF(self);
             return NULL;
         }
     }
 
     // perform extended initialization
-    if (var->type->initializeProc) {
-        if ((*var->type->initializeProc)(var, cursor) < 0) {
-            Py_DECREF(var);
+    if (self->type->initializeProc) {
+        if ((*self->type->initializeProc)(self, cursor) < 0) {
+            Py_DECREF(self);
             return NULL;
         }
     }
 
-    return var;
+    return self;
 }
 
 
@@ -261,25 +261,25 @@ static udt_Variable *Variable_New(
 //   Free an existing variable.
 //-----------------------------------------------------------------------------
 static void Variable_Free(
-    udt_Variable *var)                  // variable to free
+    udt_Variable *self)                 // variable to free
 {
-    if (var->isAllocatedInternally) {
-        if (var->type->finalizeProc)
-            (*var->type->finalizeProc)(var);
-        if (var->indicator)
-            PyMem_Free(var->indicator);
-        if (var->data)
-            PyMem_Free(var->data);
-        if (var->actualLength)
-            PyMem_Free(var->actualLength);
-        if (var->returnCode)
-            PyMem_Free(var->returnCode);
+    if (self->isAllocatedInternally) {
+        if (self->type->finalizeProc)
+            (*self->type->finalizeProc)(self);
+        if (self->indicator)
+            PyMem_Free(self->indicator);
+        if (self->data)
+            PyMem_Free(self->data);
+        if (self->actualLength)
+            PyMem_Free(self->actualLength);
+        if (self->returnCode)
+            PyMem_Free(self->returnCode);
     }
-    Py_DECREF(var->environment);
-    Py_XDECREF(var->boundName);
-    Py_XDECREF(var->inConverter);
-    Py_XDECREF(var->outConverter);
-    PyObject_DEL(var);
+    Py_CLEAR(self->environment);
+    Py_CLEAR(self->boundName);
+    Py_CLEAR(self->inConverter);
+    Py_CLEAR(self->outConverter);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 

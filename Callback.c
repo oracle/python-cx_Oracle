@@ -25,7 +25,7 @@ static udt_Variable *Callback_NewVariable(
         return NULL;
 
     // attempt to allocate the object
-    var = PyObject_NEW(udt_Variable, type->pythonType);
+    var = (udt_Variable*) type->pythonType->tp_alloc(type->pythonType, 0);
     if (!var)
         return NULL;
 

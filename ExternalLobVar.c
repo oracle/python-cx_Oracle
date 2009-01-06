@@ -115,17 +115,18 @@ PyObject *ExternalLobVar_New(
     udt_LobVar *var,                    // variable to encapsulate
     unsigned pos)                       // position in array to encapsulate
 {
-    udt_ExternalLobVar *newVar;
+    udt_ExternalLobVar *self;
 
-    newVar = PyObject_NEW(udt_ExternalLobVar, &g_ExternalLobVarType);
-    if (!newVar)
+    self = (udt_ExternalLobVar*)
+            g_ExternalLobVarType.tp_alloc(&g_ExternalLobVarType, 0);
+    if (!self)
         return NULL;
-    newVar->pos = pos;
-    newVar->internalFetchNum = var->internalFetchNum;
+    self->pos = pos;
+    self->internalFetchNum = var->internalFetchNum;
     Py_INCREF(var);
-    newVar->lobVar = var;
+    self->lobVar = var;
 
-    return (PyObject*) newVar;
+    return (PyObject*) self;
 }
 
 
@@ -134,10 +135,10 @@ PyObject *ExternalLobVar_New(
 //   Free an external LOB variable.
 //-----------------------------------------------------------------------------
 static void ExternalLobVar_Free(
-    udt_ExternalLobVar *var)            // variable to free
+    udt_ExternalLobVar *self)           // variable to free
 {
-    Py_DECREF(var->lobVar);
-    PyObject_DEL(var);
+    Py_CLEAR(self->lobVar);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 

@@ -882,14 +882,14 @@ static void Connection_Free(
             OCIServerDetach(self->serverHandle,
                     self->environment->errorHandle, OCI_DEFAULT);
     }
-    Py_XDECREF(self->environment);
-    Py_XDECREF(self->sessionPool);
-    Py_XDECREF(self->username);
-    Py_XDECREF(self->password);
-    Py_XDECREF(self->dsn);
-    Py_XDECREF(self->version);
-    Py_XDECREF(self->inputTypeHandler);
-    Py_XDECREF(self->outputTypeHandler);
+    Py_CLEAR(self->environment);
+    Py_CLEAR(self->sessionPool);
+    Py_CLEAR(self->username);
+    Py_CLEAR(self->password);
+    Py_CLEAR(self->dsn);
+    Py_CLEAR(self->version);
+    Py_CLEAR(self->inputTypeHandler);
+    Py_CLEAR(self->outputTypeHandler);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 

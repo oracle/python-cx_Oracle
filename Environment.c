@@ -70,7 +70,7 @@ static udt_Environment *Environment_New(
     sword status;
 
     // create a new object for the Oracle environment
-    env = PyObject_NEW(udt_Environment, &g_EnvironmentType);
+    env = (udt_Environment*) g_EnvironmentType.tp_alloc(&g_EnvironmentType, 0);
     if (!env)
         return NULL;
     env->handle = NULL;
@@ -186,14 +186,14 @@ static udt_Environment *Environment_Clone(
 // will automatically destroy any child handles that were created.
 //-----------------------------------------------------------------------------
 static void Environment_Free(
-    udt_Environment *environment)       // environment object
+    udt_Environment *self)              // environment object
 {
-    if (environment->errorHandle)
-        OCIHandleFree(environment->errorHandle, OCI_HTYPE_ERROR);
-    if (environment->handle && !environment->cloneEnv)
-        OCIHandleFree(environment->handle, OCI_HTYPE_ENV);
-    Py_CLEAR(environment->cloneEnv);
-    PyObject_DEL(environment);
+    if (self->errorHandle)
+        OCIHandleFree(self->errorHandle, OCI_HTYPE_ERROR);
+    if (self->handle && !self->cloneEnv)
+        OCIHandleFree(self->handle, OCI_HTYPE_ENV);
+    Py_CLEAR(self->cloneEnv);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 

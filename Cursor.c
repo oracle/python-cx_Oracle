@@ -336,14 +336,14 @@ static void Cursor_Free(
     udt_Cursor *self)                   // cursor object
 {
     Cursor_FreeHandle(self, 0);
-    Py_XDECREF(self->statement);
-    Py_XDECREF(self->statementTag);
-    Py_XDECREF(self->bindVariables);
-    Py_XDECREF(self->fetchVariables);
-    Py_XDECREF(self->connection);
-    Py_XDECREF(self->rowFactory);
-    Py_XDECREF(self->inputTypeHandler);
-    Py_XDECREF(self->outputTypeHandler);
+    Py_CLEAR(self->statement);
+    Py_CLEAR(self->statementTag);
+    Py_CLEAR(self->bindVariables);
+    Py_CLEAR(self->fetchVariables);
+    Py_CLEAR(self->connection);
+    Py_CLEAR(self->rowFactory);
+    Py_CLEAR(self->inputTypeHandler);
+    Py_CLEAR(self->outputTypeHandler);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 

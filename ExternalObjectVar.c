@@ -83,19 +83,20 @@ PyObject *ExternalObjectVar_New(
     dvoid *indicator,                   // indicator structure
     int isIndependent)                  // is object independent?
 {
-    udt_ExternalObjectVar *newVar;
+    udt_ExternalObjectVar *self;
 
-    newVar = PyObject_NEW(udt_ExternalObjectVar, &g_ExternalObjectVarType);
-    if (!newVar)
+    self = (udt_ExternalObjectVar*)
+            g_ExternalObjectVarType.tp_alloc(&g_ExternalObjectVarType, 0);
+    if (!self)
         return NULL;
     Py_INCREF(referencedObject);
-    newVar->referencedObject = referencedObject;
+    self->referencedObject = referencedObject;
     Py_INCREF(objectType);
-    newVar->objectType = objectType;
-    newVar->instance = instance;
-    newVar->indicator = indicator;
-    newVar->isIndependent = isIndependent;
-    return (PyObject*) newVar;
+    self->objectType = objectType;
+    self->instance = instance;
+    self->indicator = indicator;
+    self->isIndependent = isIndependent;
+    return (PyObject*) self;
 }
 
 
@@ -110,9 +111,9 @@ static void ExternalObjectVar_Free(
         OCIObjectFree(self->objectType->environment->handle,
                 self->objectType->environment->errorHandle,
                 self->instance, OCI_OBJECTFREE_FORCE);
-    Py_DECREF(self->objectType);
-    Py_DECREF(self->referencedObject);
-    PyObject_DEL(self);
+    Py_CLEAR(self->objectType);
+    Py_CLEAR(self->referencedObject);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 

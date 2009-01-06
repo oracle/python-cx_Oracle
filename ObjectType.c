@@ -353,7 +353,7 @@ static udt_ObjectType *ObjectType_New(
 {
     udt_ObjectType *self;
 
-    self = PyObject_NEW(udt_ObjectType, &g_ObjectTypeType);
+    self = (udt_ObjectType*) g_ObjectTypeType.tp_alloc(&g_ObjectTypeType, 0);
     if (!self)
         return NULL;
     Py_INCREF(connection->environment);
@@ -381,16 +381,16 @@ static udt_ObjectType *ObjectType_New(
 static void ObjectType_Free(
     udt_ObjectType *self)               // object type to free
 {
-    Py_DECREF(self->environment);
-    Py_XDECREF(self->schema);
-    Py_XDECREF(self->name);
-    Py_XDECREF(self->attributes);
-    Py_XDECREF(self->attributesByName);
-    Py_XDECREF(self->elementType);
     if (self->tdo)
         OCIObjectUnpin(self->environment->handle,
                 self->environment->errorHandle, self->tdo);
-    PyObject_DEL(self);
+    Py_CLEAR(self->environment);
+    Py_CLEAR(self->schema);
+    Py_CLEAR(self->name);
+    Py_CLEAR(self->attributes);
+    Py_CLEAR(self->attributesByName);
+    Py_CLEAR(self->elementType);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 
@@ -479,7 +479,8 @@ static udt_ObjectAttribute *ObjectAttribute_New(
 {
     udt_ObjectAttribute *self;
 
-    self = PyObject_NEW(udt_ObjectAttribute, &g_ObjectAttributeType);
+    self = (udt_ObjectAttribute*)
+            g_ObjectAttributeType.tp_alloc(&g_ObjectAttributeType, 0);
     if (!self)
         return NULL;
     self->name = NULL;
@@ -500,9 +501,9 @@ static udt_ObjectAttribute *ObjectAttribute_New(
 static void ObjectAttribute_Free(
     udt_ObjectAttribute *self)          // object attribute to free
 {
-    Py_XDECREF(self->name);
-    Py_XDECREF(self->subType);
-    PyObject_DEL(self);
+    Py_CLEAR(self->name);
+    Py_CLEAR(self->subType);
+    Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 

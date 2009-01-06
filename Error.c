@@ -79,7 +79,7 @@ static udt_Error *Error_New(
     int retrieveError)                  // retrieve error from OCI?
 {
     char errorText[1024 * CXORA_BYTES_PER_CHAR];
-    udt_Error *error;
+    udt_Error *self;
     ub4 handleType;
     dvoid *handle;
     sword status;
@@ -87,10 +87,10 @@ static udt_Error *Error_New(
     Py_ssize_t len;
 #endif
 
-    error = PyObject_NEW(udt_Error, &g_ErrorType);
-    if (!error)
+    self = (udt_Error*) g_ErrorType.tp_alloc(&g_ErrorType, 0);
+    if (!self)
         return NULL;
-    error->context = context;
+    self->context = context;
     if (retrieveError) {
         if (environment->errorHandle) {
             handle = environment->errorHandle;
@@ -99,10 +99,10 @@ static udt_Error *Error_New(
             handle = environment->handle;
             handleType = OCI_HTYPE_ENV;
         }
-        status = OCIErrorGet(handle, 1, 0, &error->code,
+        status = OCIErrorGet(handle, 1, 0, &self->code,
                 (unsigned char*) errorText, sizeof(errorText), handleType);
         if (status != OCI_SUCCESS) {
-            Py_DECREF(error);
+            Py_DECREF(self);
             PyErr_SetString(g_InternalErrorException, "No Oracle error?");
             return NULL;
         }
@@ -111,17 +111,17 @@ static udt_Error *Error_New(
 	        if (errorText[len] == 0 && errorText[len + 1] == 0)
 		        break;
 	    }
-        error->message = cxString_FromEncodedString(errorText, len);
+        self->message = cxString_FromEncodedString(errorText, len);
 #else
-        error->message = PyBytes_FromString(errorText);
+        self->message = PyBytes_FromString(errorText);
 #endif
-        if (!error->message) {
-            Py_DECREF(error);
+        if (!self->message) {
+            Py_DECREF(self);
             return NULL;
         }
     }
 
-    return error;
+    return self;
 }
 
 
@@ -132,8 +132,8 @@ static udt_Error *Error_New(
 static void Error_Free(
     udt_Error *self)                    // error object
 {
-    Py_XDECREF(self->message);
-    Py_TYPE(self)->tp_free((PyObject*) self);
+    Py_CLEAR(self->message);
+    PyObject_Del(self);
 }
 
 
