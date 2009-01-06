@@ -38,7 +38,7 @@ pre {
 }
 
 td.linenos pre {
-    padding: 0;
+    padding: 0.5em 0;
     border: 0;
     background-color: transparent;
     color: #aaa;
@@ -98,6 +98,15 @@ a tt:hover {
     color: #2491CF;
 }
 
+.field-list ul {
+    margin: 0;
+    padding-left: 1em;
+}
+
+.field-list p {
+    margin: 0;
+}
+
 dl {
     margin-bottom: 15px;
 }
@@ -137,6 +146,10 @@ pre {
 pre a {
     color: inherit;
     text-decoration: underline;
+}
+
+.first {
+    margin-top: 0 !important;
 }
 
 div.document {
@@ -207,7 +220,7 @@ div.body a {
     text-decoration: underline;
 }
 
-div.sidebar {
+div.sphinxsidebar {
     margin: 0;
     padding: 0.5em 15px 15px 0;
     width: 210px;
@@ -216,7 +229,7 @@ div.sidebar {
 /*    margin-left: -100%; */
 }
 
-div.sidebar h4, div.sidebar h3 {
+div.sphinxsidebar h4, div.sphinxsidebar h3 {
     margin: 1em 0 0.5em 0;
     font-size: 0.9em;
     padding: 0.1em 0 0.1em 0.5em;
@@ -225,7 +238,11 @@ div.sidebar h4, div.sidebar h3 {
     background-color: #AFC1C4;
 }
 
-div.sidebar ul {
+div.sphinxsidebar h3 a {
+    color: white;
+}
+
+div.sphinxsidebar ul {
     padding-left: 1.5em;
     margin-top: 7px;
     list-style: none;
@@ -233,7 +250,7 @@ div.sidebar ul {
     line-height: 130%;
 }
 
-div.sidebar ul ul {
+div.sphinxsidebar ul ul {
     list-style: square;
     margin-left: 20px;
 }
@@ -243,6 +260,39 @@ p {
 }
 
 p.rubric {
+    font-weight: bold;
+}
+
+div.sidebar {
+    margin: 0 0 0.5em 1em;
+    border: 1px solid #ddb;
+    padding: 7px 7px 0 7px;
+    background-color: #ffe;
+    width: 40%;
+    float: right;
+}
+
+div.quotebar {
+    background-color: #f8f8f8;
+    max-width: 250px;
+    float: right;
+    padding: 2px 7px;
+    border: 1px solid #ccc;
+}
+
+p.sidebar-title {
+    font-weight: bold;
+}
+
+div.topic {
+    background-color: #f8f8f8;
+    border: 1px solid #ccc;
+    padding: 7px 7px 0 7px;
+    margin: 10px 0 10px 0;
+}
+
+p.topic-title {
+    font-size: 1.1em;
     font-weight: bold;
 }
 
@@ -264,7 +314,7 @@ h3 {
     font-size: 1.2em;
 }
 
-h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+div.body h1 a, div.body h2 a, div.body h3 a, div.body h4 a, div.body h5 a, div.body h6 a {
     color: black!important;
 }
 
@@ -316,29 +366,29 @@ div.pagination {
     text-align: center;
 }
 
-div.sidebar ul.toc {
+div.sphinxsidebar ul.toc {
     margin: 1em 0 1em 0;
     padding: 0 0 0 0.5em;
     list-style: none;
 }
 
-div.sidebar ul.toc li {
+div.sphinxsidebar ul.toc li {
     margin: 0.5em 0 0.5em 0;
     font-size: 0.9em;
     line-height: 130%;
 }
 
-div.sidebar ul.toc li p {
+div.sphinxsidebar ul.toc li p {
     margin: 0;
     padding: 0;
 }
 
-div.sidebar ul.toc ul {
+div.sphinxsidebar ul.toc ul {
     margin: 0.2em 0 0.2em 0;
     padding: 0 0 0 1.8em;
 }
 
-div.sidebar ul.toc ul li {
+div.sphinxsidebar ul.toc ul li {
     padding: 0;
 }
 
@@ -488,4 +538,20 @@ ul.search li div.context {
 
 ul.keywordmatches li.goodmatch a {
     font-weight: bold;
+}
+
+img.math {
+    vertical-align: center;
+}
+
+div.math {
+    text-align: center;
+}
+
+span.eqno {
+    float: right;
+}
+
+img.logo {
+    border: 0;
 }

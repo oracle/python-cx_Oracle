@@ -2,32 +2,38 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Index &mdash; cx_Oracle v5.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:   '',
-        VERSION:    '5.0'
+        URL_ROOT:    '',
+        VERSION:     '5.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  false
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/interface.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="contents" title="Global table of contents" href="contents.html" />
-    <link rel="index" title="Global index" href="" />
+    <link rel="index" title="Index" href="" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="cx_Oracle v5.0 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.0 documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
-        <li class="right" style="margin-right: 10px"><a href="" title="General Index" accesskey="I">index</a></li>
-        <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
+        <li class="right" style="margin-right: 10px">
+          <a href="" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>
+    </div>  
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
@@ -78,6 +84,7 @@
 <dt><a href="cursor.html#Cursor.bindnames">bindnames() (Cursor method)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="cursor.html#Cursor.bindvars">bindvars (Cursor attribute)</a></dt>
 <dt><a href="module.html#cx_Oracle.BLOB">BLOB (in module cx_Oracle)</a></dt>
+<dt><a href="variable.html#Variable.bufferSize">bufferSize (Variable attribute)</a></dt>
 <dt><a href="module.html#cx_Oracle.buildtime">buildtime (in module cx_Oracle)</a></dt>
 <dt><a href="session_pool.html#SessionPool.busy">busy (SessionPool attribute)</a></dt>
 </dl></td></tr></table>
@@ -230,6 +237,7 @@
 <dt><a href="module.html#cx_Oracle.NotSupportedError">NotSupportedError</a></dt>
 <dt><a href="module.html#cx_Oracle.NUMBER">NUMBER (in module cx_Oracle)</a></dt>
 <dt><a href="cursor.html#Cursor.numbersAsStrings">numbersAsStrings (Cursor attribute)</a></dt>
+<dt><a href="variable.html#Variable.numElements">numElements (Variable attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="O">O</h2>
@@ -289,9 +297,10 @@
 <dt><a href="cursor.html#Cursor.setoutputsize">setoutputsize() (Cursor method)</a></dt>
 <dt><a href="variable.html#Variable.setvalue">setvalue() (Variable method)</a></dt>
 <dt><a href="connection.html#Connection.shutdown">shutdown() (Connection method)</a></dt>
+<dt><a href="variable.html#Variable.size">size (Variable attribute)</a></dt>
 <dt><a href="lob.html#LOB.size">size() (LOB method)</a></dt>
-<dt><a href="module.html#cx_Oracle.SPOOL_ATTRVAL_FORCEGET">SPOOL_ATTRVAL_FORCEGET (in module cx_Oracle)</a></dt>
-<dt><a href="module.html#cx_Oracle.SPOOL_ATTRVAL_NOWAIT">SPOOL_ATTRVAL_NOWAIT (in module cx_Oracle)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="module.html#cx_Oracle.SPOOL_ATTRVAL_FORCEGET">SPOOL_ATTRVAL_FORCEGET (in module cx_Oracle)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="module.html#cx_Oracle.SPOOL_ATTRVAL_NOWAIT">SPOOL_ATTRVAL_NOWAIT (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.SPOOL_ATTRVAL_WAIT">SPOOL_ATTRVAL_WAIT (in module cx_Oracle)</a></dt>
 <dt><a href="connection.html#Connection.startup">startup() (Connection method)</a></dt>
 <dt><a href="cursor.html#Cursor.statement">statement (Cursor attribute)</a></dt>
@@ -357,9 +366,12 @@
           </div>
         </div>
       </div>
-      <div class="sidebar">
-        <div class="sidebarwrapper">
-            <h3>Quick search</h3>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+
+   
+
+          <h3>Quick search</h3>
             <form class="search" action="search.html" method="get">
               <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
               <input type="hidden" name="check_keywords" value="yes" />
@@ -372,14 +384,19 @@
     <div class="related">
       <h3>Navigation</h3>
       <ul>
-        <li class="right" style="margin-right: 10px"><a href="" title="General Index" accesskey="I">index</a></li>
-        <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
+        <li class="right" style="margin-right: 10px">
+          <a href="" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on Dec 11, 2008.
+      &copy; Copyright 2009, Anthony Tuininga.
+      Last updated on Jan 06, 2009.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
     </div>
   </body>
 </html>

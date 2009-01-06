@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# cx_Oracle documentation build configuration file, created by
-# sphinx-quickstart on Thu Apr 10 22:10:59 2008.
+# cx_Oracle documentation build configuration file
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
@@ -34,7 +33,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'cx_Oracle'
-copyright = '2008, Anthony Tuininga'
+copyright = '2009, Anthony Tuininga'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.

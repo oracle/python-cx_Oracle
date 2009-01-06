@@ -2,44 +2,54 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>Connection Object &mdash; cx_Oracle v5.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:   '',
-        VERSION:    '5.0'
+        URL_ROOT:    '',
+        VERSION:     '5.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  false
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/interface.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="contents" title="Global table of contents" href="contents.html" />
-    <link rel="index" title="Global index" href="genindex.html" />
+    <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="top" title="cx_Oracle v5.0 documentation" href="index.html" />
     <link rel="next" title="Cursor Object" href="cursor.html" />
-    <link rel="prev" title="Module Interface" href="module.html" />
+    <link rel="prev" title="Module Interface" href="module.html" /> 
   </head>
   <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
-        <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
-        <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
-          <li class="right"><a href="cursor.html" title="Cursor Object" accesskey="N">next</a> |</li>
-          <li class="right"><a href="module.html" title="Module Interface" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cursor.html" title="Cursor Object"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="module.html" title="Module Interface"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>
+    </div>  
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body">
             
   
-  <div class="section">
-<h1 id="connection-object"><span id="connobj"></span>Connection Object<a class="headerlink" href="#connection-object" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="connection-object">
+<span id="connobj"></span><h1>Connection Object<a class="headerlink" href="#connection-object" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Any outstanding changes will be rolled back when the connection object
@@ -47,7 +57,7 @@ is destroyed or closed.</p>
 </div>
 <dl class="method">
 <dt id="Connection.__enter__">
-<!--#Connection.__enter__#--><tt class="descclassname">Connection.</tt><tt class="descname">__enter__</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.__enter__" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.__enter__]--><tt class="descclassname">Connection.</tt><tt class="descname">__enter__</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.__enter__" title="Permalink to this definition">¶</a></dt>
 <dd><p>The entry point for the connection as a context manager, a feature available
 in Python 2.5 and higher. It returns itself.</p>
 <div class="admonition note">
@@ -58,7 +68,7 @@ in Python 2.5 and higher. It returns itself.</p>
 
 <dl class="method">
 <dt id="Connection.__exit__">
-<!--#Connection.__exit__#--><tt class="descclassname">Connection.</tt><tt class="descname">__exit__</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.__exit__" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.__exit__]--><tt class="descclassname">Connection.</tt><tt class="descname">__exit__</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.__exit__" title="Permalink to this definition">¶</a></dt>
 <dd><p>The exit point for the connection as a context manager, a feature available
 in Python 2.5 and higher. In the event of an exception, the transaction is
 rolled back; otherwise, the transaction is committed.</p>
@@ -70,7 +80,7 @@ rolled back; otherwise, the transaction is committed.</p>
 
 <dl class="attribute">
 <dt id="Connection.action">
-<!--#Connection.action#--><tt class="descclassname">Connection.</tt><tt class="descname">action</tt><a class="headerlink" href="#Connection.action" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.action]--><tt class="descclassname">Connection.</tt><tt class="descname">action</tt><a class="headerlink" href="#Connection.action" title="Permalink to this definition">¶</a></dt>
 <dd><p>This write-only attribute sets the action column in the v$session table and
 is only available in Oracle 10g.</p>
 <div class="admonition note">
@@ -81,7 +91,7 @@ is only available in Oracle 10g.</p>
 
 <dl class="attribute">
 <dt id="Connection.autocommit">
-<!--#Connection.autocommit#--><tt class="descclassname">Connection.</tt><tt class="descname">autocommit</tt><a class="headerlink" href="#Connection.autocommit" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.autocommit]--><tt class="descclassname">Connection.</tt><tt class="descname">autocommit</tt><a class="headerlink" href="#Connection.autocommit" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-write attribute determines whether autocommit mode is on or off.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -91,7 +101,7 @@ is only available in Oracle 10g.</p>
 
 <dl class="method">
 <dt id="Connection.begin">
-<!--#Connection.begin#--><tt class="descclassname">Connection.</tt><tt class="descname">begin</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.begin" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.begin]--><tt class="descclassname">Connection.</tt><tt class="descname">begin</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.begin" title="Permalink to this definition">¶</a></dt>
 <dt>
 <tt class="descclassname">Connection.</tt><tt class="descname">begin</tt><big>(</big><span class="optional">[</span><em>formatId</em>, <em>transactionId</em>, <em>branchId</em><span class="optional">]</span><big>)</big></dt>
 <dd><p>Explicitly begin a new transaction. Without parameters, this explicitly
@@ -101,7 +111,7 @@ for more details.</p>
 <p>Note that in order to make use of global (distributed) transactions, the
 twophase argument to the Connection constructor must be a true value. See
 the comments on the Connection constructor for more information
-(<a class="reference" href="module.html#module"><em>Module Interface</em></a>).</p>
+(<a class="reference external" href="module.html#module"><em>Module Interface</em></a>).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method is an extension to the DB API definition.</p>
@@ -110,7 +120,7 @@ the comments on the Connection constructor for more information
 
 <dl class="method">
 <dt id="Connection.cancel">
-<!--#Connection.cancel#--><tt class="descclassname">Connection.</tt><tt class="descname">cancel</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.cancel" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.cancel]--><tt class="descclassname">Connection.</tt><tt class="descname">cancel</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.cancel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cancel a long-running transaction. This is only effective on non-Windows
 platforms.</p>
 <div class="admonition note">
@@ -121,9 +131,9 @@ platforms.</p>
 
 <dl class="method">
 <dt id="Connection.changepassword">
-<!--#Connection.changepassword#--><tt class="descclassname">Connection.</tt><tt class="descname">changepassword</tt><big>(</big><em>oldpassword</em>, <em>newpassword</em><big>)</big><a class="headerlink" href="#Connection.changepassword" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.changepassword]--><tt class="descclassname">Connection.</tt><tt class="descname">changepassword</tt><big>(</big><em>oldpassword</em>, <em>newpassword</em><big>)</big><a class="headerlink" href="#Connection.changepassword" title="Permalink to this definition">¶</a></dt>
 <dd><p>Change the password of the logon. This method also modifies the attribute
-<a title="Connection.password" class="reference" href="#Connection.password"><tt class="xref docutils literal"><span class="pre">Connection.password</span></tt></a> upon successful completion.</p>
+<a title="Connection.password" class="reference internal" href="#Connection.password"><tt class="xref docutils literal"><span class="pre">Connection.password</span></tt></a> upon successful completion.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method is an extension to the DB API definition.</p>
@@ -132,7 +142,7 @@ platforms.</p>
 
 <dl class="attribute">
 <dt id="Connection.clientinfo">
-<!--#Connection.clientinfo#--><tt class="descclassname">Connection.</tt><tt class="descname">clientinfo</tt><a class="headerlink" href="#Connection.clientinfo" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.clientinfo]--><tt class="descclassname">Connection.</tt><tt class="descname">clientinfo</tt><a class="headerlink" href="#Connection.clientinfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>This write-only attribute sets the client_info column in the v$session table
 and is only available in Oracle 10g.</p>
 <div class="admonition note">
@@ -143,7 +153,7 @@ and is only available in Oracle 10g.</p>
 
 <dl class="method">
 <dt id="Connection.close">
-<!--#Connection.close#--><tt class="descclassname">Connection.</tt><tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.close" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.close]--><tt class="descclassname">Connection.</tt><tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.close" title="Permalink to this definition">¶</a></dt>
 <dd>Close the connection now, rather than whenever __del__ is called. The
 connection will be unusable from this point forward; an Error exception will
 be raised if any operation is attempted with the connection. The same
@@ -151,12 +161,12 @@ applies to any cursor objects trying to use the connection.</dd></dl>
 
 <dl class="method">
 <dt id="Connection.commit">
-<!--#Connection.commit#--><tt class="descclassname">Connection.</tt><tt class="descname">commit</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.commit" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.commit]--><tt class="descclassname">Connection.</tt><tt class="descname">commit</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.commit" title="Permalink to this definition">¶</a></dt>
 <dd>Commit any pending transactions to the database.</dd></dl>
 
 <dl class="attribute">
 <dt id="Connection.current_schema">
-<!--#Connection.current_schema#--><tt class="descclassname">Connection.</tt><tt class="descname">current_schema</tt><a class="headerlink" href="#Connection.current_schema" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.current_schema]--><tt class="descclassname">Connection.</tt><tt class="descname">current_schema</tt><a class="headerlink" href="#Connection.current_schema" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-write attribute sets the current schema attribute for the session.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -166,12 +176,12 @@ applies to any cursor objects trying to use the connection.</dd></dl>
 
 <dl class="method">
 <dt id="Connection.cursor">
-<!--#Connection.cursor#--><tt class="descclassname">Connection.</tt><tt class="descname">cursor</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.cursor" title="Permalink to this definition">¶</a></dt>
-<dd>Return a new Cursor object (<a class="reference" href="cursor.html#cursorobj"><em>Cursor Object</em></a>) using the connection.</dd></dl>
+<!--[Connection.cursor]--><tt class="descclassname">Connection.</tt><tt class="descname">cursor</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.cursor" title="Permalink to this definition">¶</a></dt>
+<dd>Return a new Cursor object (<a class="reference external" href="cursor.html#cursorobj"><em>Cursor Object</em></a>) using the connection.</dd></dl>
 
 <dl class="attribute">
 <dt id="Connection.dsn">
-<!--#Connection.dsn#--><tt class="descclassname">Connection.</tt><tt class="descname">dsn</tt><a class="headerlink" href="#Connection.dsn" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.dsn]--><tt class="descclassname">Connection.</tt><tt class="descname">dsn</tt><a class="headerlink" href="#Connection.dsn" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-only attribute returns the TNS entry of the database to which a
 connection has been established.</p>
 <div class="admonition note">
@@ -182,7 +192,7 @@ connection has been established.</p>
 
 <dl class="attribute">
 <dt id="Connection.encoding">
-<!--#Connection.encoding#--><tt class="descclassname">Connection.</tt><tt class="descname">encoding</tt><a class="headerlink" href="#Connection.encoding" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.encoding]--><tt class="descclassname">Connection.</tt><tt class="descname">encoding</tt><a class="headerlink" href="#Connection.encoding" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-only attribute returns the IANA character set name of the
 character set in use by the Oracle client.</p>
 <div class="admonition note">
@@ -194,7 +204,7 @@ available in Python 2.x when not built in unicode mode.</p>
 
 <dl class="attribute">
 <dt id="Connection.inputtypehandler">
-<!--#Connection.inputtypehandler#--><tt class="descclassname">Connection.</tt><tt class="descname">inputtypehandler</tt><a class="headerlink" href="#Connection.inputtypehandler" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.inputtypehandler]--><tt class="descclassname">Connection.</tt><tt class="descname">inputtypehandler</tt><a class="headerlink" href="#Connection.inputtypehandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-write attribute specifies a method called for each value that is
 bound to a statement executed on any cursor associated with this connection.
 The method signature is handler(cursor, value, arraysize) and the return
@@ -209,7 +219,7 @@ behavior will take place for all values bound to statements.</p>
 
 <dl class="attribute">
 <dt id="Connection.maxBytesPerCharacter">
-<!--#Connection.maxBytesPerCharacter#--><tt class="descclassname">Connection.</tt><tt class="descname">maxBytesPerCharacter</tt><a class="headerlink" href="#Connection.maxBytesPerCharacter" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.maxBytesPerCharacter]--><tt class="descclassname">Connection.</tt><tt class="descname">maxBytesPerCharacter</tt><a class="headerlink" href="#Connection.maxBytesPerCharacter" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-only attribute returns the maximum number of bytes each character
 can use for the client character set.</p>
 <div class="admonition note">
@@ -220,14 +230,13 @@ can use for the client character set.</p>
 
 <dl class="attribute">
 <dt id="Connection.module">
-<!--#Connection.module#--><tt class="descclassname">Connection.</tt><tt class="descname">module</tt><a class="headerlink" href="#Connection.module" title="Permalink to this definition">¶</a></dt>
-<dd><p>This write-only attribute sets the module column in the v$session table and
-is only available in Oracle 10g.</p>
-</dd></dl>
+<!--[Connection.module]--><tt class="descclassname">Connection.</tt><tt class="descname">module</tt><a class="headerlink" href="#Connection.module" title="Permalink to this definition">¶</a></dt>
+<dd>This write-only attribute sets the module column in the v$session table and
+is only available in Oracle 10g.</dd></dl>
 
 <dl class="attribute">
 <dt id="Connection.nencoding">
-<!--#Connection.nencoding#--><tt class="descclassname">Connection.</tt><tt class="descname">nencoding</tt><a class="headerlink" href="#Connection.nencoding" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.nencoding]--><tt class="descclassname">Connection.</tt><tt class="descname">nencoding</tt><a class="headerlink" href="#Connection.nencoding" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-only attribute returns the IANA character set name of the national
 character set in use by the Oracle client.</p>
 <div class="admonition note">
@@ -239,7 +248,7 @@ available in Python 2.x when not built in unicode mode.</p>
 
 <dl class="attribute">
 <dt id="Connection.outputtypehandler">
-<!--#Connection.outputtypehandler#--><tt class="descclassname">Connection.</tt><tt class="descname">outputtypehandler</tt><a class="headerlink" href="#Connection.outputtypehandler" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.outputtypehandler]--><tt class="descclassname">Connection.</tt><tt class="descname">outputtypehandler</tt><a class="headerlink" href="#Connection.outputtypehandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-write attribute specifies a method called for each value that is
 to be fetched from any cursor associated with this connection. The method
 signature is handler(cursor, name, defaultType, length, precision, scale)
@@ -254,7 +263,7 @@ the default behavior will take place for all values fetched from cursors.</p>
 
 <dl class="attribute">
 <dt id="Connection.password">
-<!--#Connection.password#--><tt class="descclassname">Connection.</tt><tt class="descname">password</tt><a class="headerlink" href="#Connection.password" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.password]--><tt class="descclassname">Connection.</tt><tt class="descname">password</tt><a class="headerlink" href="#Connection.password" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-write attribute initially contains the password of the user which
 established the connection to the database.</p>
 <div class="admonition note">
@@ -265,7 +274,7 @@ established the connection to the database.</p>
 
 <dl class="method">
 <dt id="Connection.ping">
-<!--#Connection.ping#--><tt class="descclassname">Connection.</tt><tt class="descname">ping</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.ping" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.ping]--><tt class="descclassname">Connection.</tt><tt class="descname">ping</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.ping" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ping the server which can be used to test if the connection is still active.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -276,7 +285,7 @@ available in Oracle 10g R2 and higher.</p>
 
 <dl class="method">
 <dt id="Connection.prepare">
-<!--#Connection.prepare#--><tt class="descclassname">Connection.</tt><tt class="descname">prepare</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.prepare" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.prepare]--><tt class="descclassname">Connection.</tt><tt class="descname">prepare</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.prepare" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prepare the distributed (global) transaction for commit. Return a boolean
 indicating if a transaction was actually prepared in order to avoid the
 error ORA-24756 (transaction does not exist).</p>
@@ -288,7 +297,7 @@ error ORA-24756 (transaction does not exist).</p>
 
 <dl class="method">
 <dt id="Connection.register">
-<!--#Connection.register#--><tt class="descclassname">Connection.</tt><tt class="descname">register</tt><big>(</big><em>code</em>, <em>when</em>, <em>function</em><big>)</big><a class="headerlink" href="#Connection.register" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.register]--><tt class="descclassname">Connection.</tt><tt class="descname">register</tt><big>(</big><em>code</em>, <em>when</em>, <em>function</em><big>)</big><a class="headerlink" href="#Connection.register" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register the function as an OCI callback. The code is one of the function
 codes defined in the Oracle documentation of which the most common ones are
 defined as constants in this module. The when parameter is one of
@@ -307,15 +316,15 @@ beyond the allocated size will crash cx_Oracle.  Use with caution.</p>
 
 <dl class="method">
 <dt id="Connection.rollback">
-<!--#Connection.rollback#--><tt class="descclassname">Connection.</tt><tt class="descname">rollback</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.rollback" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.rollback]--><tt class="descclassname">Connection.</tt><tt class="descname">rollback</tt><big>(</big><big>)</big><a class="headerlink" href="#Connection.rollback" title="Permalink to this definition">¶</a></dt>
 <dd>Rollback any pending transactions.</dd></dl>
 
 <dl class="method">
 <dt id="Connection.shutdown">
-<!--#Connection.shutdown#--><tt class="descclassname">Connection.</tt><tt class="descname">shutdown</tt><big>(</big><span class="optional">[</span><em>mode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Connection.shutdown" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.shutdown]--><tt class="descclassname">Connection.</tt><tt class="descname">shutdown</tt><big>(</big><span class="optional">[</span><em>mode</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Connection.shutdown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shutdown the database. In order to do this the connection must connected as
 <tt class="xref docutils literal"><span class="pre">SYSDBA</span></tt> or <tt class="xref docutils literal"><span class="pre">SYSOPER</span></tt>. First shutdown using one of the
-DBSHUTDOWN constants defined in the constants (<a class="reference" href="module.html#constants"><em>Constants</em></a>) section.
+DBSHUTDOWN constants defined in the constants (<a class="reference external" href="module.html#constants"><em>Constants</em></a>) section.
 Next issue the SQL statements required to close the database (&#8220;alter
 database close normal&#8221;) and dismount the database (&#8220;alter database
 dismount&#8221;) followed by a second call to this method with the
@@ -329,7 +338,7 @@ available in Oracle 10g R2 and higher.</p>
 
 <dl class="method">
 <dt id="Connection.startup">
-<!--#Connection.startup#--><tt class="descclassname">Connection.</tt><tt class="descname">startup</tt><big>(</big><em>force=False</em>, <em>restrict=False</em><big>)</big><a class="headerlink" href="#Connection.startup" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.startup]--><tt class="descclassname">Connection.</tt><tt class="descname">startup</tt><big>(</big><em>force=False</em>, <em>restrict=False</em><big>)</big><a class="headerlink" href="#Connection.startup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Startup the database. This is equivalent to the SQL*Plus command &#8220;startup
 nomount&#8221;. The connection must be connected as <tt class="xref docutils literal"><span class="pre">SYSDBA</span></tt> or
 <tt class="xref docutils literal"><span class="pre">SYSOPER</span></tt> with the <tt class="xref docutils literal"><span class="pre">PRELIM_AUTH</span></tt> option specified for this to
@@ -345,7 +354,7 @@ available in Oracle 10g R2 and higher.</p>
 
 <dl class="attribute">
 <dt id="Connection.stmtcachesize">
-<!--#Connection.stmtcachesize#--><tt class="descclassname">Connection.</tt><tt class="descname">stmtcachesize</tt><a class="headerlink" href="#Connection.stmtcachesize" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.stmtcachesize]--><tt class="descclassname">Connection.</tt><tt class="descname">stmtcachesize</tt><a class="headerlink" href="#Connection.stmtcachesize" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-write attribute specifies the size of the statement cache. This
 value can make a significant difference in performance (up to 100x) if you
 have a small number of statements that you execute repeatedly.</p>
@@ -357,7 +366,7 @@ have a small number of statements that you execute repeatedly.</p>
 
 <dl class="attribute">
 <dt id="Connection.tnsentry">
-<!--#Connection.tnsentry#--><tt class="descclassname">Connection.</tt><tt class="descname">tnsentry</tt><a class="headerlink" href="#Connection.tnsentry" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.tnsentry]--><tt class="descclassname">Connection.</tt><tt class="descname">tnsentry</tt><a class="headerlink" href="#Connection.tnsentry" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-only attribute returns the TNS entry of the database to which a
 connection has been established.</p>
 <div class="admonition note">
@@ -368,7 +377,7 @@ connection has been established.</p>
 
 <dl class="method">
 <dt id="Connection.unregister">
-<!--#Connection.unregister#--><tt class="descclassname">Connection.</tt><tt class="descname">unregister</tt><big>(</big><em>code</em>, <em>when</em><big>)</big><a class="headerlink" href="#Connection.unregister" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.unregister]--><tt class="descclassname">Connection.</tt><tt class="descname">unregister</tt><big>(</big><em>code</em>, <em>when</em><big>)</big><a class="headerlink" href="#Connection.unregister" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unregister the function as an OCI callback. The code is one of the function
 codes defined in the Oracle documentation of which the most common ones are
 defined as constants in this module. The when parameter is one of
@@ -381,7 +390,7 @@ defined as constants in this module. The when parameter is one of
 
 <dl class="attribute">
 <dt id="Connection.username">
-<!--#Connection.username#--><tt class="descclassname">Connection.</tt><tt class="descname">username</tt><a class="headerlink" href="#Connection.username" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.username]--><tt class="descclassname">Connection.</tt><tt class="descname">username</tt><a class="headerlink" href="#Connection.username" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-only attribute returns the name of the user which established the
 connection to the database.</p>
 <div class="admonition note">
@@ -392,7 +401,7 @@ connection to the database.</p>
 
 <dl class="attribute">
 <dt id="Connection.version">
-<!--#Connection.version#--><tt class="descclassname">Connection.</tt><tt class="descname">version</tt><a class="headerlink" href="#Connection.version" title="Permalink to this definition">¶</a></dt>
+<!--[Connection.version]--><tt class="descclassname">Connection.</tt><tt class="descname">version</tt><a class="headerlink" href="#Connection.version" title="Permalink to this definition">¶</a></dt>
 <dd><p>This read-only attribute returns the version of the database to which a
 connection has been established.</p>
 <div class="admonition note">
@@ -407,13 +416,13 @@ connection has been established.</p>
           </div>
         </div>
       </div>
-      <div class="sidebar">
-        <div class="sidebarwrapper">
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
             <p class="topless"><a href="module.html" title="previous chapter">Module Interface</a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="cursor.html" title="next chapter">Cursor Object</a></p>
-            <h3>Quick search</h3>
+          <h3>Quick search</h3>
             <form class="search" action="search.html" method="get">
               <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
               <input type="hidden" name="check_keywords" value="yes" />
@@ -426,16 +435,25 @@ connection has been established.</p>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
-        <li class="right" style="margin-right: 10px"><a href="genindex.html" title="General Index" accesskey="I">index</a></li>
-        <li class="right"><a href="modindex.html" title="Global Module Index" accesskey="M">modules</a> |</li>
-          <li class="right"><a href="cursor.html" title="Cursor Object" accesskey="N">next</a> |</li>
-          <li class="right"><a href="module.html" title="Module Interface" accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="cursor.html" title="Cursor Object"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="module.html" title="Module Interface"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cx_Oracle v5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on Dec 11, 2008.
+      Last updated on Jan 06, 2009.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
     </div>
   </body>
 </html>
