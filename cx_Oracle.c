@@ -342,6 +342,9 @@ static PyObject *Module_Initialize(void)
     MAKE_TYPE_READY(&g_ObjectAttributeType);
     MAKE_TYPE_READY(&g_ExternalLobVarType);
     MAKE_TYPE_READY(&g_ExternalObjectVarType);
+#ifdef ORACLE_10GR2
+    MAKE_TYPE_READY(&g_SubscriptionType);
+#endif
     MAKE_VARIABLE_TYPE_READY(&g_StringVarType);
     MAKE_VARIABLE_TYPE_READY(&g_FixedCharVarType);
     MAKE_VARIABLE_TYPE_READY(&g_RowidVarType);

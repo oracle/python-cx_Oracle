@@ -72,6 +72,7 @@ static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 static PyObject *Connection_Ping(udt_Connection*, PyObject*);
 static PyObject *Connection_Shutdown(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Startup(udt_Connection*, PyObject*, PyObject*);
+static PyObject *Connection_Subscribe(udt_Connection*, PyObject*, PyObject*);
 #endif
 
 
@@ -95,6 +96,8 @@ static PyMethodDef g_ConnectionMethods[] = {
     { "shutdown", (PyCFunction) Connection_Shutdown,
             METH_VARARGS | METH_KEYWORDS},
     { "startup", (PyCFunction) Connection_Startup,
+            METH_VARARGS | METH_KEYWORDS},
+    { "subscribe", (PyCFunction) Connection_Subscribe,
             METH_VARARGS | METH_KEYWORDS},
 #endif
     { "changepassword", (PyCFunction) Connection_ChangePasswordExternal,
@@ -708,6 +711,9 @@ static int Connection_Connect(
 
 #include "Cursor.c"
 #include "Callback.c"
+#ifdef ORACLE_10GR2
+#include "Subscription.c"
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -1643,6 +1649,46 @@ static PyObject *Connection_Startup(
 
     Py_INCREF(Py_None);
     return Py_None;
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_Subscribe()
+//   Create a subscription to events that take place in the database.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_Subscribe(
+    udt_Connection *self,               // connection
+    PyObject* args,                     // arguments
+    PyObject* keywordArgs)              // keyword arguments
+{
+    static char *keywordList[] = { "namespace", "protocol", "callback",
+            "timeout", "operations", "rowids", NULL };
+    ub4 namespace, protocol, timeout, rowids, operations;
+    PyObject *rowidsObj, *callback;
+    int temp;
+
+    // parse arguments
+    timeout = rowids = 0;
+    rowidsObj = callback = NULL;
+    namespace = OCI_SUBSCR_NAMESPACE_DBCHANGE;
+    protocol = OCI_SUBSCR_PROTO_OCI;
+    operations = OCI_OPCODE_ALLOPS;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiO", keywordList,
+            &namespace, &protocol, &callback, &timeout, &operations,
+            &rowidsObj))
+        return NULL;
+
+    // set the value for rowids
+    if (rowidsObj) {
+        temp = PyObject_IsTrue(rowidsObj);
+        if (temp < 0)
+            return NULL;
+        if (temp)
+            rowids = 1;
+    }
+
+    return (PyObject*) Subscription_New(self, namespace, protocol, callback,
+            timeout, operations, rowids);
 }
 #endif
 

@@ -293,7 +293,8 @@ extension = Extension(
                 "ExternalLobVar.c", "ExternalObjectVar.c", "IntervalVar.c",
                 "LobVar.c", "LongVar.c", "NumberVar.c", "ObjectType.c",
                 "ObjectVar.c", "SessionPool.c", "StringUtils.c", "StringVar.c",
-                "TimestampVar.c", "Transforms.c", "Variable.c"])
+                "Subscription.c", "TimestampVar.c", "Transforms.c",
+                "Variable.c"])
 
 # perform the setup
 setup(
