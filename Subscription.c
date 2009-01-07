@@ -171,7 +171,7 @@ static int Message_Initialize(
     dvoid *descriptor)                  // descriptor to get information from
 {
     ub4 dbnameLength;
-    text *dbname;
+    char *dbname;
     sword status;
 
     // determine type
