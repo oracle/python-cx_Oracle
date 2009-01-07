@@ -111,7 +111,7 @@ static udt_Environment *Environment_NewFromScratch(
     mode = OCI_OBJECT;
     if (threaded)
         mode |= OCI_THREADED;
-#ifdef ORACLE_11G
+#ifdef OCI_EVENTS
     if (events)
         mode |= OCI_EVENTS;
 #endif
