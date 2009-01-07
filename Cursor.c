@@ -1125,7 +1125,6 @@ static int Cursor_InternalPrepare(
         return -1;
 
     // prepare statement
-    Py_BEGIN_ALLOW_THREADS
     self->isOwned = 0;
     if (StringBuffer_Fill(&statementBuffer, statement) < 0)
         return -1;
@@ -1133,6 +1132,7 @@ static int Cursor_InternalPrepare(
         StringBuffer_Clear(&statementBuffer);
         return -1;
     }
+    Py_BEGIN_ALLOW_THREADS
     status = OCIStmtPrepare2(self->connection->handle, &self->handle,
             self->environment->errorHandle, (text*) statementBuffer.ptr,
             statementBuffer.size, (text*) tagBuffer.ptr, tagBuffer.size,
