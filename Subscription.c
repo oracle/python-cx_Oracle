@@ -32,6 +32,12 @@ typedef struct {
     ub4 operation;
 } udt_MessageTable;
 
+typedef struct {
+    PyObject_HEAD
+    PyObject *rowid;
+    ub4 operation;
+} udt_MessageRow;
+
 
 //-----------------------------------------------------------------------------
 // Declaration of subscription functions
@@ -41,6 +47,7 @@ static PyObject *Subscription_Repr(udt_Subscription*);
 static PyObject *Subscription_RegisterQuery(udt_Subscription*, PyObject*);
 static void Message_Free(udt_Message*);
 static void MessageTable_Free(udt_MessageTable*);
+static void MessageRow_Free(udt_MessageRow*);
 
 //-----------------------------------------------------------------------------
 // declaration of members for Python types
@@ -68,6 +75,12 @@ static PyMemberDef g_MessageTableTypeMembers[] = {
     { "name", T_OBJECT, offsetof(udt_MessageTable, name), READONLY },
     { "rows", T_OBJECT, offsetof(udt_MessageTable, rows), READONLY },
     { "operation", T_INT, offsetof(udt_MessageTable, operation), READONLY },
+    { NULL }
+};
+
+static PyMemberDef g_MessageRowTypeMembers[] = {
+    { "rowid", T_OBJECT, offsetof(udt_MessageRow, rowid), READONLY },
+    { "operation", T_INT, offsetof(udt_MessageRow, operation), READONLY },
     { NULL }
 };
 
@@ -218,6 +231,85 @@ static PyTypeObject g_MessageTableType = {
 };
 
 
+static PyTypeObject g_MessageRowType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "cx_Oracle.MessageRow",             // tp_name
+    sizeof(udt_MessageRow),             // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) MessageRow_Free,       // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    0,                                  // tp_methods
+    g_MessageRowTypeMembers,            // tp_members
+    0,                                  // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    0,                                  // tp_init
+    0,                                  // tp_alloc
+    0,                                  // tp_new
+    0,                                  // tp_free
+    0,                                  // tp_is_gc
+    0                                   // tp_bases
+};
+
+
+//-----------------------------------------------------------------------------
+// MessageRow_Initialize()
+//   Initialize a new message row with the information from the descriptor.
+//-----------------------------------------------------------------------------
+static int MessageRow_Initialize(
+    udt_MessageRow *self,               // object to initialize
+    udt_Environment *env,               // environment to use
+    dvoid *descriptor)                  // descriptor to get information from
+{
+    ub4 rowidLength;
+    sword status;
+    char *rowid;
+
+    // determine operation
+    status = OCIAttrGet(descriptor, OCI_DTYPE_ROW_CHDES, &self->operation,
+            NULL, OCI_ATTR_CHDES_ROW_OPFLAGS, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+            "MessageRow_Initialize(): get operation") < 0)
+        return -1;
+
+    // determine table name
+    status = OCIAttrGet(descriptor, OCI_DTYPE_ROW_CHDES, &rowid, &rowidLength,
+            OCI_ATTR_CHDES_ROW_ROWID, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+            "MessageRow_Initialize(): get rowid") < 0)
+        return -1;
+    self->rowid = cxString_FromEncodedString(rowid, rowidLength);
+    if (!self->rowid)
+        return -1;
+
+    return 0;
+}
+
+
 //-----------------------------------------------------------------------------
 // MessageTable_Initialize()
 //   Initialize a new message table with the information from the descriptor.
@@ -227,7 +319,11 @@ static int MessageTable_Initialize(
     udt_Environment *env,               // environment to use
     dvoid *descriptor)                  // descriptor to get information from
 {
-    ub4 nameLength;
+    dvoid **rowDescriptor, *indicator;
+    ub4 nameLength, i, numRows;
+    udt_MessageRow *row;
+    boolean exists;
+    OCIColl *rows;
     sword status;
     char *name;
 
@@ -247,6 +343,42 @@ static int MessageTable_Initialize(
     self->name = cxString_FromEncodedString(name, nameLength);
     if (!self->name)
         return -1;
+
+    // if change invalidated all rows, nothing to do
+    if (self->operation & OCI_OPCODE_ALLROWS)
+        return 0;
+
+    // determine rows collection
+    status = OCIAttrGet(descriptor, OCI_DTYPE_TABLE_CHDES, &rows, NULL,
+            OCI_ATTR_CHDES_TABLE_ROW_CHANGES, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+            "MessageTable_Initialize(): get rows collection") < 0)
+        return -1;
+
+    // determine number of rows in collection
+    status = OCICollSize(env->handle, env->errorHandle, rows, &numRows);
+    if (Environment_CheckForError(env, status,
+            "MessageTable_Initialize(): get size of rows collection") < 0)
+        return -1;
+
+    // populate the rows attribute
+    self->rows = PyList_New(numRows);
+    if (!self->rows)
+        return -1;
+    for (i = 0; i < numRows; i++) {
+        status = OCICollGetElem(env->handle, env->errorHandle, rows, i,
+                &exists, (dvoid*) &rowDescriptor, &indicator);
+        if (Environment_CheckForError(env, status,
+                "MessageTable_Initialize(): get element from collection") < 0)
+            return -1;
+        row = (udt_MessageRow*)
+                g_MessageRowType.tp_alloc(&g_MessageRowType, 0);
+        if (!row)
+            return -1;
+        PyList_SET_ITEM(self->rows, i, (PyObject*) row);
+        if (MessageRow_Initialize(row, env, *rowDescriptor) < 0)
+            return -1;
+    }
 
     return 0;
 }
@@ -724,6 +856,18 @@ static void MessageTable_Free(
     udt_MessageTable *self)             // object to free
 {
     Py_CLEAR(self->name);
+    Py_TYPE(self)->tp_free((PyObject*) self);
+}
+
+
+//-----------------------------------------------------------------------------
+// MessageRow_Free()
+//   Free the memory associated with a row in a message.
+//-----------------------------------------------------------------------------
+static void MessageRow_Free(
+    udt_MessageRow *self)               // object to free
+{
+    Py_CLEAR(self->rowid);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 

@@ -351,6 +351,7 @@ static PyObject *Module_Initialize(void)
     MAKE_TYPE_READY(&g_SubscriptionType);
     MAKE_TYPE_READY(&g_MessageType);
     MAKE_TYPE_READY(&g_MessageTableType);
+    MAKE_TYPE_READY(&g_MessageRowType);
 #endif
     MAKE_VARIABLE_TYPE_READY(&g_StringVarType);
     MAKE_VARIABLE_TYPE_READY(&g_FixedCharVarType);
