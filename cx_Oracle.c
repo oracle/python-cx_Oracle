@@ -350,6 +350,7 @@ static PyObject *Module_Initialize(void)
 #ifdef ORACLE_10GR2
     MAKE_TYPE_READY(&g_SubscriptionType);
     MAKE_TYPE_READY(&g_MessageType);
+    MAKE_TYPE_READY(&g_MessageTableType);
 #endif
     MAKE_VARIABLE_TYPE_READY(&g_StringVarType);
     MAKE_VARIABLE_TYPE_READY(&g_FixedCharVarType);

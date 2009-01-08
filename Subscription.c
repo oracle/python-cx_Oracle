@@ -25,6 +25,13 @@ typedef struct {
     PyObject *tables;
 } udt_Message;
 
+typedef struct {
+    PyObject_HEAD
+    PyObject *name;
+    PyObject *rows;
+    ub4 operation;
+} udt_MessageTable;
+
 
 //-----------------------------------------------------------------------------
 // Declaration of subscription functions
@@ -33,6 +40,7 @@ static void Subscription_Free(udt_Subscription*);
 static PyObject *Subscription_Repr(udt_Subscription*);
 static PyObject *Subscription_RegisterQuery(udt_Subscription*, PyObject*);
 static void Message_Free(udt_Message*);
+static void MessageTable_Free(udt_MessageTable*);
 
 //-----------------------------------------------------------------------------
 // declaration of members for Python types
@@ -49,11 +57,17 @@ static PyMemberDef g_SubscriptionTypeMembers[] = {
     { NULL }
 };
 
-
 static PyMemberDef g_MessageTypeMembers[] = {
     { "type", T_INT, offsetof(udt_Message, type), READONLY },
     { "dbname", T_OBJECT, offsetof(udt_Message, dbname), READONLY },
     { "tables", T_OBJECT, offsetof(udt_Message, tables), READONLY },
+    { NULL }
+};
+
+static PyMemberDef g_MessageTableTypeMembers[] = {
+    { "name", T_OBJECT, offsetof(udt_MessageTable, name), READONLY },
+    { "rows", T_OBJECT, offsetof(udt_MessageTable, rows), READONLY },
+    { "operation", T_INT, offsetof(udt_MessageTable, operation), READONLY },
     { NULL }
 };
 
@@ -115,7 +129,6 @@ static PyTypeObject g_SubscriptionType = {
     0                                   // tp_bases
 };
 
-
 static PyTypeObject g_MessageType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.Message",                // tp_name
@@ -160,17 +173,99 @@ static PyTypeObject g_MessageType = {
     0                                   // tp_bases
 };
 
+static PyTypeObject g_MessageTableType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "cx_Oracle.MessageTable",           // tp_name
+    sizeof(udt_MessageTable),           // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) MessageTable_Free,     // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    0,                                  // tp_methods
+    g_MessageTableTypeMembers,          // tp_members
+    0,                                  // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    0,                                  // tp_init
+    0,                                  // tp_alloc
+    0,                                  // tp_new
+    0,                                  // tp_free
+    0,                                  // tp_is_gc
+    0                                   // tp_bases
+};
+
+
+//-----------------------------------------------------------------------------
+// MessageTable_Initialize()
+//   Initialize a new message table with the information from the descriptor.
+//-----------------------------------------------------------------------------
+static int MessageTable_Initialize(
+    udt_MessageTable *self,             // object to initialize
+    udt_Environment *env,               // environment to use
+    dvoid *descriptor)                  // descriptor to get information from
+{
+    ub4 nameLength;
+    sword status;
+    char *name;
+
+    // determine operation
+    status = OCIAttrGet(descriptor, OCI_DTYPE_TABLE_CHDES, &self->operation,
+            NULL, OCI_ATTR_CHDES_TABLE_OPFLAGS, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+            "MessageTable_Initialize(): get operation") < 0)
+        return -1;
+
+    // determine table name
+    status = OCIAttrGet(descriptor, OCI_DTYPE_TABLE_CHDES, &name, &nameLength,
+            OCI_ATTR_CHDES_TABLE_NAME, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+            "MessageTable_Initialize(): get table name") < 0)
+        return -1;
+    self->name = cxString_FromEncodedString(name, nameLength);
+    if (!self->name)
+        return -1;
+
+    return 0;
+}
+
 
 //-----------------------------------------------------------------------------
 // Message_Initialize()
 //   Initialize a new message with the information from the descriptor.
 //-----------------------------------------------------------------------------
 static int Message_Initialize(
-    udt_Message *self,                  // message object to initialize
+    udt_Message *self,                  // object to initialize
     udt_Environment *env,               // environment to use
     dvoid *descriptor)                  // descriptor to get information from
 {
-    ub4 dbnameLength;
+    dvoid **tableDescriptor, *indicator;
+    ub4 dbnameLength, numTables, i;
+    udt_MessageTable *table;
+    OCIColl *tables;
+    boolean exists;
     char *dbname;
     sword status;
 
@@ -178,18 +273,56 @@ static int Message_Initialize(
     status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &self->type, NULL,
             OCI_ATTR_CHDES_NFYTYPE, env->errorHandle);
     if (Environment_CheckForError(env, status,
-                "Subscription_CallbackHandler(): get type") < 0)
+            "Message_Initialize(): get type") < 0)
         return -1;
 
     // determine database name
     status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &dbname, &dbnameLength,
             OCI_ATTR_CHDES_DBNAME, env->errorHandle);
     if (Environment_CheckForError(env, status,
-                "Subscription_CallbackHandler(): get database name") < 0)
+            "Message_Initialize(): get database name") < 0)
         return -1;
     self->dbname = cxString_FromEncodedString(dbname, dbnameLength);
     if (!self->dbname)
         return -1;
+
+    // determine table collection
+    status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &tables, NULL,
+            OCI_ATTR_CHDES_TABLE_CHANGES, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+            "Message_Initialize(): get tables collection") < 0)
+        return -1;
+
+    // determine number of tables
+    if (!tables)
+        numTables = 0;
+    else {
+        status = OCICollSize(env->handle, env->errorHandle, tables, &numTables);
+        if (Environment_CheckForError(env, status,
+                "Message_Initialize(): get size of collection") < 0)
+            return -1;
+    }
+
+    // create list to hold results
+    self->tables = PyList_New(numTables);
+    if (!self->tables)
+        return -1;
+
+    // populate each entry with a message table instance
+    for (i = 0; i < numTables; i++) {
+        status = OCICollGetElem(env->handle, env->errorHandle, tables, i,
+                &exists, (dvoid*) &tableDescriptor, &indicator);
+        if (Environment_CheckForError(env, status,
+                "Message_Initialize(): get element from collection") < 0)
+            return -1;
+        table = (udt_MessageTable*)
+                g_MessageTableType.tp_alloc(&g_MessageTableType, 0);
+        if (!table)
+            return -1;
+        PyList_SET_ITEM(self->tables, i, (PyObject*) table);
+        if (MessageTable_Initialize(table, env, *tableDescriptor) < 0)
+            return -1;
+    }
 
     return 0;
 }
@@ -572,13 +705,25 @@ static PyObject *Subscription_RegisterQuery(
 
 //-----------------------------------------------------------------------------
 // Message_Free()
-//   Free the memory associated with a mesasge.
+//   Free the memory associated with a message.
 //-----------------------------------------------------------------------------
 static void Message_Free(
-    udt_Message *self)                  // message to free
+    udt_Message *self)                  // object to free
 {
     Py_CLEAR(self->dbname);
     Py_CLEAR(self->tables);
+    Py_TYPE(self)->tp_free((PyObject*) self);
+}
+
+
+//-----------------------------------------------------------------------------
+// MessageTable_Free()
+//   Free the memory associated with a table in a message.
+//-----------------------------------------------------------------------------
+static void MessageTable_Free(
+    udt_MessageTable *self)             // object to free
+{
+    Py_CLEAR(self->name);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
