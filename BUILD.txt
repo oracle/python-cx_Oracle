@@ -39,7 +39,7 @@ of libclntsh.so.
    Steps:
    ------
    cd $ORACLE_HOME
-   ln -s libclntsh.so.x.x linbclntsh.so
+   ln -s libclntsh.so.x.x libclntsh.so
 
 Continue to step: Building and Compilation.
 
