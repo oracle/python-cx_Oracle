@@ -364,6 +364,25 @@ have a small number of statements that you execute repeatedly.</p>
 </div>
 </dd></dl>
 
+<dl class="method">
+<dt id="Connection.subscribe">
+<!--[Connection.subscribe]--><tt class="descclassname">Connection.</tt><tt class="descname">subscribe</tt><big>(</big><em>namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE</em>, <em>protocol=cx_Oracle.SUBSCR_PROTO_OCI</em>, <em>callback=None</em>, <em>timeout=0</em>, <em>operations=OPCODE_ALLOPS</em>, <em>rowids=False</em><big>)</big><a class="headerlink" href="#Connection.subscribe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new Subscription object (<a class="reference external" href="subscription.html#subscrobj"><em>Subscription Object</em></a>) using the connection.
+Currently the namespace and protocol arguments cannot have any other
+meaningful values. The callback is expected to be a callable that accepts
+a single argument which is a message object. The timeout value specifies
+that the subscription expires after the given time in seconds. The default
+value of 0 indicates that the subscription does not expire. The operations
+argument enables filtering of the messages that are sent (insert, update,
+delete). The rowids flag specifies whether the rowids of affected rows
+should be included in the messages that are sent.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method is an extension to the DB API definition and is only
+available in Oracle 10g R2 and higher.</p>
+</div>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="Connection.tnsentry">
 <!--[Connection.tnsentry]--><tt class="descclassname">Connection.</tt><tt class="descname">tnsentry</tt><a class="headerlink" href="#Connection.tnsentry" title="Permalink to this definition">¶</a></dt>
@@ -451,8 +470,8 @@ connection has been established.</p>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on Jan 06, 2009.
+      &copy; Copyright 2009, Anthony Tuininga.
+      Last updated on Feb 16, 2009.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
     </div>
   </body>

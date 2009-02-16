@@ -302,6 +302,24 @@ Connection Object
       This attribute is an extension to the DB API definition.
 
 
+.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, rowids=False)
+
+   Return a new Subscription object (:ref:`subscrobj`) using the connection.
+   Currently the namespace and protocol arguments cannot have any other
+   meaningful values. The callback is expected to be a callable that accepts
+   a single argument which is a message object. The timeout value specifies
+   that the subscription expires after the given time in seconds. The default
+   value of 0 indicates that the subscription does not expire. The operations
+   argument enables filtering of the messages that are sent (insert, update,
+   delete). The rowids flag specifies whether the rowids of affected rows
+   should be included in the messages that are sent.
+
+   .. note::
+
+      This method is an extension to the DB API definition and is only
+      available in Oracle 10g R2 and higher.
+
+
 .. attribute:: Connection.tnsentry
 
    This read-only attribute returns the TNS entry of the database to which a

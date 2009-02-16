@@ -93,6 +93,7 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
+<dt><a href="subscription.html#Subscription.callback">callback (Subscription attribute)</a></dt>
 <dt><a href="cursor.html#Cursor.callfunc">callfunc() (Cursor method)</a></dt>
 <dt><a href="cursor.html#Cursor.callproc">callproc() (Cursor method)</a></dt>
 <dt><a href="connection.html#Connection.cancel">cancel() (Connection method)</a></dt>
@@ -108,6 +109,7 @@
 <dt><a href="module.html#cx_Oracle._Error.code">code (cx_Oracle._Error attribute)</a></dt>
 <dt><a href="connection.html#Connection.commit">commit() (Connection method)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="module.html#cx_Oracle.connect">connect() (in module cx_Oracle)</a></dt>
+<dt><a href="subscription.html#Subscription.connection">connection (Subscription attribute)</a></dt>
 <dt><a href="cursor.html#Cursor.connection">connection() (Cursor method)</a></dt>
 <dt><a href="module.html#cx_Oracle.Connection">Connection() (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle._Error.context">context (cx_Oracle._Error attribute)</a></dt>
@@ -128,6 +130,7 @@
 <dt><a href="module.html#cx_Oracle.Date">Date() (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.DateFromTicks">DateFromTicks() (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.DATETIME">DATETIME (in module cx_Oracle)</a></dt>
+<dt><a href="subscription.html#Message.dbname">dbname (Message attribute)</a></dt>
 <dt><a href="module.html#cx_Oracle.DBSHUTDOWN_ABORT">DBSHUTDOWN_ABORT (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.DBSHUTDOWN_FINAL">DBSHUTDOWN_FINAL (in module cx_Oracle)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="module.html#cx_Oracle.DBSHUTDOWN_IMMEDIATE">DBSHUTDOWN_IMMEDIATE (in module cx_Oracle)</a></dt>
@@ -146,7 +149,13 @@
 
 <dt><a href="connection.html#Connection.encoding">encoding (Connection attribute)</a></dt>
 <dt><a href="module.html#cx_Oracle.Error">Error</a></dt>
-<dt><a href="cursor.html#Cursor.execute">execute() (Cursor method)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="module.html#cx_Oracle.EVENT_DEREG">EVENT_DEREG (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.EVENT_NONE">EVENT_NONE (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.EVENT_OBJCHANGE">EVENT_OBJCHANGE (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.EVENT_SHUTDOWN">EVENT_SHUTDOWN (in module cx_Oracle)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="module.html#cx_Oracle.EVENT_SHUTDOWN_ANY">EVENT_SHUTDOWN_ANY (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.EVENT_STARTUP">EVENT_STARTUP (in module cx_Oracle)</a></dt>
+<dt><a href="cursor.html#Cursor.execute">execute() (Cursor method)</a></dt>
 <dt><a href="cursor.html#Cursor.executemany">executemany() (Cursor method)</a></dt>
 <dt><a href="cursor.html#Cursor.executemanyprepared">executemanyprepared() (Cursor method)</a></dt>
 </dl></td></tr></table>
@@ -229,11 +238,15 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="session_pool.html#SessionPool.name">name (SessionPool attribute)</a></dt>
+<dt><a href="subscription.html#MessageTable.name">name (MessageTable attribute)</a></dt>
+  <dd><dl>
+    <dt><a href="session_pool.html#SessionPool.name">(SessionPool attribute)</a></dt>
+  </dl></dd>
+<dt><a href="subscription.html#Subscription.namespace">namespace (Subscription attribute)</a></dt>
 <dt><a href="module.html#cx_Oracle.NATIVE_FLOAT">NATIVE_FLOAT (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.NCLOB">NCLOB (in module cx_Oracle)</a></dt>
-<dt><a href="connection.html#Connection.nencoding">nencoding (Connection attribute)</a></dt>
-<dt><a href="cursor.html#Cursor.next">next() (Cursor method)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="connection.html#Connection.nencoding">nencoding (Connection attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="cursor.html#Cursor.next">next() (Cursor method)</a></dt>
 <dt><a href="module.html#cx_Oracle.NotSupportedError">NotSupportedError</a></dt>
 <dt><a href="module.html#cx_Oracle.NUMBER">NUMBER (in module cx_Oracle)</a></dt>
 <dt><a href="cursor.html#Cursor.numbersAsStrings">numbersAsStrings (Cursor attribute)</a></dt>
@@ -245,9 +258,20 @@
 <dl>
 
 <dt><a href="module.html#cx_Oracle.OBJECT">OBJECT (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.OPCODE_ALLOPS">OPCODE_ALLOPS (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.OPCODE_ALLROWS">OPCODE_ALLROWS (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.OPCODE_ALTER">OPCODE_ALTER (in module cx_Oracle)</a>, <a href="module.html#cx_Oracle.OPCODE_ALTER">[1]</a></dt>
+<dt><a href="module.html#cx_Oracle.OPCODE_DELETE">OPCODE_DELETE (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.OPCODE_INSERT">OPCODE_INSERT (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.OPCODE_UPDATE">OPCODE_UPDATE (in module cx_Oracle)</a></dt>
 <dt><a href="lob.html#LOB.open">open() (LOB method)</a></dt>
-<dt><a href="session_pool.html#SessionPool.opened">opened (SessionPool attribute)</a></dt>
-<dt><a href="module.html#cx_Oracle.OperationalError">OperationalError</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="session_pool.html#SessionPool.opened">opened (SessionPool attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="subscription.html#MessageRow.operation">operation (MessageRow attribute)</a></dt>
+  <dd><dl>
+    <dt><a href="subscription.html#MessageTable.operation">(MessageTable attribute)</a></dt>
+  </dl></dd>
+<dt><a href="module.html#cx_Oracle.OperationalError">OperationalError</a></dt>
+<dt><a href="subscription.html#Subscription.operations">operations (Subscription attribute)</a></dt>
 <dt><a href="variable.html#Variable.outconverter">outconverter (Variable attribute)</a></dt>
 <dt><a href="connection.html#Connection.outputtypehandler">outputtypehandler (Connection attribute)</a></dt>
   <dd><dl>
@@ -265,13 +289,14 @@
   <dd><dl>
     <dt><a href="session_pool.html#SessionPool.password">(SessionPool attribute)</a></dt>
   </dl></dd>
-<dt><a href="connection.html#Connection.ping">ping() (Connection method)</a></dt></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="module.html#cx_Oracle.PRELIM_AUTH">PRELIM_AUTH (in module cx_Oracle)</a></dt>
+<dt><a href="connection.html#Connection.ping">ping() (Connection method)</a></dt>
+<dt><a href="module.html#cx_Oracle.PRELIM_AUTH">PRELIM_AUTH (in module cx_Oracle)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="connection.html#Connection.prepare">prepare() (Connection method)</a></dt>
   <dd><dl>
     <dt><a href="cursor.html#Cursor.prepare">(Cursor method)</a></dt>
   </dl></dd>
 <dt><a href="module.html#cx_Oracle.ProgrammingError">ProgrammingError</a></dt>
+<dt><a href="subscription.html#Subscription.protocol">protocol (Subscription attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="R">R</h2>
@@ -280,11 +305,15 @@
 
 <dt><a href="lob.html#LOB.read">read() (LOB method)</a></dt>
 <dt><a href="connection.html#Connection.register">register() (Connection method)</a></dt>
+<dt><a href="subscription.html#Subscription.registerquery">registerquery() (Subscription method)</a></dt>
 <dt><a href="session_pool.html#SessionPool.release">release() (SessionPool method)</a></dt>
-<dt><a href="connection.html#Connection.rollback">rollback() (Connection method)</a></dt></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="cursor.html#Cursor.rowcount">rowcount (Cursor attribute)</a></dt>
+<dt><a href="connection.html#Connection.rollback">rollback() (Connection method)</a></dt>
+<dt><a href="cursor.html#Cursor.rowcount">rowcount (Cursor attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="cursor.html#Cursor.rowfactory">rowfactory (Cursor attribute)</a></dt>
 <dt><a href="module.html#cx_Oracle.ROWID">ROWID (in module cx_Oracle)</a></dt>
+<dt><a href="subscription.html#MessageRow.rowid">rowid (MessageRow attribute)</a></dt>
+<dt><a href="subscription.html#Subscription.rowids">rowids (Subscription attribute)</a></dt>
+<dt><a href="subscription.html#MessageTable.rows">rows (MessageTable attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="S">S</h2>
@@ -299,13 +328,19 @@
 <dt><a href="connection.html#Connection.shutdown">shutdown() (Connection method)</a></dt>
 <dt><a href="variable.html#Variable.size">size (Variable attribute)</a></dt>
 <dt><a href="lob.html#LOB.size">size() (LOB method)</a></dt>
-<dt><a href="module.html#cx_Oracle.SPOOL_ATTRVAL_FORCEGET">SPOOL_ATTRVAL_FORCEGET (in module cx_Oracle)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="module.html#cx_Oracle.SPOOL_ATTRVAL_FORCEGET">SPOOL_ATTRVAL_FORCEGET (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.SPOOL_ATTRVAL_NOWAIT">SPOOL_ATTRVAL_NOWAIT (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.SPOOL_ATTRVAL_WAIT">SPOOL_ATTRVAL_WAIT (in module cx_Oracle)</a></dt>
-<dt><a href="connection.html#Connection.startup">startup() (Connection method)</a></dt>
+<dt><a href="connection.html#Connection.startup">startup() (Connection method)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="cursor.html#Cursor.statement">statement (Cursor attribute)</a></dt>
 <dt><a href="connection.html#Connection.stmtcachesize">stmtcachesize (Connection attribute)</a></dt>
 <dt><a href="module.html#cx_Oracle.STRING">STRING (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE">SUBSCR_NAMESPACE_DBCHANGE (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.SUBSCR_PROTO_HTTP">SUBSCR_PROTO_HTTP (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.SUBSCR_PROTO_MAIL">SUBSCR_PROTO_MAIL (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.SUBSCR_PROTO_OCI">SUBSCR_PROTO_OCI (in module cx_Oracle)</a></dt>
+<dt><a href="module.html#cx_Oracle.SUBSCR_PROTO_SERVER">SUBSCR_PROTO_SERVER (in module cx_Oracle)</a></dt>
+<dt><a href="connection.html#Connection.subscribe">subscribe() (Connection method)</a></dt>
 <dt><a href="module.html#cx_Oracle.SYSDBA">SYSDBA (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.SYSOPER">SYSOPER (in module cx_Oracle)</a></dt>
 </dl></td></tr></table>
@@ -314,18 +349,23 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
+<dt><a href="subscription.html#Message.tables">tables (Message attribute)</a></dt>
 <dt><a href="module.html#cx_Oracle.threadsafety">threadsafety (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.Time">Time() (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.TimeFromTicks">TimeFromTicks() (in module cx_Oracle)</a></dt>
 <dt><a href="session_pool.html#SessionPool.timeout">timeout (SessionPool attribute)</a></dt>
-<dt><a href="module.html#cx_Oracle.TIMESTAMP">TIMESTAMP (in module cx_Oracle)</a></dt>
-<dt><a href="module.html#cx_Oracle.Timestamp">Timestamp() (in module cx_Oracle)</a></dt></dl></td><td width="33%" valign="top"><dl>
+  <dd><dl>
+    <dt><a href="subscription.html#Subscription.timeout">(Subscription attribute)</a></dt>
+  </dl></dd>
+<dt><a href="module.html#cx_Oracle.TIMESTAMP">TIMESTAMP (in module cx_Oracle)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="module.html#cx_Oracle.Timestamp">Timestamp() (in module cx_Oracle)</a></dt>
 <dt><a href="module.html#cx_Oracle.TimestampFromTicks">TimestampFromTicks() (in module cx_Oracle)</a></dt>
 <dt><a href="connection.html#Connection.tnsentry">tnsentry (Connection attribute)</a></dt>
   <dd><dl>
     <dt><a href="session_pool.html#SessionPool.tnsentry">(SessionPool attribute)</a></dt>
   </dl></dd>
 <dt><a href="lob.html#LOB.trim">trim() (LOB method)</a></dt>
+<dt><a href="subscription.html#Message.type">type (Message attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="U">U</h2>
@@ -395,7 +435,7 @@
     </div>
     <div class="footer">
       &copy; Copyright 2009, Anthony Tuininga.
-      Last updated on Jan 06, 2009.
+      Last updated on Feb 16, 2009.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
     </div>
   </body>

@@ -160,43 +160,12 @@ Module Interface
 Constants
 =========
 
+Global
+------
 
 .. data:: apilevel
 
    String constant stating the supported DB API level. Currently '2.0'.
-
-
-.. data:: ATTR_PURITY_DEFAULT
-
-   This constant is used when using database resident connection pooling (DRCP)
-   and specifies that the purity of the session is the default value used by
-   Oracle (see Oracle's documentation for more information).
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: ATTR_PURITY_NEW
-
-   This constant is used when using database resident connection pooling (DRCP)
-   and specifies that the session acquired from the pool should be new and not
-   have any prior session state.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: ATTR_PURITY_SELF
-
-   This constant is used when using database resident connection pooling (DRCP)
-   and specifies that the session acquired from the pool need not be new and
-   may have prior session state.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
 
 
 .. data:: buildtime
@@ -205,319 +174,13 @@ Constants
 
    .. note::
 
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: BINARY
-
-   This type object is used to describe columns in a database that are binary
-   (in Oracle this is RAW columns).
-
-
-.. data:: BFILE
-
-   This type object is used to describe columns in a database that are BFILEs.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: BLOB
-
-   This type object is used to describe columns in a database that are BLOBs.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: CLOB
-
-   This type object is used to describe columns in a database that are CLOBs.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: CURSOR
-
-   This type object is used to describe columns in a database that are cursors
-   (in PL/SQL these are known as ref cursors).
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: DATETIME
-
-   This type object is used to describe columns in a database that are dates.
-
-
-.. data:: DBSHUTDOWN_ABORT
-
-   This constant is used in database shutdown to indicate that the program
-   should not wait for current calls to complete or for users to disconnect
-   from the database. Use only in unusual circumstances since database recovery
-   may be necessary upon next startup.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: DBSHUTDOWN_FINAL
-
-   This constant is used in database shutdown to indicate that the instance can
-   be truly halted. This should only be done after the database has been shut
-   down in one of the other modes (except abort) and the database has been
-   closed and dismounted using the appropriate SQL commands. See the method
-   :meth:`~Connection.shutdown()` in the section on connections
-   (:ref:`connobj`).
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: DBSHUTDOWN_IMMEDIATE
-
-   This constant is used in database shutdown to indicate that all uncommitted
-   transactions should be rolled back and any connected users should be
-   disconnected.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: DBSHUTDOWN_TRANSACTIONAL
-
-   This constant is used in database shutdown to indicate that further
-   connections should be prohibited and no new transactions should be allowed.
-   It then waits for active transactions to complete.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: DBSHUTDOWN_TRANSACTIONAL_LOCAL
-
-   This constant is used in database shutdown to indicate that further
-   connections should be prohibited and no new transactions should be allowed.
-   It then waits for only local active transactions to complete.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: FIXED_CHAR
-
-   This type object is used to describe columns in a database that are fixed
-   length strings (in Oracle this is CHAR columns); these behave differently in
-   Oracle than varchar2 so they are differentiated here even though the DB API
-   does not differentiate them.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: FNCODE_BINDBYNAME
-
-   This constant is used to register callbacks on the OCIBindByName() function
-   of the OCI.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: FNCODE_BINDBYPOS
-
-   This constant is used to register callbacks on the OCIBindByPos() function
-   of the OCI.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: FNCODE_DEFINEBYPOS
-
-   This constant is used to register callbacks on the OCIDefineByPos() function
-   of the OCI.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: FNCODE_STMTEXECUTE
-
-   This constant is used to register callbacks on the OCIStmtExecute() function
-   of the OCI.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: FNCODE_STMTFETCH
-
-   This constant is used to register callbacks on the OCIStmtFetch() function
-   of the OCI.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: FNCODE_STMTPREPARE
-
-   This constant is used to register callbacks on the OCIStmtPrepare() function
-   of the OCI.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: INTERVAL
-
-   This type object is used to describe columns in a database that are of type
-   interval day to second.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: LOB
-
-   This type object is the Python type of :data:`BLOB` and :data:`CLOB` data
-   that is returned from cursors.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: LONG_BINARY
-
-   This type object is used to describe columns in a database that are long
-   binary (in Oracle these are LONG RAW columns).
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: LONG_STRING
-
-   This type object is used to describe columns in a database that are long
-   strings (in Oracle these are LONG columns).
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: NATIVE_FLOAT
-
-   This type object is used to describe columns in a database that are of type
-   binary_double or binary_float and is only available in Oracle 10g.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: NCLOB
-
-   This type object is used to describe columns in a database that are NCLOBs.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: NUMBER
-
-   This type object is used to describe columns in a database that are numbers.
-
-
-.. data:: OBJECT
-
-   This type object is used to describe columns in a database that are objects.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
+      This constant is an extension to the DB API definition.
 
 
 .. data:: paramstyle
 
    String constant stating the type of parameter marker formatting expected by
    the interface. Currently 'named' as in 'where name = :name'.
-
-
-.. data:: ROWID
-
-   This type object is used to describe the pseudo column "rowid".
-
-
-.. data:: PRELIM_AUTH
-
-   This constant is used to define the preliminary authentication mode required
-   for performing database startup and shutdown.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: SPOOL_ATTRVAL_FORCEGET
-
-   This constant is used to define the "get" mode on session pools and
-   indicates that a new connection will be returned if there are no free
-   sessions available in the pool.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: SPOOL_ATTRVAL_NOWAIT
-
-   This constant is used to define the "get" mode on session pools and
-   indicates that an exception is raised if there are no free sessions
-   available in the pool.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: SPOOL_ATTRVAL_WAIT
-
-   This constant is used to define the "get" mode on session pools and
-   indicates that the acquisition of a connection waits until a session is
-   freed if there are no free sessions available in the pool.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: STRING
-
-   This type object is used to describe columns in a database that are strings
-   (in Oracle this is VARCHAR2 columns).
 
 
 .. data:: SYSDBA
@@ -527,7 +190,7 @@ Constants
 
    .. note::
 
-      This attribute is an extension to the DB API definition.
+      This constant is an extension to the DB API definition.
 
 
 .. data:: SYSOPER
@@ -537,7 +200,7 @@ Constants
 
    .. note::
 
-      This attribute is an extension to the DB API definition.
+      This constant is an extension to the DB API definition.
 
 
 .. data:: threadsafety
@@ -554,6 +217,465 @@ Constants
    comments on the Connection constructor for more information (:ref:`module`).
 
 
+.. data:: version
+
+   String constant stating the version of the module. Currently '|release|'.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
+Database Callbacks
+------------------
+
+.. note::
+
+   These constants are extensions to the DB API definition.
+
+
+.. data:: FNCODE_BINDBYNAME
+
+   This constant is used to register callbacks on the OCIBindByName() function
+   of the OCI.
+
+
+.. data:: FNCODE_BINDBYPOS
+
+   This constant is used to register callbacks on the OCIBindByPos() function
+   of the OCI.
+
+
+.. data:: FNCODE_DEFINEBYPOS
+
+   This constant is used to register callbacks on the OCIDefineByPos() function
+   of the OCI.
+
+
+.. data:: FNCODE_STMTEXECUTE
+
+   This constant is used to register callbacks on the OCIStmtExecute() function
+   of the OCI.
+
+
+.. data:: FNCODE_STMTFETCH
+
+   This constant is used to register callbacks on the OCIStmtFetch() function
+   of the OCI.
+
+
+.. data:: FNCODE_STMTPREPARE
+
+   This constant is used to register callbacks on the OCIStmtPrepare() function
+   of the OCI.
+
+
+.. data:: UCBTYPE_ENTRY
+
+   This constant is used to register callbacks on entry to the function of the
+   OCI.  In other words, the callback will be called prior to the execution of
+   the OCI function.
+
+
+.. data:: UCBTYPE_EXIT
+
+   This constant is used to register callbacks on exit from the function of the
+   OCI. In other words, the callback will be called after the execution of the
+   OCI function.
+
+
+.. data:: UCBTYPE_REPLACE
+
+   This constant is used to register callbacks that completely replace the call
+   to the OCI function.
+
+
+Database Change Notification
+----------------------------
+
+.. note::
+
+   These constants are extensions to the DB API definition.
+
+
+.. data:: EVENT_DEREG
+
+   This constant is a possible value for the type of a message and indicates
+   that the instance is in the process of being started up.
+
+
+.. data:: EVENT_NONE
+
+   This constant is a possible value for the type of a message and provides no
+   additional information about the event.
+
+
+.. data:: EVENT_OBJCHANGE
+
+   This constant is a possible value for the type of a message and indicates
+   that an object change of some sort has taken place.
+
+
+.. data:: EVENT_SHUTDOWN
+
+   This constant is a possible value for the type of a message and indicates
+   that the instance is in the process of being shut down.
+
+
+.. data:: EVENT_SHUTDOWN_ANY
+
+   This constant is a possible value for the type of a message and indicates
+   that any instance (when running RAC) is in the process of being shut down.
+
+
+.. data:: EVENT_STARTUP
+
+   This constant is a possible value for the type of a message and indicates
+   that the instance is in the process of being started up.
+
+
+.. data:: OPCODE_ALLOPS
+
+   This constant is the default value when creating a subscription and
+   specifies that messages are to be sent for all operations.
+
+
+.. data:: OPCODE_ALLROWS
+
+   This constant is a possible value for the operation attribute of one of the
+   table objects that are part of a message. It specifies that the table has
+   been completely invalidated.
+
+
+.. data:: OPCODE_ALTER
+
+   This constant is a possible value for the operation attribute of one of the
+   table objects that are part of a message. It specifies that the table has
+   been altered in some fashion using DDL.
+
+
+.. data:: OPCODE_DELETE
+
+   This constant can be used when creating a subscription and specifies that
+   messages are to be sent only when data is deleted. It is also a possible
+   value for the operation attribute of one of the table objects that are part
+   of a message.
+
+
+.. data:: OPCODE_ALTER
+
+   This constant is a possible value for the operation attribute of one of the
+   table objects that are part of a message. It specifies that the table has
+   been dropped.
+
+
+.. data:: OPCODE_INSERT
+
+   This constant can be used when creating a subscription and specifies that
+   messages are to be sent only when data is inserted. It is also a possible
+   value for the operation attribute of one of the table objects that are part
+   of a message.
+
+
+.. data:: OPCODE_UPDATE
+
+   This constant can be used when creating a subscription and specifies that
+   messages are to be sent only when data is updated. It is also a possible
+   value for the operation attribute of one of the table objects that are part
+   of a message.
+
+
+.. data:: SUBSCR_NAMESPACE_DBCHANGE
+
+   This constant is the default (and currently only) value for the namespace
+   argument when creating a subscription.
+
+
+.. data:: SUBSCR_PROTO_HTTP
+
+   This constant is a future possible value for the protocol argument when
+   creating a subscription. It specifies that notification will be sent to the
+   HTTP URL when a message is generated.
+
+
+.. data:: SUBSCR_PROTO_MAIL
+
+   This constant is a future possible value for the protocol argument when
+   creating a subscription. It specifies that an e-mail message should be sent
+   to the target when a message is generated.
+
+
+.. data:: SUBSCR_PROTO_OCI
+
+   This constant is the default (and currently only valid) value for the
+   protocol argument when creating a subscription.
+
+
+.. data:: SUBSCR_PROTO_SERVER
+
+   This constant is a future possible value for the protocol argument when
+   creating a subscription. It specifies that the database procedure will be
+   invoked when a message is generated.
+
+
+Database Resident Connection Pooling
+------------------------------------
+
+.. note::
+
+   These constants are extensions to the DB API definition.
+
+
+.. data:: ATTR_PURITY_DEFAULT
+
+   This constant is used when using database resident connection pooling (DRCP)
+   and specifies that the purity of the session is the default value used by
+   Oracle (see Oracle's documentation for more information).
+
+
+.. data:: ATTR_PURITY_NEW
+
+   This constant is used when using database resident connection pooling (DRCP)
+   and specifies that the session acquired from the pool should be new and not
+   have any prior session state.
+
+
+.. data:: ATTR_PURITY_SELF
+
+   This constant is used when using database resident connection pooling (DRCP)
+   and specifies that the session acquired from the pool need not be new and
+   may have prior session state.
+
+
+Database Startup/Shutdown
+-------------------------
+
+.. note::
+
+   These constants are extensions to the DB API definition.
+
+
+.. data:: PRELIM_AUTH
+
+   This constant is used to define the preliminary authentication mode required
+   for performing database startup and shutdown.
+
+
+.. data:: DBSHUTDOWN_ABORT
+
+   This constant is used in database shutdown to indicate that the program
+   should not wait for current calls to complete or for users to disconnect
+   from the database. Use only in unusual circumstances since database recovery
+   may be necessary upon next startup.
+
+
+.. data:: DBSHUTDOWN_FINAL
+
+   This constant is used in database shutdown to indicate that the instance can
+   be truly halted. This should only be done after the database has been shut
+   down in one of the other modes (except abort) and the database has been
+   closed and dismounted using the appropriate SQL commands. See the method
+   :meth:`~Connection.shutdown()` in the section on connections
+   (:ref:`connobj`).
+
+
+.. data:: DBSHUTDOWN_IMMEDIATE
+
+   This constant is used in database shutdown to indicate that all uncommitted
+   transactions should be rolled back and any connected users should be
+   disconnected.
+
+
+.. data:: DBSHUTDOWN_TRANSACTIONAL
+
+   This constant is used in database shutdown to indicate that further
+   connections should be prohibited and no new transactions should be allowed.
+   It then waits for active transactions to complete.
+
+
+.. data:: DBSHUTDOWN_TRANSACTIONAL_LOCAL
+
+   This constant is used in database shutdown to indicate that further
+   connections should be prohibited and no new transactions should be allowed.
+   It then waits for only local active transactions to complete.
+
+
+Session Pooling
+---------------
+
+.. note::
+
+   These constants are extensions to the DB API definition.
+
+
+.. data:: SPOOL_ATTRVAL_FORCEGET
+
+   This constant is used to define the "get" mode on session pools and
+   indicates that a new connection will be returned if there are no free
+   sessions available in the pool.
+
+
+.. data:: SPOOL_ATTRVAL_NOWAIT
+
+   This constant is used to define the "get" mode on session pools and
+   indicates that an exception is raised if there are no free sessions
+   available in the pool.
+
+
+.. data:: SPOOL_ATTRVAL_WAIT
+
+   This constant is used to define the "get" mode on session pools and
+   indicates that the acquisition of a connection waits until a session is
+   freed if there are no free sessions available in the pool.
+
+
+Types
+=====
+
+.. data:: BINARY
+
+   This type object is used to describe columns in a database that are binary
+   (in Oracle this is RAW columns).
+
+
+.. data:: BFILE
+
+   This type object is used to describe columns in a database that are BFILEs.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: BLOB
+
+   This type object is used to describe columns in a database that are BLOBs.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: CLOB
+
+   This type object is used to describe columns in a database that are CLOBs.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: CURSOR
+
+   This type object is used to describe columns in a database that are cursors
+   (in PL/SQL these are known as ref cursors).
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: DATETIME
+
+   This type object is used to describe columns in a database that are dates.
+
+
+.. data:: FIXED_CHAR
+
+   This type object is used to describe columns in a database that are fixed
+   length strings (in Oracle this is CHAR columns); these behave differently in
+   Oracle than varchar2 so they are differentiated here even though the DB API
+   does not differentiate them.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
+.. data:: INTERVAL
+
+   This type object is used to describe columns in a database that are of type
+   interval day to second.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: LOB
+
+   This type object is the Python type of :data:`BLOB` and :data:`CLOB` data
+   that is returned from cursors.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: LONG_BINARY
+
+   This type object is used to describe columns in a database that are long
+   binary (in Oracle these are LONG RAW columns).
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: LONG_STRING
+
+   This type object is used to describe columns in a database that are long
+   strings (in Oracle these are LONG columns).
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: NATIVE_FLOAT
+
+   This type object is used to describe columns in a database that are of type
+   binary_double or binary_float and is only available in Oracle 10g.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: NCLOB
+
+   This type object is used to describe columns in a database that are NCLOBs.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: NUMBER
+
+   This type object is used to describe columns in a database that are numbers.
+
+
+.. data:: OBJECT
+
+   This type object is used to describe columns in a database that are objects.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: ROWID
+
+   This type object is used to describe the pseudo column "rowid".
+
+
+.. data:: STRING
+
+   This type object is used to describe columns in a database that are strings
+   (in Oracle this is VARCHAR2 columns).
+
+
 .. data:: TIMESTAMP
 
    This type object is used to describe columns in a database that are
@@ -563,48 +685,6 @@ Constants
 
       This attribute is an extension to the DB API definition and is only
       available in Oracle 9i.
-
-
-.. data:: UCBTYPE_ENTRY
-
-   This constant is used to register callbacks on entry to the function of the
-   OCI.  In other words, the callback will be called prior to the execution of
-   the OCI function.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: UCBTYPE_EXIT
-
-   This constant is used to register callbacks on exit from the function of the
-   OCI. In other words, the callback will be called after the execution of the
-   OCI function.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: UCBTYPE_REPLACE
-
-   This constant is used to register callbacks that completely replace the call
-   to the OCI function.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. data:: version
-
-   String constant stating the version of the module. Currently '|release|'.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
 
 
 .. _exceptions:

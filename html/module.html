@@ -196,46 +196,12 @@ Python time module for details).</dd></dl>
 
 <div class="section" id="id1">
 <span id="constants"></span><h2>Constants<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="global">
+<h3>Global<a class="headerlink" href="#global" title="Permalink to this headline">¶</a></h3>
 <dl class="data">
 <dt id="cx_Oracle.apilevel">
 <!--[cx_Oracle.apilevel]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">apilevel</tt><a class="headerlink" href="#cx_Oracle.apilevel" title="Permalink to this definition">¶</a></dt>
 <dd>String constant stating the supported DB API level. Currently &#8216;2.0&#8217;.</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.ATTR_PURITY_DEFAULT">
-<!--[cx_Oracle.ATTR_PURITY_DEFAULT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">ATTR_PURITY_DEFAULT</tt><a class="headerlink" href="#cx_Oracle.ATTR_PURITY_DEFAULT" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used when using database resident connection pooling (DRCP)
-and specifies that the purity of the session is the default value used by
-Oracle (see Oracle&#8217;s documentation for more information).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.ATTR_PURITY_NEW">
-<!--[cx_Oracle.ATTR_PURITY_NEW]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">ATTR_PURITY_NEW</tt><a class="headerlink" href="#cx_Oracle.ATTR_PURITY_NEW" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used when using database resident connection pooling (DRCP)
-and specifies that the session acquired from the pool should be new and not
-have any prior session state.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.ATTR_PURITY_SELF">
-<!--[cx_Oracle.ATTR_PURITY_SELF]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">ATTR_PURITY_SELF</tt><a class="headerlink" href="#cx_Oracle.ATTR_PURITY_SELF" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used when using database resident connection pooling (DRCP)
-and specifies that the session acquired from the pool need not be new and
-may have prior session state.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.buildtime">
@@ -243,282 +209,7 @@ may have prior session state.</p>
 <dd><p>String constant stating the time when the binary was built.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.BINARY">
-<!--[cx_Oracle.BINARY]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">BINARY</tt><a class="headerlink" href="#cx_Oracle.BINARY" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe columns in a database that are binary
-(in Oracle this is RAW columns).</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.BFILE">
-<!--[cx_Oracle.BFILE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">BFILE</tt><a class="headerlink" href="#cx_Oracle.BFILE" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are BFILEs.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.BLOB">
-<!--[cx_Oracle.BLOB]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">BLOB</tt><a class="headerlink" href="#cx_Oracle.BLOB" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are BLOBs.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.CLOB">
-<!--[cx_Oracle.CLOB]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">CLOB</tt><a class="headerlink" href="#cx_Oracle.CLOB" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are CLOBs.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.CURSOR">
-<!--[cx_Oracle.CURSOR]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">CURSOR</tt><a class="headerlink" href="#cx_Oracle.CURSOR" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are cursors
-(in PL/SQL these are known as ref cursors).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.DATETIME">
-<!--[cx_Oracle.DATETIME]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DATETIME</tt><a class="headerlink" href="#cx_Oracle.DATETIME" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe columns in a database that are dates.</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.DBSHUTDOWN_ABORT">
-<!--[cx_Oracle.DBSHUTDOWN_ABORT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_ABORT</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_ABORT" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used in database shutdown to indicate that the program
-should not wait for current calls to complete or for users to disconnect
-from the database. Use only in unusual circumstances since database recovery
-may be necessary upon next startup.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.DBSHUTDOWN_FINAL">
-<!--[cx_Oracle.DBSHUTDOWN_FINAL]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_FINAL</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_FINAL" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used in database shutdown to indicate that the instance can
-be truly halted. This should only be done after the database has been shut
-down in one of the other modes (except abort) and the database has been
-closed and dismounted using the appropriate SQL commands. See the method
-<a title="Connection.shutdown" class="reference external" href="connection.html#Connection.shutdown"><tt class="xref docutils literal"><span class="pre">shutdown()</span></tt></a> in the section on connections
-(<a class="reference external" href="connection.html#connobj"><em>Connection Object</em></a>).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.DBSHUTDOWN_IMMEDIATE">
-<!--[cx_Oracle.DBSHUTDOWN_IMMEDIATE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_IMMEDIATE</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_IMMEDIATE" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used in database shutdown to indicate that all uncommitted
-transactions should be rolled back and any connected users should be
-disconnected.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.DBSHUTDOWN_TRANSACTIONAL">
-<!--[cx_Oracle.DBSHUTDOWN_TRANSACTIONAL]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_TRANSACTIONAL</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_TRANSACTIONAL" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used in database shutdown to indicate that further
-connections should be prohibited and no new transactions should be allowed.
-It then waits for active transactions to complete.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.DBSHUTDOWN_TRANSACTIONAL_LOCAL">
-<!--[cx_Oracle.DBSHUTDOWN_TRANSACTIONAL_LOCAL]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_TRANSACTIONAL_LOCAL</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_TRANSACTIONAL_LOCAL" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used in database shutdown to indicate that further
-connections should be prohibited and no new transactions should be allowed.
-It then waits for only local active transactions to complete.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.FIXED_CHAR">
-<!--[cx_Oracle.FIXED_CHAR]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FIXED_CHAR</tt><a class="headerlink" href="#cx_Oracle.FIXED_CHAR" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are fixed
-length strings (in Oracle this is CHAR columns); these behave differently in
-Oracle than varchar2 so they are differentiated here even though the DB API
-does not differentiate them.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.FNCODE_BINDBYNAME">
-<!--[cx_Oracle.FNCODE_BINDBYNAME]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_BINDBYNAME</tt><a class="headerlink" href="#cx_Oracle.FNCODE_BINDBYNAME" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to register callbacks on the OCIBindByName() function
-of the OCI.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.FNCODE_BINDBYPOS">
-<!--[cx_Oracle.FNCODE_BINDBYPOS]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_BINDBYPOS</tt><a class="headerlink" href="#cx_Oracle.FNCODE_BINDBYPOS" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to register callbacks on the OCIBindByPos() function
-of the OCI.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.FNCODE_DEFINEBYPOS">
-<!--[cx_Oracle.FNCODE_DEFINEBYPOS]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_DEFINEBYPOS</tt><a class="headerlink" href="#cx_Oracle.FNCODE_DEFINEBYPOS" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to register callbacks on the OCIDefineByPos() function
-of the OCI.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.FNCODE_STMTEXECUTE">
-<!--[cx_Oracle.FNCODE_STMTEXECUTE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_STMTEXECUTE</tt><a class="headerlink" href="#cx_Oracle.FNCODE_STMTEXECUTE" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to register callbacks on the OCIStmtExecute() function
-of the OCI.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.FNCODE_STMTFETCH">
-<!--[cx_Oracle.FNCODE_STMTFETCH]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_STMTFETCH</tt><a class="headerlink" href="#cx_Oracle.FNCODE_STMTFETCH" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to register callbacks on the OCIStmtFetch() function
-of the OCI.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.FNCODE_STMTPREPARE">
-<!--[cx_Oracle.FNCODE_STMTPREPARE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_STMTPREPARE</tt><a class="headerlink" href="#cx_Oracle.FNCODE_STMTPREPARE" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to register callbacks on the OCIStmtPrepare() function
-of the OCI.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.INTERVAL">
-<!--[cx_Oracle.INTERVAL]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">INTERVAL</tt><a class="headerlink" href="#cx_Oracle.INTERVAL" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are of type
-interval day to second.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.LOB">
-<!--[cx_Oracle.LOB]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">LOB</tt><a class="headerlink" href="#cx_Oracle.LOB" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is the Python type of <a title="cx_Oracle.BLOB" class="reference internal" href="#cx_Oracle.BLOB"><tt class="xref docutils literal"><span class="pre">BLOB</span></tt></a> and <a title="cx_Oracle.CLOB" class="reference internal" href="#cx_Oracle.CLOB"><tt class="xref docutils literal"><span class="pre">CLOB</span></tt></a> data
-that is returned from cursors.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.LONG_BINARY">
-<!--[cx_Oracle.LONG_BINARY]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">LONG_BINARY</tt><a class="headerlink" href="#cx_Oracle.LONG_BINARY" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are long
-binary (in Oracle these are LONG RAW columns).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.LONG_STRING">
-<!--[cx_Oracle.LONG_STRING]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">LONG_STRING</tt><a class="headerlink" href="#cx_Oracle.LONG_STRING" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are long
-strings (in Oracle these are LONG columns).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.NATIVE_FLOAT">
-<!--[cx_Oracle.NATIVE_FLOAT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">NATIVE_FLOAT</tt><a class="headerlink" href="#cx_Oracle.NATIVE_FLOAT" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are of type
-binary_double or binary_float and is only available in Oracle 10g.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.NCLOB">
-<!--[cx_Oracle.NCLOB]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">NCLOB</tt><a class="headerlink" href="#cx_Oracle.NCLOB" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are NCLOBs.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.NUMBER">
-<!--[cx_Oracle.NUMBER]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">NUMBER</tt><a class="headerlink" href="#cx_Oracle.NUMBER" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe columns in a database that are numbers.</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.OBJECT">
-<!--[cx_Oracle.OBJECT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OBJECT</tt><a class="headerlink" href="#cx_Oracle.OBJECT" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is used to describe columns in a database that are objects.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
+<p class="last">This constant is an extension to the DB API definition.</p>
 </div>
 </dd></dl>
 
@@ -529,71 +220,13 @@ binary_double or binary_float and is only available in Oracle 10g.</p>
 the interface. Currently &#8216;named&#8217; as in &#8216;where name = :name&#8217;.</dd></dl>
 
 <dl class="data">
-<dt id="cx_Oracle.ROWID">
-<!--[cx_Oracle.ROWID]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">ROWID</tt><a class="headerlink" href="#cx_Oracle.ROWID" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe the pseudo column &#8220;rowid&#8221;.</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.PRELIM_AUTH">
-<!--[cx_Oracle.PRELIM_AUTH]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">PRELIM_AUTH</tt><a class="headerlink" href="#cx_Oracle.PRELIM_AUTH" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to define the preliminary authentication mode required
-for performing database startup and shutdown.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.SPOOL_ATTRVAL_FORCEGET">
-<!--[cx_Oracle.SPOOL_ATTRVAL_FORCEGET]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SPOOL_ATTRVAL_FORCEGET</tt><a class="headerlink" href="#cx_Oracle.SPOOL_ATTRVAL_FORCEGET" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to define the &#8220;get&#8221; mode on session pools and
-indicates that a new connection will be returned if there are no free
-sessions available in the pool.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.SPOOL_ATTRVAL_NOWAIT">
-<!--[cx_Oracle.SPOOL_ATTRVAL_NOWAIT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SPOOL_ATTRVAL_NOWAIT</tt><a class="headerlink" href="#cx_Oracle.SPOOL_ATTRVAL_NOWAIT" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to define the &#8220;get&#8221; mode on session pools and
-indicates that an exception is raised if there are no free sessions
-available in the pool.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.SPOOL_ATTRVAL_WAIT">
-<!--[cx_Oracle.SPOOL_ATTRVAL_WAIT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SPOOL_ATTRVAL_WAIT</tt><a class="headerlink" href="#cx_Oracle.SPOOL_ATTRVAL_WAIT" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to define the &#8220;get&#8221; mode on session pools and
-indicates that the acquisition of a connection waits until a session is
-freed if there are no free sessions available in the pool.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.STRING">
-<!--[cx_Oracle.STRING]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">STRING</tt><a class="headerlink" href="#cx_Oracle.STRING" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe columns in a database that are strings
-(in Oracle this is VARCHAR2 columns).</dd></dl>
-
-<dl class="data">
 <dt id="cx_Oracle.SYSDBA">
 <!--[cx_Oracle.SYSDBA]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SYSDBA</tt><a class="headerlink" href="#cx_Oracle.SYSDBA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Value to be passed to the connect() method which indicates that SYSDBA
 access is to be acquired. See the Oracle documentation for more details.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
+<p class="last">This constant is an extension to the DB API definition.</p>
 </div>
 </dd></dl>
 
@@ -604,7 +237,7 @@ access is to be acquired. See the Oracle documentation for more details.</p>
 access is to be acquired. See the Oracle documentation for more details.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
+<p class="last">This constant is an extension to the DB API definition.</p>
 </div>
 </dd></dl>
 
@@ -623,6 +256,474 @@ comments on the Connection constructor for more information (<a class="reference
 </dd></dl>
 
 <dl class="data">
+<dt id="cx_Oracle.version">
+<!--[cx_Oracle.version]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">version</tt><a class="headerlink" href="#cx_Oracle.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>String constant stating the version of the module. Currently &#8216;5.0&#8216;.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This attribute is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="database-callbacks">
+<h3>Database Callbacks<a class="headerlink" href="#database-callbacks" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These constants are extensions to the DB API definition.</p>
+</div>
+<dl class="data">
+<dt id="cx_Oracle.FNCODE_BINDBYNAME">
+<!--[cx_Oracle.FNCODE_BINDBYNAME]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_BINDBYNAME</tt><a class="headerlink" href="#cx_Oracle.FNCODE_BINDBYNAME" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to register callbacks on the OCIBindByName() function
+of the OCI.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.FNCODE_BINDBYPOS">
+<!--[cx_Oracle.FNCODE_BINDBYPOS]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_BINDBYPOS</tt><a class="headerlink" href="#cx_Oracle.FNCODE_BINDBYPOS" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to register callbacks on the OCIBindByPos() function
+of the OCI.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.FNCODE_DEFINEBYPOS">
+<!--[cx_Oracle.FNCODE_DEFINEBYPOS]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_DEFINEBYPOS</tt><a class="headerlink" href="#cx_Oracle.FNCODE_DEFINEBYPOS" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to register callbacks on the OCIDefineByPos() function
+of the OCI.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.FNCODE_STMTEXECUTE">
+<!--[cx_Oracle.FNCODE_STMTEXECUTE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_STMTEXECUTE</tt><a class="headerlink" href="#cx_Oracle.FNCODE_STMTEXECUTE" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to register callbacks on the OCIStmtExecute() function
+of the OCI.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.FNCODE_STMTFETCH">
+<!--[cx_Oracle.FNCODE_STMTFETCH]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_STMTFETCH</tt><a class="headerlink" href="#cx_Oracle.FNCODE_STMTFETCH" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to register callbacks on the OCIStmtFetch() function
+of the OCI.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.FNCODE_STMTPREPARE">
+<!--[cx_Oracle.FNCODE_STMTPREPARE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_STMTPREPARE</tt><a class="headerlink" href="#cx_Oracle.FNCODE_STMTPREPARE" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to register callbacks on the OCIStmtPrepare() function
+of the OCI.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.UCBTYPE_ENTRY">
+<!--[cx_Oracle.UCBTYPE_ENTRY]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">UCBTYPE_ENTRY</tt><a class="headerlink" href="#cx_Oracle.UCBTYPE_ENTRY" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to register callbacks on entry to the function of the
+OCI.  In other words, the callback will be called prior to the execution of
+the OCI function.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.UCBTYPE_EXIT">
+<!--[cx_Oracle.UCBTYPE_EXIT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">UCBTYPE_EXIT</tt><a class="headerlink" href="#cx_Oracle.UCBTYPE_EXIT" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to register callbacks on exit from the function of the
+OCI. In other words, the callback will be called after the execution of the
+OCI function.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.UCBTYPE_REPLACE">
+<!--[cx_Oracle.UCBTYPE_REPLACE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">UCBTYPE_REPLACE</tt><a class="headerlink" href="#cx_Oracle.UCBTYPE_REPLACE" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to register callbacks that completely replace the call
+to the OCI function.</dd></dl>
+
+</div>
+<div class="section" id="database-change-notification">
+<h3>Database Change Notification<a class="headerlink" href="#database-change-notification" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These constants are extensions to the DB API definition.</p>
+</div>
+<dl class="data">
+<dt id="cx_Oracle.EVENT_DEREG">
+<!--[cx_Oracle.EVENT_DEREG]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_DEREG</tt><a class="headerlink" href="#cx_Oracle.EVENT_DEREG" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a possible value for the type of a message and indicates
+that the instance is in the process of being started up.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.EVENT_NONE">
+<!--[cx_Oracle.EVENT_NONE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_NONE</tt><a class="headerlink" href="#cx_Oracle.EVENT_NONE" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a possible value for the type of a message and provides no
+additional information about the event.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.EVENT_OBJCHANGE">
+<!--[cx_Oracle.EVENT_OBJCHANGE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_OBJCHANGE</tt><a class="headerlink" href="#cx_Oracle.EVENT_OBJCHANGE" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a possible value for the type of a message and indicates
+that an object change of some sort has taken place.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.EVENT_SHUTDOWN">
+<!--[cx_Oracle.EVENT_SHUTDOWN]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_SHUTDOWN</tt><a class="headerlink" href="#cx_Oracle.EVENT_SHUTDOWN" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a possible value for the type of a message and indicates
+that the instance is in the process of being shut down.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.EVENT_SHUTDOWN_ANY">
+<!--[cx_Oracle.EVENT_SHUTDOWN_ANY]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_SHUTDOWN_ANY</tt><a class="headerlink" href="#cx_Oracle.EVENT_SHUTDOWN_ANY" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a possible value for the type of a message and indicates
+that any instance (when running RAC) is in the process of being shut down.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.EVENT_STARTUP">
+<!--[cx_Oracle.EVENT_STARTUP]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_STARTUP</tt><a class="headerlink" href="#cx_Oracle.EVENT_STARTUP" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a possible value for the type of a message and indicates
+that the instance is in the process of being started up.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.OPCODE_ALLOPS">
+<!--[cx_Oracle.OPCODE_ALLOPS]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_ALLOPS</tt><a class="headerlink" href="#cx_Oracle.OPCODE_ALLOPS" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is the default value when creating a subscription and
+specifies that messages are to be sent for all operations.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.OPCODE_ALLROWS">
+<!--[cx_Oracle.OPCODE_ALLROWS]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_ALLROWS</tt><a class="headerlink" href="#cx_Oracle.OPCODE_ALLROWS" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a possible value for the operation attribute of one of the
+table objects that are part of a message. It specifies that the table has
+been completely invalidated.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.OPCODE_ALTER">
+<!--[cx_Oracle.OPCODE_ALTER]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_ALTER</tt><a class="headerlink" href="#cx_Oracle.OPCODE_ALTER" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a possible value for the operation attribute of one of the
+table objects that are part of a message. It specifies that the table has
+been altered in some fashion using DDL.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.OPCODE_DELETE">
+<!--[cx_Oracle.OPCODE_DELETE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_DELETE</tt><a class="headerlink" href="#cx_Oracle.OPCODE_DELETE" title="Permalink to this definition">¶</a></dt>
+<dd>This constant can be used when creating a subscription and specifies that
+messages are to be sent only when data is deleted. It is also a possible
+value for the operation attribute of one of the table objects that are part
+of a message.</dd></dl>
+
+<dl class="data">
+<dt>
+<tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_ALTER</tt></dt>
+<dd>This constant is a possible value for the operation attribute of one of the
+table objects that are part of a message. It specifies that the table has
+been dropped.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.OPCODE_INSERT">
+<!--[cx_Oracle.OPCODE_INSERT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_INSERT</tt><a class="headerlink" href="#cx_Oracle.OPCODE_INSERT" title="Permalink to this definition">¶</a></dt>
+<dd>This constant can be used when creating a subscription and specifies that
+messages are to be sent only when data is inserted. It is also a possible
+value for the operation attribute of one of the table objects that are part
+of a message.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.OPCODE_UPDATE">
+<!--[cx_Oracle.OPCODE_UPDATE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_UPDATE</tt><a class="headerlink" href="#cx_Oracle.OPCODE_UPDATE" title="Permalink to this definition">¶</a></dt>
+<dd>This constant can be used when creating a subscription and specifies that
+messages are to be sent only when data is updated. It is also a possible
+value for the operation attribute of one of the table objects that are part
+of a message.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE">
+<!--[cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_NAMESPACE_DBCHANGE</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is the default (and currently only) value for the namespace
+argument when creating a subscription.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.SUBSCR_PROTO_HTTP">
+<!--[cx_Oracle.SUBSCR_PROTO_HTTP]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_PROTO_HTTP</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_PROTO_HTTP" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a future possible value for the protocol argument when
+creating a subscription. It specifies that notification will be sent to the
+HTTP URL when a message is generated.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.SUBSCR_PROTO_MAIL">
+<!--[cx_Oracle.SUBSCR_PROTO_MAIL]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_PROTO_MAIL</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_PROTO_MAIL" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a future possible value for the protocol argument when
+creating a subscription. It specifies that an e-mail message should be sent
+to the target when a message is generated.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.SUBSCR_PROTO_OCI">
+<!--[cx_Oracle.SUBSCR_PROTO_OCI]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_PROTO_OCI</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_PROTO_OCI" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is the default (and currently only valid) value for the
+protocol argument when creating a subscription.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.SUBSCR_PROTO_SERVER">
+<!--[cx_Oracle.SUBSCR_PROTO_SERVER]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_PROTO_SERVER</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_PROTO_SERVER" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is a future possible value for the protocol argument when
+creating a subscription. It specifies that the database procedure will be
+invoked when a message is generated.</dd></dl>
+
+</div>
+<div class="section" id="database-resident-connection-pooling">
+<h3>Database Resident Connection Pooling<a class="headerlink" href="#database-resident-connection-pooling" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These constants are extensions to the DB API definition.</p>
+</div>
+<dl class="data">
+<dt id="cx_Oracle.ATTR_PURITY_DEFAULT">
+<!--[cx_Oracle.ATTR_PURITY_DEFAULT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">ATTR_PURITY_DEFAULT</tt><a class="headerlink" href="#cx_Oracle.ATTR_PURITY_DEFAULT" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used when using database resident connection pooling (DRCP)
+and specifies that the purity of the session is the default value used by
+Oracle (see Oracle&#8217;s documentation for more information).</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.ATTR_PURITY_NEW">
+<!--[cx_Oracle.ATTR_PURITY_NEW]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">ATTR_PURITY_NEW</tt><a class="headerlink" href="#cx_Oracle.ATTR_PURITY_NEW" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used when using database resident connection pooling (DRCP)
+and specifies that the session acquired from the pool should be new and not
+have any prior session state.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.ATTR_PURITY_SELF">
+<!--[cx_Oracle.ATTR_PURITY_SELF]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">ATTR_PURITY_SELF</tt><a class="headerlink" href="#cx_Oracle.ATTR_PURITY_SELF" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used when using database resident connection pooling (DRCP)
+and specifies that the session acquired from the pool need not be new and
+may have prior session state.</dd></dl>
+
+</div>
+<div class="section" id="database-startup-shutdown">
+<h3>Database Startup/Shutdown<a class="headerlink" href="#database-startup-shutdown" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These constants are extensions to the DB API definition.</p>
+</div>
+<dl class="data">
+<dt id="cx_Oracle.PRELIM_AUTH">
+<!--[cx_Oracle.PRELIM_AUTH]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">PRELIM_AUTH</tt><a class="headerlink" href="#cx_Oracle.PRELIM_AUTH" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to define the preliminary authentication mode required
+for performing database startup and shutdown.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.DBSHUTDOWN_ABORT">
+<!--[cx_Oracle.DBSHUTDOWN_ABORT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_ABORT</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_ABORT" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used in database shutdown to indicate that the program
+should not wait for current calls to complete or for users to disconnect
+from the database. Use only in unusual circumstances since database recovery
+may be necessary upon next startup.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.DBSHUTDOWN_FINAL">
+<!--[cx_Oracle.DBSHUTDOWN_FINAL]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_FINAL</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_FINAL" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used in database shutdown to indicate that the instance can
+be truly halted. This should only be done after the database has been shut
+down in one of the other modes (except abort) and the database has been
+closed and dismounted using the appropriate SQL commands. See the method
+<a title="Connection.shutdown" class="reference external" href="connection.html#Connection.shutdown"><tt class="xref docutils literal"><span class="pre">shutdown()</span></tt></a> in the section on connections
+(<a class="reference external" href="connection.html#connobj"><em>Connection Object</em></a>).</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.DBSHUTDOWN_IMMEDIATE">
+<!--[cx_Oracle.DBSHUTDOWN_IMMEDIATE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_IMMEDIATE</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_IMMEDIATE" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used in database shutdown to indicate that all uncommitted
+transactions should be rolled back and any connected users should be
+disconnected.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.DBSHUTDOWN_TRANSACTIONAL">
+<!--[cx_Oracle.DBSHUTDOWN_TRANSACTIONAL]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_TRANSACTIONAL</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_TRANSACTIONAL" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used in database shutdown to indicate that further
+connections should be prohibited and no new transactions should be allowed.
+It then waits for active transactions to complete.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.DBSHUTDOWN_TRANSACTIONAL_LOCAL">
+<!--[cx_Oracle.DBSHUTDOWN_TRANSACTIONAL_LOCAL]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_TRANSACTIONAL_LOCAL</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_TRANSACTIONAL_LOCAL" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used in database shutdown to indicate that further
+connections should be prohibited and no new transactions should be allowed.
+It then waits for only local active transactions to complete.</dd></dl>
+
+</div>
+<div class="section" id="session-pooling">
+<h3>Session Pooling<a class="headerlink" href="#session-pooling" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These constants are extensions to the DB API definition.</p>
+</div>
+<dl class="data">
+<dt id="cx_Oracle.SPOOL_ATTRVAL_FORCEGET">
+<!--[cx_Oracle.SPOOL_ATTRVAL_FORCEGET]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SPOOL_ATTRVAL_FORCEGET</tt><a class="headerlink" href="#cx_Oracle.SPOOL_ATTRVAL_FORCEGET" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to define the &#8220;get&#8221; mode on session pools and
+indicates that a new connection will be returned if there are no free
+sessions available in the pool.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.SPOOL_ATTRVAL_NOWAIT">
+<!--[cx_Oracle.SPOOL_ATTRVAL_NOWAIT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SPOOL_ATTRVAL_NOWAIT</tt><a class="headerlink" href="#cx_Oracle.SPOOL_ATTRVAL_NOWAIT" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to define the &#8220;get&#8221; mode on session pools and
+indicates that an exception is raised if there are no free sessions
+available in the pool.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.SPOOL_ATTRVAL_WAIT">
+<!--[cx_Oracle.SPOOL_ATTRVAL_WAIT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">SPOOL_ATTRVAL_WAIT</tt><a class="headerlink" href="#cx_Oracle.SPOOL_ATTRVAL_WAIT" title="Permalink to this definition">¶</a></dt>
+<dd>This constant is used to define the &#8220;get&#8221; mode on session pools and
+indicates that the acquisition of a connection waits until a session is
+freed if there are no free sessions available in the pool.</dd></dl>
+
+</div>
+</div>
+<div class="section" id="types">
+<h2>Types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="cx_Oracle.BINARY">
+<!--[cx_Oracle.BINARY]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">BINARY</tt><a class="headerlink" href="#cx_Oracle.BINARY" title="Permalink to this definition">¶</a></dt>
+<dd>This type object is used to describe columns in a database that are binary
+(in Oracle this is RAW columns).</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.BFILE">
+<!--[cx_Oracle.BFILE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">BFILE</tt><a class="headerlink" href="#cx_Oracle.BFILE" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are BFILEs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.BLOB">
+<!--[cx_Oracle.BLOB]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">BLOB</tt><a class="headerlink" href="#cx_Oracle.BLOB" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are BLOBs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.CLOB">
+<!--[cx_Oracle.CLOB]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">CLOB</tt><a class="headerlink" href="#cx_Oracle.CLOB" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are CLOBs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.CURSOR">
+<!--[cx_Oracle.CURSOR]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">CURSOR</tt><a class="headerlink" href="#cx_Oracle.CURSOR" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are cursors
+(in PL/SQL these are known as ref cursors).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.DATETIME">
+<!--[cx_Oracle.DATETIME]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DATETIME</tt><a class="headerlink" href="#cx_Oracle.DATETIME" title="Permalink to this definition">¶</a></dt>
+<dd>This type object is used to describe columns in a database that are dates.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.FIXED_CHAR">
+<!--[cx_Oracle.FIXED_CHAR]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">FIXED_CHAR</tt><a class="headerlink" href="#cx_Oracle.FIXED_CHAR" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are fixed
+length strings (in Oracle this is CHAR columns); these behave differently in
+Oracle than varchar2 so they are differentiated here even though the DB API
+does not differentiate them.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This attribute is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.INTERVAL">
+<!--[cx_Oracle.INTERVAL]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">INTERVAL</tt><a class="headerlink" href="#cx_Oracle.INTERVAL" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are of type
+interval day to second.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.LOB">
+<!--[cx_Oracle.LOB]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">LOB</tt><a class="headerlink" href="#cx_Oracle.LOB" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is the Python type of <a title="cx_Oracle.BLOB" class="reference internal" href="#cx_Oracle.BLOB"><tt class="xref docutils literal"><span class="pre">BLOB</span></tt></a> and <a title="cx_Oracle.CLOB" class="reference internal" href="#cx_Oracle.CLOB"><tt class="xref docutils literal"><span class="pre">CLOB</span></tt></a> data
+that is returned from cursors.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.LONG_BINARY">
+<!--[cx_Oracle.LONG_BINARY]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">LONG_BINARY</tt><a class="headerlink" href="#cx_Oracle.LONG_BINARY" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are long
+binary (in Oracle these are LONG RAW columns).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.LONG_STRING">
+<!--[cx_Oracle.LONG_STRING]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">LONG_STRING</tt><a class="headerlink" href="#cx_Oracle.LONG_STRING" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are long
+strings (in Oracle these are LONG columns).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.NATIVE_FLOAT">
+<!--[cx_Oracle.NATIVE_FLOAT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">NATIVE_FLOAT</tt><a class="headerlink" href="#cx_Oracle.NATIVE_FLOAT" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are of type
+binary_double or binary_float and is only available in Oracle 10g.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.NCLOB">
+<!--[cx_Oracle.NCLOB]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">NCLOB</tt><a class="headerlink" href="#cx_Oracle.NCLOB" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are NCLOBs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.NUMBER">
+<!--[cx_Oracle.NUMBER]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">NUMBER</tt><a class="headerlink" href="#cx_Oracle.NUMBER" title="Permalink to this definition">¶</a></dt>
+<dd>This type object is used to describe columns in a database that are numbers.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.OBJECT">
+<!--[cx_Oracle.OBJECT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OBJECT</tt><a class="headerlink" href="#cx_Oracle.OBJECT" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are objects.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.ROWID">
+<!--[cx_Oracle.ROWID]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">ROWID</tt><a class="headerlink" href="#cx_Oracle.ROWID" title="Permalink to this definition">¶</a></dt>
+<dd>This type object is used to describe the pseudo column &#8220;rowid&#8221;.</dd></dl>
+
+<dl class="data">
+<dt id="cx_Oracle.STRING">
+<!--[cx_Oracle.STRING]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">STRING</tt><a class="headerlink" href="#cx_Oracle.STRING" title="Permalink to this definition">¶</a></dt>
+<dd>This type object is used to describe columns in a database that are strings
+(in Oracle this is VARCHAR2 columns).</dd></dl>
+
+<dl class="data">
 <dt id="cx_Oracle.TIMESTAMP">
 <!--[cx_Oracle.TIMESTAMP]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">TIMESTAMP</tt><a class="headerlink" href="#cx_Oracle.TIMESTAMP" title="Permalink to this definition">¶</a></dt>
 <dd><p>This type object is used to describe columns in a database that are
@@ -631,51 +732,6 @@ timestamps.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">This attribute is an extension to the DB API definition and is only
 available in Oracle 9i.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.UCBTYPE_ENTRY">
-<!--[cx_Oracle.UCBTYPE_ENTRY]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">UCBTYPE_ENTRY</tt><a class="headerlink" href="#cx_Oracle.UCBTYPE_ENTRY" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to register callbacks on entry to the function of the
-OCI.  In other words, the callback will be called prior to the execution of
-the OCI function.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.UCBTYPE_EXIT">
-<!--[cx_Oracle.UCBTYPE_EXIT]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">UCBTYPE_EXIT</tt><a class="headerlink" href="#cx_Oracle.UCBTYPE_EXIT" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to register callbacks on exit from the function of the
-OCI. In other words, the callback will be called after the execution of the
-OCI function.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.UCBTYPE_REPLACE">
-<!--[cx_Oracle.UCBTYPE_REPLACE]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">UCBTYPE_REPLACE</tt><a class="headerlink" href="#cx_Oracle.UCBTYPE_REPLACE" title="Permalink to this definition">¶</a></dt>
-<dd><p>This constant is used to register callbacks that completely replace the call
-to the OCI function.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
-</div>
-</dd></dl>
-
-<dl class="data">
-<dt id="cx_Oracle.version">
-<!--[cx_Oracle.version]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">version</tt><a class="headerlink" href="#cx_Oracle.version" title="Permalink to this definition">¶</a></dt>
-<dd><p>String constant stating the version of the module. Currently &#8216;5.0&#8216;.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This attribute is an extension to the DB API definition.</p>
 </div>
 </dd></dl>
 
@@ -801,7 +857,16 @@ raised..</dd></dl>
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
 <li><a class="reference external" href="">Module Interface</a><ul>
-<li><a class="reference external" href="#id1">Constants</a></li>
+<li><a class="reference external" href="#id1">Constants</a><ul>
+<li><a class="reference external" href="#global">Global</a></li>
+<li><a class="reference external" href="#database-callbacks">Database Callbacks</a></li>
+<li><a class="reference external" href="#database-change-notification">Database Change Notification</a></li>
+<li><a class="reference external" href="#database-resident-connection-pooling">Database Resident Connection Pooling</a></li>
+<li><a class="reference external" href="#database-startup-shutdown">Database Startup/Shutdown</a></li>
+<li><a class="reference external" href="#session-pooling">Session Pooling</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#types">Types</a></li>
 <li><a class="reference external" href="#id2">Exceptions</a></li>
 <li><a class="reference external" href="#exception-handling">Exception handling</a></li>
 </ul>
@@ -841,8 +906,8 @@ raised..</dd></dl>
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2008, Anthony Tuininga.
-      Last updated on Jan 06, 2009.
+      &copy; Copyright 2009, Anthony Tuininga.
+      Last updated on Feb 16, 2009.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
     </div>
   </body>

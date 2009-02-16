@@ -50,6 +50,7 @@ Contents:
    cursor
    variable
    session_pool
+   subscription
    lob
    license
 
