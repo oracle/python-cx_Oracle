@@ -545,7 +545,11 @@ static PyObject *NumberVar_GetValue(
             return NULL;
         if (var->type == &vt_NumberAsString)
             return stringObj;
+#if PY_MAJOR_VERSION >= 3
+        result = PyNumber_Long(stringObj);
+#else
         result = PyNumber_Int(stringObj);
+#endif
         Py_DECREF(stringObj);
         if (result || !PyErr_ExceptionMatches(PyExc_ValueError))
             return result;
