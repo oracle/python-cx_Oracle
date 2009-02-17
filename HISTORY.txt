@@ -3,7 +3,7 @@ Changes from 5.0 to 5.0.1
     Release 2 and higher.
  2) Fix bug where NCLOB data would be corrupted upon retrieval (non Unicode
     mode) or would generate exception ORA-24806 (LOB form mismatch). Oracle
-    insists upon differentiating between CLOB and NCLOB no mattter which
+    insists upon differentiating between CLOB and NCLOB no matter which
     character set is being used for retrieval.
  3) Add new attributes size, bufferSize and numElements to variable objects,
     deprecating allocelems (replaced by numElements) and maxlength (replaced
