@@ -68,7 +68,7 @@ Module Interface
 
    The purity argument is expected to be one of :data:`ATTR_PURITY_NEW` (the
    session must be new without any prior session state),
-   :data:`ATTR_PURITY_NEW` (the session may have been used before) or
+   :data:`ATTR_PURITY_SELF` (the session may have been used before) or
    :data:`ATTR_PURITY_DEFAULT` (the default behavior which is defined by Oracle
    in its documentation). This argument is only relevant in Oracle 11g and
    higher.
