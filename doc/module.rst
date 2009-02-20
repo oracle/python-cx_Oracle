@@ -301,7 +301,7 @@ Database Change Notification
 .. data:: EVENT_DEREG
 
    This constant is a possible value for the type of a message and indicates
-   that the instance is in the process of being started up.
+   that the subscription object has been deregistered.
 
 
 .. data:: EVENT_NONE
@@ -362,7 +362,7 @@ Database Change Notification
    of a message.
 
 
-.. data:: OPCODE_ALTER
+.. data:: OPCODE_DROP
 
    This constant is a possible value for the operation attribute of one of the
    table objects that are part of a message. It specifies that the table has
