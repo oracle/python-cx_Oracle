@@ -328,7 +328,7 @@ static int Variable_Resize(
 
     // copy the data from the original array to the new array
     for (i = 0; i < self->allocatedElements; i++)
-        memcpy(self->data + self->bufferSize * i,
+        memcpy( (char*) self->data + self->bufferSize * i,
                 (void*) ( (char*) origData + origBufferSize * i ),
                 origBufferSize);
     PyMem_Free(origData);
