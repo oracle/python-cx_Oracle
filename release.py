@@ -25,7 +25,7 @@ for majorVersion, minorVersion in pythonVersions:
         sys.stdout.write("Creating release %s failed.\n" % messageFragment)
         os.environ["ORACLE_HOME"] = oracleHome
         if sys.platform == "win32":
-            python = "python%s%s" % (majorVersion, minorVersion)
+            python = "c:/python%s%s/python" % (majorVersion, minorVersion)
             if majorVersion == 2 and minorVersion == 4:
                 subCommand = "bdist_wininst"
             else:
