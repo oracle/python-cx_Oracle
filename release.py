@@ -6,17 +6,20 @@ platform.
 import os
 import sys
 
-PYTHON_VERSIONS = [
+pythonVersions = [
         (2, 4),
         (2, 5),
         (2, 6),
         (3, 0)
 ]
 
-ORACLE_HOMES = os.environ["ORACLE_HOMES"].split(",")
+currentVersion = sys.version_info[:2]
+pythonVersions.remove(currentVersion)
+pythonVersions.append(currentVersion)
+oracleHomes = os.environ["ORACLE_HOMES"].split(",")
 
-for majorVersion, minorVersion in PYTHON_VERSIONS:
-    for oracleHome in ORACLE_HOMES:
+for majorVersion, minorVersion in pythonVersions:
+    for oracleHome in oracleHomes:
         messageFragment = "for Python %s.%s in home %s" % \
                 (majorVersion, minorVersion, oracleHome)
         sys.stdout.write("Creating release %s failed.\n" % messageFragment)
