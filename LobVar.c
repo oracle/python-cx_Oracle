@@ -278,6 +278,7 @@ static int LobVar_Write(
     ub4 offset,                         // offset into variable
     ub4 *amount)                        // amount to write
 {
+    ub2 charsetId = CXORA_CHARSETID;
     udt_StringBuffer buffer;
     sword status;
 
@@ -301,6 +302,7 @@ static int LobVar_Write(
         if (StringBuffer_FromUnicode(&buffer, dataObj) < 0)
             return -1;
         *amount = buffer.size / 2;
+        charsetId = OCI_UTF16ID;
 #endif
     } else {
         if (!cxString_Check(dataObj)) {
@@ -325,7 +327,7 @@ static int LobVar_Write(
     status = OCILobWrite(var->connection->handle,
             var->environment->errorHandle, var->data[position], amount, offset,
             (void*) buffer.ptr, buffer.size, OCI_ONE_PIECE, NULL, NULL,
-            CXORA_CHARSETID, var->type->charsetForm);
+            charsetId, var->type->charsetForm);
     Py_END_ALLOW_THREADS
     StringBuffer_Clear(&buffer);
     if (Environment_CheckForError(var->environment, status,
@@ -374,7 +376,7 @@ static int LobVar_SetValue(
         Py_BEGIN_ALLOW_THREADS
         status = OCILobCreateTemporary(var->connection->handle,
                 var->environment->errorHandle, var->data[position],
-                OCI_DEFAULT, OCI_DEFAULT, lobType, FALSE,
+                OCI_DEFAULT, var->type->charsetForm, lobType, FALSE,
                 OCI_DURATION_SESSION);
         Py_END_ALLOW_THREADS
         if (Environment_CheckForError(var->environment, status,
