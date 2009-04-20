@@ -71,8 +71,7 @@ Connection Object
 
 .. method:: Connection.cancel()
 
-   Cancel a long-running transaction. This is only effective on non-Windows
-   platforms.
+   Cancel a long-running transaction.
 
    .. note::
 
