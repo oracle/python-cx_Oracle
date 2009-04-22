@@ -1178,6 +1178,7 @@ static PyObject *Cursor_Parse(
 {
     PyObject *statement;
     sword status;
+    ub4 mode;
 
     // statement text is expected
     if (!PyArg_ParseTuple(args, "S", &statement))
@@ -1192,9 +1193,12 @@ static PyObject *Cursor_Parse(
         return NULL;
 
     // parse the statement
+    if (self->statementType == OCI_STMT_SELECT)
+        mode = OCI_DESCRIBE_ONLY;
+    else mode = OCI_PARSE_ONLY;
     Py_BEGIN_ALLOW_THREADS
     status = OCIStmtExecute(self->connection->handle, self->handle,
-            self->environment->errorHandle, 0, 0, 0, 0, OCI_DESCRIBE_ONLY);
+            self->environment->errorHandle, 0, 0, 0, 0, mode);
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(self->environment, status,
             "Cursor_Parse()") < 0)
