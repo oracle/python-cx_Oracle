@@ -191,7 +191,7 @@ if "WITH_UNICODE" in os.environ or sys.version_info[0] >= 3:
 # eliminate the need for setting LD_LIBRARY_PATH but it also means that this
 # location will be the only location searched for the Oracle client library
 if "FORCE_RPATH" in os.environ:
-    extraLinkArgs.append("-Wl,-rpath,%s/lib" % oracleLibDir)
+    extraLinkArgs.append("-Wl,-rpath,%s" % oracleLibDir)
 
 # tweak distribution full name to include the Oracle version
 class Distribution(distutils.dist.Distribution):
