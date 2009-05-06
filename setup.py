@@ -126,7 +126,7 @@ else:
 # define some variables
 if sys.platform == "win32":
     libDirs = [os.path.join(oracleHome, "bin"), oracleHome,
-            os.path.join(oracleHome, "sdk", "lib", "msvc")]
+            os.path.join(oracleHome, "oci", "lib", "msvc")]
     possibleIncludeDirs = ["oci/include", "rdbms/demo", "sdk/include"]
     includeDirs = []
     for dir in possibleIncludeDirs:
