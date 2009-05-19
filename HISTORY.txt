@@ -1,3 +1,15 @@
+Changes from 5.0.1 to 5.0.2
+ 1) Fix creation of temporary NCLOB values and the writing of NCLOB values in
+    non Unicode mode.
+ 2) Re-enabled parsing of non select statements as requested by Roy Terrill.
+ 3) Removed lib subdirectory when forcing RPATH now that the library directory
+    is being calculated exactly in setup.py.
+ 4) Added an additional cast in order to support compiling by Microsoft
+    Visual C++ 2008 as requested by Marco de Paoli.
+ 5) Added additional include directory to setup.py in order to support
+    compiling by Microsoft Visual Studio was requested by Jason Coombs.
+ 6) Fixed a few documentation issues.
+
 Changes from 5.0 to 5.0.1
  1) Added support for database change notification available in Oracle 10g
     Release 2 and higher.
