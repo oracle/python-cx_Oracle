@@ -3,13 +3,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Module Interface &mdash; cx_Oracle v5.0.1 documentation</title>
+    <title>Module Interface &mdash; cx_Oracle v5.0.2 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '5.0.1',
+        VERSION:     '5.0.2',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  false
@@ -19,7 +19,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="cx_Oracle v5.0.1 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.0.2 documentation" href="index.html" />
     <link rel="next" title="Connection Object" href="connection.html" />
     <link rel="prev" title="cx_Oracle" href="index.html" /> 
   </head>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="index.html" title="cx_Oracle"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
     <div class="document">
@@ -106,7 +106,7 @@ class for database resident connection pooling (DRCP) in Oracle 11g and
 higher.</p>
 <p>The purity argument is expected to be one of <a title="cx_Oracle.ATTR_PURITY_NEW" class="reference internal" href="#cx_Oracle.ATTR_PURITY_NEW"><tt class="xref docutils literal"><span class="pre">ATTR_PURITY_NEW</span></tt></a> (the
 session must be new without any prior session state),
-<a title="cx_Oracle.ATTR_PURITY_NEW" class="reference internal" href="#cx_Oracle.ATTR_PURITY_NEW"><tt class="xref docutils literal"><span class="pre">ATTR_PURITY_NEW</span></tt></a> (the session may have been used before) or
+<a title="cx_Oracle.ATTR_PURITY_SELF" class="reference internal" href="#cx_Oracle.ATTR_PURITY_SELF"><tt class="xref docutils literal"><span class="pre">ATTR_PURITY_SELF</span></tt></a> (the session may have been used before) or
 <a title="cx_Oracle.ATTR_PURITY_DEFAULT" class="reference internal" href="#cx_Oracle.ATTR_PURITY_DEFAULT"><tt class="xref docutils literal"><span class="pre">ATTR_PURITY_DEFAULT</span></tt></a> (the default behavior which is defined by Oracle
 in its documentation). This argument is only relevant in Oracle 11g and
 higher.</p>
@@ -258,7 +258,7 @@ comments on the Connection constructor for more information (<a class="reference
 <dl class="data">
 <dt id="cx_Oracle.version">
 <!--[cx_Oracle.version]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">version</tt><a class="headerlink" href="#cx_Oracle.version" title="Permalink to this definition">¶</a></dt>
-<dd><p>String constant stating the version of the module. Currently &#8216;5.0.1&#8216;.</p>
+<dd><p>String constant stating the version of the module. Currently &#8216;5.0.2&#8216;.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This attribute is an extension to the DB API definition.</p>
@@ -339,7 +339,7 @@ to the OCI function.</dd></dl>
 <dt id="cx_Oracle.EVENT_DEREG">
 <!--[cx_Oracle.EVENT_DEREG]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_DEREG</tt><a class="headerlink" href="#cx_Oracle.EVENT_DEREG" title="Permalink to this definition">¶</a></dt>
 <dd>This constant is a possible value for the type of a message and indicates
-that the instance is in the process of being started up.</dd></dl>
+that the subscription object has been deregistered.</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.EVENT_NONE">
@@ -400,8 +400,8 @@ value for the operation attribute of one of the table objects that are part
 of a message.</dd></dl>
 
 <dl class="data">
-<dt>
-<tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_ALTER</tt></dt>
+<dt id="cx_Oracle.OPCODE_DROP">
+<!--[cx_Oracle.OPCODE_DROP]--><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_DROP</tt><a class="headerlink" href="#cx_Oracle.OPCODE_DROP" title="Permalink to this definition">¶</a></dt>
 <dd>This constant is a possible value for the operation attribute of one of the
 table objects that are part of a message. It specifies that the table has
 been dropped.</dd></dl>
@@ -819,6 +819,11 @@ the following three read-only attributes.</p>
 <dd>Integer attribute representing the Oracle error number (ORA-XXXXX).</dd></dl>
 
 <dl class="attribute">
+<dt id="cx_Oracle._Error.offset">
+<!--[cx_Oracle._Error.offset]--><tt class="descclassname">_Error.</tt><tt class="descname">offset</tt><a class="headerlink" href="#cx_Oracle._Error.offset" title="Permalink to this definition">¶</a></dt>
+<dd>Integer attribute representing the error offset when applicable.</dd></dl>
+
+<dl class="attribute">
 <dt id="cx_Oracle._Error.message">
 <!--[cx_Oracle._Error.message]--><tt class="descclassname">_Error.</tt><tt class="descname">message</tt><a class="headerlink" href="#cx_Oracle._Error.message" title="Permalink to this definition">¶</a></dt>
 <dd>String attribute representing the Oracle message of the error. This
@@ -902,12 +907,12 @@ raised..</dd></dl>
         <li class="right" >
           <a href="index.html" title="cx_Oracle"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.0.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2009, Anthony Tuininga.
-      Last updated on Feb 16, 2009.
+      Last updated on May 21, 2009.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
     </div>
   </body>
