@@ -22,7 +22,7 @@ for majorVersion, minorVersion in pythonVersions:
     for oracleHome in oracleHomes:
         messageFragment = "for Python %s.%s in home %s" % \
                 (majorVersion, minorVersion, oracleHome)
-        sys.stdout.write("Creating release %s failed.\n" % messageFragment)
+        sys.stdout.write("Creating release %s.\n" % messageFragment)
         os.environ["ORACLE_HOME"] = oracleHome
         if sys.platform == "win32":
             python = "c:/python%s%s/python" % (majorVersion, minorVersion)
