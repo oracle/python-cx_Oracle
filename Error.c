@@ -9,6 +9,7 @@
 typedef struct {
     PyObject_HEAD
     sb4 code;
+    ub4 offset;
     PyObject *message;
     const char *context;
 } udt_Error;
@@ -26,6 +27,7 @@ static PyObject *Error_Str(udt_Error*);
 //-----------------------------------------------------------------------------
 static PyMemberDef g_ErrorMembers[] = {
     { "code", T_INT, offsetof(udt_Error, code), READONLY },
+    { "offset", T_INT, offsetof(udt_Error, offset), READONLY },
     { "message", T_OBJECT, offsetof(udt_Error, message), READONLY },
     { "context", T_STRING, offsetof(udt_Error, context), READONLY },
     { NULL }

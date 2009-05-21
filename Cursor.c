@@ -514,6 +514,26 @@ static int Cursor_SetRowCount(
 
 
 //-----------------------------------------------------------------------------
+// Cursor_SetErrorOffset()
+//   Set the error offset on the error object, if applicable.
+//-----------------------------------------------------------------------------
+static void Cursor_SetErrorOffset(
+    udt_Cursor *self)                   // cursor to get the error offset from
+{
+    PyObject *type, *value, *traceback;
+    udt_Error *error;
+
+    PyErr_Fetch(&type, &value, &traceback);
+    if (type == g_DatabaseErrorException) {
+        error = (udt_Error*) value;
+        OCIAttrGet(self->handle, OCI_HTYPE_STMT, &error->offset, 0,
+                OCI_ATTR_PARSE_ERROR_OFFSET, self->environment->errorHandle);
+    }
+    PyErr_Restore(type, value, traceback);
+}
+
+
+//-----------------------------------------------------------------------------
 // Cursor_InternalExecute()
 //   Perform the work of executing a cursor and set the rowcount appropriately
 // regardless of whether an error takes place.
@@ -535,6 +555,7 @@ static int Cursor_InternalExecute(
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(self->environment, status,
             "Cursor_InternalExecute()") < 0) {
+        Cursor_SetErrorOffset(self);
         if (Cursor_SetRowCount(self) < 0)
             PyErr_Clear();
         return -1;

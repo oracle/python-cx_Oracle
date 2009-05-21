@@ -772,6 +772,10 @@ Exception handling
 
    Integer attribute representing the Oracle error number (ORA-XXXXX).
 
+.. attribute:: _Error.offset
+
+   Integer attribute representing the error offset when applicable.
+
 .. attribute:: _Error.message
 
    String attribute representing the Oracle message of the error. This
