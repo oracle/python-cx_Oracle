@@ -592,6 +592,20 @@ Types
       This attribute is an extension to the DB API definition.
 
 
+.. data:: FIXED_UNICODE
+
+   This type object is used to describe columns in a database that are fixed
+   length unicode strings (in Oracle this is NCHAR columns); these behave
+   differently in Oracle than nvarchar2 so they are differentiated here even
+   though the DB API does not differentiate them.
+
+   .. note::
+
+      This type is an extension to the DB API definition and is only available
+      in Python 2.x. In Python 3.x these types of columns are returned as
+      FIXED_CHAR.
+
+
 .. data:: INTERVAL
 
    This type object is used to describe columns in a database that are of type
@@ -685,6 +699,18 @@ Types
 
       This attribute is an extension to the DB API definition and is only
       available in Oracle 9i.
+
+
+.. data:: UNICODE
+
+   This type object is used to describe columns in a database that are unicode
+   (in Oracle this is NVARCHAR2 columns).
+
+   .. note::
+
+      This type is an extension to the DB API definition and is only available
+      in Python 2.x. In Python 3.x these types of columns are returned as
+      STRING.
 
 
 .. _exceptions:
