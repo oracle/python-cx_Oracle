@@ -62,21 +62,24 @@ docFiles = "LICENSE.txt README.txt BUILD.txt HISTORY.txt html samples test"
 def CheckOracleHome(directoryToCheck):
     global oracleHome, oracleVersion, oracleLibDir
     if sys.platform in ("win32", "cygwin"):
-        subDir = "bin"
+        subDirs = ["bin"]
         filesToCheck = [
                 ("11g", "oraocci11.dll"),
                 ("10g", "oraocci10.dll"),
                 ("9i", "oraclient9.dll")
         ]
     elif sys.platform == "darwin":
-        subDir = "lib"
+        subDirs = ["lib"]
         filesToCheck = [
                 ("11g", "libclntsh.dylib.11.1"),
                 ("10g", "libclntsh.dylib.10.1"),
                 ("9i", "libclntsh.dylib.9.0")
         ]
     else:
-        subDir = "lib"
+        if struct.calcsize("P") == 4:
+            subDirs = ["lib", "lib32"]
+        else:
+            subDirs = ["lib", "lib64"]
         filesToCheck = [
                 ("11g", "libclntsh.so.11.1"),
                 ("10g", "libclntsh.so.10.1"),
@@ -92,19 +95,20 @@ def CheckOracleHome(directoryToCheck):
             oracleLibDir = directoryToCheck
             oracleVersion = version
             return True
-        fileName = os.path.join(directoryToCheck, subDir, baseFileName)
-        if os.path.exists(fileName):
-            oracleHome = directoryToCheck
-            oracleLibDir = os.path.join(directoryToCheck, subDir)
-            oracleVersion = version
-            return True
-        dirName = os.path.dirname(directoryToCheck)
-        fileName = os.path.join(dirName, subDir, baseFileName)
-        if os.path.exists(fileName):
-            oracleHome = dirName
-            oracleLibDir = os.path.join(dirName, subDir)
-            oracleVersion = version
-            return True
+        for subDir in subDirs:
+            fileName = os.path.join(directoryToCheck, subDir, baseFileName)
+            if os.path.exists(fileName):
+                oracleHome = directoryToCheck
+                oracleLibDir = os.path.join(directoryToCheck, subDir)
+                oracleVersion = version
+                return True
+            dirName = os.path.dirname(directoryToCheck)
+            fileName = os.path.join(dirName, subDir, baseFileName)
+            if os.path.exists(fileName):
+                oracleHome = dirName
+                oracleLibDir = os.path.join(dirName, subDir)
+                oracleVersion = version
+                return True
     oracleHome = oracleVersion = oracleLibDir = None
     return False
 
@@ -147,6 +151,15 @@ elif sys.platform == "cygwin":
         libDirs[i] = os.path.join(oracleHome, libDirs[i])
     libs = ["oci"]
 else:
+    libPath = os.path.join(oracleHome, "lib")
+    if struct.calcsize("P") == 4:
+        alternatePath = os.path.join(oracleHome, "lib32")
+    else:
+        alternatePath = os.path.join(oracleHome, "lib64")
+    if os.path.exists(alternatePath):
+        libPath = alternatePath
+    libDirs = [libPath, oracleHome]
+    libs = ["clntsh"]
     possibleIncludeDirs = ["rdbms/demo", "rdbms/public", "network/public",
             "sdk/include"]
     if sys.platform == "darwin":
@@ -157,20 +170,11 @@ else:
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
-        path = oracleHome.replace("lib", "include")
+        path = os.path.join(os.path.dirname(libPath), "include")
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
         raise DistutilsSetupError("cannot locate Oracle include files")
-    libPath = os.path.join(oracleHome, "lib")
-    if struct.calcsize("P") == 4:
-        alternatePath = os.path.join(oracleHome, "lib32")
-    else:
-        alternatePath = os.path.join(oracleHome, "lib64")
-    if os.path.exists(alternatePath):
-        libPath = alternatePath
-    libDirs = [libPath, oracleHome]
-    libs = ["clntsh"]
 
 # NOTE: on HP-UX Itanium with Oracle 10g you need to add the library "ttsh10"
 # to the list of libraries along with "clntsh"; since I am unable to test, I'll
