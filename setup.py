@@ -189,6 +189,8 @@ if sys.platform == "aix4":
 elif sys.platform == "cygwin":
     extraCompileArgs.append("-mno-cygwin")
     extraLinkArgs.append("-Wl,--enable-runtime-pseudo-reloc")
+elif sys.platform == "darwin":
+    extraLinkArgs.append("-shared-libgcc")
 if "WITH_UNICODE" in os.environ or sys.version_info[0] >= 3:
     extraCompileArgs.append("-DWITH_UNICODE")
 
