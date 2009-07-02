@@ -318,6 +318,12 @@ Connection Object
       This method is an extension to the DB API definition and is only
       available in Oracle 10g R2 and higher.
 
+   .. note::
+
+      Do not close the connection before the subscription object is deleted or
+      the subscription object will not be deregistered in the database. This is
+      done automatically if connection.close() is never called.
+
 
 .. attribute:: Connection.tnsentry
 
