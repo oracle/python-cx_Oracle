@@ -320,11 +320,12 @@ static int MessageTable_Initialize(
     dvoid *descriptor)                  // descriptor to get information from
 {
     dvoid **rowDescriptor, *indicator;
-    ub4 nameLength, i, numRows;
+    ub4 nameLength, i;
     udt_MessageRow *row;
     boolean exists;
     OCIColl *rows;
     sword status;
+    sb4 numRows;
     char *name;
 
     // determine operation
@@ -394,10 +395,11 @@ static int Message_Initialize(
     dvoid *descriptor)                  // descriptor to get information from
 {
     dvoid **tableDescriptor, *indicator;
-    ub4 dbnameLength, numTables, i;
     udt_MessageTable *table;
+    ub4 dbnameLength, i;
     OCIColl *tables;
     boolean exists;
+    sb4 numTables;
     char *dbname;
     sword status;
 
@@ -429,7 +431,8 @@ static int Message_Initialize(
     if (!tables)
         numTables = 0;
     else {
-        status = OCICollSize(env->handle, env->errorHandle, tables, &numTables);
+        status = OCICollSize(env->handle, env->errorHandle, tables,
+                &numTables);
         if (Environment_CheckForError(env, status,
                 "Message_Initialize(): get size of collection") < 0)
             return -1;
