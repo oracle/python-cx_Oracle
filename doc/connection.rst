@@ -173,7 +173,8 @@ Connection Object
 .. attribute:: Connection.module
 
    This write-only attribute sets the module column in the v$session table and
-   is only available in Oracle 10g.
+   is only available in Oracle 10g. The maximum length for this string is 48
+   and if you exceed this length you will get ORA-24960.
 
    .. note:
 
