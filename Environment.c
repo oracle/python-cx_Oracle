@@ -226,6 +226,7 @@ static int Environment_RaiseError(
             case 1089:
             case 3113:
             case 3114:
+            case 3135:
             case 12203:
             case 12500:
             case 12571:
