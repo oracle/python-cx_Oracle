@@ -60,7 +60,7 @@ docFiles = "LICENSE.txt README.txt BUILD.txt HISTORY.txt html samples test"
 
 # method for checking a potential Oracle home
 def CheckOracleHome(directoryToCheck):
-    global oracleHome, oracleVersion, oracleLibDir
+    global oracleHome, oracleVersion, oracleLibDir, struct
     if sys.platform in ("win32", "cygwin"):
         subDirs = ["bin"]
         filesToCheck = [
