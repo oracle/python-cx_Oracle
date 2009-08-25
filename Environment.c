@@ -220,16 +220,31 @@ static int Environment_RaiseError(
             case 2292:
                 exceptionType = g_IntegrityErrorException;
                 break;
+            case 22:
+            case 378:
+            case 602:
+            case 603:
+            case 604:
+            case 609:
             case 1012:
+            case 1013:
             case 1033:
             case 1034:
+            case 1041:
+            case 1043:
             case 1089:
+            case 1090:
+            case 1092:
             case 3113:
             case 3114:
+            case 3122:
             case 3135:
+            case 12153:
             case 12203:
             case 12500:
             case 12571:
+            case 27146:
+            case 28511:
                 exceptionType = g_OperationalErrorException;
                 break;
             default:
