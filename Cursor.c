@@ -1031,6 +1031,12 @@ static int Cursor_PerformBind(
     Py_ssize_t pos;
     ub2 i;
 
+    // ensure that input sizes are reset
+    // this is done before binding is attempted so that if binding fails and
+    // a new statement is prepared, the bind variables will be reset and
+    // spurious errors will not occur
+    self->setInputSizes = 0;
+
     // set values and perform binds for all bind variables
     if (self->bindVariables) {
         if (PyDict_Check(self->bindVariables)) {
@@ -1050,9 +1056,6 @@ static int Cursor_PerformBind(
             }
         }
     }
-
-    // ensure that input sizes are reset
-    self->setInputSizes = 0;
 
     return 0;
 }
