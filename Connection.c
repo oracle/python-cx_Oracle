@@ -33,6 +33,9 @@ typedef struct {
 static ub4 gc_ModuleAttribute = OCI_ATTR_MODULE;
 static ub4 gc_ActionAttribute = OCI_ATTR_ACTION;
 static ub4 gc_ClientInfoAttribute = OCI_ATTR_CLIENT_INFO;
+#endif
+
+#ifdef ORACLE_10GR2
 static ub4 gc_CurrentSchemaAttribute = OCI_ATTR_CURRENT_SCHEMA;
 #endif
 
@@ -141,6 +144,8 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
     { "action", 0, (setter) Connection_SetOCIAttr, 0, &gc_ActionAttribute },
     { "clientinfo", 0, (setter) Connection_SetOCIAttr, 0,
             &gc_ClientInfoAttribute },
+#endif
+#ifdef ORACLE_10GR2
     { "current_schema", (getter) Connection_GetOCIAttr,
             (setter) Connection_SetOCIAttr, 0, &gc_CurrentSchemaAttribute },
 #endif
