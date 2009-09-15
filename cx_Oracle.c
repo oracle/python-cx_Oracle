@@ -11,7 +11,7 @@
 #include <orid.h>
 #include <xa.h>
 
-// define whether or not we are building Oracle 9i
+// define what version of Oracle we are building
 #ifdef OCI_ATTR_MODULE
 #define ORACLE_10G
 #endif
