@@ -174,6 +174,10 @@ else:
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
+        path = oracleHome.replace("lib", "include")
+        if os.path.isdir(path):
+            includeDirs.append(path)
+    if not includeDirs:
         raise DistutilsSetupError("cannot locate Oracle include files")
 
 # NOTE: on HP-UX Itanium with Oracle 10g you need to add the library "ttsh10"
