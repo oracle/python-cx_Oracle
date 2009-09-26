@@ -10,7 +10,7 @@ pythonVersions = [
         (2, 4),
         (2, 5),
         (2, 6),
-        (3, 0)
+        (3, 1)
 ]
 
 currentVersion = sys.version_info[:2]
