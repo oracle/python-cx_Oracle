@@ -875,7 +875,7 @@ static udt_Variable *Variable_NewByOutputTypeHandler(
         return NULL;
 
     // retrieve scale and precision of the parameter, if applicable
-    scale = precision = 0;
+    precision = scale = 0;
     if (varType->pythonType == &g_NumberVarType) {
         status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &scale, 0,
                 OCI_ATTR_SCALE, cursor->environment->errorHandle);
