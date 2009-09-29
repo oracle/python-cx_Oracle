@@ -1125,7 +1125,7 @@ static PyObject *Connection_GetVersion(
     }
 
     // call stored procedure
-    if (Cursor_Call(cursor, NULL, procName, listOfArguments) < 0) {
+    if (Cursor_Call(cursor, NULL, procName, listOfArguments, NULL) < 0) {
         Py_DECREF(procName);
         Py_DECREF(listOfArguments);
         Py_DECREF(cursor);

@@ -66,11 +66,12 @@ Cursor Object
       The DB API definition does not define this attribute.
 
 
-.. method:: Cursor.callfunc(name, returnType, [parameters=[]])
+.. method:: Cursor.callfunc(name, returnType, parameters=[], keywordParameters = {})
 
    Call a function with the given name. The return type is specified in the
    same notation as is required by setinputsizes(). The sequence of parameters
-   must contain one entry for each argument that the function expects. The
+   must contain one entry for each argument that the function expects. Any
+   keyword parameters will be included after the positional parameters. The
    result of the call is the return value of the function.
 
    .. note::
@@ -78,13 +79,18 @@ Cursor Object
       The DB API definition does not define this method.
 
 
-.. method:: Cursor.callproc(name, [parameters=[]])
+.. method:: Cursor.callproc(name, parameters=[], keyewordParameters = {})
 
    Call a procedure with the given name. The sequence of parameters must
    contain one entry for each argument that the procedure expects. The result
    of the call is a modified copy of the input sequence. Input parameters are
    left untouched; output and input/output parameters are replaced with
-   possibly new values.
+   possibly new values. Keyword parameters will be included after the
+   positional parameters.
+
+   .. note::
+
+      The DB API definition does not allow for keyword parameters.
 
 
 .. method:: Cursor.close()

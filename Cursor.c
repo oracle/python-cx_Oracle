@@ -1270,6 +1270,164 @@ static PyObject *Cursor_Prepare(
 
 
 //-----------------------------------------------------------------------------
+// Cursor_CallCalculateSize()
+//   Calculate the size of the statement that is to be executed.
+//-----------------------------------------------------------------------------
+static int Cursor_CallCalculateSize(
+    PyObject *name,                     // name of procedure/function to call
+    udt_Variable *returnValue,          // return value variable (optional)
+    PyObject *listOfArguments,          // list of positional arguments
+    PyObject *keywordArguments,         // dictionary of keyword arguments
+    int *size)                          // statement size (OUT)
+{
+    int numPositionalArgs, numKeywordArgs;
+
+    // set base size without any arguments
+    *size = 17;
+
+    // add any additional space required to handle the return value
+    if (returnValue)
+        *size += 6;
+
+    // assume up to 9 characters for each positional argument
+    // this allows up to four digits for the placeholder if the bind variale
+    // is a boolean value
+    if (listOfArguments) {
+        numPositionalArgs = PySequence_Size(listOfArguments);
+        if (numPositionalArgs < 0)
+            return -1;
+        *size += numPositionalArgs * 9;
+    }
+
+    // assume up to 15 characters for each keyword argument
+    // this allows up to four digits for the placeholder if the bind variable
+    // is a boolean value
+    if (keywordArguments) {
+        numKeywordArgs = PyDict_Size(keywordArguments);
+        if (numKeywordArgs < 0)
+            return -1;
+        *size += numKeywordArgs * 15;
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// Cursor_CallBuildStatement()
+//   Determine the statement and the bind variables to bind to the statement
+// that is created for calling a stored procedure or function.
+//-----------------------------------------------------------------------------
+static int Cursor_CallBuildStatement(
+    PyObject *name,                     // name of procedure/function to call
+    udt_Variable *returnValue,          // return value variable (optional)
+    PyObject *listOfArguments,          // arguments
+    PyObject *keywordArguments,         // keyword arguments
+    char *statement,                    // allocated statement text
+    PyObject **statementObj,            // statement object (OUT)
+    PyObject **bindVariables)           // variables to bind (OUT)
+{
+    PyObject *key, *value, *format, *formatArgs, *positionalArgs, *temp;
+    int i, argNum, numPositionalArgs;
+    Py_ssize_t pos;
+    char *ptr;
+
+    // initialize the bind variables to the list of positional arguments
+    if (listOfArguments)
+        *bindVariables = PySequence_List(listOfArguments);
+    else *bindVariables = PyList_New(0);
+    if (!*bindVariables)
+        return -1;
+
+    // insert the return variable, if applicable
+    if (returnValue) {
+        if (PyList_Insert(*bindVariables, 0, (PyObject*) returnValue) < 0)
+            return -1;
+    }
+
+    // initialize format arguments
+    formatArgs = PyList_New(0);
+    if (!formatArgs)
+        return -1;
+    if (PyList_Append(formatArgs, name) < 0) {
+        Py_DECREF(formatArgs);
+        return -1;
+    }
+
+    // begin building the statement
+    argNum = 1;
+    strcpy(statement, "begin ");
+    if (returnValue) {
+        strcat(statement, ":1 := ");
+        argNum++;
+    }
+    strcat(statement, "%s");
+    ptr = statement + strlen(statement);
+    *ptr++ = '(';
+
+    // include any positional arguments first
+    if (listOfArguments) {
+        positionalArgs = PySequence_Fast(listOfArguments,
+                "expecting sequence of arguments");
+        if (!positionalArgs) {
+            Py_DECREF(formatArgs);
+            return -1;
+        }
+        numPositionalArgs = PySequence_Size(listOfArguments);
+        for (i = 0; i < numPositionalArgs; i++) {
+            if (i > 0)
+                *ptr++ = ',';
+            ptr += sprintf(ptr, ":%d", argNum++);
+            if (PyBool_Check(PySequence_Fast_GET_ITEM(positionalArgs, i)))
+                ptr += sprintf(ptr, " = 1");
+        }
+        Py_DECREF(positionalArgs);
+    }
+
+    // next append any keyword arguments
+    if (keywordArguments) {
+        pos = 0;
+        while (PyDict_Next(keywordArguments, &pos, &key, &value)) {
+            if (PyList_Append(*bindVariables, value) < 0) {
+                Py_DECREF(formatArgs);
+                return -1;
+            }
+            if (PyList_Append(formatArgs, key) < 0) {
+                Py_DECREF(formatArgs);
+                return -1;
+            }
+            if ((argNum > 1 && !returnValue) || (argNum > 2 && returnValue))
+                *ptr++ = ',';
+            ptr += sprintf(ptr, "%%s => :%d", argNum++);
+            if (PyBool_Check(value))
+                ptr += sprintf(ptr, " = 1");
+        }
+    }
+
+    // create statement object
+    strcpy(ptr, "); end;");
+    format = cxString_FromAscii(statement);
+    if (!format) {
+        Py_DECREF(formatArgs);
+        return -1;
+    }
+    temp = PyList_AsTuple(formatArgs);
+    Py_DECREF(formatArgs);
+    if (!temp) {
+        Py_DECREF(format);
+        return -1;
+    }
+    *statementObj = cxString_Format(format, temp);
+    Py_DECREF(format);
+    Py_DECREF(temp);
+    if (!*statementObj)
+        return -1;
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // Cursor_Call()
 //   Call a stored procedure or function.
 //-----------------------------------------------------------------------------
@@ -1277,105 +1435,53 @@ static int Cursor_Call(
     udt_Cursor *self,                   // cursor to call procedure/function
     udt_Variable *returnValue,          // return value variable (optional)
     PyObject *name,                     // name of procedure/function to call
-    PyObject *listOfArguments)          // arguments to procedure/function
+    PyObject *listOfArguments,          // arguments
+    PyObject *keywordArguments)         // keyword arguments
 {
-    PyObject *bindVariables, *results, *arguments, *statementObj;
-    int numArguments, statementSize, i, offset;
-    PyObject *format, *formatArgs;
-    char *statement, *ptr;
+    PyObject *bindVariables, *statementObj, *results;
+    int statementSize;
+    char *statement;
 
-    // determine the number of arguments passed
+    // verify that the arguments are passed correctly
     if (listOfArguments) {
         if (!PySequence_Check(listOfArguments)) {
             PyErr_SetString(PyExc_TypeError, "arguments must be a sequence");
             return -1;
         }
-        numArguments = PySequence_Size(listOfArguments);
-        if (numArguments < 0)
+    }
+    if (keywordArguments) {
+        if (!PyDict_Check(keywordArguments)) {
+            PyErr_SetString(PyExc_TypeError, "arguments must be a sequence");
             return -1;
-    } else {
-        numArguments = 0;
-        listOfArguments = PyList_New(0);
-        if (!listOfArguments)
-            return -1;
+        }
     }
 
     // make sure the cursor is open
     if (Cursor_IsOpen(self) < 0)
         return -1;
 
-    // determine the statement size add the return value, if applicable
-    offset = 0;
-    statementSize = numArguments * 9 + 17;
-    if (returnValue) {
-        offset = 1;
-        statementSize += 10;
-        bindVariables = PySequence_List(listOfArguments);
-        if (!bindVariables)
-            return -1;
-        if (PyList_Insert(bindVariables, 0, (PyObject*) returnValue) < 0) {
-            Py_DECREF(bindVariables);
-            return -1;
-        }
-    } else {
-        Py_INCREF(listOfArguments);
-        bindVariables = listOfArguments;
-    }
+    // determine the statement size
+    if (Cursor_CallCalculateSize(name, returnValue, listOfArguments,
+            keywordArguments, &statementSize) < 0)
+        return -1;
 
     // allocate a string for the statement
     statement = (char*) PyMem_Malloc(statementSize);
     if (!statement) {
-        Py_DECREF(bindVariables);
         PyErr_NoMemory();
         return -1;
     }
 
-    // build up the statement
-    arguments = PySequence_Fast(listOfArguments,
-            "expecting sequence of arguments");
-    if (!arguments) {
-        Py_DECREF(bindVariables);
+    // determine the statement to execute and the argument to pass
+    bindVariables = statementObj = NULL;
+    if (Cursor_CallBuildStatement(name, returnValue, listOfArguments,
+            keywordArguments, statement, &statementObj, &bindVariables) < 0) {
         PyMem_Free(statement);
+        Py_XDECREF(statementObj);
+        Py_XDECREF(bindVariables);
         return -1;
     }
-    strcpy(statement, "begin ");
-    if (returnValue)
-        strcat(statement, ":1 := ");
-    strcat(statement, "%s");
-    ptr = statement + strlen(statement);
-    *ptr++ = '(';
-    for (i = 0; i < numArguments; i++) {
-        if (i > 0)
-            *ptr++ = ',';
-        ptr += sprintf(ptr, ":%d", i + offset + 1);
-        if (PyBool_Check(PySequence_Fast_GET_ITEM(arguments, i)))
-            ptr += sprintf(ptr, " = 1");
-    }
-    strcpy(ptr, "); end;");
-    Py_DECREF(arguments);
-
-    // create the statement object
-    format = cxString_FromAscii(statement);
     PyMem_Free(statement);
-    if (!format) {
-        Py_DECREF(bindVariables);
-        return -1;
-    }
-    formatArgs = PyTuple_New(1);
-    if (!formatArgs) {
-        Py_DECREF(bindVariables);
-        Py_DECREF(format);
-        return -1;
-    }
-    Py_INCREF(name);
-    PyTuple_SET_ITEM(formatArgs, 0, name);
-    statementObj = cxString_Format(format, formatArgs);
-    Py_DECREF(format);
-    Py_DECREF(formatArgs);
-    if (!statementObj) {
-        Py_DECREF(bindVariables);
-        return -1;
-    }
 
     // execute the statement on the cursor
     results = PyObject_CallMethod( (PyObject*) self, "execute", "OO",
@@ -1399,15 +1505,16 @@ static PyObject *Cursor_CallFunc(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
-    static char *keywordList[] = { "name", "returnType", "parameters", NULL };
-    PyObject *listOfArguments, *returnType, *results, *name;
+    static char *keywordList[] = { "name", "returnType", "parameters",
+            "keywordParameters", NULL };
+    PyObject *listOfArguments, *keywordArguments, *returnType, *results, *name;
     udt_Variable *var;
 
-    // expect stored function name, return type and optionally a list of
-    // arguments
-    listOfArguments = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O|O", keywordList,
-            cxString_Type, &name, &returnType, &listOfArguments))
+    // parse arguments
+    listOfArguments = keywordArguments = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O|OO", keywordList,
+            cxString_Type, &name, &returnType, &listOfArguments,
+            &keywordArguments))
         return NULL;
 
     // create the return variable
@@ -1416,7 +1523,7 @@ static PyObject *Cursor_CallFunc(
         return NULL;
 
     // call the function
-    if (Cursor_Call(self, var, name, listOfArguments) < 0)
+    if (Cursor_Call(self, var, name, listOfArguments, keywordArguments) < 0)
         return NULL;
 
     // determine the results
@@ -1435,18 +1542,19 @@ static PyObject *Cursor_CallProc(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
-    static char *keywordList[] = { "name", "parameters", NULL };
-    PyObject *listOfArguments, *results, *var, *temp, *name;
+    static char *keywordList[] = { "name", "parameters", "keywordParameters",
+            NULL };
+    PyObject *listOfArguments, *keywordArguments, *results, *var, *temp, *name;
     int numArgs, i;
 
-    // expect stored procedure name and optionally a list of arguments
-    listOfArguments = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|O", keywordList,
-            cxString_Type, &name, &listOfArguments))
+    // parse arguments
+    listOfArguments = keywordArguments = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|OO", keywordList,
+            cxString_Type, &name, &listOfArguments, &keywordArguments))
         return NULL;
 
     // call the stored procedure
-    if (Cursor_Call(self, NULL, name, listOfArguments) < 0)
+    if (Cursor_Call(self, NULL, name, listOfArguments, keywordArguments) < 0)
         return NULL;
 
     // create the return value
