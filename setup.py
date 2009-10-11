@@ -195,7 +195,8 @@ elif sys.platform == "cygwin":
     extraLinkArgs.append("-Wl,--enable-runtime-pseudo-reloc")
 elif sys.platform == "darwin":
     extraLinkArgs.append("-shared-libgcc")
-if "WITH_UNICODE" in os.environ or sys.version_info[0] >= 3:
+withUnicode = sys.version_info[0] < 3 and "WITH_UNICODE" in os.environ
+if withUnicode or sys.version_info[0] >= 3:
     extraCompileArgs.append("-DWITH_UNICODE")
 
 # force the inclusion of an RPATH linker directive if desired; this will
@@ -225,6 +226,8 @@ class bdist_rpm(distutils.command.bdist_rpm.bdist_rpm):
         parts = origFileName.split("-")
         parts.insert(2, oracleVersion)
         parts.insert(3, "py%s%s" % sys.version_info[:2])
+        if withUnicode:
+            parts.insert(3, "unicode")
         newFileName = "-".join(parts)
         self.move_file(os.path.join("dist", origFileName),
         os.path.join("dist", newFileName))
@@ -240,6 +243,8 @@ class build(distutils.command.build.build):
         platSpecifier = ".%s-%s-%s" % \
                 (distutils.util.get_platform(), sys.version[0:3],
                  oracleVersion)
+        if withUnicode:
+            platSpecifier += "-unicode"
         if self.build_platlib is None:
             self.build_platlib = os.path.join(self.build_base,
                     "lib%s" % platSpecifier)
