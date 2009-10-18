@@ -1,18 +1,20 @@
 Changes from 5.0.2 to 5.0.3
  1) Added support for 64-bit Windows.
  2) Added support for Python 3.1 and dropped support for Python 3.0.
- 3) Added documentation for the UNICODE and FIXED_UNICODE variable types.
- 4) Added extra link arguments required for Mac OS X as suggested by Jason
+ 3) Added support for keyword arguments in cursor.callproc() and
+    cursor.callfunc().
+ 4) Added documentation for the UNICODE and FIXED_UNICODE variable types.
+ 5) Added extra link arguments required for Mac OS X as suggested by Jason
     Woodward.
- 5) Added additional error codes to the list of error codes that raise
+ 6) Added additional error codes to the list of error codes that raise
     OperationalError rather than DatabaseError.
- 6) Fixed calculation of display size for strings with national database
+ 7) Fixed calculation of display size for strings with national database
     character sets that are not the default AL16UTF16.
- 7) Moved the resetting of the setinputsizes flag before the binding takes
+ 8) Moved the resetting of the setinputsizes flag before the binding takes
     place so that if an error takes place and a new statement is prepared
     subsequently, spurious errors will not occur.
- 8) Fixed compilation with Oracle 10g Release 1.
- 9) Tweaked documentation based on feedback from a number of people.
+ 9) Fixed compilation with Oracle 10g Release 1.
+10) Tweaked documentation based on feedback from a number of people.
 
 Changes from 5.0.1 to 5.0.2
  1) Fix creation of temporary NCLOB values and the writing of NCLOB values in

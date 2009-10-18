@@ -78,6 +78,12 @@ Cursor Object
 
       The DB API definition does not define this method.
 
+   .. note::
+
+      If you intend to call setinputsizes() on the cursor prior to making this
+      call, then note that the first item in the argument list refers to the
+      return value of the function.
+
 
 .. method:: Cursor.callproc(name, parameters=[], keyewordParameters = {})
 
@@ -86,7 +92,7 @@ Cursor Object
    of the call is a modified copy of the input sequence. Input parameters are
    left untouched; output and input/output parameters are replaced with
    possibly new values. Keyword parameters will be included after the
-   positional parameters.
+   positional parameters and are not returned as part of the output sequence.
 
    .. note::
 
@@ -344,13 +350,19 @@ Cursor Object
 
 .. method:: Cursor.setinputsizes(\*args, \*\*keywordArgs)
 
-   This can be used before a call to execute() to predefine memory areas for
-   the operation's parameters. Each parameter should be a type object
-   corresponding to the input that will be used or it should be an integer
-   specifying the maximum length of a string parameter. Use keyword arguments
-   when binding by name and positional arguments when binding by position. The
-   singleton None can be used as a parameter when using positional arguments to
-   indicate that no space should be reserved for that position.
+   This can be used before a call to execute(), callfunc() or callproc() to
+   predefine memory areas for the operation's parameters. Each parameter should
+   be a type object corresponding to the input that will be used or it should
+   be an integer specifying the maximum length of a string parameter. Use
+   keyword arguments when binding by name and positional arguments when binding
+   by position. The singleton None can be used as a parameter when using
+   positional arguments to indicate that no space should be reserved for that
+   position.
+
+   .. note::
+
+      If you plan to use callfunc() then be aware that the first argument in
+      the list refers to the return value of the function.
 
 
 .. method:: Cursor.setoutputsize(size, [column])
