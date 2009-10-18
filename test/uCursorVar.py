@@ -11,12 +11,12 @@ class TestCursorVar(BaseTestCase):
         self.failUnlessEqual(cursor.description, None)
         self.cursor.execute(u"""
                 begin
-                  open :p_Cursor for select 1 NumberCol from dual;
+                  open :p_Cursor for select 'X' StringValue from dual;
                 end;""",
                 p_Cursor = cursor)
         self.failUnlessEqual(cursor.description,
-                [ ('NUMBERCOL', cx_Oracle.NUMBER, 127, 2, 0, 0, 1) ])
-        self.failUnlessEqual(cursor.fetchall(), [(1.0,)])
+                [ ('STRINGVALUE', cx_Oracle.FIXED_CHAR, 1, 1, 0, 0, 1) ])
+        self.failUnlessEqual(cursor.fetchall(), [('X',)])
 
     def testBindCursorInPackage(self):
         "test binding in a cursor from a package"
