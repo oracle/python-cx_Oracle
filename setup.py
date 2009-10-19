@@ -210,7 +210,10 @@ class Distribution(distutils.dist.Distribution):
 
     def get_fullname_with_oracle_version(self):
         name = self.metadata.get_fullname()
-        return "%s-%s" % (name, oracleVersion)
+        fullName = "%s-%s" % (name, oracleVersion)
+        if withUnicode:
+            fullName += "-unicode"
+        return fullName
 
 
 # tweak the RPM build command to include the Python and Oracle version
