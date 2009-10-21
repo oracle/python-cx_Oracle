@@ -15,6 +15,9 @@ Changes from 5.0.2 to 5.0.3
     subsequently, spurious errors will not occur.
  9) Fixed compilation with Oracle 10g Release 1.
 10) Tweaked documentation based on feedback from a number of people.
+11) Added support for running the test suite using "python setup.py test"
+12) Added support for setting the CLIENT_IDENTIFIER value in the v$session
+    table for connections.
 
 Changes from 5.0.1 to 5.0.2
  1) Fix creation of temporary NCLOB values and the writing of NCLOB values in

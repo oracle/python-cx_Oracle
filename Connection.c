@@ -29,6 +29,7 @@ typedef struct {
 //-----------------------------------------------------------------------------
 // constants for the OCI attributes
 //-----------------------------------------------------------------------------
+static ub4 gc_ClientIdentifierAttribute = OCI_ATTR_CLIENT_IDENTIFIER;
 #ifdef ORACLE_10G
 static ub4 gc_ModuleAttribute = OCI_ATTR_MODULE;
 static ub4 gc_ActionAttribute = OCI_ATTR_ACTION;
@@ -145,6 +146,8 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
     { "clientinfo", 0, (setter) Connection_SetOCIAttr, 0,
             &gc_ClientInfoAttribute },
 #endif
+    { "clientidentifier", 0, (setter) Connection_SetOCIAttr, 0,
+            &gc_ClientIdentifierAttribute },
 #ifdef ORACLE_10GR2
     { "current_schema", (getter) Connection_GetOCIAttr,
             (setter) Connection_SetOCIAttr, 0, &gc_CurrentSchemaAttribute },
@@ -391,7 +394,7 @@ static PyObject *Connection_GetOCIAttr(
             (dvoid**) &sessionHandle, 0, OCI_ATTR_SESSION,
             self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
-            "Connection_SetOCIAttr(): determine session handle") < 0)
+            "Connection_GetOCIAttr(): determine session handle") < 0)
         return NULL;
 
     // get the value from the OCI
@@ -444,7 +447,7 @@ static int Connection_SetOCIAttr(
             buffer.size, *attribute, self->environment->errorHandle);
     StringBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->environment, status,
-            "Connection_SetOCIAttr()") < 0)
+            "Connection_SetOCIAttr(): set value") < 0)
         return -1;
     return 0;
 }
