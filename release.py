@@ -6,6 +6,7 @@ platform.
 import os
 import sys
 
+testMode = "--test" in sys.argv
 oracleHomes = os.environ["CX_ORACLE_HOMES"].split(",")
 pythonVersions = os.environ["CX_ORACLE_PYTHON_VERSIONS"].split(",")
 pythonFormat = os.environ["CX_ORACLE_PYTHON_FORMAT"]
@@ -18,21 +19,27 @@ for withUnicode in (False, True):
         if withUnicode and majorVersion >= 3:
             continue
         for oracleHome in oracleHomes:
-            messageFragment = "for Python %s.%s in home %s" % \
-                    (majorVersion, minorVersion, oracleHome)
-            sys.stdout.write("Creating release %s.\n" % messageFragment)
             os.environ["ORACLE_HOME"] = oracleHome
             python = pythonFormat % (majorVersion, minorVersion)
-            if sys.platform == "win32":
+            if testMode:
+                subCommand = "test"
+                subCommandArgs = ""
+            elif sys.platform == "win32":
+                subCommandArgs = ""
                 if majorVersion == 2 and minorVersion == 4:
                     subCommand = "bdist_wininst"
                 else:
                     subCommand = "bdist_msi"
-                command = "%s setup.py %s" % (python, subCommand)
             else:
-                command = "%s setup.py bdist_rpm --no-autoreq --python %s" % \
-                        (python, python)
+                subCommand = "bdist_rpm"
+                subCommandArgs = "--no-autoreq --python %s" % python
+            command = "%s setup.py %s %s" % \
+                    (python, subCommand, subCommandArgs)
+            messageFragment = "%s for Python %s.%s in home %s" % \
+                    (subCommand, majorVersion, minorVersion, oracleHome)
+            sys.stdout.write("Executing %s.\n" % messageFragment)
             sys.stdout.write("Running command %s\n" % command)
             if os.system(command) != 0:
-                sys.exit("Stopping. Build %s failed.\n" % messageFragment)
+                msg = "Stopping. execution of %s failed.\n" % messageFragment
+                sys.exit(msg)
 
