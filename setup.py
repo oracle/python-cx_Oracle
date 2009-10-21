@@ -19,6 +19,7 @@ except ImportError:
     distutils.command.bdist_wininst = None
 import distutils.command.bdist_rpm
 import distutils.command.build
+import distutils.core
 import distutils.dist
 import distutils.util
 import os
@@ -256,7 +257,28 @@ class build(distutils.command.build.build):
                     "temp%s" % platSpecifier)
         distutils.command.build.build.finalize_options(self)
 
-commandClasses = dict(build = build, bdist_rpm = bdist_rpm)
+class test(distutils.core.Command):
+    description = "run the test suite for the extension"
+    user_options = []
+
+    def finalize_options(self):
+        pass
+
+    def initialize_options(self):
+        pass
+
+    def run(self):
+        self.run_command("build")
+        buildCommand = self.distribution.get_command_obj("build")
+        sys.path.insert(0, os.path.abspath("test"))
+        sys.path.insert(0, os.path.abspath(buildCommand.build_lib))
+        if sys.version_info[0] < 3:
+            execfile(os.path.join("test", "test.py"))
+        else:
+            fileName = os.path.join("test", "test3k.py")
+            exec(open(fileName).read())
+
+commandClasses = dict(build = build, bdist_rpm = bdist_rpm, test = test)
 
 # tweak the Windows installer names to include the Oracle version
 if distutils.command.bdist_msi is not None:
