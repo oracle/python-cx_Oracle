@@ -146,7 +146,7 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
     { "clientinfo", 0, (setter) Connection_SetOCIAttr, 0,
             &gc_ClientInfoAttribute },
 #endif
-    { "clientidentifier", 0, (setter) Connection_SetOCIAttr, 0,
+    { "client_identifier", 0, (setter) Connection_SetOCIAttr, 0,
             &gc_ClientIdentifierAttribute },
 #ifdef ORACLE_10GR2
     { "current_schema", (getter) Connection_GetOCIAttr,

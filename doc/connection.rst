@@ -88,7 +88,7 @@ Connection Object
       This method is an extension to the DB API definition.
 
 
-.. attribute:: Connection.clientidentifier
+.. attribute:: Connection.client_identifier
 
    This write-only attribute sets the client_identifier column in the
    v$session table.
