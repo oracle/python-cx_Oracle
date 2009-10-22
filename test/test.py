@@ -86,4 +86,5 @@ if failures:
     print "***** Some tests in the following modules failed. *****"
     for name in failures:
         print "      %s" % name
+    sys.exit(1)
 
