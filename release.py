@@ -10,6 +10,7 @@ testMode = "--test" in sys.argv
 oracleHomes = os.environ["CX_ORACLE_HOMES"].split(",")
 pythonVersions = os.environ["CX_ORACLE_PYTHON_VERSIONS"].split(",")
 pythonFormat = os.environ["CX_ORACLE_PYTHON_FORMAT"]
+origPath = os.environ["PATH"]
 
 for withUnicode in (False, True):
     if withUnicode:
@@ -19,7 +20,10 @@ for withUnicode in (False, True):
         if withUnicode and majorVersion >= 3:
             continue
         for oracleHome in oracleHomes:
-            os.environ["ORACLE_HOME"] = oracleHome
+            if sys.platform == "win32":
+                os.environ["PATH"] = oracleHome + os.pathsep + origPath
+            else:
+                os.environ["ORACLE_HOME"] = oracleHome
             python = pythonFormat % (majorVersion, minorVersion)
             if testMode:
                 subCommand = "test"
