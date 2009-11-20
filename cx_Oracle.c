@@ -118,6 +118,8 @@ static PyObject *g_ShortNumberToStringFormatObj = NULL;
 static udt_StringBuffer g_ShortNumberToStringFormatBuffer;
 static PyObject *g_NumberToStringFormatObj = NULL;
 static udt_StringBuffer g_NumberToStringFormatBuffer;
+static PyObject *g_NlsNumericCharactersObj = NULL;
+static udt_StringBuffer g_NlsNumericCharactersBuffer;
 
 
 //-----------------------------------------------------------------------------
@@ -335,6 +337,13 @@ static PyObject *Module_Initialize(void)
         return NULL;
     if (StringBuffer_Fill(&g_NumberToStringFormatBuffer,
             g_NumberToStringFormatObj) < 0)
+        return NULL;
+    g_NlsNumericCharactersObj = cxString_FromAscii(
+            "NLS_NUMERIC_CHARACTERS='.,'");
+    if (!g_NlsNumericCharactersObj)
+        return NULL;
+    if (StringBuffer_Fill(&g_NlsNumericCharactersBuffer,
+            g_NlsNumericCharactersObj) < 0)
         return NULL;
 
     // prepare the types for use by the module

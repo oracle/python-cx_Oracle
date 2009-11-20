@@ -20,6 +20,9 @@ Changes from 5.0.2 to 5.0.3
     table for connections.
 13) Added exception when attempting to call executemany() with arrays which is
     not supported by the OCI.
+14) Fixed bug when converting from decimal would result in OCI-22062 because
+    the locale decimal point was not a period. Thanks to Amaury Forgeot d'Arc
+    for the solution to this problem.
 
 Changes from 5.0.1 to 5.0.2
  1) Fix creation of temporary NCLOB values and the writing of NCLOB values in

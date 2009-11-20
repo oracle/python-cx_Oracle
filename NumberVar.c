@@ -464,7 +464,8 @@ static int NumberVar_SetValueFromDecimal(
     }
     status = OCINumberFromText(var->environment->errorHandle,
             (text*) textBuffer.ptr, textBuffer.size, (text*) formatBuffer.ptr,
-            formatBuffer.size, NULL, 0, &var->data[pos]);
+            formatBuffer.size, g_NlsNumericCharactersBuffer.ptr,
+            g_NlsNumericCharactersBuffer.size, &var->data[pos]);
     StringBuffer_Clear(&textBuffer);
     StringBuffer_Clear(&formatBuffer);
     Py_DECREF(textValue);
