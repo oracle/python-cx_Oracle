@@ -1364,8 +1364,14 @@ static int Variable_SetValue(
     unsigned arrayPos,                  // array position
     PyObject *value)                    // value to set
 {
-    if (var->isArray)
+    if (var->isArray) {
+        if (arrayPos > 0) {
+            PyErr_SetString(g_NotSupportedErrorException,
+                    "arrays of arrays are not supported by the OCI");
+            return -1;
+        }
         return Variable_SetArrayValue(var, value);
+    }
     return Variable_SetSingleValue(var, arrayPos, value);
 }
 

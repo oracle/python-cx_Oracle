@@ -18,6 +18,8 @@ Changes from 5.0.2 to 5.0.3
 11) Added support for running the test suite using "python setup.py test"
 12) Added support for setting the CLIENT_IDENTIFIER value in the v$session
     table for connections.
+13) Added exception when attempting to call executemany() with arrays which is
+    not supported by the OCI.
 
 Changes from 5.0.1 to 5.0.2
  1) Fix creation of temporary NCLOB values and the writing of NCLOB values in
