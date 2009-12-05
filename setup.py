@@ -241,9 +241,7 @@ class bdist_rpm(distutils.command.bdist_rpm.bdist_rpm):
 class build(distutils.command.build.build):
 
     def finalize_options(self):
-        global distutils
-        global os
-        global sys
+        global distutils, os, sys, withUnicode
         platSpecifier = ".%s-%s-%s" % \
                 (distutils.util.get_platform(), sys.version[0:3],
                  oracleVersion)
