@@ -180,7 +180,7 @@ begin
     insert into cx_Oracle.TestUnicodes
     values (i, 'Unicode ' || unistr('\3042') || ' ' || to_char(i),
         'Fixed Unicode ' || to_char(i),
-        decode(mod(i, 2), 0, null, 'Nullable ' || to_char(i)));
+        decode(mod(i, 2), 0, null, unistr('Nullable ') || to_char(i)));
   end loop;
 end;
 /
