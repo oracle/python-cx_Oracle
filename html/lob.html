@@ -1,15 +1,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>LOB Objects &mdash; cx_Oracle v5.0.2 documentation</title>
+    <title>LOB Objects &mdash; cx_Oracle v5.0.3 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '5.0.2',
+        URL_ROOT:    '#',
+        VERSION:     '5.0.3',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  false
@@ -17,9 +19,7 @@
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="top" title="cx_Oracle v5.0.2 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.0.3 documentation" href="index.html" />
     <link rel="next" title="License" href="license.html" />
     <link rel="prev" title="Subscription Object" href="subscription.html" /> 
   </head>
@@ -39,15 +39,15 @@
         <li class="right" >
           <a href="subscription.html" title="Subscription Object"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.0.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
+
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body">
             
-  
   <div class="section" id="lob-objects">
 <span id="lobobj"></span><h1>LOB Objects<a class="headerlink" href="#lob-objects" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
@@ -67,63 +67,63 @@ after a subsequent fetch is detected.</p>
 </div>
 <dl class="method">
 <dt id="LOB.close">
-<!--[LOB.close]--><tt class="descclassname">LOB.</tt><tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.close" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.close" title="Permalink to this definition">¶</a></dt>
 <dd>Close the <tt class="xref docutils literal"><span class="pre">LOB</span></tt>. Call this when writing is completed so that the
 indexes associated with the LOB can be updated.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.fileexists">
-<!--[LOB.fileexists]--><tt class="descclassname">LOB.</tt><tt class="descname">fileexists</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.fileexists" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">fileexists</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.fileexists" title="Permalink to this definition">¶</a></dt>
 <dd>Return a boolean indicating if the file referenced by the <tt class="xref docutils literal"><span class="pre">BFILE</span></tt>
 type LOB exists.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.getchunksize">
-<!--[LOB.getchunksize]--><tt class="descclassname">LOB.</tt><tt class="descname">getchunksize</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.getchunksize" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">getchunksize</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.getchunksize" title="Permalink to this definition">¶</a></dt>
 <dd>Return the chunk size for the internal LOB. Reading and writing to the LOB
 in chunks of multiples of this size will improve performance.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.getfilename">
-<!--[LOB.getfilename]--><tt class="descclassname">LOB.</tt><tt class="descname">getfilename</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.getfilename" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">getfilename</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.getfilename" title="Permalink to this definition">¶</a></dt>
 <dd>Return a two-tuple consisting of the directory alias and file name for a
 <tt class="xref docutils literal"><span class="pre">BFILE</span></tt> type LOB.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.isopen">
-<!--[LOB.isopen]--><tt class="descclassname">LOB.</tt><tt class="descname">isopen</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.isopen" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">isopen</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.isopen" title="Permalink to this definition">¶</a></dt>
 <dd>Return a boolean indicating if the LOB is opened.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.open">
-<!--[LOB.open]--><tt class="descclassname">LOB.</tt><tt class="descname">open</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.open" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">open</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.open" title="Permalink to this definition">¶</a></dt>
 <dd>Open the LOB for writing. This will improve performance when writing to a
 LOB in chunks and there are functional or extensible indexes associated with
 the LOB.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.read">
-<!--[LOB.read]--><tt class="descclassname">LOB.</tt><tt class="descname">read</tt><big>(</big><span class="optional">[</span><em>offset=1</em><span class="optional">[</span>, <em>amount</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#LOB.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">read</tt><big>(</big><span class="optional">[</span><em>offset=1</em><span class="optional">[</span>, <em>amount</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#LOB.read" title="Permalink to this definition">¶</a></dt>
 <dd>Return a portion (or all) of the data in the LOB object.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.setfilename">
-<!--[LOB.setfilename]--><tt class="descclassname">LOB.</tt><tt class="descname">setfilename</tt><big>(</big><em>dirAlias</em>, <em>name</em><big>)</big><a class="headerlink" href="#LOB.setfilename" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">setfilename</tt><big>(</big><em>dirAlias</em>, <em>name</em><big>)</big><a class="headerlink" href="#LOB.setfilename" title="Permalink to this definition">¶</a></dt>
 <dd>Set the directory alias and name of the <tt class="xref docutils literal"><span class="pre">BFILE</span></tt> type LOB.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.size">
-<!--[LOB.size]--><tt class="descclassname">LOB.</tt><tt class="descname">size</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.size" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">size</tt><big>(</big><big>)</big><a class="headerlink" href="#LOB.size" title="Permalink to this definition">¶</a></dt>
 <dd>Returns the size of the data in the LOB object.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.trim">
-<!--[LOB.trim]--><tt class="descclassname">LOB.</tt><tt class="descname">trim</tt><big>(</big><span class="optional">[</span><em>newSize=0</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LOB.trim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">trim</tt><big>(</big><span class="optional">[</span><em>newSize=0</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LOB.trim" title="Permalink to this definition">¶</a></dt>
 <dd>Trim the LOB to the new size.</dd></dl>
 
 <dl class="method">
 <dt id="LOB.write">
-<!--[LOB.write]--><tt class="descclassname">LOB.</tt><tt class="descname">write</tt><big>(</big><em>data</em><span class="optional">[</span>, <em>offset=1</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LOB.write" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">LOB.</tt><tt class="descname">write</tt><big>(</big><em>data</em><span class="optional">[</span>, <em>offset=1</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#LOB.write" title="Permalink to this definition">¶</a></dt>
 <dd>Write the data to the LOB object at the given offset. Note that if you want
 to make the LOB value smaller, you must use the trim() function.</dd></dl>
 
@@ -136,15 +136,24 @@ to make the LOB value smaller, you must use the trim() function.</dd></dl>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
-            <p class="topless"><a href="subscription.html" title="previous chapter">Subscription Object</a></p>
+            <p class="topless"><a href="subscription.html"
+                                  title="previous chapter">Subscription Object</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="license.html" title="next chapter">License</a></p>
-          <h3>Quick search</h3>
-            <form class="search" action="search.html" method="get">
-              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
-              <input type="hidden" name="check_keywords" value="yes" />
-              <input type="hidden" name="area" value="default" />
-            </form>
+            <p class="topless"><a href="license.html"
+                                  title="next chapter">License</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -154,23 +163,23 @@ to make the LOB value smaller, you must use the trim() function.</dd></dl>
       <ul>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
+             >index</a></li>
         <li class="right" >
           <a href="modindex.html" title="Global Module Index"
-             accesskey="M">modules</a> |</li>
+             >modules</a> |</li>
         <li class="right" >
           <a href="license.html" title="License"
-             accesskey="N">next</a> |</li>
+             >next</a> |</li>
         <li class="right" >
           <a href="subscription.html" title="Subscription Object"
-             accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.2 documentation</a> &raquo;</li> 
+             >previous</a> |</li>
+        <li><a href="index.html">cx_Oracle v5.0.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Anthony Tuininga.
-      Last updated on May 21, 2009.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+      &copy; Copyright 2010, Anthony Tuininga.
+      Last updated on Feb 04, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
     </div>
   </body>
 </html>
