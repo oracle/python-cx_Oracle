@@ -70,8 +70,8 @@ static PyObject *Connection_GetStmtCacheSize(udt_Connection*, void*);
 static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
 #ifdef ORACLE_10G
 static PyObject *Connection_GetOCIAttr(udt_Connection*, ub4*);
-static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 #endif
+static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 #ifdef ORACLE_10GR2
 static PyObject *Connection_Ping(udt_Connection*, PyObject*);
 static PyObject *Connection_Shutdown(udt_Connection*, PyObject*, PyObject*);
@@ -407,6 +407,7 @@ static PyObject *Connection_GetOCIAttr(
 
     return cxString_FromEncodedString(buffer.ptr, buffer.size);
 }
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -451,7 +452,6 @@ static int Connection_SetOCIAttr(
         return -1;
     return 0;
 }
-#endif
 
 
 //-----------------------------------------------------------------------------
