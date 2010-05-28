@@ -1451,7 +1451,8 @@ static int Cursor_Call(
     }
     if (keywordArguments) {
         if (!PyDict_Check(keywordArguments)) {
-            PyErr_SetString(PyExc_TypeError, "arguments must be a sequence");
+            PyErr_SetString(PyExc_TypeError,
+                    "keyword arguments must be a dictionary");
             return -1;
         }
     }
