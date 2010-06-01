@@ -61,7 +61,10 @@ docFiles = "LICENSE.txt README.txt BUILD.txt HISTORY.txt html samples test"
 
 # method for checking a potential Oracle home
 def CheckOracleHome(directoryToCheck):
-    global oracleHome, oracleVersion, oracleLibDir, struct
+    global oracleHome, oracleVersion, oracleLibDir
+    import os
+    import struct
+    import sys
     if sys.platform in ("win32", "cygwin"):
         subDirs = ["bin"]
         filesToCheck = [
@@ -241,7 +244,10 @@ class bdist_rpm(distutils.command.bdist_rpm.bdist_rpm):
 class build(distutils.command.build.build):
 
     def finalize_options(self):
-        global distutils, os, sys, withUnicode
+        global withUnicode
+        import distutils.util
+        import os
+        import sys
         platSpecifier = ".%s-%s-%s" % \
                 (distutils.util.get_platform(), sys.version[0:3],
                  oracleVersion)
