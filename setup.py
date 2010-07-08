@@ -143,7 +143,8 @@ if sys.platform == "win32":
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
-        raise DistutilsSetupError("cannot locate Oracle include files")
+        message = "cannot locate Oracle include files in %s" % oracleHome
+        raise DistutilsSetupError(message)
     libs = ["oci"]
 elif sys.platform == "cygwin":
     includeDirs = ["/usr/include", "rdbms/demo", "rdbms/public", \
