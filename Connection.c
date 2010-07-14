@@ -1670,20 +1670,20 @@ static PyObject *Connection_Subscribe(
     PyObject* keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "namespace", "protocol", "callback",
-            "timeout", "operations", "rowids", NULL };
-    ub4 namespace, protocol, timeout, rowids, operations;
+            "timeout", "operations", "rowids", "port", NULL };
+    ub4 namespace, protocol, port, timeout, rowids, operations;
     PyObject *rowidsObj, *callback;
     int temp;
 
     // parse arguments
-    timeout = rowids = 0;
+    timeout = rowids = port = 0;
     rowidsObj = callback = NULL;
     namespace = OCI_SUBSCR_NAMESPACE_DBCHANGE;
     protocol = OCI_SUBSCR_PROTO_OCI;
     operations = OCI_OPCODE_ALLOPS;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiO", keywordList,
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiOi", keywordList,
             &namespace, &protocol, &callback, &timeout, &operations,
-            &rowidsObj))
+            &rowidsObj, &port))
         return NULL;
 
     // set the value for rowids
@@ -1695,8 +1695,8 @@ static PyObject *Connection_Subscribe(
             rowids = 1;
     }
 
-    return (PyObject*) Subscription_New(self, namespace, protocol, callback,
-            timeout, operations, rowids);
+    return (PyObject*) Subscription_New(self, namespace, protocol, port,
+            callback, timeout, operations, rowids);
 }
 #endif
 

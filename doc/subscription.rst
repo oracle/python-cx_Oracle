@@ -34,6 +34,13 @@ Subscription Object
    for each table that is registered using this subscription.
 
 
+.. attribute:: Subscription.port
+
+   This read-only attribute returns the port used for callback notifications
+   from the database server. If not set during construction, this value is
+   zero.
+
+
 .. attribute:: Subscription.protocol
 
    This read-only attribute returns the protocol used to register the

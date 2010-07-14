@@ -13,6 +13,7 @@ typedef struct {
     PyObject *callback;
     ub4 namespace;
     ub4 protocol;
+    ub4 port;
     ub4 timeout;
     ub4 operations;
     ub4 rowids;
@@ -58,6 +59,7 @@ static PyMemberDef g_SubscriptionTypeMembers[] = {
             READONLY },
     { "namespace", T_INT, offsetof(udt_Subscription, namespace), READONLY },
     { "protocol", T_INT, offsetof(udt_Subscription, protocol), READONLY },
+    { "port", T_INT, offsetof(udt_Subscription, port), READONLY },
     { "timeout", T_INT, offsetof(udt_Subscription, timeout), READONLY },
     { "operations", T_INT, offsetof(udt_Subscription, operations), READONLY },
     { "rowids", T_BOOL, offsetof(udt_Subscription, rowids), READONLY },
@@ -570,7 +572,7 @@ static int Subscription_Register(
     status = OCIHandleAlloc(env->handle, (dvoid**) &self->handle,
             OCI_HTYPE_SUBSCRIPTION, 0, 0);
     if (Environment_CheckForError(env, status,
-                "Subscription_Register(): allocate handle") < 0)
+            "Subscription_Register(): allocate handle") < 0)
         return -1;
 
     // set the namespace
@@ -578,7 +580,7 @@ static int Subscription_Register(
             (dvoid*) &self->namespace, sizeof(ub4), OCI_ATTR_SUBSCR_NAMESPACE,
             env->errorHandle);
     if (Environment_CheckForError(env, status,
-                "Subscription_Register(): set namespace") < 0)
+            "Subscription_Register(): set namespace") < 0)
         return -1;
 
     // set the protocol
@@ -586,7 +588,7 @@ static int Subscription_Register(
             (dvoid*) &self->protocol, sizeof(ub4), OCI_ATTR_SUBSCR_RECPTPROTO,
             env->errorHandle);
     if (Environment_CheckForError(env, status,
-                "Subscription_Register(): set protocol") < 0)
+            "Subscription_Register(): set protocol") < 0)
         return -1;
 
     // set the timeout
@@ -594,8 +596,18 @@ static int Subscription_Register(
             (dvoid*) &self->timeout, sizeof(ub4), OCI_ATTR_SUBSCR_TIMEOUT,
             env->errorHandle);
     if (Environment_CheckForError(env, status,
-                "Subscription_Register(): set timeout") < 0)
+            "Subscription_Register(): set timeout") < 0)
         return -1;
+
+    // set the TCP port used on client to listen for callback from DB server
+    if (self->port > 0) {
+        status = OCIAttrSet(env->handle, OCI_HTYPE_ENV,
+                (dvoid*) &(self->port), (ub4) 0, OCI_ATTR_SUBSCR_PORTNO,
+                env->errorHandle);
+        if (Environment_CheckForError(env, status,
+                "Subscription_Register(): set port") < 0)
+            return -1;
+    }
 
     // set the context for the callback
     status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
@@ -651,6 +663,7 @@ static udt_Subscription *Subscription_New(
     udt_Connection *connection,         // connection object
     ub4 namespace,                      // namespace to use
     ub4 protocol,                       // protocol to use
+    ub4 port,                           // client port for callbacks
     PyObject *callback,                 // callback routine
     ub4 timeout,                        // timeout (in seconds)
     ub4 operations,                     // operations to notify
@@ -668,6 +681,7 @@ static udt_Subscription *Subscription_New(
     self->callback = callback;
     self->namespace = namespace;
     self->protocol = protocol;
+    self->port = port;
     self->timeout = timeout;
     self->rowids = rowids;
     self->operations = operations;

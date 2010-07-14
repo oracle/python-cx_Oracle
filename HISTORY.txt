@@ -1,3 +1,11 @@
+Changes from 5.0.3 to 5.0.4
+ 1) Added support for Python 2.7.
+ 2) Added support for new parameter (port) for subscription() call which allows
+    the client to specify the listening port for callback notifications from
+    the database server. Thanks to Geoffrey Weber for the initial patch.
+ 3) Fixed compilation under Oracle 9i.
+ 4) Fixed a few error messages.
+
 Changes from 5.0.2 to 5.0.3
  1) Added support for 64-bit Windows.
  2) Added support for Python 3.1 and dropped support for Python 3.0.

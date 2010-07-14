@@ -312,7 +312,7 @@ Connection Object
       This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, rowids=False)
+.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, rowids=False, port=0)
 
    Return a new Subscription object (:ref:`subscrobj`) using the connection.
    Currently the namespace and protocol arguments cannot have any other
@@ -322,7 +322,8 @@ Connection Object
    value of 0 indicates that the subscription does not expire. The operations
    argument enables filtering of the messages that are sent (insert, update,
    delete). The rowids flag specifies whether the rowids of affected rows
-   should be included in the messages that are sent.
+   should be included in the messages that are sent. The port specifies the
+   listening port for callback notifications from the database server.
 
    .. note::
 
