@@ -202,6 +202,7 @@ Cursor.rowcount attribute cursor.html
 Cursor.parse method cursor.html
 SessionPool.homogeneous attribute session_pool.html
 Message.tables attribute subscription.html
+Subscription.port attribute subscription.html
 cx_Oracle.IntegrityError exception module.html
 cx_Oracle.UNICODE data module.html
 LOB.getfilename method lob.html

@@ -296,6 +296,9 @@ var Search = {
     var tmp = query.split(/\s+/);
     var object = (tmp.length == 1) ? tmp[0].toLowerCase() : null;
     for (var i = 0; i < tmp.length; i++) {
+      // ignore leading/trailing whitespace
+      if (tmp[i] == "")
+        continue;
       // stem the word
       var word = stemmer.stemWord(tmp[i]).toLowerCase();
       // select the correct list
@@ -432,7 +435,8 @@ var Search = {
             displayNextItem();
           });
         } else if (DOCUMENTATION_OPTIONS.HAS_SOURCE) {
-          $.get('_sources/' + item[0] + '.txt', function(data) {
+          $.get(DOCUMENTATION_OPTIONS.URL_ROOT + '_sources/' +
+                item[0] + '.txt', function(data) {
             listItem.append($.makeSearchSummary(data, searchterms, hlterms));
             Search.output.append(listItem);
             listItem.slideDown(5, function() {
