@@ -31,7 +31,7 @@ typedef struct {
 //-----------------------------------------------------------------------------
 // Declaration of type variable functions.
 //-----------------------------------------------------------------------------
-static udt_ObjectType *ObjectType_New(udt_Connection*, OCIParam*);
+static udt_ObjectType *ObjectType_New(udt_Connection*, OCIParam*, ub4);
 static void ObjectType_Free(udt_ObjectType*);
 static PyObject *ObjectType_Repr(udt_ObjectType*);
 static udt_ObjectAttribute *ObjectAttribute_New(udt_Connection*, OCIParam*);
@@ -222,7 +222,8 @@ static int ObjectType_Describe(
         // if element type is an object type get its type
         if (self->elementTypeCode == OCI_TYPECODE_OBJECT) {
             self->elementType = (PyObject*)
-                    ObjectType_New(connection, collectionParam);
+                    ObjectType_New(connection, collectionParam,
+                            OCI_ATTR_TYPE_NAME);
             if (!self->elementType)
                 return -1;
         }
@@ -281,7 +282,8 @@ static int ObjectType_Describe(
 static int ObjectType_Initialize(
     udt_ObjectType *self,               // type to initialize
     udt_Connection *connection,         // connection for type information
-    OCIParam *param)                    // parameter descriptor
+    OCIParam *param,                    // parameter descriptor
+    ub4 nameAttribute)                  // value for the name attribute
 {
     OCIDescribe *describeHandle;
     OCIRef *tdoReference;
@@ -301,7 +303,7 @@ static int ObjectType_Initialize(
 
     // determine the name of the type
     status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &name, &size,
-            OCI_ATTR_TYPE_NAME, self->environment->errorHandle);
+            nameAttribute, self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
             "ObjectType_Initialize(): get name") < 0)
         return -1;
@@ -349,7 +351,8 @@ static int ObjectType_Initialize(
 //-----------------------------------------------------------------------------
 static udt_ObjectType *ObjectType_New(
     udt_Connection *connection,         // connection for type information
-    OCIParam *param)                    // parameter descriptor
+    OCIParam *param,                    // parameter descriptor
+    ub4 nameAttribute)                  // value for the name attribute
 {
     udt_ObjectType *self;
 
@@ -365,12 +368,74 @@ static udt_ObjectType *ObjectType_New(
     self->attributesByName = NULL;
     self->elementType = NULL;
     self->isCollection = 0;
-    if (ObjectType_Initialize(self, connection, param) < 0) {
+    if (ObjectType_Initialize(self, connection, param, nameAttribute) < 0) {
         Py_DECREF(self);
         return NULL;
     }
 
     return self;
+}
+
+
+//-----------------------------------------------------------------------------
+// ObjectType_NewByName()
+//   Create a new object type given its name.
+//-----------------------------------------------------------------------------
+static udt_ObjectType *ObjectType_NewByName(
+    udt_Connection *connection,         // connection for type information
+    PyObject *name)                     // name of object type to describe
+{
+    OCIDescribe *describeHandle;
+    udt_StringBuffer buffer;
+    udt_ObjectType *result;
+    OCIParam *param;
+    sword status;
+
+    // allocate describe handle
+    status = OCIHandleAlloc(connection->environment->handle,
+            (dvoid**) &describeHandle, OCI_HTYPE_DESCRIBE, 0, 0);
+    if (Environment_CheckForError(connection->environment, status,
+            "ObjectType_NewByName(): allocate describe handle") < 0)
+        return NULL;
+
+    // describe the object
+    if (StringBuffer_Fill(&buffer, name) < 0) {
+        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
+        return NULL;
+    }
+    status = OCIDescribeAny(connection->handle,
+            connection->environment->errorHandle, (dvoid*) buffer.ptr,
+            buffer.size, OCI_OTYPE_NAME, 0, OCI_PTYPE_TYPE, describeHandle);
+    StringBuffer_Clear(&buffer);
+    if (Environment_CheckForError(connection->environment, status,
+            "ObjectType_NewByName(): describe type") < 0) {
+        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
+        return NULL;
+    }
+
+    // get the parameter handle
+    status = OCIAttrGet(describeHandle, OCI_HTYPE_DESCRIBE, &param, 0,
+            OCI_ATTR_PARAM, connection->environment->errorHandle);
+    if (Environment_CheckForError(connection->environment, status,
+            "ObjectType_NewByName(): get parameter handle") < 0) {
+        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
+        return NULL;
+    }
+
+    // get object type
+    result = ObjectType_New(connection, param, OCI_ATTR_NAME);
+    if (!result) {
+        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
+        return NULL;
+    }
+
+    // free the describe handle
+    status = OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
+    if (Environment_CheckForError(connection->environment, status,
+            "ObjectType_NewByName(): free describe handle") < 0)
+        return NULL;
+
+    return result;
 }
 
 
@@ -459,7 +524,8 @@ static int ObjectAttribute_Initialize(
     switch (self->typeCode) {
         case OCI_TYPECODE_NAMEDCOLLECTION:
         case OCI_TYPECODE_OBJECT:
-            self->subType = ObjectType_New(connection, param);
+            self->subType = ObjectType_New(connection, param,
+                    OCI_ATTR_TYPE_NAME);
             if (!self->subType)
                 return -1;
             break;

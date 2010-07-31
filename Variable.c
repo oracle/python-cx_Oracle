@@ -450,6 +450,8 @@ static udt_VariableType *Variable_TypeByPythonType(
     if (type == (PyObject*) &g_NativeFloatVarType)
         return &vt_NativeFloat;
 #endif
+    if (type == (PyObject*) &g_ObjectVarType)
+        return &vt_Object;
 
     PyErr_SetString(g_NotSupportedErrorException,
             "Variable_TypeByPythonType(): unhandled data type");

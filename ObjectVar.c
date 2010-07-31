@@ -152,7 +152,8 @@ static int ObjectVar_PreDefine(
     udt_ObjectVar *self,                // variable to set up
     OCIParam *param)                    // parameter being defined
 {
-    self->objectType = ObjectType_New(self->connection, param);
+    self->objectType = ObjectType_New(self->connection, param,
+            OCI_ATTR_TYPE_NAME);
     if (!self->objectType)
         return -1;
     return 0;

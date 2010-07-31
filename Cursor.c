@@ -2096,9 +2096,10 @@ static PyObject *Cursor_Var(
     PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "type", "size", "arraysize",
-            "inconverter", "outconverter", NULL };
-    PyObject *inConverter, *outConverter;
+            "inconverter", "outconverter", "typename", NULL };
+    PyObject *inConverter, *outConverter, *typeNameObj;
     udt_VariableType *varType;
+    udt_ObjectVar *objectVar;
     int size, arraySize;
     udt_Variable *var;
     PyObject *type;
@@ -2106,9 +2107,10 @@ static PyObject *Cursor_Var(
     // parse arguments
     size = 0;
     arraySize = self->bindArraySize;
-    inConverter = outConverter = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOO", keywordList,
-            &type, &size, &arraySize, &inConverter, &outConverter))
+    inConverter = outConverter = typeNameObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOO!",
+            keywordList, &type, &size, &arraySize, &inConverter,
+            &outConverter, cxString_Type, &typeNameObj))
         return NULL;
 
     // determine the type of variable
@@ -2117,6 +2119,11 @@ static PyObject *Cursor_Var(
         return NULL;
     if (varType->isVariableLength && size == 0)
         size = varType->size;
+    if (type == (PyObject*) &g_ObjectVarType && !typeNameObj) {
+        PyErr_SetString(PyExc_TypeError,
+                "expecting type name for object variables");
+        return NULL;
+    }
 
     // create the variable
     var = Variable_New(self, arraySize, varType, size);
@@ -2126,6 +2133,17 @@ static PyObject *Cursor_Var(
     var->inConverter = inConverter;
     Py_XINCREF(outConverter);
     var->outConverter = outConverter;
+
+    // define the object type if needed
+    if (type == (PyObject*) &g_ObjectVarType) {
+        objectVar = (udt_ObjectVar*) var;
+        objectVar->objectType = ObjectType_NewByName(self->connection,
+                typeNameObj);
+        if (!objectVar->objectType) {
+            Py_DECREF(var);
+            return NULL;
+        }
+    }
 
     return (PyObject*) var;
 }
