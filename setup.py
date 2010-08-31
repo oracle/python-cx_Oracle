@@ -23,6 +23,7 @@ import distutils.core
 import distutils.dist
 import distutils.util
 import os
+import re
 import struct
 import sys
 
@@ -179,7 +180,7 @@ else:
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
-        path = oracleHome.replace("lib", "include")
+        path = re.sub("lib(64)?", "include", oracleHome)
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
