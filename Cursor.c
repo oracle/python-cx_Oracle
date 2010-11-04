@@ -836,7 +836,6 @@ static PyObject *Cursor_Close(
     if (Cursor_FreeHandle(self, 1) < 0)
         return NULL;
 
-    self->handle = NULL;
     self->isOpen = 0;
 
     Py_INCREF(Py_None);
