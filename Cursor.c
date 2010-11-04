@@ -211,7 +211,10 @@ static int Cursor_FreeHandle(
 
     if (self->handle) {
         if (self->isOwned) {
-            OCIHandleFree(self->handle, OCI_HTYPE_STMT);
+            status = OCIHandleFree(self->handle, OCI_HTYPE_STMT);
+            if (raiseException && Environment_CheckForError(
+                    self->environment, status, "Cursor_FreeHandle()") < 0)
+                return -1;
         } else if (self->connection->handle != 0) {
             if (!StringBuffer_Fill(&buffer, self->statementTag) < 0)
                 return (raiseException) ? -1 : 0;
@@ -223,6 +226,7 @@ static int Cursor_FreeHandle(
                     self->environment, status, "Cursor_FreeHandle()") < 0)
                 return -1;
         }
+        self->handle = NULL;
     }
     return 0;
 }
