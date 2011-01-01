@@ -73,7 +73,9 @@ static PyObject *Connection_GetOCIAttr(udt_Connection*, ub4*);
 #endif
 static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 #ifdef ORACLE_10GR2
+#if !defined(AIX5) || defined(ORACLE_11g)
 static PyObject *Connection_Ping(udt_Connection*, PyObject*);
+#endif
 static PyObject *Connection_Shutdown(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Startup(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Subscribe(udt_Connection*, PyObject*, PyObject*);
@@ -96,7 +98,9 @@ static PyMethodDef g_ConnectionMethods[] = {
     { "__enter__", (PyCFunction) Connection_ContextManagerEnter, METH_NOARGS },
     { "__exit__", (PyCFunction) Connection_ContextManagerExit, METH_VARARGS },
 #ifdef ORACLE_10GR2
+#if !defined(AIX5) || defined(ORACLE_11g)
     { "ping", (PyCFunction) Connection_Ping, METH_NOARGS },
+#endif
     { "shutdown", (PyCFunction) Connection_Shutdown,
             METH_VARARGS | METH_KEYWORDS},
     { "startup", (PyCFunction) Connection_Startup,
@@ -1551,6 +1555,7 @@ static PyObject *Connection_ContextManagerExit(
 
 
 #ifdef ORACLE_10GR2
+#if !defined(AIX5) || defined(ORACLE_11g)
 //-----------------------------------------------------------------------------
 // Connection_Ping()
 //   Makes a round trip call to the server to confirm that the connection and
@@ -1572,6 +1577,7 @@ static PyObject *Connection_Ping(
     Py_INCREF(Py_None);
     return Py_None;
 }
+#endif
 
 
 //-----------------------------------------------------------------------------

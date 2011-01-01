@@ -196,6 +196,8 @@ extraCompileArgs = ["-DBUILD_VERSION=%s" % BUILD_VERSION]
 extraLinkArgs = []
 if sys.platform == "aix4":
     extraCompileArgs.append("-qcpluscmt")
+elif sys.platform == "aix5":
+    extraCompileArgs.append("-DAIX5")
 elif sys.platform == "cygwin":
     extraCompileArgs.append("-mno-cygwin")
     extraLinkArgs.append("-Wl,--enable-runtime-pseudo-reloc")
