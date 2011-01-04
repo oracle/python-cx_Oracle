@@ -59,6 +59,7 @@ static udt_VariableType vt_Cursor = {
     (FinalizeProc) CursorVar_Finalize,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PreFetchProc) NULL,
     (IsNullProc) NULL,
     (SetValueProc) CursorVar_SetValue,
     (GetValueProc) CursorVar_GetValue,

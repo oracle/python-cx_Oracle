@@ -17,6 +17,7 @@ typedef struct {
 // Declaration of LOB variable functions.
 //-----------------------------------------------------------------------------
 static int LobVar_Initialize(udt_LobVar*, udt_Cursor*);
+static int LobVar_PreFetch(udt_LobVar*);
 static void LobVar_Finalize(udt_LobVar*);
 static PyObject *LobVar_GetValue(udt_LobVar*, unsigned);
 static int LobVar_SetValue(udt_LobVar*, unsigned, PyObject*);
@@ -133,6 +134,7 @@ static udt_VariableType vt_CLOB = {
     (FinalizeProc) LobVar_Finalize,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PreFetchProc) LobVar_PreFetch,
     (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
@@ -153,6 +155,7 @@ static udt_VariableType vt_NCLOB = {
     (FinalizeProc) LobVar_Finalize,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PreFetchProc) LobVar_PreFetch,
     (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
@@ -173,6 +176,7 @@ static udt_VariableType vt_BLOB = {
     (FinalizeProc) LobVar_Finalize,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PreFetchProc) LobVar_PreFetch,
     (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
@@ -193,6 +197,7 @@ static udt_VariableType vt_BFILE = {
     (FinalizeProc) LobVar_Finalize,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PreFetchProc) LobVar_PreFetch,
     (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
@@ -241,27 +246,52 @@ static int LobVar_Initialize(
 
 
 //-----------------------------------------------------------------------------
+// LobVar_PreFetch()
+//   Free temporary LOBs prior to fetch.
+//-----------------------------------------------------------------------------
+static int LobVar_PreFetch(
+    udt_LobVar *var)                    // variable to free
+{
+    boolean isTemporary;
+    sword status;
+    ub4 i;
+
+    for (i = 0; i < var->allocatedElements; i++) {
+        if (var->data[i]) {
+            status = OCILobIsTemporary(var->environment->handle,
+                    var->environment->errorHandle, var->data[i], &isTemporary);
+            if (Environment_CheckForError(var->environment, status,
+                    "LobVar_PreFetch(): is temporary LOB?") < 0)
+                return -1;
+            if (isTemporary) {
+                Py_BEGIN_ALLOW_THREADS
+                status = OCILobFreeTemporary(var->connection->handle,
+                        var->environment->errorHandle, var->data[i]);
+                Py_END_ALLOW_THREADS
+                if (Environment_CheckForError(var->environment, status,
+                        "LobVar_PreFetch(): free temporary LOB") < 0)
+                    return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // LobVar_Finalize()
 //   Prepare for variable destruction.
 //-----------------------------------------------------------------------------
 static void LobVar_Finalize(
     udt_LobVar *var)                    // variable to free
 {
-    boolean isTemporary;
     ub4 i;
 
+    LobVar_PreFetch(var);
     for (i = 0; i < var->allocatedElements; i++) {
-        if (var->data[i]) {
-            OCILobIsTemporary(var->environment->handle,
-                    var->environment->errorHandle, var->data[i], &isTemporary);
-            if (isTemporary) {
-                Py_BEGIN_ALLOW_THREADS
-                OCILobFreeTemporary(var->connection->handle,
-                        var->environment->errorHandle, var->data[i]);
-                Py_END_ALLOW_THREADS
-            }
+        if (var->data[i])
             OCIDescriptorFree(var->data[i], OCI_DTYPE_LOB);
-        }
     }
     Py_DECREF(var->connection);
 }

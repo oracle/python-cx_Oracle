@@ -80,6 +80,7 @@ static udt_VariableType vt_Object = {
     (FinalizeProc) ObjectVar_Finalize,
     (PreDefineProc) ObjectVar_PreDefine,
     (PostDefineProc) ObjectVar_PostDefine,
+    (PreFetchProc) NULL,
     (IsNullProc) ObjectVar_IsNull,
     (SetValueProc) NULL,
     (GetValueProc) ObjectVar_GetValue,

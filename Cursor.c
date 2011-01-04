@@ -1809,6 +1809,14 @@ static int Cursor_InternalFetch(
         PyErr_SetString(g_InterfaceErrorException, "query not executed");
         return -1;
     }
+    for (i = 0; i < PyList_GET_SIZE(self->fetchVariables); i++) {
+        var = (udt_Variable*) PyList_GET_ITEM(self->fetchVariables, i);
+        var->internalFetchNum++;
+        if (var->type->preFetchProc) {
+            if ((*var->type->preFetchProc)(var) < 0)
+                return -1;
+        }
+    }
     Py_BEGIN_ALLOW_THREADS
     status = OCIStmtFetch(self->handle, self->environment->errorHandle,
             numRows, OCI_FETCH_NEXT, OCI_DEFAULT);
@@ -1817,10 +1825,6 @@ static int Cursor_InternalFetch(
         if (Environment_CheckForError(self->environment, status,
                 "Cursor_InternalFetch(): fetch") < 0)
             return -1;
-    }
-    for (i = 0; i < PyList_GET_SIZE(self->fetchVariables); i++) {
-        var = (udt_Variable*) PyList_GET_ITEM(self->fetchVariables, i);
-        var->internalFetchNum++;
     }
     status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &rowCount, 0,
             OCI_ATTR_ROW_COUNT, self->environment->errorHandle);

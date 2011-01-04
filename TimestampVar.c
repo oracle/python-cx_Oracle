@@ -57,6 +57,7 @@ static udt_VariableType vt_Timestamp = {
     (FinalizeProc) TimestampVar_Finalize,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PreFetchProc) NULL,
     (IsNullProc) NULL,
     (SetValueProc) TimestampVar_SetValue,
     (GetValueProc) TimestampVar_GetValue,

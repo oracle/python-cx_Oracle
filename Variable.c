@@ -41,6 +41,7 @@ typedef int (*InitializeProc)(udt_Variable*, udt_Cursor*);
 typedef void (*FinalizeProc)(udt_Variable*);
 typedef int (*PreDefineProc)(udt_Variable*, OCIParam*);
 typedef int (*PostDefineProc)(udt_Variable*);
+typedef int (*PreFetchProc)(udt_Variable*);
 typedef int (*IsNullProc)(udt_Variable*, unsigned);
 typedef int (*SetValueProc)(udt_Variable*, unsigned, PyObject*);
 typedef PyObject * (*GetValueProc)(udt_Variable*, unsigned);
@@ -55,6 +56,7 @@ typedef struct _udt_VariableType {
     FinalizeProc finalizeProc;
     PreDefineProc preDefineProc;
     PostDefineProc postDefineProc;
+    PreFetchProc preFetchProc;
     IsNullProc isNullProc;
     SetValueProc setValueProc;
     GetValueProc getValueProc;
