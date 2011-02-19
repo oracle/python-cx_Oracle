@@ -308,8 +308,7 @@ static int LobVar_Write(
     ub4 offset,                         // offset into variable
     ub4 *amount)                        // amount to write
 {
-    ub2 charsetId = CXORA_CHARSETID;
-    udt_StringBuffer buffer;
+    udt_Buffer buffer;
     sword status;
 
     // verify the data type
@@ -317,29 +316,20 @@ static int LobVar_Write(
         PyErr_SetString(PyExc_TypeError, "BFILEs are read only");
         return -1;
     } else if (var->type == &vt_BLOB) {
-        if (!PyBytes_Check(dataObj)) {
-            PyErr_SetString(PyExc_TypeError, "BLOBs expect byte data");
+        if (cxBuffer_FromObject(&buffer, dataObj,
+                var->environment->encoding) < 0)
             return -1;
-        }
-        StringBuffer_FromBytes(&buffer, dataObj);
         *amount = buffer.size;
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
     } else if (var->type == &vt_NCLOB) {
-        if (!PyUnicode_Check(dataObj)) {
-            PyErr_SetString(PyExc_TypeError, "NCLOBs expect unicode data");
+        if (cxBuffer_FromObject(&buffer, dataObj,
+                var->environment->nencoding) < 0)
             return -1;
-        }
-        if (StringBuffer_FromUnicode(&buffer, dataObj) < 0)
-            return -1;
-        *amount = buffer.size / 2;
-        charsetId = OCI_UTF16ID;
+        *amount = buffer.size;
 #endif
     } else {
-        if (!cxString_Check(dataObj)) {
-            PyErr_SetString(PyExc_TypeError, "CLOBs expect string data");
-            return -1;
-        }
-        if (StringBuffer_Fill(&buffer, dataObj) < 0)
+        if (cxBuffer_FromObject(&buffer, dataObj,
+                var->environment->encoding) < 0)
             return -1;
         if (var->environment->fixedWidth
                 && var->environment->maxBytesPerCharacter > 1)
@@ -349,17 +339,17 @@ static int LobVar_Write(
 
     // nothing to do if no data to write
     if (*amount == 0) {
-        StringBuffer_Clear(&buffer);
+        cxBuffer_Clear(&buffer);
         return 0;
     }
 
     Py_BEGIN_ALLOW_THREADS
     status = OCILobWrite(var->connection->handle,
             var->environment->errorHandle, var->data[position], amount, offset,
-            (void*) buffer.ptr, buffer.size, OCI_ONE_PIECE, NULL, NULL,
-            charsetId, var->type->charsetForm);
+            (void*) buffer.ptr, buffer.size, OCI_ONE_PIECE, NULL, NULL, 0,
+            var->type->charsetForm);
     Py_END_ALLOW_THREADS
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(var->environment, status,
             "LobVar_Write()") < 0)
         return -1;

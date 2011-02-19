@@ -225,7 +225,7 @@ static PyObject *ExternalObjectVar_ConvertToPython(
             stringSize = OCIStringSize(environment->handle,
                     * (OCIString**) value);
             return cxString_FromEncodedString( (char*) stringValue,
-                    stringSize);
+                    stringSize, environment->encoding);
         case OCI_TYPECODE_NUMBER:
             return OracleNumberToPythonFloat(environment, (OCINumber*) value);
         case OCI_TYPECODE_DATE:
@@ -257,19 +257,20 @@ static PyObject *ExternalObjectVar_GetAttributeValue(
 {
     dvoid *valueIndicator, *value;
     OCIInd scalarValueIndicator;
-    udt_StringBuffer buffer;
+    udt_Buffer buffer;
     sword status;
     OCIType *tdo;
 
     // get the value for the attribute
-    if (StringBuffer_Fill(&buffer, attribute->name) < 0)
+    if (cxBuffer_FromObject(&buffer, attribute->name,
+            self->objectType->environment->encoding) < 0)
         return NULL;
     status = OCIObjectGetAttr(self->objectType->environment->handle,
             self->objectType->environment->errorHandle, self->instance,
             self->indicator, self->objectType->tdo,
             (const OraText**) &buffer.ptr, (ub4*) &buffer.size, 1, 0, 0,
             &scalarValueIndicator, &valueIndicator, &value, &tdo);
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->objectType->environment, status,
             "ExternalObjectVar_GetAttributeValue(): getting value") < 0)
         return NULL;

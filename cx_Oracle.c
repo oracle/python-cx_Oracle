@@ -58,16 +58,56 @@ typedef int Py_ssize_t;
 #define PyInt_Type              PyLong_Type
 #endif
 
+// use the bytes methods in cx_Oracle and define them as the equivalent string
+// type methods as is done in Python 2.6
+#ifndef PyBytes_Check
+    #define PyBytes_Type                PyString_Type
+    #define PyBytes_AS_STRING           PyString_AS_STRING
+    #define PyBytes_GET_SIZE            PyString_GET_SIZE
+    #define PyBytes_Check               PyString_Check
+    #define PyBytes_Format              PyString_Format
+    #define PyBytes_FromString          PyString_FromString
+    #define PyBytes_FromStringAndSize   PyString_FromStringAndSize
+#endif
+
+// define types and methods for strings and binary data
+#if PY_MAJOR_VERSION >= 3
+    #define cxBinary_Type               PyBytes_Type
+    #define cxBinary_Check              PyBytes_Check
+    #define cxString_Type               &PyUnicode_Type
+    #define cxString_Format             PyUnicode_Format
+    #define cxString_Check              PyUnicode_Check
+    #define cxString_GetSize            PyUnicode_GET_SIZE
+#else
+    #define cxBinary_Type               PyBuffer_Type
+    #define cxBinary_Check              PyBuffer_Check
+    #define cxString_Type               &PyBytes_Type
+    #define cxString_Format             PyBytes_Format
+    #define cxString_Check              PyBytes_Check
+    #define cxString_GetSize            PyBytes_GET_SIZE
+#endif
+
+// define string type and methods
+#if PY_MAJOR_VERSION >= 3
+    #define cxString_FromAscii(str) \
+        PyUnicode_DecodeASCII(str, strlen(str), NULL)
+    #define cxString_FromEncodedString(buffer, numBytes, encoding) \
+        PyUnicode_Decode(buffer, numBytes, encoding, NULL)
+#else
+    #define cxString_FromAscii(str) \
+        PyBytes_FromString(str)
+    #define cxString_FromEncodedString(buffer, numBytes, encoding) \
+        PyBytes_FromStringAndSize(buffer, numBytes)
+#endif
+
 // define base exception
 #if PY_MAJOR_VERSION >= 3
 #define CXORA_BASE_EXCEPTION    NULL
+#define CXORA_TYPE_ERROR        "expecting string or bytes object"
 #else
 #define CXORA_BASE_EXCEPTION    PyExc_StandardError
+#define CXORA_TYPE_ERROR        "expecting string, unicode or buffer object"
 #endif
-
-// define simple construct for determining endianness of the platform
-// Oracle uses native encoding with OCI_UTF16 but bails when a BOM is written
-#define IS_LITTLE_ENDIAN (int)*(unsigned char*) &one
 
 // define macro for adding OCI constants
 #define ADD_OCI_CONSTANT(x) \
@@ -94,7 +134,7 @@ typedef int Py_ssize_t;
 #define BUILD_VERSION_STRING    xstr(BUILD_VERSION)
 #define DRIVER_NAME             "cx_Oracle-"BUILD_VERSION_STRING
 
-#include "StringUtils.c"
+#include "Buffer.c"
 
 //-----------------------------------------------------------------------------
 // Globals
@@ -114,12 +154,6 @@ static PyObject *g_ProgrammingErrorException = NULL;
 static PyObject *g_NotSupportedErrorException = NULL;
 static PyTypeObject *g_DateTimeType = NULL;
 static PyTypeObject *g_DecimalType = NULL;
-static PyObject *g_ShortNumberToStringFormatObj = NULL;
-static udt_StringBuffer g_ShortNumberToStringFormatBuffer;
-static PyObject *g_NumberToStringFormatObj = NULL;
-static udt_StringBuffer g_NumberToStringFormatBuffer;
-static PyObject *g_NlsNumericCharactersObj = NULL;
-static udt_StringBuffer g_NlsNumericCharactersBuffer;
 
 
 //-----------------------------------------------------------------------------
@@ -324,28 +358,6 @@ static PyObject *Module_Initialize(void)
     if (!g_DecimalType)
         return NULL;
 
-    // set up the string and buffer for converting numbers to strings
-    g_ShortNumberToStringFormatObj = cxString_FromAscii("TM9");
-    if (!g_ShortNumberToStringFormatObj)
-        return NULL;
-    if (StringBuffer_Fill(&g_ShortNumberToStringFormatBuffer,
-            g_ShortNumberToStringFormatObj) < 0)
-        return NULL;
-    g_NumberToStringFormatObj = cxString_FromAscii(
-            "999999999999999999999999999999999999999999999999999999999999999");
-    if (!g_NumberToStringFormatObj)
-        return NULL;
-    if (StringBuffer_Fill(&g_NumberToStringFormatBuffer,
-            g_NumberToStringFormatObj) < 0)
-        return NULL;
-    g_NlsNumericCharactersObj = cxString_FromAscii(
-            "NLS_NUMERIC_CHARACTERS='.,'");
-    if (!g_NlsNumericCharactersObj)
-        return NULL;
-    if (StringBuffer_Fill(&g_NlsNumericCharactersBuffer,
-            g_NlsNumericCharactersObj) < 0)
-        return NULL;
-
     // prepare the types for use by the module
     MAKE_TYPE_READY(&g_ConnectionType);
     MAKE_TYPE_READY(&g_CursorType);
@@ -376,7 +388,7 @@ static PyObject *Module_Initialize(void)
     MAKE_VARIABLE_TYPE_READY(&g_BFILEVarType);
     MAKE_VARIABLE_TYPE_READY(&g_CursorVarType);
     MAKE_VARIABLE_TYPE_READY(&g_ObjectVarType);
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
     MAKE_VARIABLE_TYPE_READY(&g_UnicodeVarType);
     MAKE_VARIABLE_TYPE_READY(&g_FixedUnicodeVarType);
 #endif
@@ -448,7 +460,7 @@ static PyObject *Module_Initialize(void)
     ADD_TYPE_OBJECT("OBJECT", &g_ObjectVarType)
     ADD_TYPE_OBJECT("DATETIME", &g_DateTimeVarType)
     ADD_TYPE_OBJECT("FIXED_CHAR", &g_FixedCharVarType)
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
     ADD_TYPE_OBJECT("FIXED_UNICODE", &g_FixedUnicodeVarType)
     ADD_TYPE_OBJECT("UNICODE", &g_UnicodeVarType)
 #endif

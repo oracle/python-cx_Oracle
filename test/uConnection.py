@@ -71,7 +71,7 @@ class TestConnection(TestCase):
         "connection version is a string"
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
-        self.failUnless(isinstance(connection.version, unicode))
+        self.failUnless(isinstance(connection.version, str))
 
     def testRollbackOnClose(self):
         "connection rolls back before close"

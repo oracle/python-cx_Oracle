@@ -46,26 +46,6 @@ class TestStringVar(BaseTestCase):
                 p_Value = u"String 6")
         self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[6]])
 
-    def testBindStringArrayDirect(self):
-        "test binding in a string array"
-        returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        array = [r[1] for r in self.rawData]
-        statement = u"""
-                begin
-                  :p_ReturnValue := pkg_TestStringArrays.TestInArrays(
-                      :p_IntegerValue, :p_Array);
-                end;"""
-        self.cursor.execute(statement,
-                p_ReturnValue = returnValue,
-                p_IntegerValue = 5,
-                p_Array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 86)
-        array = [ u"String - %d" % i for i in range(15) ]
-        self.cursor.execute(statement,
-                p_IntegerValue = 8,
-                p_Array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 163)
-
     def testBindStringArrayBySizes(self):
         "test binding in a string array (with setinputsizes)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)

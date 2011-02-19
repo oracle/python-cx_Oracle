@@ -62,10 +62,6 @@ static PyObject *Connection_GetMaxBytesPerCharacter(udt_Connection*, void*);
 static PyObject *Connection_ContextManagerEnter(udt_Connection*, PyObject*);
 static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
 static PyObject *Connection_ChangePasswordExternal(udt_Connection*, PyObject*);
-#ifndef WITH_UNICODE
-static PyObject *Connection_GetEncoding(udt_Connection*, void*);
-static PyObject *Connection_GetNationalEncoding(udt_Connection*, void*);
-#endif
 static PyObject *Connection_GetStmtCacheSize(udt_Connection*, void*);
 static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
 #ifdef ORACLE_10G
@@ -135,10 +131,6 @@ static PyMemberDef g_ConnectionMembers[] = {
 // declaration of calculated members for Python type "Connection"
 //-----------------------------------------------------------------------------
 static PyGetSetDef g_ConnectionCalcMembers[] = {
-#ifndef WITH_UNICODE
-    { "encoding", (getter) Connection_GetEncoding, 0, 0, 0 },
-    { "nencoding", (getter) Connection_GetNationalEncoding, 0, 0, 0 },
-#endif
     { "version", (getter) Connection_GetVersion, 0, 0, 0 },
     { "maxBytesPerCharacter", (getter) Connection_GetMaxBytesPerCharacter,
             0, 0, 0 },
@@ -238,7 +230,7 @@ static int Connection_GetConnection(
 {
     int externalCredentials, proxyCredentials;
     udt_Environment *environment;
-    udt_StringBuffer buffer;
+    udt_Buffer buffer;
     OCIAuthInfo *authInfo;
     PyObject *dbNameObj;
     boolean found;
@@ -277,7 +269,8 @@ static int Connection_GetConnection(
 
         // set the user name, if applicable
         externalCredentials = 1;
-        if (StringBuffer_Fill(&buffer, self->username) < 0)
+        if (cxBuffer_FromObject(&buffer, self->username,
+                self->environment->encoding) < 0)
             return -1;
         if (buffer.size > 0) {
             externalCredentials = 0;
@@ -286,14 +279,15 @@ static int Connection_GetConnection(
                     environment->errorHandle);
             if (Environment_CheckForError(environment, status,
                     "Connection_GetConnection(): set user name") < 0) {
-                StringBuffer_Clear(&buffer);
+                cxBuffer_Clear(&buffer);
                 return -1;
             }
         }
-        StringBuffer_Clear(&buffer);
+        cxBuffer_Clear(&buffer);
 
         // set the password, if applicable
-        if (StringBuffer_Fill(&buffer, self->password) < 0)
+        if (cxBuffer_FromObject(&buffer, self->password,
+                self->environment->encoding) < 0)
             return -1;
         if (buffer.size > 0) {
             externalCredentials = 0;
@@ -302,11 +296,11 @@ static int Connection_GetConnection(
                     environment->errorHandle);
             if (Environment_CheckForError(environment, status,
                     "Connection_GetConnection(): set password") < 0) {
-                StringBuffer_Clear(&buffer);
+                cxBuffer_Clear(&buffer);
                 return -1;
             }
         }
-        StringBuffer_Clear(&buffer);
+        cxBuffer_Clear(&buffer);
 
         // if no user name or password are set, using external credentials
         if (!pool && externalCredentials)
@@ -314,7 +308,8 @@ static int Connection_GetConnection(
 
 #ifdef ORACLE_11G
         // set the connection class, if applicable
-        if (StringBuffer_Fill(&buffer, cclassObj) < 0)
+        if (cxBuffer_FromObject(&buffer, cclassObj,
+                self->environment->encoding) < 0)
             return -1;
         if (buffer.size > 0) {
             status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
@@ -322,11 +317,11 @@ static int Connection_GetConnection(
                     environment->errorHandle);
             if (Environment_CheckForError(environment, status,
                     "Connection_GetConnection(): set connection class") < 0) {
-                StringBuffer_Clear(&buffer);
+                cxBuffer_Clear(&buffer);
                 return -1;
             }
         }
-        StringBuffer_Clear(&buffer);
+        cxBuffer_Clear(&buffer);
 
         // set the purity, if applicable
         if (purity != OCI_ATTR_PURITY_DEFAULT) {
@@ -341,14 +336,15 @@ static int Connection_GetConnection(
     }
 
     // acquire the new session
-    if (StringBuffer_Fill(&buffer, dbNameObj) < 0)
+    if (cxBuffer_FromObject(&buffer, dbNameObj,
+            self->environment->encoding) < 0)
         return -1;
     Py_BEGIN_ALLOW_THREADS
     status = OCISessionGet(environment->handle, environment->errorHandle,
             &self->handle, authInfo, (text*) buffer.ptr, buffer.size, NULL, 0,
             NULL, NULL, &found, mode);
     Py_END_ALLOW_THREADS
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(environment, status,
             "Connection_GetConnection(): get connection") < 0)
         return -1;
@@ -386,7 +382,7 @@ static PyObject *Connection_GetOCIAttr(
     ub4 *attribute)                     // OCI attribute type
 {
     OCISession *sessionHandle;
-    udt_StringBuffer buffer;
+    udt_Buffer buffer;
     sword status;
 
     // make sure connection is connected
@@ -409,7 +405,8 @@ static PyObject *Connection_GetOCIAttr(
             "Connection_GetOCIAttr()") < 0)
         return NULL;
 
-    return cxString_FromEncodedString(buffer.ptr, buffer.size);
+    return cxString_FromEncodedString(buffer.ptr, buffer.size,
+            self->environment->encoding);
 }
 #endif
 
@@ -424,7 +421,7 @@ static int Connection_SetOCIAttr(
     ub4 *attribute)                     // OCI attribute type
 {
     OCISession *sessionHandle;
-    udt_StringBuffer buffer;
+    udt_Buffer buffer;
     sword status;
 
     // verify arguments
@@ -446,11 +443,11 @@ static int Connection_SetOCIAttr(
         return -1;
 
     // set the value in the OCI
-    if (StringBuffer_Fill(&buffer, value))
+    if (cxBuffer_FromObject(&buffer, value, self->environment->encoding))
         return -1;
     status = OCIAttrSet(sessionHandle, OCI_HTYPE_SESSION, (text*) buffer.ptr,
             buffer.size, *attribute, self->environment->errorHandle);
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->environment, status,
             "Connection_SetOCIAttr(): set value") < 0)
         return -1;
@@ -519,18 +516,21 @@ static int Connection_ChangePassword(
     PyObject *oldPasswordObj,           // old password
     PyObject *newPasswordObj)           // new password
 {
-    udt_StringBuffer usernameBuffer, oldPasswordBuffer, newPasswordBuffer;
+    udt_Buffer usernameBuffer, oldPasswordBuffer, newPasswordBuffer;
     sword status;
 
-    if (StringBuffer_Fill(&usernameBuffer, self->username) < 0)
+    if (cxBuffer_FromObject(&usernameBuffer, self->username,
+            self->environment->encoding) < 0)
         return -1;
-    if (StringBuffer_Fill(&oldPasswordBuffer, oldPasswordObj) < 0) {
-        StringBuffer_Clear(&usernameBuffer);
+    if (cxBuffer_FromObject(&oldPasswordBuffer, oldPasswordObj,
+            self->environment->encoding) < 0) {
+        cxBuffer_Clear(&usernameBuffer);
         return -1;
     }
-    if (StringBuffer_Fill(&newPasswordBuffer, newPasswordObj) < 0) {
-        StringBuffer_Clear(&usernameBuffer);
-        StringBuffer_Clear(&oldPasswordBuffer);
+    if (cxBuffer_FromObject(&newPasswordBuffer, newPasswordObj,
+            self->environment->encoding) < 0) {
+        cxBuffer_Clear(&usernameBuffer);
+        cxBuffer_Clear(&oldPasswordBuffer);
         return -1;
     }
 
@@ -542,9 +542,9 @@ static int Connection_ChangePassword(
             (text*) newPasswordBuffer.ptr, newPasswordBuffer.size,
             OCI_AUTH);
     Py_END_ALLOW_THREADS
-    StringBuffer_Clear(&usernameBuffer);
-    StringBuffer_Clear(&oldPasswordBuffer);
-    StringBuffer_Clear(&newPasswordBuffer);
+    cxBuffer_Clear(&usernameBuffer);
+    cxBuffer_Clear(&oldPasswordBuffer);
+    cxBuffer_Clear(&newPasswordBuffer);
     if (Environment_CheckForError(self->environment, status,
             "Connection_ChangePassword(): change password") < 0)
         return -1;
@@ -590,7 +590,7 @@ static int Connection_Connect(
     PyObject *newPasswordObj)           // new password (if desired)
 {
     ub4 credentialType = OCI_CRED_EXT;
-    udt_StringBuffer buffer;
+    udt_Buffer buffer;
     sword status;
 
     // allocate the server handle
@@ -601,14 +601,15 @@ static int Connection_Connect(
         return -1;
 
     // attach to the server
-    if (StringBuffer_Fill(&buffer, self->dsn) < 0)
+    if (cxBuffer_FromObject(&buffer, self->dsn,
+            self->environment->encoding) < 0)
         return -1;
     Py_BEGIN_ALLOW_THREADS
     status = OCIServerAttach(self->serverHandle,
             self->environment->errorHandle, (text*) buffer.ptr, buffer.size,
             OCI_DEFAULT);
     Py_END_ALLOW_THREADS
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->environment, status,
             "Connection_Connect(): server attach") < 0)
         return -1;
@@ -652,7 +653,8 @@ static int Connection_Connect(
         return -1;
 
     // set user name in session handle
-    if (StringBuffer_Fill(&buffer, self->username) < 0)
+    if (cxBuffer_FromObject(&buffer, self->username,
+            self->environment->encoding) < 0)
         return -1;
     if (buffer.size > 0) {
         credentialType = OCI_CRED_RDBMS;
@@ -661,14 +663,15 @@ static int Connection_Connect(
                 self->environment->errorHandle);
         if (Environment_CheckForError(self->environment, status,
                 "Connection_Connect(): set user name") < 0) {
-            StringBuffer_Clear(&buffer);
+            cxBuffer_Clear(&buffer);
             return -1;
         }
     }
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
 
     // set password in session handle
-    if (StringBuffer_Fill(&buffer, self->password) < 0)
+    if (cxBuffer_FromObject(&buffer, self->password,
+            self->environment->encoding) < 0)
         return -1;
     if (buffer.size > 0) {
         credentialType = OCI_CRED_RDBMS;
@@ -677,11 +680,11 @@ static int Connection_Connect(
                 self->environment->errorHandle);
         if (Environment_CheckForError(self->environment, status,
                 "Connection_Connect(): set password") < 0) {
-            StringBuffer_Clear(&buffer);
+            cxBuffer_Clear(&buffer);
             return -1;
         }
     }
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
 
 #ifdef OCI_ATTR_DRIVER_NAME
     status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
@@ -801,6 +804,7 @@ static int Connection_Init(
     PyObject *threadedObj, *twophaseObj, *eventsObj, *newPasswordObj;
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj;
     int threaded, twophase, events;
+    char *encoding, *nencoding;
     ub4 connectMode, purity;
     udt_SessionPool *pool;
     OCISvcCtx *handle;
@@ -808,7 +812,7 @@ static int Connection_Init(
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "mode",
             "handle", "pool", "threaded", "twophase", "events", "cclass",
-            "purity", "newpassword", NULL };
+            "purity", "newpassword", "encoding", "nencoding", NULL };
 
     // parse arguments
     pool = NULL;
@@ -817,15 +821,15 @@ static int Connection_Init(
     usernameObj = passwordObj = dsnObj = cclassObj = NULL;
     threadedObj = twophaseObj = eventsObj = newPasswordObj = NULL;
     threaded = twophase = events = purity = 0;
+    encoding = nencoding = NULL;
 #ifdef ORACLE_11G
     purity = OCI_ATTR_PURITY_DEFAULT;
 #endif
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|O!O!O!iiO!OOOO!iO!",
-            keywordList, cxString_Type, &usernameObj, cxString_Type,
-            &passwordObj, cxString_Type, &dsnObj, &connectMode, &handle,
-            &g_SessionPoolType, &pool, &threadedObj, &twophaseObj, &eventsObj,
-            cxString_Type, &cclassObj, &purity, cxString_Type,
-            &newPasswordObj))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
+            "|OOOiiO!OOOOiOss", keywordList, &usernameObj, &passwordObj,
+            &dsnObj, &connectMode, &handle, &g_SessionPoolType, &pool,
+            &threadedObj, &twophaseObj, &eventsObj, &cclassObj, &purity,
+            &newPasswordObj, &encoding, &nencoding))
         return -1;
     if (threadedObj) {
         threaded = PyObject_IsTrue(threadedObj);
@@ -846,7 +850,8 @@ static int Connection_Init(
     // set up the environment
     if (pool)
         self->environment = Environment_Clone(pool->environment);
-    else self->environment = Environment_NewFromScratch(threaded, events);
+    else self->environment = Environment_NewFromScratch(threaded, events,
+            encoding, nencoding);
     if (!self->environment)
         return -1;
 
@@ -951,70 +956,6 @@ static PyObject *Connection_Repr(
     Py_DECREF(formatArgs);
     return result;
 }
-
-
-#ifndef WITH_UNICODE
-//-----------------------------------------------------------------------------
-// Connection_GetCharacterSetName()
-//   Retrieve the IANA character set name for the attribute.
-//-----------------------------------------------------------------------------
-static PyObject *Connection_GetCharacterSetName(
-    udt_Connection *self,               // connection object
-    ub2 attribute)                      // attribute to fetch
-{
-    char charsetName[OCI_NLS_MAXBUFSZ], ianaCharsetName[OCI_NLS_MAXBUFSZ];
-    ub2 charsetId;
-    sword status;
-
-    // get character set id
-    status = OCIAttrGet(self->environment->handle, OCI_HTYPE_ENV, &charsetId,
-            NULL, attribute, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_GetCharacterSetName(): get charset id") < 0)
-        return NULL;
-
-    // get character set name
-    status = OCINlsCharSetIdToName(self->environment->handle,
-            (text*) charsetName, OCI_NLS_MAXBUFSZ, charsetId);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_GetCharacterSetName(): get Oracle charset name") < 0)
-        return NULL;
-
-    // get IANA character set name
-    status = OCINlsNameMap(self->environment->handle,
-            (oratext*) ianaCharsetName, OCI_NLS_MAXBUFSZ,
-            (oratext*) charsetName, OCI_NLS_CS_ORA_TO_IANA);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_GetCharacterSetName(): translate NLS charset") < 0)
-        return NULL;
-
-    return PyBytes_FromString(ianaCharsetName);
-}
-
-
-//-----------------------------------------------------------------------------
-// Connection_GetEncoding()
-//   Retrieve the IANA encoding used by the client.
-//-----------------------------------------------------------------------------
-static PyObject *Connection_GetEncoding(
-    udt_Connection *self,               // connection object
-    void *arg)                          // optional argument (ignored)
-{
-    return Connection_GetCharacterSetName(self, OCI_ATTR_ENV_CHARSET_ID);
-}
-
-
-//-----------------------------------------------------------------------------
-// Connection_GetNationalEncoding()
-//   Retrieve the IANA national encoding used by the client.
-//-----------------------------------------------------------------------------
-static PyObject *Connection_GetNationalEncoding(
-    udt_Connection *self,               // connection object
-    void *arg)                          // optional argument (ignored)
-{
-    return Connection_GetCharacterSetName(self, OCI_ATTR_ENV_NCHARSET_ID);
-}
-#endif
 
 
 //-----------------------------------------------------------------------------

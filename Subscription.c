@@ -304,7 +304,8 @@ static int MessageRow_Initialize(
     if (Environment_CheckForError(env, status,
             "MessageRow_Initialize(): get rowid") < 0)
         return -1;
-    self->rowid = cxString_FromEncodedString(rowid, rowidLength);
+    self->rowid = cxString_FromEncodedString(rowid, rowidLength,
+            env->encoding);
     if (!self->rowid)
         return -1;
 
@@ -343,7 +344,7 @@ static int MessageTable_Initialize(
     if (Environment_CheckForError(env, status,
             "MessageTable_Initialize(): get table name") < 0)
         return -1;
-    self->name = cxString_FromEncodedString(name, nameLength);
+    self->name = cxString_FromEncodedString(name, nameLength, env->encoding);
     if (!self->name)
         return -1;
 
@@ -418,7 +419,8 @@ static int Message_Initialize(
     if (Environment_CheckForError(env, status,
             "Message_Initialize(): get database name") < 0)
         return -1;
-    self->dbname = cxString_FromEncodedString(dbname, dbnameLength);
+    self->dbname = cxString_FromEncodedString(dbname, dbnameLength,
+            env->encoding);
     if (!self->dbname)
         return -1;
 
@@ -537,7 +539,7 @@ static void Subscription_Callback(
 #endif
 
     // perform the call
-    env = Environment_NewFromScratch(0, 0);
+    env = Environment_NewFromScratch(0, 0, NULL, NULL);
     if (!env)
         PyErr_Print();
     else {
@@ -758,7 +760,7 @@ static PyObject *Subscription_RegisterQuery(
     PyObject *args)                     // arguments
 {
     PyObject *statement, *executeArgs;
-    udt_StringBuffer statementBuffer;
+    udt_Buffer statementBuffer;
     udt_Environment *env;
     udt_Cursor *cursor;
     sword status;
@@ -789,14 +791,15 @@ static PyObject *Subscription_RegisterQuery(
     }
 
     // prepare the statement for execution
-    if (StringBuffer_Fill(&statementBuffer, statement) < 0) {
+    if (cxBuffer_FromObject(&statementBuffer, statement,
+            env->encoding) < 0) {
         Py_DECREF(cursor);
         return NULL;
     }
     status = OCIStmtPrepare(cursor->handle, env->errorHandle,
             (text*) statementBuffer.ptr, statementBuffer.size, OCI_NTV_SYNTAX,
             OCI_DEFAULT);
-    StringBuffer_Clear(&statementBuffer);
+    cxBuffer_Clear(&statementBuffer);
     if (Environment_CheckForError(env, status,
             "Subscription_RegisterQuery(): prepare statement") < 0) {
         Py_DECREF(cursor);

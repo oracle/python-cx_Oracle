@@ -80,12 +80,12 @@ static udt_Error *Error_New(
     const char *context,                // context in which error occurred
     int retrieveError)                  // retrieve error from OCI?
 {
-    char errorText[1024 * CXORA_BYTES_PER_CHAR];
+    char errorText[4096];
     udt_Error *self;
     ub4 handleType;
     dvoid *handle;
     sword status;
-#ifdef WITH_UNICODE
+#if PY_MAJOR_VERSION >= 3
     Py_ssize_t len;
 #endif
 
@@ -108,14 +108,12 @@ static udt_Error *Error_New(
             PyErr_SetString(g_InternalErrorException, "No Oracle error?");
             return NULL;
         }
-#ifdef WITH_UNICODE
-	    for (len = 0; len < sizeof(errorText); len += 2) {
-	        if (errorText[len] == 0 && errorText[len + 1] == 0)
-		        break;
-	    }
-        self->message = cxString_FromEncodedString(errorText, len);
-#else
+#if PY_MAJOR_VERSION < 3
         self->message = PyBytes_FromString(errorText);
+#else
+        len = strlen(errorText);
+        self->message = PyUnicode_Decode(errorText, len, environment->encoding,
+                NULL);
 #endif
         if (!self->message) {
             Py_DECREF(self);

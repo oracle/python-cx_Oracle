@@ -363,7 +363,7 @@ static int Variable_Check(
             Py_TYPE(object) == &g_StringVarType ||
             Py_TYPE(object) == &g_FixedCharVarType ||
             Py_TYPE(object) == &g_NCLOBVarType ||
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
             Py_TYPE(object) == &g_UnicodeVarType ||
             Py_TYPE(object) == &g_FixedUnicodeVarType ||
 #endif
@@ -393,7 +393,7 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_String;
     if (type == (PyObject*) &g_FixedCharVarType)
         return &vt_FixedChar;
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
     if (type == (PyObject*) &g_UnicodeVarType)
         return &vt_NationalCharString;
     if (type == (PyObject*) &PyUnicode_Type)
@@ -487,33 +487,33 @@ static udt_VariableType *Variable_TypeByValue(
             return &vt_LongString;
         return &vt_String;
     }
-#ifdef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
+    if (PyUnicode_Check(value)) {
+        *size = PyUnicode_GET_SIZE(value);
+        if (*size > MAX_STRING_CHARS)
+            return &vt_LongString;
+        return &vt_NationalCharString;
+    }
+    if (PyInt_Check(value))
+        return &vt_Integer;
+#else
     if (PyBytes_Check(value)) {
         *size = PyBytes_GET_SIZE(value);
         if (*size > MAX_BINARY_BYTES)
             return &vt_LongBinary;
         return &vt_Binary;
     }
-#else
-    if (PyUnicode_Check(value)) {
-        *size = PyUnicode_GET_SIZE(value);
-        return &vt_NationalCharString;
-    }
-#endif
-#if PY_MAJOR_VERSION < 3
-    if (PyInt_Check(value))
-        return &vt_Integer;
 #endif
     if (PyLong_Check(value))
         return &vt_LongInteger;
     if (PyFloat_Check(value))
         return &vt_Float;
     if (cxBinary_Check(value)) {
-        udt_StringBuffer temp;
-        if (StringBuffer_FromBinary(&temp, value) < 0)
+        udt_Buffer temp;
+        if (cxBuffer_FromObject(&temp, value, NULL) < 0)
             return NULL;
         *size = temp.size;
-        StringBuffer_Clear(&temp);
+        cxBuffer_Clear(&temp);
         if (*size > MAX_BINARY_BYTES)
             return &vt_LongBinary;
         return &vt_Binary;
@@ -574,13 +574,13 @@ static udt_VariableType *Variable_TypeByOracleDataType (
         case SQLT_LNG:
             return &vt_LongString;
         case SQLT_AFC:
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
             if (charsetForm == SQLCS_NCHAR)
                 return &vt_FixedNationalChar;
 #endif
             return &vt_FixedChar;
         case SQLT_CHR:
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
             if (charsetForm == SQLCS_NCHAR)
                 return &vt_NationalCharString;
 #endif
@@ -1056,8 +1056,9 @@ static int Variable_InternalBind(
 
     // perform the bind
     if (var->boundName) {
-        udt_StringBuffer buffer;
-        if (StringBuffer_Fill(&buffer, var->boundName) < 0)
+        udt_Buffer buffer;
+        if (cxBuffer_FromObject(&buffer, var->boundName,
+                var->environment->encoding) < 0)
             return -1;
         if (var->isArray) {
             status = OCIBindByName(var->boundCursorHandle, &var->bindHandle,
@@ -1073,7 +1074,7 @@ static int Variable_InternalBind(
                     var->type->oracleType, var->indicator, var->actualLength,
                     var->returnCode, 0, 0, OCI_DEFAULT);
         }
-        StringBuffer_Clear(&buffer);
+        cxBuffer_Clear(&buffer);
     } else {
         if (var->isArray) {
             status = OCIBindByPos(var->boundCursorHandle, &var->bindHandle,
@@ -1092,21 +1093,14 @@ static int Variable_InternalBind(
             "Variable_InternalBind()") < 0)
         return -1;
 
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
     // set the charset form and id if applicable
     if (var->type->charsetForm != SQLCS_IMPLICIT) {
-        ub2 charsetId = OCI_UTF16ID;
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
                 (dvoid*) &var->type->charsetForm, 0, OCI_ATTR_CHARSET_FORM,
                 var->environment->errorHandle);
         if (Environment_CheckForError(var->environment, status,
                 "Variable_InternalBind(): set charset form") < 0)
-            return -1;
-        status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
-                 (dvoid*) &charsetId, 0, OCI_ATTR_CHARSET_ID,
-                 var->environment->errorHandle);
-        if (Environment_CheckForError(var->environment, status,
-                 "Variable_InternalBind(): setting charset Id") < 0)
             return -1;
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
                 (dvoid*) &var->bufferSize, 0, OCI_ATTR_MAXDATA_SIZE,
@@ -1150,14 +1144,6 @@ static int Variable_Bind(
     var->boundPos = pos;
     var->boundCursorHandle = cursor->handle;
     Py_XDECREF(var->boundName);
-#if defined(WITH_UNICODE) && PY_MAJOR_VERSION < 3
-    if (name && PyBytes_Check(name)) {
-        var->boundName = PyObject_Unicode(name);
-        if (!var->boundName)
-            return -1;
-        return Variable_InternalBind(var);
-    }
-#endif
     Py_XINCREF(name);
     var->boundName = name;
 

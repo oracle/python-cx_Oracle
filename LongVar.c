@@ -127,40 +127,17 @@ static int LongVar_SetValue(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
-    udt_StringBuffer buffer;
+    udt_Buffer buffer;
     char *ptr;
-    ub4 size;
 
     // get the buffer data and size for binding
-    if (var->type == &vt_LongBinary) {
-        if (PyBytes_Check(value)) {
-            if (StringBuffer_FromBytes(&buffer, value) < 0)
-                return -1;
-#if PY_MAJOR_VERSION < 3
-        } else if (cxBinary_Check(value)) {
-            if (StringBuffer_FromBinary(&buffer, value) < 0)
-                return -1;
-#endif
-        } else {
-            PyErr_SetString(PyExc_TypeError,
-                    "expecting string or buffer data");
-            return -1;
-        }
-        size = buffer.size;
-    } else {
-        if (!cxString_Check(value)) {
-            PyErr_SetString(PyExc_TypeError, "expecting string data");
-            return -1;
-        }
-        if (StringBuffer_Fill(&buffer, value) < 0)
-            return -1;
-        size = cxString_GetSize(value);
-    }
+    if (cxBuffer_FromObject(&buffer, value, var->environment->encoding) < 0)
+        return -1;
 
     // verify there is enough space to store the value
-    if (size > var->size) {
-        if (Variable_Resize((udt_Variable*) var, size) < 0) {
-            StringBuffer_Clear(&buffer);
+    if (buffer.numCharacters > var->size) {
+        if (Variable_Resize((udt_Variable*) var, buffer.numCharacters) < 0) {
+            cxBuffer_Clear(&buffer);
             return -1;
         }
     }
@@ -170,7 +147,7 @@ static int LongVar_SetValue(
     *((ub4 *) ptr) = (ub4) buffer.size;
     if (buffer.size)
         memcpy(ptr + sizeof(ub4), buffer.ptr, buffer.size);
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
 
     return 0;
 }
@@ -192,7 +169,7 @@ static PyObject *LongVar_GetValue(
     ptr += sizeof(ub4);
     if (var->type == &vt_LongBinary)
         return PyBytes_FromStringAndSize(ptr, size);
-    return cxString_FromEncodedString(ptr, size);
+    return cxString_FromEncodedString(ptr, size, var->environment->encoding);
 }
 
 
@@ -205,10 +182,6 @@ static ub4 LongVar_GetBufferSize(
 {
     if (!self->type->isCharacterData)
         return self->size + sizeof(ub4);
-#ifdef WITH_UNICODE
-    return sizeof(ub4) + self->size * CXORA_BYTES_PER_CHAR;
-#else
     return sizeof(ub4) + self->size * self->environment->maxBytesPerCharacter;
-#endif
 }
 

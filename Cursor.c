@@ -206,7 +206,7 @@ static int Cursor_FreeHandle(
     udt_Cursor *self,                   // cursor object
     int raiseException)                 // raise an exception, if necesary?
 {
-    udt_StringBuffer buffer;
+    udt_Buffer buffer;
     sword status;
 
     if (self->handle) {
@@ -216,12 +216,13 @@ static int Cursor_FreeHandle(
                     self->environment, status, "Cursor_FreeHandle()") < 0)
                 return -1;
         } else if (self->connection->handle != 0) {
-            if (!StringBuffer_Fill(&buffer, self->statementTag) < 0)
+            if (!cxBuffer_FromObject(&buffer, self->statementTag,
+                    self->environment->encoding) < 0)
                 return (raiseException) ? -1 : 0;
             status = OCIStmtRelease(self->handle,
                     self->environment->errorHandle, (text*) buffer.ptr,
                     buffer.size, OCI_DEFAULT);
-            StringBuffer_Clear(&buffer);
+            cxBuffer_Clear(&buffer);
             if (raiseException && Environment_CheckForError(
                     self->environment, status, "Cursor_FreeHandle()") < 0)
                 return -1;
@@ -428,7 +429,8 @@ static int Cursor_GetBindNames(
     for (i = 0; i < foundElements; i++) {
         if (!duplicate[i]) {
             temp = cxString_FromEncodedString(bindNames[i],
-                    bindNameLengths[i]);
+                    bindNameLengths[i],
+                    self->connection->environment->encoding);
             if (!temp) {
                 Py_DECREF(*names);
                 PyMem_Free(buffer);
@@ -689,7 +691,7 @@ static PyObject *Cursor_ItemDescriptionHelper(
     type = (PyObject*) varType->pythonType;
     if (type == (PyObject*) &g_StringVarType)
         displaySize = charSize;
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
     else if (type == (PyObject*) &g_UnicodeVarType)
         displaySize = charSize;
 #endif
@@ -697,7 +699,7 @@ static PyObject *Cursor_ItemDescriptionHelper(
         displaySize = internalSize;
     else if (type == (PyObject*) &g_FixedCharVarType)
         displaySize = charSize;
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
     else if (type == (PyObject*) &g_FixedUnicodeVarType)
         displaySize = charSize;
 #endif
@@ -720,7 +722,8 @@ static PyObject *Cursor_ItemDescriptionHelper(
         return NULL;
 
     // set each of the items in the tuple
-    PyTuple_SET_ITEM(tuple, 0, cxString_FromEncodedString(name, nameLength));
+    PyTuple_SET_ITEM(tuple, 0, cxString_FromEncodedString(name, nameLength,
+            self->connection->environment->encoding));
     Py_INCREF(type);
     PyTuple_SET_ITEM(tuple, 1, type);
     PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(displaySize));
@@ -1126,7 +1129,7 @@ static int Cursor_InternalPrepare(
     PyObject *statement,                // statement to prepare
     PyObject *statementTag)             // tag of statement to prepare
 {
-    udt_StringBuffer statementBuffer, tagBuffer;
+    udt_Buffer statementBuffer, tagBuffer;
     sword status;
 
     // make sure we don't get a situation where nothing is to be executed
@@ -1160,10 +1163,12 @@ static int Cursor_InternalPrepare(
 
     // prepare statement
     self->isOwned = 0;
-    if (StringBuffer_Fill(&statementBuffer, statement) < 0)
+    if (cxBuffer_FromObject(&statementBuffer, statement,
+            self->environment->encoding) < 0)
         return -1;
-    if (StringBuffer_Fill(&tagBuffer, statementTag) < 0) {
-        StringBuffer_Clear(&statementBuffer);
+    if (cxBuffer_FromObject(&tagBuffer, statementTag,
+            self->environment->encoding) < 0) {
+        cxBuffer_Clear(&statementBuffer);
         return -1;
     }
     Py_BEGIN_ALLOW_THREADS
@@ -1172,8 +1177,8 @@ static int Cursor_InternalPrepare(
             statementBuffer.size, (text*) tagBuffer.ptr, tagBuffer.size,
             OCI_NTV_SYNTAX, OCI_DEFAULT);
     Py_END_ALLOW_THREADS
-    StringBuffer_Clear(&statementBuffer);
-    StringBuffer_Clear(&tagBuffer);
+    cxBuffer_Clear(&statementBuffer);
+    cxBuffer_Clear(&tagBuffer);
     if (Environment_CheckForError(self->environment, status,
             "Cursor_InternalPrepare(): prepare") < 0) {
         // this is needed to avoid "invalid handle" errors since Oracle doesn't
@@ -1255,8 +1260,7 @@ static PyObject *Cursor_Prepare(
 
     // statement text and optional tag is expected
     statementTag = NULL;
-    if (!PyArg_ParseTuple(args, "O!|O!", cxString_Type, &statement,
-            cxString_Type, &statementTag))
+    if (!PyArg_ParseTuple(args, "O|O", &statement, &statementTag))
         return NULL;
 
     // make sure the cursor is open
@@ -1516,9 +1520,8 @@ static PyObject *Cursor_CallFunc(
 
     // parse arguments
     listOfArguments = keywordArguments = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O|OO", keywordList,
-            cxString_Type, &name, &returnType, &listOfArguments,
-            &keywordArguments))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO|OO", keywordList,
+            &name, &returnType, &listOfArguments, &keywordArguments))
         return NULL;
 
     // create the return variable
@@ -1553,8 +1556,8 @@ static PyObject *Cursor_CallProc(
 
     // parse arguments
     listOfArguments = keywordArguments = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|OO", keywordList,
-            cxString_Type, &name, &listOfArguments, &keywordArguments))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|OO", keywordList,
+            &name, &listOfArguments, &keywordArguments))
         return NULL;
 
     // call the stored procedure
@@ -1595,10 +1598,6 @@ static PyObject *Cursor_Execute(
     executeArgs = NULL;
     if (!PyArg_ParseTuple(args, "O|O", &statement, &executeArgs))
         return NULL;
-    if (statement != Py_None && !cxString_Check(statement)) {
-        PyErr_SetString(PyExc_TypeError, "expecting None or a string");
-        return NULL;
-    }
     if (executeArgs && keywordArgs) {
         if (PyDict_Size(keywordArgs) == 0)
             keywordArgs = NULL;
@@ -1674,10 +1673,6 @@ static PyObject *Cursor_ExecuteMany(
     if (!PyArg_ParseTuple(args, "OO!", &statement, &PyList_Type,
             &listOfArguments))
         return NULL;
-    if (statement != Py_None && !cxString_Check(statement)) {
-        PyErr_SetString(PyExc_TypeError, "expecting None or string");
-        return NULL;
-    }
 
     // make sure the cursor is open
     if (Cursor_IsOpen(self) < 0)
@@ -2115,9 +2110,9 @@ static PyObject *Cursor_Var(
     size = 0;
     arraySize = self->bindArraySize;
     inConverter = outConverter = typeNameObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOO!",
-            keywordList, &type, &size, &arraySize, &inConverter,
-            &outConverter, cxString_Type, &typeNameObj))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOO", keywordList,
+            &type, &size, &arraySize, &inConverter, &outConverter,
+            &typeNameObj))
         return NULL;
 
     // determine the type of variable

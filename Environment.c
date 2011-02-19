@@ -12,8 +12,13 @@ typedef struct {
     OCIError *errorHandle;
     int maxBytesPerCharacter;
     int fixedWidth;
+    char *encoding;
+    char *nencoding;
     ub4 maxStringBytes;
     PyObject *cloneEnv;
+    udt_Buffer numberToStringFormatBuffer;
+    udt_Buffer numberFromStringFormatBuffer;
+    udt_Buffer nlsNumericCharactersBuffer;
 } udt_Environment;
 
 //-----------------------------------------------------------------------------
@@ -76,9 +81,12 @@ static udt_Environment *Environment_New(
     env->handle = NULL;
     env->errorHandle = NULL;
     env->fixedWidth = 1;
-    env->maxBytesPerCharacter = CXORA_BYTES_PER_CHAR;
-    env->maxStringBytes = MAX_STRING_CHARS * CXORA_BYTES_PER_CHAR;
+    env->maxBytesPerCharacter = 1;
+    env->maxStringBytes = MAX_STRING_CHARS;
     env->cloneEnv = NULL;
+    cxBuffer_Init(&env->numberToStringFormatBuffer);
+    cxBuffer_Init(&env->numberFromStringFormatBuffer);
+    cxBuffer_Init(&env->nlsNumericCharactersBuffer);
 
     // create the error handle
     status = OCIHandleAlloc(handle, (dvoid**) &env->errorHandle,
@@ -95,12 +103,85 @@ static udt_Environment *Environment_New(
 
 
 //-----------------------------------------------------------------------------
+// Environment_GetCharacterSetName()
+//   Retrieve and store the IANA character set name for the attribute.
+//-----------------------------------------------------------------------------
+static int Environment_GetCharacterSetName(
+    udt_Environment *self,              // environment object
+    ub2 attribute,                      // attribute to fetch
+    const char *overrideValue,          // override value, if specified
+    char **result)                      // place to store result
+{
+    char charsetName[OCI_NLS_MAXBUFSZ], ianaCharsetName[OCI_NLS_MAXBUFSZ];
+    ub2 charsetId;
+    sword status;
+
+    // if override value specified, use it
+    if (overrideValue) {
+        *result = PyMem_Malloc(strlen(overrideValue) + 1);
+        if (!*result)
+            return -1;
+        strcpy(*result, overrideValue);
+        return 0;
+    }
+
+    // get character set id
+    status = OCIAttrGet(self->handle, OCI_HTYPE_ENV, &charsetId, NULL,
+            attribute, self->errorHandle);
+    if (Environment_CheckForError(self, status,
+            "Environment_GetCharacterSetName(): get charset id") < 0)
+        return -1;
+
+    // get character set name
+    status = OCINlsCharSetIdToName(self->handle, (text*) charsetName,
+            OCI_NLS_MAXBUFSZ, charsetId);
+    if (Environment_CheckForError(self, status,
+            "Environment_GetCharacterSetName(): get Oracle charset name") < 0)
+        return -1;
+
+    // get IANA character set name
+    status = OCINlsNameMap(self->handle, (oratext*) ianaCharsetName,
+            OCI_NLS_MAXBUFSZ, (oratext*) charsetName, OCI_NLS_CS_ORA_TO_IANA);
+    if (Environment_CheckForError(self, status,
+            "Environment_GetCharacterSetName(): translate NLS charset") < 0)
+        return -1;
+
+    // store results
+    *result = PyMem_Malloc(strlen(ianaCharsetName) + 1);
+    if (!*result)
+        return -1;
+    strcpy(*result, ianaCharsetName);
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// Environment_SetBuffer()
+//   Set the buffer in the environment from the specified string.
+//-----------------------------------------------------------------------------
+static int Environment_SetBuffer(
+    udt_Buffer *buf,                    // buffer to set
+    const char *value,                  // ASCII value to use
+    const char *encoding)               // encoding to use
+{
+    PyObject *obj;
+
+    obj = cxString_FromAscii(value);
+    if (!obj)
+        return -1;
+    return cxBuffer_FromObject(buf, obj, encoding);
+}
+
+
+//-----------------------------------------------------------------------------
 // Environment_NewFromScratch()
 //   Create a new environment object from scratch.
 //-----------------------------------------------------------------------------
 static udt_Environment *Environment_NewFromScratch(
     int threaded,                       // use threaded mode?
-    int events)                         // use events mode?
+    int events,                         // use events mode?
+    char *encoding,                     // override value for encoding
+    char *nencoding)                    // override value for nencoding
 {
     udt_Environment *env;
     OCIEnv *handle;
@@ -117,8 +198,8 @@ static udt_Environment *Environment_NewFromScratch(
 #endif
 
     // create the new environment handle
-    status = OCIEnvNlsCreate(&handle, mode, NULL, NULL, NULL,
-            NULL, 0, NULL, CXORA_CHARSETID, CXORA_CHARSETID);
+    status = OCIEnvNlsCreate(&handle, mode, NULL, NULL, NULL, NULL, 0, NULL, 0,
+            0);
     if (!handle ||
             (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)) {
         PyErr_SetString(g_InterfaceErrorException,
@@ -133,7 +214,6 @@ static udt_Environment *Environment_NewFromScratch(
         return NULL;
     }
 
-#ifndef WITH_UNICODE
     // acquire max bytes per character
     status = OCINlsNumericInfoGet(env->handle, env->errorHandle,
             &env->maxBytesPerCharacter, OCI_NLS_CHARSET_MAXBYTESZ);
@@ -152,7 +232,26 @@ static udt_Environment *Environment_NewFromScratch(
         Py_DECREF(env);
         return NULL;
     }
-#endif
+
+    // determine encodings to use for Unicode values
+    if (Environment_GetCharacterSetName(env, OCI_ATTR_ENV_CHARSET_ID,
+            encoding, &env->encoding) < 0)
+        return NULL;
+    if (Environment_GetCharacterSetName(env, OCI_ATTR_ENV_NCHARSET_ID,
+            nencoding, &env->nencoding) < 0)
+        return NULL;
+
+    // fill buffers for number formats
+    if (Environment_SetBuffer(&env->numberToStringFormatBuffer, "TM9",
+            env->encoding) < 0)
+        return NULL;
+    if (Environment_SetBuffer(&env->numberFromStringFormatBuffer,
+            "999999999999999999999999999999999999999999999999999999999999999",
+            env->encoding) < 0)
+        return NULL;
+    if (Environment_SetBuffer(&env->nlsNumericCharactersBuffer,
+            "NLS_NUMERIC_CHARACTERS='.,'", env->encoding) < 0)
+        return NULL;
 
     return env;
 }
@@ -176,6 +275,14 @@ static udt_Environment *Environment_Clone(
     env->fixedWidth = cloneEnv->fixedWidth;
     Py_INCREF(cloneEnv);
     env->cloneEnv = (PyObject*) cloneEnv;
+    env->encoding = cloneEnv->encoding;
+    env->nencoding = cloneEnv->nencoding;
+    cxBuffer_Copy(&env->numberToStringFormatBuffer,
+            &cloneEnv->numberToStringFormatBuffer);
+    cxBuffer_Copy(&env->numberFromStringFormatBuffer,
+            &cloneEnv->numberFromStringFormatBuffer);
+    cxBuffer_Copy(&env->nlsNumericCharactersBuffer,
+            &cloneEnv->nlsNumericCharactersBuffer);
     return env;
 }
 
@@ -192,6 +299,15 @@ static void Environment_Free(
         OCIHandleFree(self->errorHandle, OCI_HTYPE_ERROR);
     if (self->handle && !self->cloneEnv)
         OCIHandleFree(self->handle, OCI_HTYPE_ENV);
+    if (!self->cloneEnv) {
+        if (self->encoding)
+            PyMem_Free(self->encoding);
+        if (self->nencoding)
+            PyMem_Free(self->nencoding);
+    }
+    cxBuffer_Clear(&self->numberToStringFormatBuffer);
+    cxBuffer_Clear(&self->numberFromStringFormatBuffer);
+    cxBuffer_Clear(&self->nlsNumericCharactersBuffer);
     Py_CLEAR(self->cloneEnv);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }

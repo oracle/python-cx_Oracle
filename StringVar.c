@@ -16,11 +16,11 @@ typedef struct {
 // Declaration of string variable functions.
 //-----------------------------------------------------------------------------
 static int StringVar_Initialize(udt_StringVar*, udt_Cursor*);
-#ifndef WITH_UNICODE
-static int StringVar_PostDefine(udt_StringVar*);
-#endif
 static int StringVar_SetValue(udt_StringVar*, unsigned, PyObject*);
 static PyObject *StringVar_GetValue(udt_StringVar*, unsigned);
+#if PY_MAJOR_VERSION < 3
+static int StringVar_PostDefine(udt_StringVar*);
+#endif
 static ub4 StringVar_GetBufferSize(udt_StringVar*);
 
 //-----------------------------------------------------------------------------
@@ -51,7 +51,7 @@ static PyTypeObject g_StringVarType = {
 };
 
 
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
 static PyTypeObject g_UnicodeVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.UNICODE",                // tp_name
@@ -103,7 +103,7 @@ static PyTypeObject g_FixedCharVarType = {
 };
 
 
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
 static PyTypeObject g_FixedUnicodeVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.FIXED_UNICODE",          // tp_name
@@ -204,7 +204,7 @@ static udt_VariableType vt_String = {
 };
 
 
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
 static udt_VariableType vt_NationalCharString = {
     (InitializeProc) StringVar_Initialize,
     (FinalizeProc) NULL,
@@ -248,7 +248,7 @@ static udt_VariableType vt_FixedChar = {
 };
 
 
-#ifndef WITH_UNICODE
+#if PY_MAJOR_VERSION < 3
 static udt_VariableType vt_FixedNationalChar = {
     (InitializeProc) StringVar_Initialize,
     (FinalizeProc) NULL,
@@ -331,37 +331,6 @@ static int StringVar_Initialize(
 }
 
 
-#ifndef WITH_UNICODE
-//-----------------------------------------------------------------------------
-// StringVar_PostDefine()
-//   Set the character set information when values are fetched from this
-// variable.
-//-----------------------------------------------------------------------------
-static int StringVar_PostDefine(
-    udt_StringVar *var)                 // variable to initialize
-{
-    ub2 charsetId;
-    sword status;
-
-    status = OCIAttrSet(var->defineHandle, OCI_HTYPE_DEFINE,
-            &var->type->charsetForm, 0, OCI_ATTR_CHARSET_FORM,
-            var->environment->errorHandle);
-    if (Environment_CheckForError(var->environment, status,
-            "StringVar_PostDefine(): setting charset form") < 0)
-        return -1;
-
-    charsetId = OCI_UTF16ID;
-    status = OCIAttrSet(var->defineHandle, OCI_HTYPE_DEFINE, &charsetId, 0,
-            OCI_ATTR_CHARSET_ID, var->environment->errorHandle);
-    if (Environment_CheckForError(var->environment, status,
-            "StringVar_PostDefine(): setting charset id") < 0)
-        return -1;
-
-    return 0;
-}
-#endif
-
-
 //-----------------------------------------------------------------------------
 // StringVar_SetValue()
 //   Set the value of the variable.
@@ -371,58 +340,27 @@ static int StringVar_SetValue(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
-    udt_StringBuffer buffer;
-    ub4 size;
+    udt_Buffer buffer;
 
-    // get the buffer data and size for binding
-#ifdef WITH_UNICODE
-    if (!var->type->isCharacterData) {
-#else
-    if (var->type->charsetForm == SQLCS_IMPLICIT) {
-#endif
-        if (PyBytes_Check(value)) {
-            StringBuffer_FromBytes(&buffer, value);
-            size = buffer.size;
-#if PY_MAJOR_VERSION < 3
-        } else if (cxBinary_Check(value)) {
-            if (StringBuffer_FromBinary(&buffer, value) < 0)
-                return -1;
-            size = buffer.size;
-#endif
-        } else {
-            PyErr_SetString(PyExc_TypeError,
-                    "expecting string or buffer data");
-            return -1;
-        }
-        if (var->type->isCharacterData
-                && buffer.size > var->environment->maxStringBytes) {
-            StringBuffer_Clear(&buffer);
-            PyErr_SetString(PyExc_ValueError, "string data too large");
-            return -1;
-        } else if (!var->type->isCharacterData
-                && buffer.size > MAX_BINARY_BYTES) {
-            StringBuffer_Clear(&buffer);
-            PyErr_SetString(PyExc_ValueError, "binary data too large");
-            return -1;
-        }
-    } else {
-        if (!PyUnicode_Check(value)) {
-            PyErr_SetString(PyExc_TypeError, "expecting unicode data");
-            return -1;
-        }
-        size = PyUnicode_GET_SIZE(value);
-        if (size > MAX_STRING_CHARS) {
-            PyErr_SetString(PyExc_ValueError, "unicode data too large");
-            return -1;
-        }
-        if (StringBuffer_FromUnicode(&buffer, value) < 0)
-            return -1;
+    // populate the buffer and confirm the maximum size is not exceeded
+    if (cxBuffer_FromObject(&buffer, value, var->environment->encoding) < 0)
+        return -1;
+    if (var->type->isCharacterData
+            && buffer.numCharacters > MAX_STRING_CHARS) {
+        cxBuffer_Clear(&buffer);
+        PyErr_SetString(PyExc_ValueError, "string data too large");
+        return -1;
+    } else if (!var->type->isCharacterData
+            && buffer.size > MAX_BINARY_BYTES) {
+        cxBuffer_Clear(&buffer);
+        PyErr_SetString(PyExc_ValueError, "binary data too large");
+        return -1;
     }
 
     // ensure that the buffer is large enough
     if (buffer.size > var->bufferSize) {
-        if (Variable_Resize( (udt_Variable*) var, size) < 0) {
-            StringBuffer_Clear(&buffer);
+        if (Variable_Resize( (udt_Variable*) var, buffer.numCharacters) < 0) {
+            cxBuffer_Clear(&buffer);
             return -1;
         }
     }
@@ -431,7 +369,7 @@ static int StringVar_SetValue(
     var->actualLength[pos] = (ub2) buffer.size;
     if (buffer.size)
         memcpy(var->data + var->bufferSize * pos, buffer.ptr, buffer.size);
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
 
     return 0;
 }
@@ -448,21 +386,40 @@ static PyObject *StringVar_GetValue(
     char *data;
 
     data = var->data + pos * var->bufferSize;
-#ifdef WITH_UNICODE
     if (var->type == &vt_Binary)
         return PyBytes_FromStringAndSize(data, var->actualLength[pos]);
-    return cxString_FromEncodedString(data, var->actualLength[pos]);
-#else
-    if (var->type->charsetForm == SQLCS_IMPLICIT)
-        return PyBytes_FromStringAndSize(data, var->actualLength[pos]);
-    #ifdef Py_UNICODE_WIDE
-    return PyUnicode_DecodeUTF16(data, var->actualLength[pos], NULL, NULL);
-    #else
-    return PyUnicode_FromUnicode((Py_UNICODE*) data,
-            var->actualLength[pos] / 2);
-    #endif
+#if PY_MAJOR_VERSION < 3
+    if (var->type == &vt_FixedNationalChar
+            || var->type == &vt_NationalCharString)
+        return PyUnicode_Decode(data, var->actualLength[pos],
+                var->environment->nencoding, NULL);
 #endif
+    return cxString_FromEncodedString(data, var->actualLength[pos],
+            var->environment->encoding);
 }
+
+
+#if PY_MAJOR_VERSION < 3
+//-----------------------------------------------------------------------------
+// StringVar_PostDefine()
+//   Set the character set information when values are fetched from this
+// variable.
+//-----------------------------------------------------------------------------
+static int StringVar_PostDefine(
+    udt_StringVar *var)                 // variable to initialize
+{
+    sword status;
+
+    status = OCIAttrSet(var->defineHandle, OCI_HTYPE_DEFINE,
+            &var->type->charsetForm, 0, OCI_ATTR_CHARSET_FORM,
+            var->environment->errorHandle);
+    if (Environment_CheckForError(var->environment, status,
+            "StringVar_PostDefine(): setting charset form") < 0)
+        return -1;
+
+    return 0;
+}
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -472,12 +429,8 @@ static PyObject *StringVar_GetValue(
 static ub4 StringVar_GetBufferSize(
     udt_StringVar* self)                // variable to get buffer size for
 {
-#ifdef WITH_UNICODE
-    return self->size * CXORA_BYTES_PER_CHAR;
-#else
-    if (self->type->charsetForm == SQLCS_IMPLICIT)
+    if (self->type->isCharacterData)
         return self->size * self->environment->maxBytesPerCharacter;
-    return self->size * 2;
-#endif
+    return self->size;
 }
 

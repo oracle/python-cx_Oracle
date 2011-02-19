@@ -169,7 +169,6 @@ static int ExternalLobVar_InternalRead(
     ub4 *length,                        // length of data (IN/OUT)
     int offset)                         // offset
 {
-    ub2 charsetId;
     sword status;
 
     if (var->lobVar->isFile) {
@@ -183,15 +182,11 @@ static int ExternalLobVar_InternalRead(
             return -1;
     }
 
-    if (var->lobVar->type == &vt_NCLOB)
-        charsetId = OCI_UTF16ID;
-    else charsetId = CXORA_CHARSETID;
-
     Py_BEGIN_ALLOW_THREADS
     status = OCILobRead(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle,
             var->lobVar->data[var->pos], length, offset, buffer,
-            bufferSize, NULL, NULL, charsetId, var->lobVar->type->charsetForm); 
+            bufferSize, NULL, NULL, 0, var->lobVar->type->charsetForm); 
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_LobRead()") < 0) {
@@ -284,13 +279,11 @@ static PyObject *ExternalLobVar_Value(
     if (var->lobVar->type == &vt_CLOB) {
         if (var->lobVar->environment->fixedWidth)
             length = length * var->lobVar->environment->maxBytesPerCharacter;
-        result = cxString_FromEncodedString(buffer, length);
+        result = cxString_FromEncodedString(buffer, length,
+                var->lobVar->environment->encoding);
     } else if (var->lobVar->type == &vt_NCLOB) {
-    #ifdef Py_UNICODE_WIDE
-        result = PyUnicode_DecodeUTF16(buffer, length * 2, NULL, NULL);
-    #else
-        result = PyUnicode_FromUnicode((Py_UNICODE*) buffer, length);
-    #endif
+        result = PyUnicode_Decode(buffer, length,
+                var->lobVar->environment->encoding, NULL);
     } else {
         result = PyBytes_FromStringAndSize(buffer, length);
     }
@@ -550,7 +543,7 @@ static PyObject *ExternalLobVar_GetFileName(
     udt_ExternalLobVar *var,            // variable to get file name for
     PyObject *args)                     // arguments
 {
-    char dirAlias[30 * CXORA_BYTES_PER_CHAR], name[255 * CXORA_BYTES_PER_CHAR];
+    char dirAlias[120], name[1020];
     ub2 dirAliasLength, nameLength;
     PyObject *result, *temp;
     sword status;
@@ -558,8 +551,8 @@ static PyObject *ExternalLobVar_GetFileName(
     // determine the directory alias and name
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
-    dirAliasLength = sizeof(dirAlias);
     nameLength = sizeof(name);
+    dirAliasLength = sizeof(dirAlias);
     status = OCILobFileGetName(var->lobVar->environment->handle,
             var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
             (text*) dirAlias, &dirAliasLength, (text*) name, &nameLength);
@@ -571,13 +564,15 @@ static PyObject *ExternalLobVar_GetFileName(
     result = PyTuple_New(2);
     if (!result)
         return NULL;
-    temp = cxString_FromEncodedString(dirAlias, dirAliasLength);
+    temp = cxString_FromEncodedString(dirAlias, dirAliasLength,
+            var->lobVar->environment->encoding);
     if (!temp) {
         Py_DECREF(result);
         return NULL;
     }
     PyTuple_SET_ITEM(result, 0, temp);
-    temp = cxString_FromEncodedString(name, nameLength);
+    temp = cxString_FromEncodedString(name, nameLength,
+            var->lobVar->environment->encoding);
     if (!temp) {
         Py_DECREF(result);
         return NULL;

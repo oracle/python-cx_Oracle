@@ -171,7 +171,7 @@ static int SessionPool_Init(
 {
     unsigned minSessions, maxSessions, sessionIncrement;
     PyObject *threadedObj, *eventsObj, *homogeneousObj;
-    udt_StringBuffer username, password, dsn;
+    udt_Buffer username, password, dsn;
     int threaded, events, homogeneous;
     PyTypeObject *connectionType;
     unsigned poolNameLength;
@@ -235,7 +235,8 @@ static int SessionPool_Init(
     self->homogeneous = homogeneous;
 
     // set up the environment
-    self->environment = Environment_NewFromScratch(threaded, events);
+    self->environment = Environment_NewFromScratch(threaded, events, NULL,
+            NULL);
     if (!self->environment)
         return -1;
 
@@ -252,15 +253,18 @@ static int SessionPool_Init(
         poolMode |= OCI_SPC_HOMOGENEOUS;
 
     // create the session pool
-    if (StringBuffer_Fill(&username, self->username) < 0)
+    if (cxBuffer_FromObject(&username, self->username,
+            self->environment->encoding) < 0)
         return -1;
-    if (StringBuffer_Fill(&password, self->password) < 0) {
-        StringBuffer_Clear(&username);
+    if (cxBuffer_FromObject(&password, self->password,
+            self->environment->encoding) < 0) {
+        cxBuffer_Clear(&username);
         return -1;
     }
-    if (StringBuffer_Fill(&dsn, self->dsn) < 0) {
-        StringBuffer_Clear(&username);
-        StringBuffer_Clear(&password);
+    if (cxBuffer_FromObject(&dsn, self->dsn,
+            self->environment->encoding) < 0) {
+        cxBuffer_Clear(&username);
+        cxBuffer_Clear(&password);
         return -1;
     }
     Py_BEGIN_ALLOW_THREADS
@@ -271,15 +275,16 @@ static int SessionPool_Init(
             (OraText*) username.ptr, username.size, (OraText*) password.ptr,
             password.size, poolMode);
     Py_END_ALLOW_THREADS
-    StringBuffer_Clear(&username);
-    StringBuffer_Clear(&password);
-    StringBuffer_Clear(&dsn);
+    cxBuffer_Clear(&username);
+    cxBuffer_Clear(&password);
+    cxBuffer_Clear(&dsn);
     if (Environment_CheckForError(self->environment, status,
             "SessionPool_New(): create pool") < 0)
         return -1;
 
     // create the string for the pool name
-    self->name = cxString_FromEncodedString(poolName, poolNameLength);
+    self->name = cxString_FromEncodedString(poolName, poolNameLength,
+            self->environment->encoding);
     if (!self->name)
         return -1;
 

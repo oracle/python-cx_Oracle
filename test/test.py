@@ -14,36 +14,33 @@ inSetup = (os.path.basename(sys.argv[0]).lower() == "setup.py")
 
 if len(sys.argv) > 1 and not inSetup:
     moduleNames = [os.path.splitext(v)[0] for v in sys.argv[1:]]
-elif hasattr(cx_Oracle, "UNICODE"):
-    moduleNames = [
-            "Connection",
-            "Cursor",
-            "CursorVar",
-            "DateTimeVar",
-            "IntervalVar",
-            "LobVar",
-            "LongVar",
-            "NumberVar",
-            "ObjectVar",
-            "SessionPool",
-            "StringVar",
-            "TimestampVar",
-            "UnicodeVar"
-    ]
 else:
     moduleNames = [
+            "Connection",
             "uConnection",
+            "Cursor",
             "uCursor",
+            "CursorVar",
             "uCursorVar",
+            "DateTimeVar",
             "uDateTimeVar",
+            "IntervalVar",
             "uIntervalVar",
+            "LobVar",
             "uLobVar",
+            "LongVar",
             "uLongVar",
+            "NumberVar",
             "uNumberVar",
+            "ObjectVar",
             "uObjectVar",
+            "SessionPool",
             "uSessionPool",
+            "StringVar",
             "uStringVar",
-            "uTimestampVar"
+            "TimestampVar",
+            "uTimestampVar",
+            "UnicodeVar"
     ]
 
 class BaseTestCase(unittest.TestCase):

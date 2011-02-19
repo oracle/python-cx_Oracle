@@ -297,7 +297,8 @@ static int ObjectType_Initialize(
     if (Environment_CheckForError(self->environment, status,
             "ObjectType_Initialize(): get schema name") < 0)
         return -1;
-    self->schema = cxString_FromEncodedString(name, size);
+    self->schema = cxString_FromEncodedString(name, size,
+            self->environment->encoding);
     if (!self->schema)
         return -1;
 
@@ -307,7 +308,8 @@ static int ObjectType_Initialize(
     if (Environment_CheckForError(self->environment, status,
             "ObjectType_Initialize(): get name") < 0)
         return -1;
-    self->name = cxString_FromEncodedString(name, size);
+    self->name = cxString_FromEncodedString(name, size,
+            self->environment->encoding);
     if (!self->name)
         return -1;
 
@@ -386,8 +388,8 @@ static udt_ObjectType *ObjectType_NewByName(
     PyObject *name)                     // name of object type to describe
 {
     OCIDescribe *describeHandle;
-    udt_StringBuffer buffer;
     udt_ObjectType *result;
+    udt_Buffer buffer;
     OCIParam *param;
     sword status;
 
@@ -399,14 +401,15 @@ static udt_ObjectType *ObjectType_NewByName(
         return NULL;
 
     // describe the object
-    if (StringBuffer_Fill(&buffer, name) < 0) {
+    if (cxBuffer_FromObject(&buffer, name,
+            connection->environment->encoding) < 0) {
         OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
         return NULL;
     }
     status = OCIDescribeAny(connection->handle,
             connection->environment->errorHandle, (dvoid*) buffer.ptr,
             buffer.size, OCI_OTYPE_NAME, 0, OCI_PTYPE_TYPE, describeHandle);
-    StringBuffer_Clear(&buffer);
+    cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(connection->environment, status,
             "ObjectType_NewByName(): describe type") < 0) {
         OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
@@ -509,7 +512,8 @@ static int ObjectAttribute_Initialize(
     if (Environment_CheckForError(connection->environment, status,
             "ObjectAttribute_Initialize(): get name") < 0)
         return -1;
-    self->name = cxString_FromEncodedString(name, size);
+    self->name = cxString_FromEncodedString(name, size,
+            connection->environment->encoding);
     if (!self->name)
         return -1;
 

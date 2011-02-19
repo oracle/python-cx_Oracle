@@ -332,20 +332,22 @@ static int NumberVar_SetValueFromLong(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
-    udt_StringBuffer textBuffer;
+    udt_Buffer textBuffer;
     PyObject *textValue;
     sword status;
 
-    textValue = cxString_FromObject(value);
+    textValue = PyObject_Str(value);
     if (!textValue)
         return -1;
-    if (StringBuffer_Fill(&textBuffer, textValue) < 0)
+    if (cxBuffer_FromObject(&textBuffer, textValue,
+            var->environment->encoding) < 0)
         return -1;
     status = OCINumberFromText(var->environment->errorHandle,
             (text*) textBuffer.ptr, textBuffer.size,
-            (text*) g_NumberToStringFormatBuffer.ptr,
-            g_NumberToStringFormatBuffer.size, NULL, 0, &var->data[pos]);
-    StringBuffer_Clear(&textBuffer);
+            (text*) var->environment->numberFromStringFormatBuffer.ptr,
+            var->environment->numberFromStringFormatBuffer.size, NULL, 0,
+            &var->data[pos]);
+    cxBuffer_Clear(&textBuffer);
     Py_DECREF(textValue);
     return Environment_CheckForError(var->environment, status,
             "NumberVar_SetValueFromLong()");
@@ -450,7 +452,7 @@ static int NumberVar_SetValueFromDecimal(
     PyObject *value)                    // value to set
 {
     PyObject *textValue, *format, *tupleValue;
-    udt_StringBuffer textBuffer, formatBuffer;
+    udt_Buffer textBuffer, formatBuffer;
     sword status;
 
     tupleValue = PyObject_CallMethod(value, "as_tuple", NULL);
@@ -462,18 +464,22 @@ static int NumberVar_SetValueFromDecimal(
         return -1;
     }
     Py_DECREF(tupleValue);
-    if (StringBuffer_Fill(&textBuffer, textValue) < 0)
+    if (cxBuffer_FromObject(&textBuffer, textValue,
+            var->environment->encoding) < 0)
         return -1;
-    if (StringBuffer_Fill(&formatBuffer, format) < 0) {
-        StringBuffer_Clear(&textBuffer);
+    if (cxBuffer_FromObject(&formatBuffer, format,
+            var->environment->encoding) < 0) {
+        cxBuffer_Clear(&textBuffer);
         return -1;
     }
     status = OCINumberFromText(var->environment->errorHandle,
             (text*) textBuffer.ptr, textBuffer.size, (text*) formatBuffer.ptr,
-            formatBuffer.size, g_NlsNumericCharactersBuffer.ptr,
-            g_NlsNumericCharactersBuffer.size, &var->data[pos]);
-    StringBuffer_Clear(&textBuffer);
-    StringBuffer_Clear(&formatBuffer);
+            formatBuffer.size,
+            var->environment->nlsNumericCharactersBuffer.ptr,
+            var->environment->nlsNumericCharactersBuffer.size,
+            &var->data[pos]);
+    cxBuffer_Clear(&textBuffer);
+    cxBuffer_Clear(&formatBuffer);
     Py_DECREF(textValue);
     Py_DECREF(format);
     return Environment_CheckForError(var->environment, status,
@@ -541,13 +547,15 @@ static PyObject *NumberVar_GetValue(
     if (var->type == &vt_NumberAsString || var->type == &vt_LongInteger) {
         stringLength = sizeof(stringValue);
         status = OCINumberToText(var->environment->errorHandle,
-                &var->data[pos], (text*) g_ShortNumberToStringFormatBuffer.ptr,
-                g_ShortNumberToStringFormatBuffer.size, NULL, 0, &stringLength,
-                (unsigned char*) stringValue);
+                &var->data[pos],
+                (text*) var->environment->numberToStringFormatBuffer.ptr,
+                var->environment->numberToStringFormatBuffer.size, NULL, 0,
+                &stringLength, (unsigned char*) stringValue);
         if (Environment_CheckForError(var->environment, status,
                 "NumberVar_GetValue(): as string") < 0)
             return NULL;
-        stringObj = cxString_FromEncodedString(stringValue, stringLength);
+        stringObj = cxString_FromEncodedString(stringValue, stringLength,
+                var->environment->encoding);
         if (!stringObj)
             return NULL;
         if (var->type == &vt_NumberAsString)

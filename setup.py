@@ -37,7 +37,7 @@ except:
     from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "5.0.4"
+BUILD_VERSION = "5.1"
 
 # define the list of files to be included as documentation for Windows
 dataFiles = None
@@ -203,9 +203,6 @@ elif sys.platform == "cygwin":
     extraLinkArgs.append("-Wl,--enable-runtime-pseudo-reloc")
 elif sys.platform == "darwin":
     extraLinkArgs.append("-shared-libgcc")
-withUnicode = sys.version_info[0] < 3 and "WITH_UNICODE" in os.environ
-if withUnicode or sys.version_info[0] >= 3:
-    extraCompileArgs.append("-DWITH_UNICODE")
 
 # force the inclusion of an RPATH linker directive if desired; this will
 # eliminate the need for setting LD_LIBRARY_PATH but it also means that this
@@ -218,10 +215,7 @@ class Distribution(distutils.dist.Distribution):
 
     def get_fullname_with_oracle_version(self):
         name = self.metadata.get_fullname()
-        fullName = "%s-%s" % (name, oracleVersion)
-        if withUnicode:
-            fullName += "-unicode"
-        return fullName
+        return "%s-%s" % (name, oracleVersion)
 
 
 # tweak the RPM build command to include the Python and Oracle version
@@ -237,8 +231,6 @@ class bdist_rpm(distutils.command.bdist_rpm.bdist_rpm):
         parts = origFileName.split("-")
         parts.insert(2, oracleVersion)
         parts.insert(3, "py%s%s" % sys.version_info[:2])
-        if withUnicode:
-            parts.insert(3, "unicode")
         newFileName = "-".join(parts)
         self.move_file(os.path.join("dist", origFileName),
         os.path.join("dist", newFileName))
@@ -248,15 +240,12 @@ class bdist_rpm(distutils.command.bdist_rpm.bdist_rpm):
 class build(distutils.command.build.build):
 
     def finalize_options(self):
-        global withUnicode
         import distutils.util
         import os
         import sys
         platSpecifier = ".%s-%s-%s" % \
                 (distutils.util.get_platform(), sys.version[0:3],
                  oracleVersion)
-        if withUnicode:
-            platSpecifier += "-unicode"
         if self.build_platlib is None:
             self.build_platlib = os.path.join(self.build_base,
                     "lib%s" % platSpecifier)
@@ -338,11 +327,11 @@ extension = Extension(
         extra_compile_args = extraCompileArgs,
         extra_link_args = extraLinkArgs,
         sources = ["cx_Oracle.c"],
-        depends = ["Callback.c", "Connection.c", "Cursor.c", "CursorVar.c",
-                "DateTimeVar.c", "Environment.c", "Error.c",
+        depends = ["Buffer.c", "Callback.c", "Connection.c", "Cursor.c",
+                "CursorVar.c", "DateTimeVar.c", "Environment.c", "Error.c",
                 "ExternalLobVar.c", "ExternalObjectVar.c", "IntervalVar.c",
                 "LobVar.c", "LongVar.c", "NumberVar.c", "ObjectType.c",
-                "ObjectVar.c", "SessionPool.c", "StringUtils.c", "StringVar.c",
+                "ObjectVar.c", "SessionPool.c", "StringVar.c",
                 "Subscription.c", "TimestampVar.c", "Transforms.c",
                 "Variable.c"])
 
