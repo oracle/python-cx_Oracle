@@ -58,6 +58,8 @@ static PyObject *Connection_Cancel(udt_Connection*, PyObject*);
 static PyObject *Connection_RegisterCallback(udt_Connection*, PyObject*);
 static PyObject *Connection_UnregisterCallback(udt_Connection*, PyObject*);
 static PyObject *Connection_GetVersion(udt_Connection*, void*);
+static PyObject *Connection_GetEncoding(udt_Connection*, void*);
+static PyObject *Connection_GetNationalEncoding(udt_Connection*, void*);
 static PyObject *Connection_GetMaxBytesPerCharacter(udt_Connection*, void*);
 static PyObject *Connection_ContextManagerEnter(udt_Connection*, PyObject*);
 static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
@@ -132,6 +134,8 @@ static PyMemberDef g_ConnectionMembers[] = {
 //-----------------------------------------------------------------------------
 static PyGetSetDef g_ConnectionCalcMembers[] = {
     { "version", (getter) Connection_GetVersion, 0, 0, 0 },
+    { "encoding", (getter) Connection_GetEncoding, 0, 0, 0 },
+    { "nencoding", (getter) Connection_GetNationalEncoding, 0, 0, 0 },
     { "maxBytesPerCharacter", (getter) Connection_GetMaxBytesPerCharacter,
             0, 0, 0 },
     { "stmtcachesize", (getter) Connection_GetStmtCacheSize,
@@ -1087,6 +1091,31 @@ static PyObject *Connection_GetVersion(
     Py_DECREF(cursor);
     Py_XINCREF(self->version);
     return self->version;
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_GetEncoding()
+//   Return the encoding associated with the environment of the connection.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetEncoding(
+    udt_Connection *self,               // connection object
+    void *arg)                          // optional argument (ignored)
+{
+    return cxString_FromAscii(self->environment->encoding);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_GetNationalEncoding()
+//   Return the national encoding associated with the environment of the
+// connection.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetNationalEncoding(
+    udt_Connection *self,               // connection object
+    void *arg)                          // optional argument (ignored)
+{
+    return cxString_FromAscii(self->environment->nencoding);
 }
 
 
