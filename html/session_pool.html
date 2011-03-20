@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,21 +7,22 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>SessionPool Object &mdash; cx_Oracle v5.0.4 documentation</title>
+    <title>SessionPool Object &mdash; cx_Oracle v5.1 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '5.0.4',
-        COLLAPSE_MODINDEX: false,
+        VERSION:     '5.1',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  false
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="cx_Oracle v5.0.4 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.1 documentation" href="index.html" />
     <link rel="next" title="Subscription Object" href="subscription.html" />
     <link rel="prev" title="Variable Objects" href="variable.html" /> 
   </head>
@@ -31,15 +34,15 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
-             accesskey="M">modules</a> |</li>
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="subscription.html" title="Subscription Object"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="variable.html" title="Variable Objects"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,94 +60,109 @@
 <dl class="method">
 <dt id="SessionPool.acquire">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">acquire</tt><big>(</big><big>)</big><a class="headerlink" href="#SessionPool.acquire" title="Permalink to this definition">¶</a></dt>
-<dd>Acquire a connection from the session pool and return a connection object
-(<a class="reference external" href="connection.html#connobj"><em>Connection Object</em></a>).</dd></dl>
+<dd><p>Acquire a connection from the session pool and return a connection object
+(<a class="reference internal" href="connection.html#connobj"><em>Connection Object</em></a>).</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.busy">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">busy</tt><a class="headerlink" href="#SessionPool.busy" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the number of sessions currently acquired.</dd></dl>
+<dd><p>This read-only attribute returns the number of sessions currently acquired.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="SessionPool.drop">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">drop</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#SessionPool.drop" title="Permalink to this definition">¶</a></dt>
-<dd>Drop the connection from the pool which is useful if the connection is no
-longer usable (such as when the session is killed).</dd></dl>
+<dd><p>Drop the connection from the pool which is useful if the connection is no
+longer usable (such as when the session is killed).</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.dsn">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">dsn</tt><a class="headerlink" href="#SessionPool.dsn" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the TNS entry of the database to which a
-connection has been established.</dd></dl>
+<dd><p>This read-only attribute returns the TNS entry of the database to which a
+connection has been established.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.homogeneous">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">homogeneous</tt><a class="headerlink" href="#SessionPool.homogeneous" title="Permalink to this definition">¶</a></dt>
-<dd>This read-write boolean attribute indicates whether the pool is considered
+<dd><p>This read-write boolean attribute indicates whether the pool is considered
 homogeneous or not. If the pool is not homogeneous different authentication
-can be used for each connection acquired from the pool.</dd></dl>
+can be used for each connection acquired from the pool.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.increment">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">increment</tt><a class="headerlink" href="#SessionPool.increment" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the number of sessions that will be
-established when additional sessions need to be created.</dd></dl>
+<dd><p>This read-only attribute returns the number of sessions that will be
+established when additional sessions need to be created.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.max">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">max</tt><a class="headerlink" href="#SessionPool.max" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the maximum number of sessions that the
-session pool can control.</dd></dl>
+<dd><p>This read-only attribute returns the maximum number of sessions that the
+session pool can control.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.min">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">min</tt><a class="headerlink" href="#SessionPool.min" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the number of sessions with which the
+<dd><p>This read-only attribute returns the number of sessions with which the
 session pool was created and the minimum number of sessions that will be
-controlled by the session pool.</dd></dl>
+controlled by the session pool.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.name">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">name</tt><a class="headerlink" href="#SessionPool.name" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the name assigned to the session pool by
-Oracle.</dd></dl>
+<dd><p>This read-only attribute returns the name assigned to the session pool by
+Oracle.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.opened">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">opened</tt><a class="headerlink" href="#SessionPool.opened" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the number of sessions currently opened by
-the session pool.</dd></dl>
+<dd><p>This read-only attribute returns the number of sessions currently opened by
+the session pool.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.password">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">password</tt><a class="headerlink" href="#SessionPool.password" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the password of the user which established
-the connection to the database.</dd></dl>
+<dd><p>This read-only attribute returns the password of the user which established
+the connection to the database.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="SessionPool.release">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">release</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#SessionPool.release" title="Permalink to this definition">¶</a></dt>
-<dd>Release the connection back to the pool. This will be done automatically as
-well if the connection object is garbage collected.</dd></dl>
+<dd><p>Release the connection back to the pool. This will be done automatically as
+well if the connection object is garbage collected.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.timeout">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">timeout</tt><a class="headerlink" href="#SessionPool.timeout" title="Permalink to this definition">¶</a></dt>
-<dd>This read-write attribute indicates the time (in seconds) after which idle
+<dd><p>This read-write attribute indicates the time (in seconds) after which idle
 sessions will be terminated in order to maintain an optimum number of open
-sessions.</dd></dl>
+sessions.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.tnsentry">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">tnsentry</tt><a class="headerlink" href="#SessionPool.tnsentry" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the TNS entry of the database to which a
-connection has been established.</dd></dl>
+<dd><p>This read-only attribute returns the TNS entry of the database to which a
+connection has been established.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="SessionPool.username">
 <tt class="descclassname">SessionPool.</tt><tt class="descname">username</tt><a class="headerlink" href="#SessionPool.username" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the name of the user which established the
-connection to the database.</dd></dl>
+<dd><p>This read-only attribute returns the name of the user which established the
+connection to the database.</p>
+</dd></dl>
 
 </div>
 
@@ -154,25 +172,25 @@ connection to the database.</dd></dl>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="variable.html"
-                                  title="previous chapter">Variable Objects</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="subscription.html"
-                                  title="next chapter">Subscription Object</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="variable.html"
+                        title="previous chapter">Variable Objects</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="subscription.html"
+                        title="next chapter">Subscription Object</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -184,7 +202,7 @@ connection to the database.</dd></dl>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
+          <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
           <a href="subscription.html" title="Subscription Object"
@@ -192,13 +210,13 @@ connection to the database.</dd></dl>
         <li class="right" >
           <a href="variable.html" title="Variable Objects"
              >previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2010, Anthony Tuininga.
-      Last updated on Jul 13, 2010.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+        &copy; Copyright 2011, Anthony Tuininga.
+      Last updated on Mar 19, 2011.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

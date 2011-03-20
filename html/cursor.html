@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,21 +7,22 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Cursor Object &mdash; cx_Oracle v5.0.4 documentation</title>
+    <title>Cursor Object &mdash; cx_Oracle v5.1 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '5.0.4',
-        COLLAPSE_MODINDEX: false,
+        VERSION:     '5.1',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  false
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="cx_Oracle v5.0.4 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.1 documentation" href="index.html" />
     <link rel="next" title="Variable Objects" href="variable.html" />
     <link rel="prev" title="Connection Object" href="connection.html" /> 
   </head>
@@ -31,15 +34,15 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
-             accesskey="M">modules</a> |</li>
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="variable.html" title="Variable Objects"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="connection.html" title="Connection Object"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -53,13 +56,14 @@
 <dl class="attribute">
 <dt id="Cursor.arraysize">
 <tt class="descclassname">Cursor.</tt><tt class="descname">arraysize</tt><a class="headerlink" href="#Cursor.arraysize" title="Permalink to this definition">¶</a></dt>
-<dd>This read-write attribute specifies the number of rows to fetch at a time
+<dd><p>This read-write attribute specifies the number of rows to fetch at a time
 internally and is the default number of rows to fetch with the
-<a title="Cursor.fetchmany" class="reference internal" href="#Cursor.fetchmany"><tt class="xref docutils literal"><span class="pre">fetchmany()</span></tt></a> call.  It defaults to 50 meaning to fetch 50
+<a class="reference internal" href="#Cursor.fetchmany" title="Cursor.fetchmany"><tt class="xref py py-meth docutils literal"><span class="pre">fetchmany()</span></tt></a> call.  It defaults to 50 meaning to fetch 50
 rows at a time. Note that this attribute can drastically affect the
 performance of a query since it directly affects the number of network round
 trips that need to be performed. This is the reason for setting it to 50
-instead of the 1 that the DB API recommends.</dd></dl>
+instead of the 1 that the DB API recommends.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Cursor.bindarraysize">
@@ -77,7 +81,7 @@ is used when creating variables via setinputsizes() or var(). It defaults to
 <dt id="Cursor.arrayvar">
 <tt class="descclassname">Cursor.</tt><tt class="descname">arrayvar</tt><big>(</big><em>dataType</em>, <em>value</em><span class="optional">[</span>, <em>size</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Cursor.arrayvar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an array variable associated with the cursor of the given type and
-size and return a variable object (<a class="reference external" href="variable.html#varobj"><em>Variable Objects</em></a>). The value is either an
+size and return a variable object (<a class="reference internal" href="variable.html#varobj"><em>Variable Objects</em></a>). The value is either an
 integer specifying the number of elements to allocate or it is a list and
 the number of elements allocated is drawn from the size of the list. If the
 value is a list, the variable is also set with the contents of the list. If
@@ -153,9 +157,10 @@ positional parameters and are not returned as part of the output sequence.</p>
 <dl class="method">
 <dt id="Cursor.close">
 <tt class="descclassname">Cursor.</tt><tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#Cursor.close" title="Permalink to this definition">¶</a></dt>
-<dd>Close the cursor now, rather than whenever __del__ is called. The cursor
+<dd><p>Close the cursor now, rather than whenever __del__ is called. The cursor
 will be unusable from this point forward; an Error exception will be raised
-if any operation is attempted with the cursor.</dd></dl>
+if any operation is attempted with the cursor.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="Cursor.connection">
@@ -199,19 +204,20 @@ setinputsizes() method to specify the parameter types and sizes ahead of
 time; in particular, None is assumed to be a string of length 1 so any
 values that are later bound as numbers or dates will raise a TypeError
 exception.</p>
-<p>If the statement is a query, a list of variable objects (<a class="reference external" href="variable.html#varobj"><em>Variable Objects</em></a>) will
+<p>If the statement is a query, a list of variable objects (<a class="reference internal" href="variable.html#varobj"><em>Variable Objects</em></a>) will
 be returned corresponding to the list of variables into which data will be
-fetched with the <a title="Cursor.fetchone" class="reference internal" href="#Cursor.fetchone"><tt class="xref docutils literal"><span class="pre">fetchone()</span></tt></a>, <a title="Cursor.fetchmany" class="reference internal" href="#Cursor.fetchmany"><tt class="xref docutils literal"><span class="pre">fetchmany()</span></tt></a> and
-<a title="Cursor.fetchall" class="reference internal" href="#Cursor.fetchall"><tt class="xref docutils literal"><span class="pre">fetchall()</span></tt></a> methods; otherwise, <tt class="xref docutils literal"><span class="pre">None</span></tt> will be returned.</p>
+fetched with the <a class="reference internal" href="#Cursor.fetchone" title="Cursor.fetchone"><tt class="xref py py-meth docutils literal"><span class="pre">fetchone()</span></tt></a>, <a class="reference internal" href="#Cursor.fetchmany" title="Cursor.fetchmany"><tt class="xref py py-meth docutils literal"><span class="pre">fetchmany()</span></tt></a> and
+<a class="reference internal" href="#Cursor.fetchall" title="Cursor.fetchall"><tt class="xref py py-meth docutils literal"><span class="pre">fetchall()</span></tt></a> methods; otherwise, <tt class="xref docutils literal"><span class="pre">None</span></tt> will be returned.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="Cursor.executemany">
 <tt class="descclassname">Cursor.</tt><tt class="descname">executemany</tt><big>(</big><em>statement</em>, <em>parameters</em><big>)</big><a class="headerlink" href="#Cursor.executemany" title="Permalink to this definition">¶</a></dt>
-<dd>Prepare a statement for execution against a database and then execute it
+<dd><p>Prepare a statement for execution against a database and then execute it
 against all parameter mappings or sequences found in the sequence
 parameters. The statement is managed in the same way as the execute()
-method manages it.</dd></dl>
+method manages it.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="Cursor.executemanyprepared">
@@ -386,9 +392,10 @@ documentation for more information about the statement cache.</p>
 <dl class="attribute">
 <dt id="Cursor.rowcount">
 <tt class="descclassname">Cursor.</tt><tt class="descname">rowcount</tt><a class="headerlink" href="#Cursor.rowcount" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute specifies the number of rows that have currently
+<dd><p>This read-only attribute specifies the number of rows that have currently
 been fetched from the cursor (for select statements) or that have been
-affected by the operation (for insert, update and delete statements).</dd></dl>
+affected by the operation (for insert, update and delete statements).</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Cursor.rowfactory">
@@ -424,10 +431,11 @@ the list refers to the return value of the function.</p>
 <dl class="method">
 <dt id="Cursor.setoutputsize">
 <tt class="descclassname">Cursor.</tt><tt class="descname">setoutputsize</tt><big>(</big><em>size</em><span class="optional">[</span>, <em>column</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Cursor.setoutputsize" title="Permalink to this definition">¶</a></dt>
-<dd>This can be used before a call to execute() to predefine memory areas for
+<dd><p>This can be used before a call to execute() to predefine memory areas for
 the long columns that will be fetched. The column is specified as an index
 into the result sequence. Not specifying the column will set the default
-size for all large columns in the cursor.</dd></dl>
+size for all large columns in the cursor.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Cursor.statement">
@@ -442,15 +450,18 @@ prepared with prepare() or executed with execute().</p>
 
 <dl class="method">
 <dt id="Cursor.var">
-<tt class="descclassname">Cursor.</tt><tt class="descname">var</tt><big>(</big><em>dataType</em><span class="optional">[</span>, <em>size</em>, <em>arraysize</em>, <em>inconverter</em>, <em>outconverter</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Cursor.var" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Cursor.</tt><tt class="descname">var</tt><big>(</big><em>dataType</em><span class="optional">[</span>, <em>size</em>, <em>arraysize</em>, <em>inconverter</em>, <em>outconverter</em>, <em>typename</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Cursor.var" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a variable associated with the cursor of the given type and
-characteristics and return a variable object (<a class="reference external" href="variable.html#varobj"><em>Variable Objects</em></a>). If the size is
+characteristics and return a variable object (<a class="reference internal" href="variable.html#varobj"><em>Variable Objects</em></a>). If the size is
 not specified and the type is a string or binary, 4000 bytes (maximum
 allowable by Oracle) is allocated; if the size is not specified and the type
 is a long string or long binary, 128KB is allocated. If the arraysize is not
 specified, the bind array size (usually 1) is used. The inconverter and
 outconverter specify methods used for converting values to/from the
 database. More information can be found in the section on variable objects.</p>
+<p>To create an empty SQL object variable, specify the typename. Additional
+support for editing the attributes of this object is not yet available but
+will be forthcoming in a future release.</p>
 <p>This method was designed for use with PL/SQL in/out variables where the
 length or type cannot be determined automatically from the Python object
 passed in or for use in input and output type handlers defined on cursors
@@ -469,25 +480,25 @@ or connections.</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="connection.html"
-                                  title="previous chapter">Connection Object</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="variable.html"
-                                  title="next chapter">Variable Objects</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="connection.html"
+                        title="previous chapter">Connection Object</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="variable.html"
+                        title="next chapter">Variable Objects</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -499,7 +510,7 @@ or connections.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
+          <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
           <a href="variable.html" title="Variable Objects"
@@ -507,13 +518,13 @@ or connections.</p>
         <li class="right" >
           <a href="connection.html" title="Connection Object"
              >previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2010, Anthony Tuininga.
-      Last updated on Jul 13, 2010.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+        &copy; Copyright 2011, Anthony Tuininga.
+      Last updated on Mar 19, 2011.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

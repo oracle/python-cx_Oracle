@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,21 +7,22 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>cx_Oracle &mdash; cx_Oracle v5.0.4 documentation</title>
+    <title>cx_Oracle &mdash; cx_Oracle v5.1 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '5.0.4',
-        COLLAPSE_MODINDEX: false,
+        VERSION:     '5.1',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  false
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="cx_Oracle v5.0.4 documentation" href="#" />
+    <link rel="top" title="cx_Oracle v5.1 documentation" href="#" />
     <link rel="next" title="Module Interface" href="module.html" /> 
   </head>
   <body>
@@ -30,12 +33,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
-             accesskey="M">modules</a> |</li>
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="module.html" title="Module Interface"
              accesskey="N">next</a> |</li>
-        <li><a href="#">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="#">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -52,16 +55,16 @@
 <tbody valign="top">
 <tr class="field"><th class="field-name">Author:</th><td class="field-body">Anthony Tuininga</td>
 </tr>
-<tr class="field"><th class="field-name">Date:</th><td class="field-body">July 13, 2010</td>
+<tr class="field"><th class="field-name">Date:</th><td class="field-body">March 19, 2011</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="section" id="front-matter">
 <span id="front"></span><h1>Front Matter<a class="headerlink" href="#front-matter" title="Permalink to this headline">¶</a></h1>
-<p>Copyright © 2007-2010 Anthony Tuininga. All rights reserved.</p>
+<p>Copyright © 2007-2011 Anthony Tuininga. All rights reserved.</p>
 <p>Copyright © 2001-2007 Computronix. All rights reserved.</p>
-<p>See <a class="reference external" href="license.html#license"><em>License</em></a> for complete license and permissions information.</p>
+<p>See <a class="reference internal" href="license.html#license"><em>License</em></a> for complete license and permissions information.</p>
 <div class="topic">
 <p class="topic-title first">Abstract</p>
 <p>cx_Oracle is a Python extension module that allows access to Oracle and
@@ -70,29 +73,31 @@ exceptions. See <a class="reference external" href="http://www.python.org/topics
 for more information on the Python database API specification.</p>
 </div>
 <p>Contents:</p>
+<div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference external" href="module.html">Module Interface</a><ul>
-<li class="toctree-l2"><a class="reference external" href="module.html#constants">Constants</a></li>
-<li class="toctree-l2"><a class="reference external" href="module.html#types">Types</a></li>
-<li class="toctree-l2"><a class="reference external" href="module.html#exceptions">Exceptions</a></li>
-<li class="toctree-l2"><a class="reference external" href="module.html#exception-handling">Exception handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module.html">Module Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="module.html#constants">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module.html#types">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module.html#exceptions">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module.html#exception-handling">Exception handling</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference external" href="connection.html">Connection Object</a></li>
-<li class="toctree-l1"><a class="reference external" href="cursor.html">Cursor Object</a></li>
-<li class="toctree-l1"><a class="reference external" href="variable.html">Variable Objects</a></li>
-<li class="toctree-l1"><a class="reference external" href="session_pool.html">SessionPool Object</a></li>
-<li class="toctree-l1"><a class="reference external" href="subscription.html">Subscription Object</a><ul>
-<li class="toctree-l2"><a class="reference external" href="subscription.html#message-objects">Message Objects</a></li>
-<li class="toctree-l2"><a class="reference external" href="subscription.html#message-table-objects">Message Table Objects</a></li>
-<li class="toctree-l2"><a class="reference external" href="subscription.html#message-row-objects">Message Row Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="connection.html">Connection Object</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursor.html">Cursor Object</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variable.html">Variable Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="session_pool.html">SessionPool Object</a></li>
+<li class="toctree-l1"><a class="reference internal" href="subscription.html">Subscription Object</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="subscription.html#message-objects">Message Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subscription.html#message-table-objects">Message Table Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subscription.html#message-row-objects">Message Row Objects</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference external" href="lob.html">LOB Objects</a></li>
-<li class="toctree-l1"><a class="reference external" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lob.html">LOB Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
+</div>
 <ul class="simple">
-<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
 </ul>
 </div>
 
@@ -102,30 +107,30 @@ for more information on the Python database API specification.</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="#">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">cx_Oracle</a></li>
-<li><a class="reference external" href="#front-matter">Front Matter</a><ul>
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">cx_Oracle</a></li>
+<li><a class="reference internal" href="#front-matter">Front Matter</a><ul>
 </ul>
 </li>
 </ul>
 
-            <h4>Next topic</h4>
-            <p class="topless"><a href="module.html"
-                                  title="next chapter">Module Interface</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="module.html"
+                        title="next chapter">Module Interface</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -137,18 +142,18 @@ for more information on the Python database API specification.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
+          <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
           <a href="module.html" title="Module Interface"
              >next</a> |</li>
-        <li><a href="#">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="#">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2010, Anthony Tuininga.
-      Last updated on Jul 13, 2010.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+        &copy; Copyright 2011, Anthony Tuininga.
+      Last updated on Mar 19, 2011.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

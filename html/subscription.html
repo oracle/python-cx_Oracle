@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,21 +7,22 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Subscription Object &mdash; cx_Oracle v5.0.4 documentation</title>
+    <title>Subscription Object &mdash; cx_Oracle v5.1 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '5.0.4',
-        COLLAPSE_MODINDEX: false,
+        VERSION:     '5.1',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  false
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="cx_Oracle v5.0.4 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.1 documentation" href="index.html" />
     <link rel="next" title="LOB Objects" href="lob.html" />
     <link rel="prev" title="SessionPool Object" href="session_pool.html" /> 
   </head>
@@ -31,15 +34,15 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
-             accesskey="M">modules</a> |</li>
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="lob.html" title="LOB Objects"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="session_pool.html" title="SessionPool Object"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -58,59 +61,68 @@ Release 2 and higher.</p>
 <dl class="attribute">
 <dt id="Subscription.callback">
 <tt class="descclassname">Subscription.</tt><tt class="descname">callback</tt><a class="headerlink" href="#Subscription.callback" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the callback that was registered when the
-subscription was created.</dd></dl>
+<dd><p>This read-only attribute returns the callback that was registered when the
+subscription was created.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Subscription.connection">
 <tt class="descclassname">Subscription.</tt><tt class="descname">connection</tt><a class="headerlink" href="#Subscription.connection" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the connection that was used to register
-the subscription when it was created.</dd></dl>
+<dd><p>This read-only attribute returns the connection that was used to register
+the subscription when it was created.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Subscription.namespace">
 <tt class="descclassname">Subscription.</tt><tt class="descname">namespace</tt><a class="headerlink" href="#Subscription.namespace" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the namespace used to register the
-subscription when it was created.</dd></dl>
+<dd><p>This read-only attribute returns the namespace used to register the
+subscription when it was created.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Subscription.operations">
 <tt class="descclassname">Subscription.</tt><tt class="descname">operations</tt><a class="headerlink" href="#Subscription.operations" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the operations that will send notifications
-for each table that is registered using this subscription.</dd></dl>
+<dd><p>This read-only attribute returns the operations that will send notifications
+for each table that is registered using this subscription.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Subscription.port">
 <tt class="descclassname">Subscription.</tt><tt class="descname">port</tt><a class="headerlink" href="#Subscription.port" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the port used for callback notifications
+<dd><p>This read-only attribute returns the port used for callback notifications
 from the database server. If not set during construction, this value is
-zero.</dd></dl>
+zero.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Subscription.protocol">
 <tt class="descclassname">Subscription.</tt><tt class="descname">protocol</tt><a class="headerlink" href="#Subscription.protocol" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the protocol used to register the
-subscription when it was created.</dd></dl>
+<dd><p>This read-only attribute returns the protocol used to register the
+subscription when it was created.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="Subscription.registerquery">
 <tt class="descclassname">Subscription.</tt><tt class="descname">registerquery</tt><big>(</big><em>statement</em><span class="optional">[</span>, <em>args</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#Subscription.registerquery" title="Permalink to this definition">¶</a></dt>
-<dd>Register the query for subsequent notification when tables referenced by the
+<dd><p>Register the query for subsequent notification when tables referenced by the
 query are changed. This behaves similarly to cursor.execute() but only
-queries are permitted and the arguments must be a sequence or dictionary.</dd></dl>
+queries are permitted and the arguments must be a sequence or dictionary.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Subscription.rowids">
 <tt class="descclassname">Subscription.</tt><tt class="descname">rowids</tt><a class="headerlink" href="#Subscription.rowids" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns True or False specifying if rowids will be
-included in notifications sent using this subscription.</dd></dl>
+<dd><p>This read-only attribute returns True or False specifying if rowids will be
+included in notifications sent using this subscription.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Subscription.timeout">
 <tt class="descclassname">Subscription.</tt><tt class="descname">timeout</tt><a class="headerlink" href="#Subscription.timeout" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the timeout (in seconds) used to register
+<dd><p>This read-only attribute returns the timeout (in seconds) used to register
 the subscription when it was created. A timeout value of 0 indicates that
-there is no timeout.</dd></dl>
+there is no timeout.</p>
+</dd></dl>
 
 <div class="section" id="message-objects">
 <h2>Message Objects<a class="headerlink" href="#message-objects" title="Permalink to this headline">¶</a></h2>
@@ -122,21 +134,24 @@ to the callback procedure specified when a subscription is created.</p>
 <dl class="attribute">
 <dt id="Message.dbname">
 <tt class="descclassname">Message.</tt><tt class="descname">dbname</tt><a class="headerlink" href="#Message.dbname" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the name of the database that generated the
-notification.</dd></dl>
+<dd><p>This read-only attribute returns the name of the database that generated the
+notification.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Message.tables">
 <tt class="descclassname">Message.</tt><tt class="descname">tables</tt><a class="headerlink" href="#Message.tables" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns a list of message table objects that give
-information about the tables changed for this notification.</dd></dl>
+<dd><p>This read-only attribute returns a list of message table objects that give
+information about the tables changed for this notification.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="Message.type">
 <tt class="descclassname">Message.</tt><tt class="descname">type</tt><a class="headerlink" href="#Message.type" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the type of message that has been sent.
+<dd><p>This read-only attribute returns the type of message that has been sent.
 See the constants section on database change notification for additional
-information.</dd></dl>
+information.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="message-table-objects">
@@ -149,20 +164,23 @@ is received and is found in the tables attribute of message objects.</p>
 <dl class="attribute">
 <dt id="MessageTable.name">
 <tt class="descclassname">MessageTable.</tt><tt class="descname">name</tt><a class="headerlink" href="#MessageTable.name" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the name of the table that was changed.</dd></dl>
+<dd><p>This read-only attribute returns the name of the table that was changed.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="MessageTable.operation">
 <tt class="descclassname">MessageTable.</tt><tt class="descname">operation</tt><a class="headerlink" href="#MessageTable.operation" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the operation that took place on the table
-that was changed.</dd></dl>
+<dd><p>This read-only attribute returns the operation that took place on the table
+that was changed.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="MessageTable.rows">
 <tt class="descclassname">MessageTable.</tt><tt class="descname">rows</tt><a class="headerlink" href="#MessageTable.rows" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns a list of message row objects that give
+<dd><p>This read-only attribute returns a list of message row objects that give
 information about the rows changed on the table. This value is only filled
-in if the rowids argument to the Connection.subscribe() method is True.</dd></dl>
+in if the rowids argument to the Connection.subscribe() method is True.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="message-row-objects">
@@ -176,13 +194,15 @@ objects.</p>
 <dl class="attribute">
 <dt id="MessageRow.operation">
 <tt class="descclassname">MessageRow.</tt><tt class="descname">operation</tt><a class="headerlink" href="#MessageRow.operation" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the operation that took place on the row
-that was changed.</dd></dl>
+<dd><p>This read-only attribute returns the operation that took place on the row
+that was changed.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="MessageRow.rowid">
 <tt class="descclassname">MessageRow.</tt><tt class="descname">rowid</tt><a class="headerlink" href="#MessageRow.rowid" title="Permalink to this definition">¶</a></dt>
-<dd>This read-only attribute returns the rowid of the row that was changed.</dd></dl>
+<dd><p>This read-only attribute returns the rowid of the row that was changed.</p>
+</dd></dl>
 
 </div>
 </div>
@@ -193,35 +213,35 @@ that was changed.</dd></dl>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Subscription Object</a><ul>
-<li><a class="reference external" href="#message-objects">Message Objects</a></li>
-<li><a class="reference external" href="#message-table-objects">Message Table Objects</a></li>
-<li><a class="reference external" href="#message-row-objects">Message Row Objects</a></li>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Subscription Object</a><ul>
+<li><a class="reference internal" href="#message-objects">Message Objects</a></li>
+<li><a class="reference internal" href="#message-table-objects">Message Table Objects</a></li>
+<li><a class="reference internal" href="#message-row-objects">Message Row Objects</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="session_pool.html"
-                                  title="previous chapter">SessionPool Object</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="lob.html"
-                                  title="next chapter">LOB Objects</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="session_pool.html"
+                        title="previous chapter">SessionPool Object</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="lob.html"
+                        title="next chapter">LOB Objects</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -233,7 +253,7 @@ that was changed.</dd></dl>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
+          <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
           <a href="lob.html" title="LOB Objects"
@@ -241,13 +261,13 @@ that was changed.</dd></dl>
         <li class="right" >
           <a href="session_pool.html" title="SessionPool Object"
              >previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2010, Anthony Tuininga.
-      Last updated on Jul 13, 2010.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+        &copy; Copyright 2011, Anthony Tuininga.
+      Last updated on Mar 19, 2011.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>

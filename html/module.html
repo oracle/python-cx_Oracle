@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,21 +7,22 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Module Interface &mdash; cx_Oracle v5.0.4 documentation</title>
+    <title>Module Interface &mdash; cx_Oracle v5.1 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '5.0.4',
-        COLLAPSE_MODINDEX: false,
+        VERSION:     '5.1',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  false
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="cx_Oracle v5.0.4 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle v5.1 documentation" href="index.html" />
     <link rel="next" title="Connection Object" href="connection.html" />
     <link rel="prev" title="cx_Oracle" href="index.html" /> 
   </head>
@@ -31,15 +34,15 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
-             accesskey="M">modules</a> |</li>
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="connection.html" title="Connection Object"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="cx_Oracle"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -48,12 +51,13 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-interface">
-<span id="module"></span><span id="module-cx_Oracle"></span><h1>Module Interface<a class="headerlink" href="#module-interface" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="module-cx_Oracle"></span><div class="section" id="module-interface">
+<span id="module"></span><h1>Module Interface<a class="headerlink" href="#module-interface" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="cx_Oracle.Binary">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">Binary</tt><big>(</big><em>string</em><big>)</big><a class="headerlink" href="#cx_Oracle.Binary" title="Permalink to this definition">¶</a></dt>
-<dd>Construct an object holding a binary (long) string value.</dd></dl>
+<dd><p>Construct an object holding a binary (long) string value.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="cx_Oracle.clientversion">
@@ -74,20 +78,20 @@ available in Oracle 10g Release 2 and higher.</p>
 <dt id="cx_Oracle.connect">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">connect</tt><big>(</big><span class="optional">[</span><em>user</em>, <em>password</em>, <em>dsn</em>, <em>mode</em>, <em>handle</em>, <em>pool</em>, <em>threaded</em>, <em>twophase</em>, <em>events</em>, <em>cclass</em>, <em>purity</em>, <em>newpassword</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#cx_Oracle.connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructor for creating a connection to the database. Return a Connection
-object (<a class="reference external" href="connection.html#connobj"><em>Connection Object</em></a>). All arguments are optional and can be specified as
+object (<a class="reference internal" href="connection.html#connobj"><em>Connection Object</em></a>). All arguments are optional and can be specified as
 keyword parameters.</p>
 <p>The dsn (data source name) is the TNS entry (from the Oracle names server or
 tnsnames.ora file) or is a string like the one returned from makedsn(). If
 only one parameter is passed, a connect string is assumed which is to be of
 the format <tt class="docutils literal"><span class="pre">user/password&#64;dsn</span></tt>, the same format accepted by Oracle
 applications such as SQL*Plus.</p>
-<p>If the mode is specified, it must be one of <a title="cx_Oracle.SYSDBA" class="reference internal" href="#cx_Oracle.SYSDBA"><tt class="xref docutils literal"><span class="pre">SYSDBA</span></tt></a> or
-<a title="cx_Oracle.SYSOPER" class="reference internal" href="#cx_Oracle.SYSOPER"><tt class="xref docutils literal"><span class="pre">SYSOPER</span></tt></a> which are defined at the module level; otherwise it defaults
+<p>If the mode is specified, it must be one of <a class="reference internal" href="#cx_Oracle.SYSDBA" title="cx_Oracle.SYSDBA"><tt class="xref py py-data docutils literal"><span class="pre">SYSDBA</span></tt></a> or
+<a class="reference internal" href="#cx_Oracle.SYSOPER" title="cx_Oracle.SYSOPER"><tt class="xref py py-data docutils literal"><span class="pre">SYSOPER</span></tt></a> which are defined at the module level; otherwise it defaults
 to the normal mode of connecting.</p>
 <p>If the handle is specified, it must be of type OCISvcCtx* and is only of
 use when embedding Python in an application (like PowerBuilder) which has
 already made the connection.</p>
-<p>The pool argument is expected to be a session pool object (<a class="reference external" href="session_pool.html#sesspool"><em>SessionPool Object</em></a>)
+<p>The pool argument is expected to be a session pool object (<a class="reference internal" href="session_pool.html#sesspool"><em>SessionPool Object</em></a>)
 and the use of this argument is the equivalent of calling pool.acquire().</p>
 <p>The threaded argument is expected to be a boolean expression which
 indicates whether or not Oracle should use the mode OCI_THREADED to wrap
@@ -104,10 +108,10 @@ whether or not to initialize Oracle in events mode (only available in Oracle
 <p>The cclass argument is expected to be a string and defines the connection
 class for database resident connection pooling (DRCP) in Oracle 11g and
 higher.</p>
-<p>The purity argument is expected to be one of <a title="cx_Oracle.ATTR_PURITY_NEW" class="reference internal" href="#cx_Oracle.ATTR_PURITY_NEW"><tt class="xref docutils literal"><span class="pre">ATTR_PURITY_NEW</span></tt></a> (the
+<p>The purity argument is expected to be one of <a class="reference internal" href="#cx_Oracle.ATTR_PURITY_NEW" title="cx_Oracle.ATTR_PURITY_NEW"><tt class="xref py py-data docutils literal"><span class="pre">ATTR_PURITY_NEW</span></tt></a> (the
 session must be new without any prior session state),
-<a title="cx_Oracle.ATTR_PURITY_SELF" class="reference internal" href="#cx_Oracle.ATTR_PURITY_SELF"><tt class="xref docutils literal"><span class="pre">ATTR_PURITY_SELF</span></tt></a> (the session may have been used before) or
-<a title="cx_Oracle.ATTR_PURITY_DEFAULT" class="reference internal" href="#cx_Oracle.ATTR_PURITY_DEFAULT"><tt class="xref docutils literal"><span class="pre">ATTR_PURITY_DEFAULT</span></tt></a> (the default behavior which is defined by Oracle
+<a class="reference internal" href="#cx_Oracle.ATTR_PURITY_SELF" title="cx_Oracle.ATTR_PURITY_SELF"><tt class="xref py py-data docutils literal"><span class="pre">ATTR_PURITY_SELF</span></tt></a> (the session may have been used before) or
+<a class="reference internal" href="#cx_Oracle.ATTR_PURITY_DEFAULT" title="cx_Oracle.ATTR_PURITY_DEFAULT"><tt class="xref py py-data docutils literal"><span class="pre">ATTR_PURITY_DEFAULT</span></tt></a> (the default behavior which is defined by Oracle
 in its documentation). This argument is only relevant in Oracle 11g and
 higher.</p>
 <p>The newpassword argument is expected to be a string if specified and sets
@@ -118,7 +122,7 @@ the password for the logon during the connection process.</p>
 <dt id="cx_Oracle.Cursor">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">Cursor</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#cx_Oracle.Cursor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructor for creating a cursor.  Return a new Cursor object
-(<a class="reference external" href="cursor.html#cursorobj"><em>Cursor Object</em></a>) using the connection.</p>
+(<a class="reference internal" href="cursor.html#cursorobj"><em>Cursor Object</em></a>) using the connection.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method is an extension to the DB API definition.</p>
@@ -128,14 +132,16 @@ the password for the logon during the connection process.</p>
 <dl class="function">
 <dt id="cx_Oracle.Date">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">Date</tt><big>(</big><em>year</em>, <em>month</em>, <em>day</em><big>)</big><a class="headerlink" href="#cx_Oracle.Date" title="Permalink to this definition">¶</a></dt>
-<dd>Construct an object holding a date value.</dd></dl>
+<dd><p>Construct an object holding a date value.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="cx_Oracle.DateFromTicks">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">DateFromTicks</tt><big>(</big><em>ticks</em><big>)</big><a class="headerlink" href="#cx_Oracle.DateFromTicks" title="Permalink to this definition">¶</a></dt>
-<dd>Construct an object holding a date value from the given ticks value (number
+<dd><p>Construct an object holding a date value from the given ticks value (number
 of seconds since the epoch; see the documentation of the standard Python
-time module for details).</dd></dl>
+time module for details).</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="cx_Oracle.makedsn">
@@ -153,7 +159,7 @@ server or defined in the tnsnames.ora file.</p>
 <dt id="cx_Oracle.SessionPool">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">SessionPool</tt><big>(</big><em>user</em>, <em>password</em>, <em>database</em>, <em>min</em>, <em>max</em>, <em>increment</em><span class="optional">[</span>, <em>connectiontype</em>, <em>threaded</em>, <em>getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT</em>, <em>homogeneous=True</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#cx_Oracle.SessionPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a session pool (see Oracle 9i documentation for more information) and
-return a session pool object (<a class="reference external" href="session_pool.html#sesspool"><em>SessionPool Object</em></a>). This allows for very fast
+return a session pool object (<a class="reference internal" href="session_pool.html#sesspool"><em>SessionPool Object</em></a>). This allows for very fast
 connections to the database and is of primary use in a server where the same
 connection is being made multiple times in rapid succession (a web server,
 for example). If the connection type is specified, all calls to acquire()
@@ -173,26 +179,30 @@ available in Oracle 9i.</p>
 <dl class="function">
 <dt id="cx_Oracle.Time">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">Time</tt><big>(</big><em>hour</em>, <em>minute</em>, <em>second</em><big>)</big><a class="headerlink" href="#cx_Oracle.Time" title="Permalink to this definition">¶</a></dt>
-<dd>Construct an object holding a time value.</dd></dl>
+<dd><p>Construct an object holding a time value.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="cx_Oracle.TimeFromTicks">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">TimeFromTicks</tt><big>(</big><em>ticks</em><big>)</big><a class="headerlink" href="#cx_Oracle.TimeFromTicks" title="Permalink to this definition">¶</a></dt>
-<dd>Construct an object holding a time value from the given ticks value (number
+<dd><p>Construct an object holding a time value from the given ticks value (number
 of seconds since the epoch; see the documentation of the standard Python
-time module for details).</dd></dl>
+time module for details).</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="cx_Oracle.Timestamp">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">Timestamp</tt><big>(</big><em>year</em>, <em>month</em>, <em>day</em>, <em>hour</em>, <em>minute</em>, <em>second</em><big>)</big><a class="headerlink" href="#cx_Oracle.Timestamp" title="Permalink to this definition">¶</a></dt>
-<dd>Construct an object holding a time stamp value.</dd></dl>
+<dd><p>Construct an object holding a time stamp value.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="cx_Oracle.TimestampFromTicks">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">TimestampFromTicks</tt><big>(</big><em>ticks</em><big>)</big><a class="headerlink" href="#cx_Oracle.TimestampFromTicks" title="Permalink to this definition">¶</a></dt>
-<dd>Construct an object holding a time stamp value from the given ticks value
+<dd><p>Construct an object holding a time stamp value from the given ticks value
 (number of seconds since the epoch; see the documentation of the standard
-Python time module for details).</dd></dl>
+Python time module for details).</p>
+</dd></dl>
 
 <div class="section" id="constants">
 <span id="id1"></span><h2>Constants<a class="headerlink" href="#constants" title="Permalink to this headline">¶</a></h2>
@@ -201,7 +211,8 @@ Python time module for details).</dd></dl>
 <dl class="data">
 <dt id="cx_Oracle.apilevel">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">apilevel</tt><a class="headerlink" href="#cx_Oracle.apilevel" title="Permalink to this definition">¶</a></dt>
-<dd>String constant stating the supported DB API level. Currently &#8216;2.0&#8217;.</dd></dl>
+<dd><p>String constant stating the supported DB API level. Currently &#8216;2.0&#8217;.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.buildtime">
@@ -216,8 +227,9 @@ Python time module for details).</dd></dl>
 <dl class="data">
 <dt id="cx_Oracle.paramstyle">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">paramstyle</tt><a class="headerlink" href="#cx_Oracle.paramstyle" title="Permalink to this definition">¶</a></dt>
-<dd>String constant stating the type of parameter marker formatting expected by
-the interface. Currently &#8216;named&#8217; as in &#8216;where name = :name&#8217;.</dd></dl>
+<dd><p>String constant stating the type of parameter marker formatting expected by
+the interface. Currently &#8216;named&#8217; as in &#8216;where name = :name&#8217;.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.SYSDBA">
@@ -258,7 +270,7 @@ comments on the Connection constructor for more information (<a class="reference
 <dl class="data">
 <dt id="cx_Oracle.version">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">version</tt><a class="headerlink" href="#cx_Oracle.version" title="Permalink to this definition">¶</a></dt>
-<dd><p>String constant stating the version of the module. Currently &#8216;5.0.4&#8216;.</p>
+<dd><p>String constant stating the version of the module. Currently &#8216;5.1&#8216;.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This attribute is an extension to the DB API definition.</p>
@@ -275,58 +287,67 @@ comments on the Connection constructor for more information (<a class="reference
 <dl class="data">
 <dt id="cx_Oracle.FNCODE_BINDBYNAME">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_BINDBYNAME</tt><a class="headerlink" href="#cx_Oracle.FNCODE_BINDBYNAME" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to register callbacks on the OCIBindByName() function
-of the OCI.</dd></dl>
+<dd><p>This constant is used to register callbacks on the OCIBindByName() function
+of the OCI.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.FNCODE_BINDBYPOS">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_BINDBYPOS</tt><a class="headerlink" href="#cx_Oracle.FNCODE_BINDBYPOS" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to register callbacks on the OCIBindByPos() function
-of the OCI.</dd></dl>
+<dd><p>This constant is used to register callbacks on the OCIBindByPos() function
+of the OCI.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.FNCODE_DEFINEBYPOS">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_DEFINEBYPOS</tt><a class="headerlink" href="#cx_Oracle.FNCODE_DEFINEBYPOS" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to register callbacks on the OCIDefineByPos() function
-of the OCI.</dd></dl>
+<dd><p>This constant is used to register callbacks on the OCIDefineByPos() function
+of the OCI.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.FNCODE_STMTEXECUTE">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_STMTEXECUTE</tt><a class="headerlink" href="#cx_Oracle.FNCODE_STMTEXECUTE" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to register callbacks on the OCIStmtExecute() function
-of the OCI.</dd></dl>
+<dd><p>This constant is used to register callbacks on the OCIStmtExecute() function
+of the OCI.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.FNCODE_STMTFETCH">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_STMTFETCH</tt><a class="headerlink" href="#cx_Oracle.FNCODE_STMTFETCH" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to register callbacks on the OCIStmtFetch() function
-of the OCI.</dd></dl>
+<dd><p>This constant is used to register callbacks on the OCIStmtFetch() function
+of the OCI.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.FNCODE_STMTPREPARE">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">FNCODE_STMTPREPARE</tt><a class="headerlink" href="#cx_Oracle.FNCODE_STMTPREPARE" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to register callbacks on the OCIStmtPrepare() function
-of the OCI.</dd></dl>
+<dd><p>This constant is used to register callbacks on the OCIStmtPrepare() function
+of the OCI.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.UCBTYPE_ENTRY">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">UCBTYPE_ENTRY</tt><a class="headerlink" href="#cx_Oracle.UCBTYPE_ENTRY" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to register callbacks on entry to the function of the
+<dd><p>This constant is used to register callbacks on entry to the function of the
 OCI.  In other words, the callback will be called prior to the execution of
-the OCI function.</dd></dl>
+the OCI function.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.UCBTYPE_EXIT">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">UCBTYPE_EXIT</tt><a class="headerlink" href="#cx_Oracle.UCBTYPE_EXIT" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to register callbacks on exit from the function of the
+<dd><p>This constant is used to register callbacks on exit from the function of the
 OCI. In other words, the callback will be called after the execution of the
-OCI function.</dd></dl>
+OCI function.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.UCBTYPE_REPLACE">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">UCBTYPE_REPLACE</tt><a class="headerlink" href="#cx_Oracle.UCBTYPE_REPLACE" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to register callbacks that completely replace the call
-to the OCI function.</dd></dl>
+<dd><p>This constant is used to register callbacks that completely replace the call
+to the OCI function.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="database-change-notification">
@@ -338,122 +359,140 @@ to the OCI function.</dd></dl>
 <dl class="data">
 <dt id="cx_Oracle.EVENT_DEREG">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_DEREG</tt><a class="headerlink" href="#cx_Oracle.EVENT_DEREG" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a possible value for the type of a message and indicates
-that the subscription object has been deregistered.</dd></dl>
+<dd><p>This constant is a possible value for the type of a message and indicates
+that the subscription object has been deregistered.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.EVENT_NONE">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_NONE</tt><a class="headerlink" href="#cx_Oracle.EVENT_NONE" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a possible value for the type of a message and provides no
-additional information about the event.</dd></dl>
+<dd><p>This constant is a possible value for the type of a message and provides no
+additional information about the event.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.EVENT_OBJCHANGE">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_OBJCHANGE</tt><a class="headerlink" href="#cx_Oracle.EVENT_OBJCHANGE" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a possible value for the type of a message and indicates
-that an object change of some sort has taken place.</dd></dl>
+<dd><p>This constant is a possible value for the type of a message and indicates
+that an object change of some sort has taken place.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.EVENT_SHUTDOWN">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_SHUTDOWN</tt><a class="headerlink" href="#cx_Oracle.EVENT_SHUTDOWN" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a possible value for the type of a message and indicates
-that the instance is in the process of being shut down.</dd></dl>
+<dd><p>This constant is a possible value for the type of a message and indicates
+that the instance is in the process of being shut down.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.EVENT_SHUTDOWN_ANY">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_SHUTDOWN_ANY</tt><a class="headerlink" href="#cx_Oracle.EVENT_SHUTDOWN_ANY" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a possible value for the type of a message and indicates
-that any instance (when running RAC) is in the process of being shut down.</dd></dl>
+<dd><p>This constant is a possible value for the type of a message and indicates
+that any instance (when running RAC) is in the process of being shut down.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.EVENT_STARTUP">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">EVENT_STARTUP</tt><a class="headerlink" href="#cx_Oracle.EVENT_STARTUP" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a possible value for the type of a message and indicates
-that the instance is in the process of being started up.</dd></dl>
+<dd><p>This constant is a possible value for the type of a message and indicates
+that the instance is in the process of being started up.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.OPCODE_ALLOPS">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_ALLOPS</tt><a class="headerlink" href="#cx_Oracle.OPCODE_ALLOPS" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is the default value when creating a subscription and
-specifies that messages are to be sent for all operations.</dd></dl>
+<dd><p>This constant is the default value when creating a subscription and
+specifies that messages are to be sent for all operations.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.OPCODE_ALLROWS">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_ALLROWS</tt><a class="headerlink" href="#cx_Oracle.OPCODE_ALLROWS" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a possible value for the operation attribute of one of the
+<dd><p>This constant is a possible value for the operation attribute of one of the
 table objects that are part of a message. It specifies that the table has
-been completely invalidated.</dd></dl>
+been completely invalidated.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.OPCODE_ALTER">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_ALTER</tt><a class="headerlink" href="#cx_Oracle.OPCODE_ALTER" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a possible value for the operation attribute of one of the
+<dd><p>This constant is a possible value for the operation attribute of one of the
 table objects that are part of a message. It specifies that the table has
-been altered in some fashion using DDL.</dd></dl>
+been altered in some fashion using DDL.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.OPCODE_DELETE">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_DELETE</tt><a class="headerlink" href="#cx_Oracle.OPCODE_DELETE" title="Permalink to this definition">¶</a></dt>
-<dd>This constant can be used when creating a subscription and specifies that
+<dd><p>This constant can be used when creating a subscription and specifies that
 messages are to be sent only when data is deleted. It is also a possible
 value for the operation attribute of one of the table objects that are part
-of a message.</dd></dl>
+of a message.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.OPCODE_DROP">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_DROP</tt><a class="headerlink" href="#cx_Oracle.OPCODE_DROP" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a possible value for the operation attribute of one of the
+<dd><p>This constant is a possible value for the operation attribute of one of the
 table objects that are part of a message. It specifies that the table has
-been dropped.</dd></dl>
+been dropped.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.OPCODE_INSERT">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_INSERT</tt><a class="headerlink" href="#cx_Oracle.OPCODE_INSERT" title="Permalink to this definition">¶</a></dt>
-<dd>This constant can be used when creating a subscription and specifies that
+<dd><p>This constant can be used when creating a subscription and specifies that
 messages are to be sent only when data is inserted. It is also a possible
 value for the operation attribute of one of the table objects that are part
-of a message.</dd></dl>
+of a message.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.OPCODE_UPDATE">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">OPCODE_UPDATE</tt><a class="headerlink" href="#cx_Oracle.OPCODE_UPDATE" title="Permalink to this definition">¶</a></dt>
-<dd>This constant can be used when creating a subscription and specifies that
+<dd><p>This constant can be used when creating a subscription and specifies that
 messages are to be sent only when data is updated. It is also a possible
 value for the operation attribute of one of the table objects that are part
-of a message.</dd></dl>
+of a message.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_NAMESPACE_DBCHANGE</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is the default (and currently only) value for the namespace
-argument when creating a subscription.</dd></dl>
+<dd><p>This constant is the default (and currently only) value for the namespace
+argument when creating a subscription.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.SUBSCR_PROTO_HTTP">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_PROTO_HTTP</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_PROTO_HTTP" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a future possible value for the protocol argument when
+<dd><p>This constant is a future possible value for the protocol argument when
 creating a subscription. It specifies that notification will be sent to the
-HTTP URL when a message is generated.</dd></dl>
+HTTP URL when a message is generated.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.SUBSCR_PROTO_MAIL">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_PROTO_MAIL</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_PROTO_MAIL" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a future possible value for the protocol argument when
+<dd><p>This constant is a future possible value for the protocol argument when
 creating a subscription. It specifies that an e-mail message should be sent
-to the target when a message is generated.</dd></dl>
+to the target when a message is generated.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.SUBSCR_PROTO_OCI">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_PROTO_OCI</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_PROTO_OCI" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is the default (and currently only valid) value for the
-protocol argument when creating a subscription.</dd></dl>
+<dd><p>This constant is the default (and currently only valid) value for the
+protocol argument when creating a subscription.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.SUBSCR_PROTO_SERVER">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">SUBSCR_PROTO_SERVER</tt><a class="headerlink" href="#cx_Oracle.SUBSCR_PROTO_SERVER" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is a future possible value for the protocol argument when
+<dd><p>This constant is a future possible value for the protocol argument when
 creating a subscription. It specifies that the database procedure will be
-invoked when a message is generated.</dd></dl>
+invoked when a message is generated.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="database-resident-connection-pooling">
@@ -465,23 +504,26 @@ invoked when a message is generated.</dd></dl>
 <dl class="data">
 <dt id="cx_Oracle.ATTR_PURITY_DEFAULT">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">ATTR_PURITY_DEFAULT</tt><a class="headerlink" href="#cx_Oracle.ATTR_PURITY_DEFAULT" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used when using database resident connection pooling (DRCP)
+<dd><p>This constant is used when using database resident connection pooling (DRCP)
 and specifies that the purity of the session is the default value used by
-Oracle (see Oracle&#8217;s documentation for more information).</dd></dl>
+Oracle (see Oracle&#8217;s documentation for more information).</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.ATTR_PURITY_NEW">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">ATTR_PURITY_NEW</tt><a class="headerlink" href="#cx_Oracle.ATTR_PURITY_NEW" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used when using database resident connection pooling (DRCP)
+<dd><p>This constant is used when using database resident connection pooling (DRCP)
 and specifies that the session acquired from the pool should be new and not
-have any prior session state.</dd></dl>
+have any prior session state.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.ATTR_PURITY_SELF">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">ATTR_PURITY_SELF</tt><a class="headerlink" href="#cx_Oracle.ATTR_PURITY_SELF" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used when using database resident connection pooling (DRCP)
+<dd><p>This constant is used when using database resident connection pooling (DRCP)
 and specifies that the session acquired from the pool need not be new and
-may have prior session state.</dd></dl>
+may have prior session state.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="database-startup-shutdown">
@@ -493,47 +535,53 @@ may have prior session state.</dd></dl>
 <dl class="data">
 <dt id="cx_Oracle.PRELIM_AUTH">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">PRELIM_AUTH</tt><a class="headerlink" href="#cx_Oracle.PRELIM_AUTH" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to define the preliminary authentication mode required
-for performing database startup and shutdown.</dd></dl>
+<dd><p>This constant is used to define the preliminary authentication mode required
+for performing database startup and shutdown.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.DBSHUTDOWN_ABORT">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_ABORT</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_ABORT" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used in database shutdown to indicate that the program
+<dd><p>This constant is used in database shutdown to indicate that the program
 should not wait for current calls to complete or for users to disconnect
 from the database. Use only in unusual circumstances since database recovery
-may be necessary upon next startup.</dd></dl>
+may be necessary upon next startup.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.DBSHUTDOWN_FINAL">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_FINAL</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_FINAL" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used in database shutdown to indicate that the instance can
+<dd><p>This constant is used in database shutdown to indicate that the instance can
 be truly halted. This should only be done after the database has been shut
 down in one of the other modes (except abort) and the database has been
 closed and dismounted using the appropriate SQL commands. See the method
-<a title="Connection.shutdown" class="reference external" href="connection.html#Connection.shutdown"><tt class="xref docutils literal"><span class="pre">shutdown()</span></tt></a> in the section on connections
-(<a class="reference external" href="connection.html#connobj"><em>Connection Object</em></a>).</dd></dl>
+<a class="reference internal" href="connection.html#Connection.shutdown" title="Connection.shutdown"><tt class="xref py py-meth docutils literal"><span class="pre">shutdown()</span></tt></a> in the section on connections
+(<a class="reference internal" href="connection.html#connobj"><em>Connection Object</em></a>).</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.DBSHUTDOWN_IMMEDIATE">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_IMMEDIATE</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_IMMEDIATE" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used in database shutdown to indicate that all uncommitted
+<dd><p>This constant is used in database shutdown to indicate that all uncommitted
 transactions should be rolled back and any connected users should be
-disconnected.</dd></dl>
+disconnected.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.DBSHUTDOWN_TRANSACTIONAL">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_TRANSACTIONAL</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_TRANSACTIONAL" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used in database shutdown to indicate that further
+<dd><p>This constant is used in database shutdown to indicate that further
 connections should be prohibited and no new transactions should be allowed.
-It then waits for active transactions to complete.</dd></dl>
+It then waits for active transactions to complete.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.DBSHUTDOWN_TRANSACTIONAL_LOCAL">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">DBSHUTDOWN_TRANSACTIONAL_LOCAL</tt><a class="headerlink" href="#cx_Oracle.DBSHUTDOWN_TRANSACTIONAL_LOCAL" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used in database shutdown to indicate that further
+<dd><p>This constant is used in database shutdown to indicate that further
 connections should be prohibited and no new transactions should be allowed.
-It then waits for only local active transactions to complete.</dd></dl>
+It then waits for only local active transactions to complete.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="session-pooling">
@@ -545,23 +593,26 @@ It then waits for only local active transactions to complete.</dd></dl>
 <dl class="data">
 <dt id="cx_Oracle.SPOOL_ATTRVAL_FORCEGET">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">SPOOL_ATTRVAL_FORCEGET</tt><a class="headerlink" href="#cx_Oracle.SPOOL_ATTRVAL_FORCEGET" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to define the &#8220;get&#8221; mode on session pools and
+<dd><p>This constant is used to define the &#8220;get&#8221; mode on session pools and
 indicates that a new connection will be returned if there are no free
-sessions available in the pool.</dd></dl>
+sessions available in the pool.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.SPOOL_ATTRVAL_NOWAIT">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">SPOOL_ATTRVAL_NOWAIT</tt><a class="headerlink" href="#cx_Oracle.SPOOL_ATTRVAL_NOWAIT" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to define the &#8220;get&#8221; mode on session pools and
+<dd><p>This constant is used to define the &#8220;get&#8221; mode on session pools and
 indicates that an exception is raised if there are no free sessions
-available in the pool.</dd></dl>
+available in the pool.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.SPOOL_ATTRVAL_WAIT">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">SPOOL_ATTRVAL_WAIT</tt><a class="headerlink" href="#cx_Oracle.SPOOL_ATTRVAL_WAIT" title="Permalink to this definition">¶</a></dt>
-<dd>This constant is used to define the &#8220;get&#8221; mode on session pools and
+<dd><p>This constant is used to define the &#8220;get&#8221; mode on session pools and
 indicates that the acquisition of a connection waits until a session is
-freed if there are no free sessions available in the pool.</dd></dl>
+freed if there are no free sessions available in the pool.</p>
+</dd></dl>
 
 </div>
 </div>
@@ -570,8 +621,9 @@ freed if there are no free sessions available in the pool.</dd></dl>
 <dl class="data">
 <dt id="cx_Oracle.BINARY">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">BINARY</tt><a class="headerlink" href="#cx_Oracle.BINARY" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe columns in a database that are binary
-(in Oracle this is RAW columns).</dd></dl>
+<dd><p>This type object is used to describe columns in a database that are binary
+(in Oracle this is RAW columns).</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.BFILE">
@@ -617,7 +669,8 @@ freed if there are no free sessions available in the pool.</dd></dl>
 <dl class="data">
 <dt id="cx_Oracle.DATETIME">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">DATETIME</tt><a class="headerlink" href="#cx_Oracle.DATETIME" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe columns in a database that are dates.</dd></dl>
+<dd><p>This type object is used to describe columns in a database that are dates.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.FIXED_CHAR">
@@ -661,7 +714,7 @@ interval day to second.</p>
 <dl class="data">
 <dt id="cx_Oracle.LOB">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">LOB</tt><a class="headerlink" href="#cx_Oracle.LOB" title="Permalink to this definition">¶</a></dt>
-<dd><p>This type object is the Python type of <a title="cx_Oracle.BLOB" class="reference internal" href="#cx_Oracle.BLOB"><tt class="xref docutils literal"><span class="pre">BLOB</span></tt></a> and <a title="cx_Oracle.CLOB" class="reference internal" href="#cx_Oracle.CLOB"><tt class="xref docutils literal"><span class="pre">CLOB</span></tt></a> data
+<dd><p>This type object is the Python type of <a class="reference internal" href="#cx_Oracle.BLOB" title="cx_Oracle.BLOB"><tt class="xref py py-data docutils literal"><span class="pre">BLOB</span></tt></a> and <a class="reference internal" href="#cx_Oracle.CLOB" title="cx_Oracle.CLOB"><tt class="xref py py-data docutils literal"><span class="pre">CLOB</span></tt></a> data
 that is returned from cursors.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -715,7 +768,8 @@ binary_double or binary_float and is only available in Oracle 10g.</p>
 <dl class="data">
 <dt id="cx_Oracle.NUMBER">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">NUMBER</tt><a class="headerlink" href="#cx_Oracle.NUMBER" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe columns in a database that are numbers.</dd></dl>
+<dd><p>This type object is used to describe columns in a database that are numbers.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.OBJECT">
@@ -730,13 +784,15 @@ binary_double or binary_float and is only available in Oracle 10g.</p>
 <dl class="data">
 <dt id="cx_Oracle.ROWID">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">ROWID</tt><a class="headerlink" href="#cx_Oracle.ROWID" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe the pseudo column &#8220;rowid&#8221;.</dd></dl>
+<dd><p>This type object is used to describe the pseudo column &#8220;rowid&#8221;.</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.STRING">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">STRING</tt><a class="headerlink" href="#cx_Oracle.STRING" title="Permalink to this definition">¶</a></dt>
-<dd>This type object is used to describe columns in a database that are strings
-(in Oracle this is VARCHAR2 columns).</dd></dl>
+<dd><p>This type object is used to describe columns in a database that are strings
+(in Oracle this is VARCHAR2 columns).</p>
+</dd></dl>
 
 <dl class="data">
 <dt id="cx_Oracle.TIMESTAMP">
@@ -769,63 +825,73 @@ STRING.</p>
 <dl class="exception">
 <dt id="cx_Oracle.Warning">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">Warning</tt><a class="headerlink" href="#cx_Oracle.Warning" title="Permalink to this definition">¶</a></dt>
-<dd>Exception raised for important warnings and defined by the DB API but not
-actually used by cx_Oracle.</dd></dl>
+<dd><p>Exception raised for important warnings and defined by the DB API but not
+actually used by cx_Oracle.</p>
+</dd></dl>
 
 <dl class="exception">
 <dt id="cx_Oracle.Error">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">Error</tt><a class="headerlink" href="#cx_Oracle.Error" title="Permalink to this definition">¶</a></dt>
-<dd>Exception that is the base class of all other exceptions defined by
+<dd><p>Exception that is the base class of all other exceptions defined by
 cx_Oracle and is a subclass of the Python StandardError exception (defined
-in the module exceptions).</dd></dl>
+in the module exceptions).</p>
+</dd></dl>
 
 <dl class="exception">
 <dt id="cx_Oracle.InterfaceError">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">InterfaceError</tt><a class="headerlink" href="#cx_Oracle.InterfaceError" title="Permalink to this definition">¶</a></dt>
-<dd>Exception raised for errors that are related to the database interface
-rather than the database itself. It is a subclass of Error.</dd></dl>
+<dd><p>Exception raised for errors that are related to the database interface
+rather than the database itself. It is a subclass of Error.</p>
+</dd></dl>
 
 <dl class="exception">
 <dt id="cx_Oracle.DatabaseError">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DatabaseError</tt><a class="headerlink" href="#cx_Oracle.DatabaseError" title="Permalink to this definition">¶</a></dt>
-<dd>Exception raised for errors that are related to the database. It is a
-subclass of Error.</dd></dl>
+<dd><p>Exception raised for errors that are related to the database. It is a
+subclass of Error.</p>
+</dd></dl>
 
 <dl class="exception">
 <dt id="cx_Oracle.DataError">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">DataError</tt><a class="headerlink" href="#cx_Oracle.DataError" title="Permalink to this definition">¶</a></dt>
-<dd>Exception raised for errors that are due to problems with the processed
-data. It is a subclass of DatabaseError.</dd></dl>
+<dd><p>Exception raised for errors that are due to problems with the processed
+data. It is a subclass of DatabaseError.</p>
+</dd></dl>
 
 <dl class="exception">
 <dt id="cx_Oracle.OperationalError">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">OperationalError</tt><a class="headerlink" href="#cx_Oracle.OperationalError" title="Permalink to this definition">¶</a></dt>
-<dd>Exception raised for errors that are related to the operation of the
+<dd><p>Exception raised for errors that are related to the operation of the
 database but are not necessarily under the control of the progammer. It is a
-subclass of DatabaseError.</dd></dl>
+subclass of DatabaseError.</p>
+</dd></dl>
 
 <dl class="exception">
 <dt id="cx_Oracle.IntegrityError">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">IntegrityError</tt><a class="headerlink" href="#cx_Oracle.IntegrityError" title="Permalink to this definition">¶</a></dt>
-<dd>Exception raised when the relational integrity of the database is affected.
-It is a subclass of DatabaseError.</dd></dl>
+<dd><p>Exception raised when the relational integrity of the database is affected.
+It is a subclass of DatabaseError.</p>
+</dd></dl>
 
 <dl class="exception">
 <dt id="cx_Oracle.InternalError">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">InternalError</tt><a class="headerlink" href="#cx_Oracle.InternalError" title="Permalink to this definition">¶</a></dt>
-<dd>Exception raised when the database encounters an internal error. It is a
-subclass of DatabaseError.</dd></dl>
+<dd><p>Exception raised when the database encounters an internal error. It is a
+subclass of DatabaseError.</p>
+</dd></dl>
 
 <dl class="exception">
 <dt id="cx_Oracle.ProgrammingError">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">ProgrammingError</tt><a class="headerlink" href="#cx_Oracle.ProgrammingError" title="Permalink to this definition">¶</a></dt>
-<dd>Exception raised for programming errors. It is a subclass of DatabaseError.</dd></dl>
+<dd><p>Exception raised for programming errors. It is a subclass of DatabaseError.</p>
+</dd></dl>
 
 <dl class="exception">
 <dt id="cx_Oracle.NotSupportedError">
 <em class="property">exception </em><tt class="descclassname">cx_Oracle.</tt><tt class="descname">NotSupportedError</tt><a class="headerlink" href="#cx_Oracle.NotSupportedError" title="Permalink to this definition">¶</a></dt>
-<dd>Exception raised when a method or database API was used which is not
-supported by the database. It is a subclass of DatabaseError.</dd></dl>
+<dd><p>Exception raised when a method or database API was used which is not
+supported by the database. It is a subclass of DatabaseError.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="exception-handling">
@@ -835,8 +901,8 @@ supported by the database. It is a subclass of DatabaseError.</dd></dl>
 <p>PEP 249 (Python Database API Specification v2.0) says the following about
 exception values:</p>
 <blockquote>
-[...] The values of these exceptions are not defined. They should
-give the user a fairly good idea of what went wrong, though. [...]</blockquote>
+<div>[...] The values of these exceptions are not defined. They should
+give the user a fairly good idea of what went wrong, though. [...]</div></blockquote>
 <p class="last">With cx_Oracle every exception object has exactly one argument in the
 <tt class="docutils literal"><span class="pre">args</span></tt> tuple. This argument is a <tt class="docutils literal"><span class="pre">cx_Oracle._Error</span></tt> object which has
 the following three read-only attributes.</p>
@@ -844,24 +910,28 @@ the following three read-only attributes.</p>
 <dl class="attribute">
 <dt id="cx_Oracle._Error.code">
 <tt class="descclassname">_Error.</tt><tt class="descname">code</tt><a class="headerlink" href="#cx_Oracle._Error.code" title="Permalink to this definition">¶</a></dt>
-<dd>Integer attribute representing the Oracle error number (ORA-XXXXX).</dd></dl>
+<dd><p>Integer attribute representing the Oracle error number (ORA-XXXXX).</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="cx_Oracle._Error.offset">
 <tt class="descclassname">_Error.</tt><tt class="descname">offset</tt><a class="headerlink" href="#cx_Oracle._Error.offset" title="Permalink to this definition">¶</a></dt>
-<dd>Integer attribute representing the error offset when applicable.</dd></dl>
+<dd><p>Integer attribute representing the error offset when applicable.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="cx_Oracle._Error.message">
 <tt class="descclassname">_Error.</tt><tt class="descname">message</tt><a class="headerlink" href="#cx_Oracle._Error.message" title="Permalink to this definition">¶</a></dt>
-<dd>String attribute representing the Oracle message of the error. This
-message is localized by the environment of the Oracle connection.</dd></dl>
+<dd><p>String attribute representing the Oracle message of the error. This
+message is localized by the environment of the Oracle connection.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="cx_Oracle._Error.context">
 <tt class="descclassname">_Error.</tt><tt class="descname">context</tt><a class="headerlink" href="#cx_Oracle._Error.context" title="Permalink to this definition">¶</a></dt>
-<dd>String attribute representing the context in which the exception was
-raised..</dd></dl>
+<dd><p>String attribute representing the context in which the exception was
+raised..</p>
+</dd></dl>
 
 <p>This allows you to use the exceptions for example in the following way:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
@@ -887,44 +957,44 @@ raised..</dd></dl>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Module Interface</a><ul>
-<li><a class="reference external" href="#constants">Constants</a><ul>
-<li><a class="reference external" href="#global">Global</a></li>
-<li><a class="reference external" href="#database-callbacks">Database Callbacks</a></li>
-<li><a class="reference external" href="#database-change-notification">Database Change Notification</a></li>
-<li><a class="reference external" href="#database-resident-connection-pooling">Database Resident Connection Pooling</a></li>
-<li><a class="reference external" href="#database-startup-shutdown">Database Startup/Shutdown</a></li>
-<li><a class="reference external" href="#session-pooling">Session Pooling</a></li>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Module Interface</a><ul>
+<li><a class="reference internal" href="#constants">Constants</a><ul>
+<li><a class="reference internal" href="#global">Global</a></li>
+<li><a class="reference internal" href="#database-callbacks">Database Callbacks</a></li>
+<li><a class="reference internal" href="#database-change-notification">Database Change Notification</a></li>
+<li><a class="reference internal" href="#database-resident-connection-pooling">Database Resident Connection Pooling</a></li>
+<li><a class="reference internal" href="#database-startup-shutdown">Database Startup/Shutdown</a></li>
+<li><a class="reference internal" href="#session-pooling">Session Pooling</a></li>
 </ul>
 </li>
-<li><a class="reference external" href="#types">Types</a></li>
-<li><a class="reference external" href="#exceptions">Exceptions</a></li>
-<li><a class="reference external" href="#exception-handling">Exception handling</a></li>
+<li><a class="reference internal" href="#types">Types</a></li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+<li><a class="reference internal" href="#exception-handling">Exception handling</a></li>
 </ul>
 </li>
 </ul>
 
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="index.html"
-                                  title="previous chapter">cx_Oracle</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="connection.html"
-                                  title="next chapter">Connection Object</a></p>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">cx_Oracle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="connection.html"
+                        title="next chapter">Connection Object</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -936,7 +1006,7 @@ raised..</dd></dl>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="modindex.html" title="Global Module Index"
+          <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
           <a href="connection.html" title="Connection Object"
@@ -944,13 +1014,13 @@ raised..</dd></dl>
         <li class="right" >
           <a href="index.html" title="cx_Oracle"
              >previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.0.4 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle v5.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2010, Anthony Tuininga.
-      Last updated on Jul 13, 2010.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+        &copy; Copyright 2011, Anthony Tuininga.
+      Last updated on Mar 19, 2011.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
     </div>
   </body>
 </html>
