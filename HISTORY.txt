@@ -1,3 +1,24 @@
+Changes from 5.0.4 to 5.1
+ 1) Remove support for UNICODE mode and permit Unicode to be passed through in
+    everywhere a string may be passed in. This means that strings will be
+    passed through to Oracle using the value of the NLS_LANG environment
+    variable in Python 3.x as well. Doing this eliminated a bunch of problems
+    that were discovered by using UNICODE mode and also removed an unnecessary
+    restriction in Python 2.x that Unicode could not be used in connect strings
+    or SQL statements, for example.
+ 2) Added support for creating an empty object variable via a named type, the
+    first step to adding full object support.
+ 3) Added support for Python 3.2.
+ 4) Account for lib64 used on x86_64 systems. Thanks to Alex Wood for supplying
+    the patch.
+ 5) Clear up potential problems when calling cursor.close() ahead of the
+    cursor being freed by going out of scope.
+ 6) Avoid compilation difficulties on AIX5 as OCIPing does not appear to be
+    available on that platform under Oracle 10g Release 2. Thanks to
+    Pierre-Yves Fontaniere for the patch.
+ 7) Free temporary LOBs prior to each fetch in order to avoid leaking them.
+    Thanks to Uwe Hoffmann for the initial patch.
+
 Changes from 5.0.3 to 5.0.4
  1) Added support for Python 2.7.
  2) Added support for new parameter (port) for subscription() call which allows
