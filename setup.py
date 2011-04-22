@@ -157,14 +157,7 @@ elif sys.platform == "cygwin":
         libDirs[i] = os.path.join(oracleHome, libDirs[i])
     libs = ["oci"]
 else:
-    libPath = os.path.join(oracleHome, "lib")
-    if struct.calcsize("P") == 4:
-        alternatePath = os.path.join(oracleHome, "lib32")
-    else:
-        alternatePath = os.path.join(oracleHome, "lib64")
-    if os.path.exists(alternatePath):
-        libPath = alternatePath
-    libDirs = [libPath, oracleHome]
+    libDirs = [oracleLibDir]
     libs = ["clntsh"]
     possibleIncludeDirs = ["rdbms/demo", "rdbms/public", "network/public",
             "sdk/include"]
@@ -176,7 +169,7 @@ else:
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
-        path = os.path.join(os.path.dirname(libPath), "include")
+        path = os.path.join(oracleLibDir, "include")
         if os.path.isdir(path):
             includeDirs.append(path)
     if not includeDirs:
