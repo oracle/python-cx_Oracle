@@ -1166,6 +1166,14 @@ static PyObject *Connection_Close(
         OCIHandleFree(self->handle, OCI_HTYPE_SVCCTX);
     }
     self->handle = NULL;
+    if (self->serverHandle) {
+        status = OCIServerDetach(self->serverHandle,
+                self->environment->errorHandle, OCI_DEFAULT);
+        if (Environment_CheckForError(self->environment, status,
+                "Connection_Close(): server detach") < 0)
+            return NULL;
+        self->serverHandle = NULL;
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
