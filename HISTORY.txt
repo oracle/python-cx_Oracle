@@ -1,3 +1,11 @@
+Changes from 5.1 to 5.1.1
+ 1) Force server detach on close so that the connection is completely closed
+    and not just the session as before.
+ 2) Added additional parameter service_name to makedsn() which can be used to
+    use the service_name rather than the SID in the DSN string that is
+    generated.
+ 3) Removed redundant code in setup.py for calculating the library path.
+
 Changes from 5.0.4 to 5.1
  1) Remove support for UNICODE mode and permit Unicode to be passed through in
     everywhere a string may be passed in. This means that strings will be

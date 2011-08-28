@@ -207,16 +207,39 @@ static int GetModuleAndName(
 //-----------------------------------------------------------------------------
 static PyObject* MakeDSN(
     PyObject* self,                     // passthrough argument
-    PyObject* args)                     // arguments to function
+    PyObject* args,                     // arguments to function
+    PyObject* keywordArgs)              // keyword arguments
 {
-    PyObject *format, *result;
+    static char *keywordList[] = { "host", "port", "sid", "service_name",
+            NULL };
+    PyObject *hostObj, *portObj, *sidObj, *serviceNameObj, *connectDataObj;
+    PyObject *format, *result, *formatArgs;
 
-    format = cxString_FromAscii("(DESCRIPTION=(ADDRESS_LIST=(ADDRESS="
-            "(PROTOCOL=TCP)(HOST=%s)(PORT=%s)))(CONNECT_DATA=(SID=%s)))");
+    // parse arguments
+    sidObj = serviceNameObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO|OO", keywordList,
+            &hostObj, &portObj, &sidObj, &serviceNameObj))
+        return NULL;
+    if (sidObj) {
+        connectDataObj = sidObj;
+        format = cxString_FromAscii("(DESCRIPTION=(ADDRESS_LIST=(ADDRESS="
+                "(PROTOCOL=TCP)(HOST=%s)(PORT=%s)))(CONNECT_DATA=(SID=%s)))");
+    } else {
+        connectDataObj = serviceNameObj;
+        format = cxString_FromAscii("(DESCRIPTION=(ADDRESS_LIST=(ADDRESS="
+                "(PROTOCOL=TCP)(HOST=%s)(PORT=%s)))(CONNECT_DATA="
+                "(SERVICE_NAME=%s)))");
+    }
     if (!format)
         return NULL;
-    result = cxString_Format(format, args);
+    formatArgs = PyTuple_Pack(3, hostObj, portObj, connectDataObj);
+    if (!formatArgs) {
+        Py_DECREF(format);
+        return NULL;
+    }
+    result = cxString_Format(format, formatArgs);
     Py_DECREF(format);
+    Py_DECREF(formatArgs);
     return result;
 }
 
@@ -296,13 +319,13 @@ static PyObject* TimestampFromTicks(
 //   Declaration of methods supported by this module
 //-----------------------------------------------------------------------------
 static PyMethodDef g_ModuleMethods[] = {
-    { "makedsn", MakeDSN, METH_VARARGS },
-    { "Time", Time, METH_VARARGS },
-    { "DateFromTicks", DateFromTicks, METH_VARARGS },
-    { "TimeFromTicks", TimeFromTicks, METH_VARARGS },
-    { "TimestampFromTicks", TimestampFromTicks, METH_VARARGS },
+    { "makedsn", (PyCFunction) MakeDSN, METH_VARARGS | METH_KEYWORDS },
+    { "Time", (PyCFunction) Time, METH_VARARGS },
+    { "DateFromTicks", (PyCFunction) DateFromTicks, METH_VARARGS },
+    { "TimeFromTicks", (PyCFunction) TimeFromTicks, METH_VARARGS },
+    { "TimestampFromTicks", (PyCFunction) TimestampFromTicks, METH_VARARGS },
 #ifdef ORACLE_10GR2
-    { "clientversion", ClientVersion, METH_NOARGS },
+    { "clientversion", (PyCFunction) ClientVersion, METH_NOARGS },
 #endif
     { NULL }
 };

@@ -99,11 +99,13 @@ Module Interface
    time module for details).
 
 
-.. function:: makedsn(host, port, sid)
+.. function:: makedsn(host, port, sid, [service_name])
 
    Return a string suitable for use as the dsn for the connect() method. This
    string is identical to the strings that are defined by the Oracle names
-   server or defined in the tnsnames.ora file.
+   server or defined in the tnsnames.ora file. If you wish to use the service
+   name instead of the sid, do not include a value for the parameter sid and
+   use the keyword parameter service_name instead.
 
    .. note::
 
