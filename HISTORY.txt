@@ -4,7 +4,8 @@ Changes from 5.1 to 5.1.1
  2) Added additional parameter service_name to makedsn() which can be used to
     use the service_name rather than the SID in the DSN string that is
     generated.
- 3) Removed redundant code in setup.py for calculating the library path.
+ 3) Added tests for NCLOBS to the test suite.
+ 4) Removed redundant code in setup.py for calculating the library path.
 
 Changes from 5.0.4 to 5.1
  1) Remove support for UNICODE mode and permit Unicode to be passed through in

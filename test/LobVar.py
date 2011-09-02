@@ -90,21 +90,24 @@ class TestLobVar(BaseTestCase):
         lob.trim()
         self.failUnlessEqual(lob.size(), 0)
 
-    def testBLOBsIndirect(self):
-        "test binding and fetching BLOB data (indirectly)"
-        self.__PerformTest("BLOB", cx_Oracle.LONG_BINARY)
-
-    def testCLOBsIndirect(self):
-        "test binding and fetching CLOB data (indirectly)"
-        self.__PerformTest("CLOB", cx_Oracle.LONG_STRING)
+    def testBLOBCursorDescription(self):
+        "test cursor description is accurate for BLOBs"
+        self.cursor.execute("select * from TestBLOBs")
+        self.failUnlessEqual(self.cursor.description,
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
+                  ('BLOBCOL', cx_Oracle.BLOB, -1, 4000, 0, 0, 0) ])
 
     def testBLOBsDirect(self):
         "test binding and fetching BLOB data (directly)"
         self.__PerformTest("BLOB", cx_Oracle.BLOB)
 
-    def testCLOBsDirect(self):
-        "test binding and fetching CLOB data (directly)"
-        self.__PerformTest("CLOB", cx_Oracle.CLOB)
+    def testBLOBsIndirect(self):
+        "test binding and fetching BLOB data (indirectly)"
+        self.__PerformTest("BLOB", cx_Oracle.LONG_BINARY)
+
+    def testBLOBTrim(self):
+        "test trimming a BLOB"
+        self.__TestTrim("BLOB")
 
     def testCLOBCursorDescription(self):
         "test cursor description is accurate for CLOBs"
@@ -113,16 +116,13 @@ class TestLobVar(BaseTestCase):
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   ('CLOBCOL', cx_Oracle.CLOB, -1, 4000, 0, 0, 0) ])
 
-    def testBLOBCursorDescription(self):
-        "test cursor description is accurate for BLOBs"
-        self.cursor.execute("select * from TestBLOBs")
-        self.failUnlessEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('BLOBCOL', cx_Oracle.BLOB, -1, 4000, 0, 0, 0) ])
+    def testCLOBsDirect(self):
+        "test binding and fetching CLOB data (directly)"
+        self.__PerformTest("CLOB", cx_Oracle.CLOB)
 
-    def testBLOBTrim(self):
-        "test trimming a BLOB"
-        self.__TestTrim("BLOB")
+    def testCLOBsIndirect(self):
+        "test binding and fetching CLOB data (indirectly)"
+        self.__PerformTest("CLOB", cx_Oracle.LONG_STRING)
 
     def testCLOBTrim(self):
         "test trimming a CLOB"
@@ -134,4 +134,23 @@ class TestLobVar(BaseTestCase):
         self.cursor.execute("select CLOBCol from TestCLOBS")
         rows = self.cursor.fetchall()
         self.failUnlessRaises(cx_Oracle.ProgrammingError, rows[1][0].read)
+
+    def testNCLOBCursorDescription(self):
+        "test cursor description is accurate for NCLOBs"
+        self.cursor.execute("select * from TestNCLOBs")
+        self.failUnlessEqual(self.cursor.description,
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
+                  ('NCLOBCOL', cx_Oracle.NCLOB, -1, 4000, 0, 0, 0) ])
+
+    def testNCLOBsDirect(self):
+        "test binding and fetching NCLOB data (directly)"
+        self.__PerformTest("NCLOB", cx_Oracle.NCLOB)
+
+    def testNCLOBsIndirect(self):
+        "test binding and fetching NCLOB data (indirectly)"
+        self.__PerformTest("NCLOB", cx_Oracle.LONG_STRING)
+
+    def testNCLOBTrim(self):
+        "test trimming a CLOB"
+        self.__TestTrim("CLOB")
 

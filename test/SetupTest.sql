@@ -85,6 +85,11 @@ create table cx_Oracle.TestCLOBs (
   CLOBCol               clob not null
 ) tablespace users;
 
+create table cx_Oracle.TestNCLOBs (
+  IntCol                number(9) not null,
+  NCLOBCol              nclob not null
+) tablespace users;
+
 create table cx_Oracle.TestBLOBs (
   IntCol                number(9) not null,
   BLOBCol               blob not null
