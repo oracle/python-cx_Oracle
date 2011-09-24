@@ -139,9 +139,6 @@ typedef int Py_ssize_t;
 //-----------------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------------
-#ifdef WITH_THREAD
-static PyInterpreterState *g_InterpreterState;
-#endif
 static PyObject *g_WarningException = NULL;
 static PyObject *g_ErrorException = NULL;
 static PyObject *g_InterfaceErrorException = NULL;
@@ -355,17 +352,10 @@ static struct PyModuleDef g_ModuleDef = {
 //-----------------------------------------------------------------------------
 static PyObject *Module_Initialize(void)
 {
-    PyThreadState *threadState;
     PyObject *module;
 
-    // initialize the interpreter state for callbacks
 #ifdef WITH_THREAD
     PyEval_InitThreads();
-    threadState = PyThreadState_Swap(NULL);
-    if (!threadState)
-        return NULL;
-    g_InterpreterState = threadState->interp;
-    PyThreadState_Swap(threadState);
 #endif
 
     // import the datetime module for datetime support

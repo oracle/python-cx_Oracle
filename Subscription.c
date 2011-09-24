@@ -518,25 +518,9 @@ static void Subscription_Callback(
     ub4 mode)                           // mode used
 {
 #ifdef WITH_THREAD
-    PyThreadState *threadState;
+    PyGILState_STATE gstate = PyGILState_Ensure();
 #endif
     udt_Environment *env;
-
-    // create new thread state, if necessary
-#ifdef WITH_THREAD
-    threadState = PyThreadState_Swap(NULL);
-    if (threadState) {
-        PyThreadState_Swap(threadState);
-        threadState = NULL;
-    } else {
-        threadState = PyThreadState_New(g_InterpreterState);
-        if (!threadState) {
-            PyErr_Print();
-            return;
-        }
-        PyEval_AcquireThread(threadState);
-    }
-#endif
 
     // perform the call
     env = Environment_NewFromScratch(0, 0, NULL, NULL);
@@ -550,11 +534,7 @@ static void Subscription_Callback(
 
     // restore thread state, if necessary
 #ifdef WITH_THREAD
-    if (threadState) {
-        PyThreadState_Clear(threadState);
-        PyEval_ReleaseThread(threadState);
-        PyThreadState_Delete(threadState);
-    }
+    PyGILState_Release(gstate);
 #endif
 }
 

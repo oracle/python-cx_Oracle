@@ -290,25 +290,9 @@ static sword Callback_Handler(
     va_list args)                       // arguments
 {
 #ifdef WITH_THREAD
-    PyThreadState *threadState;
+    PyGILState_STATE gstate = PyGILState_Ensure();
 #endif
     sword result;
-
-    // create new thread state, if necessary
-#ifdef WITH_THREAD
-    threadState = PyThreadState_Swap(NULL);
-    if (threadState) {
-        PyThreadState_Swap(threadState);
-        threadState = NULL;
-    } else {
-        threadState = PyThreadState_New(g_InterpreterState);
-        if (!threadState) {
-            PyErr_Print();
-            return OCI_ERROR;
-        }
-        PyEval_AcquireThread(threadState);
-    }
-#endif
 
     // perform the call
     result = Callback_Call(tuple, functionCode, args);
@@ -317,11 +301,7 @@ static sword Callback_Handler(
 
     // restore thread state, if necessary
 #ifdef WITH_THREAD
-    if (threadState) {
-        PyThreadState_Clear(threadState);
-        PyEval_ReleaseThread(threadState);
-        PyThreadState_Delete(threadState);
-    }
+    PyGILState_Release(gstate);
 #endif
 
     return result;
