@@ -201,10 +201,13 @@ class TestUnicodeVar(BaseTestCase):
         self.cursor.execute("select * from TestUnicodes")
         self.failUnlessEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('UNICODECOL', cx_Oracle.UNICODE, 20, 40, 0, 0, 0),
+                  ('UNICODECOL', cx_Oracle.UNICODE, 20,
+                      self.connection.maxBytesPerCharacter * 20, 0, 0, 0),
                   ('FIXEDUNICODECOL',
-                      cx_Oracle.FIXED_UNICODE, 40, 80, 0, 0, 0),
-                  ('NULLABLECOL', cx_Oracle.UNICODE, 50, 100, 0, 0, 1) ])
+                      cx_Oracle.FIXED_UNICODE, 40,
+                      self.connection.maxBytesPerCharacter * 40, 0, 0, 0),
+                  ('NULLABLECOL', cx_Oracle.UNICODE, 50,
+                      self.connection.maxBytesPerCharacter * 50, 0, 0, 1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"
