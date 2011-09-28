@@ -169,6 +169,7 @@ static int ExternalLobVar_InternalRead(
     ub4 *length,                        // length of data (IN/OUT)
     int offset)                         // offset
 {
+    ub2 charsetId;
     sword status;
 
     if (var->lobVar->isFile) {
@@ -183,10 +184,13 @@ static int ExternalLobVar_InternalRead(
     }
 
     Py_BEGIN_ALLOW_THREADS
+    if (var->lobVar->type == &vt_NCLOB)
+        charsetId = OCI_UTF16ID;
+    else charsetId = 0;
     status = OCILobRead(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle,
             var->lobVar->data[var->pos], length, offset, buffer,
-            bufferSize, NULL, NULL, 0, var->lobVar->type->charsetForm); 
+            bufferSize, NULL, NULL, charsetId, var->lobVar->type->charsetForm); 
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_LobRead()") < 0) {
@@ -282,8 +286,7 @@ static PyObject *ExternalLobVar_Value(
         result = cxString_FromEncodedString(buffer, length,
                 var->lobVar->environment->encoding);
     } else if (var->lobVar->type == &vt_NCLOB) {
-        result = PyUnicode_Decode(buffer, length,
-                var->lobVar->environment->encoding, NULL);
+        result = PyUnicode_DecodeUTF16(buffer, length * 2, NULL, NULL);
     } else {
         result = PyBytes_FromStringAndSize(buffer, length);
     }
