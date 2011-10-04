@@ -288,7 +288,6 @@ static void LobVar_Finalize(
 {
     ub4 i;
 
-    LobVar_PreFetch(var);
     for (i = 0; i < var->allocatedElements; i++) {
         if (var->data[i])
             OCIDescriptorFree(var->data[i], OCI_DTYPE_LOB);
