@@ -1,11 +1,21 @@
 Changes from 5.1 to 5.1.1
- 1) Force server detach on close so that the connection is completely closed
+ 1) Simplify management of threads for callbacks performed by database change
+    notification and eliminate a crash that occurred under high load in
+    certain situations. Thanks to Calvin S. for noting the issue and suggesting
+    a solution and testing the patch.
+ 2) Force server detach on close so that the connection is completely closed
     and not just the session as before.
- 2) Added additional parameter service_name to makedsn() which can be used to
+ 3) Force use of OCI_UTF16ID for NCLOBs as using the default character set
+    would result in ORA-03127 with Oracle 11.2.0.2 and UTF8 character set.
+ 4) Avoid attempting to clear temporary LOBs a second time when destroying the
+    variable as in certain situations this results in spurious errors.
+ 5) Added additional parameter service_name to makedsn() which can be used to
     use the service_name rather than the SID in the DSN string that is
     generated.
- 3) Added tests for NCLOBS to the test suite.
- 4) Removed redundant code in setup.py for calculating the library path.
+ 6) Fix cursor description in test suite to take into account the number of
+    bytes per character.
+ 7) Added tests for NCLOBS to the test suite.
+ 8) Removed redundant code in setup.py for calculating the library path.
 
 Changes from 5.0.4 to 5.1
  1) Remove support for UNICODE mode and permit Unicode to be passed through in
