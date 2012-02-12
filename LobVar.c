@@ -286,11 +286,21 @@ static int LobVar_PreFetch(
 static void LobVar_Finalize(
     udt_LobVar *var)                    // variable to free
 {
+    boolean isTemporary;
     ub4 i;
 
     for (i = 0; i < var->allocatedElements; i++) {
-        if (var->data[i])
+        if (var->data[i]) {
+            OCILobIsTemporary(var->environment->handle,
+                    var->environment->errorHandle, var->data[i], &isTemporary);
+            if (isTemporary) {
+                Py_BEGIN_ALLOW_THREADS
+                OCILobFreeTemporary(var->connection->handle,
+                        var->environment->errorHandle, var->data[i]);
+                Py_END_ALLOW_THREADS
+            }
             OCIDescriptorFree(var->data[i], OCI_DTYPE_LOB);
+        }
     }
     Py_DECREF(var->connection);
 }
