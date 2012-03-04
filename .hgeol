@@ -1,2 +1,3 @@
 [patterns]
+.hgignore = native
 ** = native
