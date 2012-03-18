@@ -366,6 +366,7 @@ static int Variable_Check(
 #if PY_MAJOR_VERSION < 3
             Py_TYPE(object) == &g_UnicodeVarType ||
             Py_TYPE(object) == &g_FixedUnicodeVarType ||
+            Py_TYPE(object) == &g_LongUnicodeVarType ||
 #endif
             Py_TYPE(object) == &g_RowidVarType ||
             Py_TYPE(object) == &g_BinaryVarType ||
@@ -400,6 +401,8 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_NationalCharString;
     if (type == (PyObject*) &g_FixedUnicodeVarType)
         return &vt_FixedNationalChar;
+    if (type == (PyObject*) &g_LongUnicodeVarType)
+        return &vt_LongNationalCharString;
 #endif
     if (type == (PyObject*) &g_NCLOBVarType)
         return &vt_NCLOB;
@@ -491,7 +494,7 @@ static udt_VariableType *Variable_TypeByValue(
     if (PyUnicode_Check(value)) {
         *size = PyUnicode_GET_SIZE(value);
         if (*size > MAX_STRING_CHARS)
-            return &vt_LongString;
+            return &vt_LongNationalCharString;
         return &vt_NationalCharString;
     }
     if (PyInt_Check(value))

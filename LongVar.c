@@ -48,6 +48,33 @@ static PyTypeObject g_LongStringVarType = {
 };
 
 
+#if PY_MAJOR_VERSION < 3
+static PyTypeObject g_LongUnicodeVarType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "cx_Oracle.LONG_UNICODE",           // tp_name
+    sizeof(udt_LongVar),                // tp_basicsize
+    0,                                  // tp_itemsize
+    0,                                  // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
+};
+#endif
+
+
 static PyTypeObject g_LongBinaryVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.LONG_BINARY",            // tp_name
@@ -95,6 +122,29 @@ static udt_VariableType vt_LongString = {
     1,                                  // can be copied
     0                                   // can be in array
 };
+
+
+#if PY_MAJOR_VERSION < 3
+static udt_VariableType vt_LongNationalCharString = {
+    (InitializeProc) NULL,
+    (FinalizeProc) NULL,
+    (PreDefineProc) NULL,
+    (PostDefineProc) NULL,
+    (PreFetchProc) NULL,
+    (IsNullProc) NULL,
+    (SetValueProc) LongVar_SetValue,
+    (GetValueProc) LongVar_GetValue,
+    (GetBufferSizeProc) LongVar_GetBufferSize,
+    &g_LongUnicodeVarType,              // Python type
+    SQLT_LVC,                           // Oracle type
+    SQLCS_NCHAR,                        // charset form
+    128 * 1024,                         // element length (default)
+    1,                                  // is character data
+    1,                                  // is variable length
+    1,                                  // can be copied
+    0                                   // can be in array
+};
+#endif
 
 
 static udt_VariableType vt_LongBinary = {

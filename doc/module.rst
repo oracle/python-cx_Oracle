@@ -648,6 +648,18 @@ Types
       This type is an extension to the DB API definition.
 
 
+.. data:: LONG_UNICODE
+
+   This type object is used to describe columns in a database that are long
+   strings (in Oracle these are LONG columns). There is no direct support for
+   this in Oracle but long unicode strings are bound this way in order to
+   avoid the "unimplemented or unreasonable conversion requested" error.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
 .. data:: NATIVE_FLOAT
 
    This type object is used to describe columns in a database that are of type
