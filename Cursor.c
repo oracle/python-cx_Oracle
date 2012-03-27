@@ -504,7 +504,9 @@ static int Cursor_SetRowCount(
         self->rowNum = 0;
     } else if (self->statementType == OCI_STMT_INSERT ||
                self->statementType == OCI_STMT_UPDATE ||
-               self->statementType == OCI_STMT_DELETE) {
+               self->statementType == OCI_STMT_DELETE ||
+               self->statementType == OCI_STMT_BEGIN ||
+               self->statementType == OCI_STMT_DECLARE) {
         status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &rowCount, 0,
                 OCI_ATTR_ROW_COUNT, self->environment->errorHandle);
         if (Environment_CheckForError(self->environment, status,
