@@ -591,7 +591,10 @@ static int Connection_Connect(
     udt_Connection *self,               // connection
     ub4 mode,                           // mode to connect as
     int twophase,                       // allow two phase commit?
-    PyObject *newPasswordObj)           // new password (if desired)
+    PyObject *newPasswordObj,           // new password (if desired)
+    PyObject *moduleObj,                // session "module" value
+    PyObject *actionObj,                // session "action" value
+    PyObject *clientinfoObj)            // session "clientinfo" value
 {
     ub4 credentialType = OCI_CRED_EXT;
     udt_Buffer buffer;
@@ -708,6 +711,47 @@ static int Connection_Connect(
             "Connection_Connect(): set session handle") < 0)
         return -1;
 
+#ifdef ORACLE_10G
+    if (moduleObj) {
+        if (cxBuffer_FromObject(&buffer, moduleObj,
+                self->environment->encoding))
+            return -1;
+        status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
+                (text*) buffer.ptr, buffer.size, OCI_ATTR_MODULE,
+                self->environment->errorHandle);
+        cxBuffer_Clear(&buffer);
+        if (Environment_CheckForError(self->environment, status,
+                "Connection_Connect(): set module") < 0)
+            return -1;
+    }
+
+    if (actionObj) {
+        if (cxBuffer_FromObject(&buffer, actionObj,
+                self->environment->encoding))
+            return -1;
+        status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
+                (text*) buffer.ptr, buffer.size, OCI_ATTR_ACTION,
+                self->environment->errorHandle);
+        cxBuffer_Clear(&buffer);
+        if (Environment_CheckForError(self->environment, status,
+                "Connection_Connect(): set action") < 0)
+            return -1;
+    }
+
+    if (clientinfoObj) {
+        if (cxBuffer_FromObject(&buffer, clientinfoObj,
+                self->environment->encoding))
+            return -1;
+        status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
+                (text*) buffer.ptr, buffer.size, OCI_ATTR_CLIENT_INFO,
+                self->environment->errorHandle);
+        cxBuffer_Clear(&buffer);
+        if (Environment_CheckForError(self->environment, status,
+                "Connection_Connect(): set clientinfo") < 0)
+            return -1;
+    }
+#endif
+
     // if a new password has been specified, change it which will also
     // establish the session
     if (newPasswordObj)
@@ -807,6 +851,7 @@ static int Connection_Init(
 {
     PyObject *threadedObj, *twophaseObj, *eventsObj, *newPasswordObj;
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj;
+    PyObject *moduleObj, *actionObj, *clientinfoObj;
     int threaded, twophase, events;
     char *encoding, *nencoding;
     ub4 connectMode, purity;
@@ -816,7 +861,8 @@ static int Connection_Init(
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "mode",
             "handle", "pool", "threaded", "twophase", "events", "cclass",
-            "purity", "newpassword", "encoding", "nencoding", NULL };
+            "purity", "newpassword", "encoding", "nencoding", "module",
+            "action", "clientinfo", NULL };
 
     // parse arguments
     pool = NULL;
@@ -824,16 +870,18 @@ static int Connection_Init(
     connectMode = OCI_DEFAULT;
     usernameObj = passwordObj = dsnObj = cclassObj = NULL;
     threadedObj = twophaseObj = eventsObj = newPasswordObj = NULL;
+    moduleObj = actionObj = clientinfoObj = NULL;
     threaded = twophase = events = purity = 0;
     encoding = nencoding = NULL;
 #ifdef ORACLE_11G
     purity = OCI_ATTR_PURITY_DEFAULT;
 #endif
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOiiO!OOOOiOss", keywordList, &usernameObj, &passwordObj,
+            "|OOOiiO!OOOOiOssOOO", keywordList, &usernameObj, &passwordObj,
             &dsnObj, &connectMode, &handle, &g_SessionPoolType, &pool,
             &threadedObj, &twophaseObj, &eventsObj, &cclassObj, &purity,
-            &newPasswordObj, &encoding, &nencoding))
+            &newPasswordObj, &encoding, &nencoding, &moduleObj, &actionObj,
+            &clientinfoObj))
         return -1;
     if (threadedObj) {
         threaded = PyObject_IsTrue(threadedObj);
@@ -878,7 +926,8 @@ static int Connection_Init(
         return Connection_Attach(self, handle);
     if (pool || cclassObj)
         return Connection_GetConnection(self, pool, cclassObj, purity);
-    return Connection_Connect(self, connectMode, twophase, newPasswordObj);
+    return Connection_Connect(self, connectMode, twophase, newPasswordObj,
+            moduleObj, actionObj, clientinfoObj);
 }
 
 
