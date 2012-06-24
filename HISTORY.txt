@@ -1,3 +1,14 @@
+Changes from 5.1.1 to 5.1.2
+ 1) Added support for LONG_UNICODE which is a type used to handle long unicode
+    strings. These are not explicitly supported in Oracle but can be used to
+    bind to NCLOB, for example, without getting the error "unimplemented or
+    unreasonable conversion requested".
+ 2) Set the row number in a cursor when executing PL/SQL blocks as requested
+    by Robert Ritchie.
+ 3) Added support for setting the module, action and client_info attributes
+    during connection so that logon triggers will see the supplied values, as
+    requested by Rodney Barnett.
+
 Changes from 5.1 to 5.1.1
  1) Simplify management of threads for callbacks performed by database change
     notification and eliminate a crash that occurred under high load in
