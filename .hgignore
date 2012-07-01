@@ -2,3 +2,4 @@ syntax: glob
 build/
 dist/
 cx_Oracle.egg-info/
+MANIFEST
