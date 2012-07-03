@@ -3,17 +3,20 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Module Interface &mdash; cx_Oracle v5.1.1 documentation</title>
+    <title>Module Interface &mdash; cx_Oracle 5.1.2 documentation</title>
+    
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '5.1.1',
+        VERSION:     '5.1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  false
@@ -22,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="cx_Oracle v5.1.1 documentation" href="index.html" />
+    <link rel="top" title="cx_Oracle 5.1.2 documentation" href="index.html" />
     <link rel="next" title="Connection Object" href="connection.html" />
     <link rel="prev" title="cx_Oracle" href="index.html" /> 
   </head>
@@ -42,7 +45,7 @@
         <li class="right" >
           <a href="index.html" title="cx_Oracle"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle 5.1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -272,7 +275,7 @@ comments on the Connection constructor for more information (<a class="reference
 <dl class="data">
 <dt id="cx_Oracle.version">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">version</tt><a class="headerlink" href="#cx_Oracle.version" title="Permalink to this definition">¶</a></dt>
-<dd><p>String constant stating the version of the module. Currently &#8216;5.1.1&#8216;.</p>
+<dd><p>String constant stating the version of the module. Currently &#8216;5.1.2&#8216;.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This attribute is an extension to the DB API definition.</p>
@@ -747,6 +750,19 @@ strings (in Oracle these are LONG columns).</p>
 </dd></dl>
 
 <dl class="data">
+<dt id="cx_Oracle.LONG_UNICODE">
+<tt class="descclassname">cx_Oracle.</tt><tt class="descname">LONG_UNICODE</tt><a class="headerlink" href="#cx_Oracle.LONG_UNICODE" title="Permalink to this definition">¶</a></dt>
+<dd><p>This type object is used to describe columns in a database that are long
+strings (in Oracle these are LONG columns). There is no direct support for
+this in Oracle but long unicode strings are bound this way in order to
+avoid the &#8220;unimplemented or unreasonable conversion requested&#8221; error.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This type is an extension to the DB API definition.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
 <dt id="cx_Oracle.NATIVE_FLOAT">
 <tt class="descclassname">cx_Oracle.</tt><tt class="descname">NATIVE_FLOAT</tt><a class="headerlink" href="#cx_Oracle.NATIVE_FLOAT" title="Permalink to this definition">¶</a></dt>
 <dd><p>This type object is used to describe columns in a database that are of type
@@ -987,7 +1003,7 @@ raised..</p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" size="18" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
@@ -1016,13 +1032,13 @@ raised..</p>
         <li class="right" >
           <a href="index.html" title="cx_Oracle"
              >previous</a> |</li>
-        <li><a href="index.html">cx_Oracle v5.1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">cx_Oracle 5.1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2011, Anthony Tuininga.
-      Last updated on Oct 08, 2011.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+        &copy; Copyright 2012, Anthony Tuininga.
+      Last updated on Jul 02, 2012.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>
 </html>
