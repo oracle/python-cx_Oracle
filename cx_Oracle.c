@@ -11,13 +11,18 @@
 #include <orid.h>
 #include <xa.h>
 
-// define what version of Oracle we are building
+// define simple way to respresent Oracle version
+#define ORACLE_VERSION(major, minor) \
+        ((major << 8) | minor)
+
+// define what version of Oracle we are building as 2 byte hex number
 #if !defined(OCI_MAJOR_VERSION) && defined(OCI_ATTR_MODULE)
 #define OCI_MAJOR_VERSION 10
 #define OCI_MINOR_VERSION 1
 #endif
 #if defined(OCI_MAJOR_VERSION) && defined(OCI_MINOR_VERSION)
-#define ORACLE_VERSION_HEX ((OCI_MAJOR_VERSION << 8) | OCI_MINOR_VERSION)
+#define ORACLE_VERSION_HEX \
+        ORACLE_VERSION(OCI_MAJOR_VERSION, OCI_MINOR_VERSION)
 #else
 #error Unsupported version of OCI.
 #endif
@@ -241,7 +246,7 @@ static PyObject* MakeDSN(
 }
 
 
-#if ORACLE_VERSION_HEX >= 0x0A02
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
 //-----------------------------------------------------------------------------
 // ClientVersion()
 //   Return the version of the Oracle client being used as a 5-tuple.
@@ -321,7 +326,7 @@ static PyMethodDef g_ModuleMethods[] = {
     { "DateFromTicks", (PyCFunction) DateFromTicks, METH_VARARGS },
     { "TimeFromTicks", (PyCFunction) TimeFromTicks, METH_VARARGS },
     { "TimestampFromTicks", (PyCFunction) TimestampFromTicks, METH_VARARGS },
-#if ORACLE_VERSION_HEX >= 0x0A02
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
     { "clientversion", (PyCFunction) ClientVersion, METH_NOARGS },
 #endif
     { NULL }
@@ -381,13 +386,13 @@ static PyObject *Module_Initialize(void)
     MAKE_TYPE_READY(&g_ObjectAttributeType);
     MAKE_TYPE_READY(&g_ExternalLobVarType);
     MAKE_TYPE_READY(&g_ExternalObjectVarType);
-#if ORACLE_VERSION_HEX >= 0x0A02
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
     MAKE_TYPE_READY(&g_SubscriptionType);
     MAKE_TYPE_READY(&g_MessageType);
     MAKE_TYPE_READY(&g_MessageTableType);
     MAKE_TYPE_READY(&g_MessageRowType);
 #endif
-#if ORACLE_VERSION_HEX > 0x0B01
+#if ORACLE_VERSION_HEX > ORACLE_VERSION(11, 1)
     MAKE_TYPE_READY(&g_MessageQueryType);
 #endif
     MAKE_VARIABLE_TYPE_READY(&g_StringVarType);
@@ -526,7 +531,7 @@ static PyObject *Module_Initialize(void)
     ADD_OCI_CONSTANT(SPOOL_ATTRVAL_WAIT)
     ADD_OCI_CONSTANT(SPOOL_ATTRVAL_NOWAIT)
     ADD_OCI_CONSTANT(SPOOL_ATTRVAL_FORCEGET)
-#if ORACLE_VERSION_HEX >= 0x0A02
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
     ADD_OCI_CONSTANT(PRELIM_AUTH)
     ADD_OCI_CONSTANT(DBSHUTDOWN_ABORT)
     ADD_OCI_CONSTANT(DBSHUTDOWN_FINAL)
@@ -558,7 +563,7 @@ static PyObject *Module_Initialize(void)
 	ADD_OCI_CONSTANT(SUBSCR_QOS_PURGE_ON_NTFN)
 	ADD_OCI_CONSTANT(SUBSCR_QOS_MULTICBK)
 #endif
-#if ORACLE_VERSION_HEX >= 0x0B01
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     ADD_OCI_CONSTANT(ATTR_PURITY_DEFAULT)
     ADD_OCI_CONSTANT(ATTR_PURITY_NEW)
     ADD_OCI_CONSTANT(ATTR_PURITY_SELF)
@@ -567,7 +572,7 @@ static PyObject *Module_Initialize(void)
 	ADD_OCI_CONSTANT(SUBSCR_CQ_QOS_BEST_EFFORT)
 	ADD_OCI_CONSTANT(SUBSCR_CQ_QOS_CLQRYCACHE)
 #endif
-#if ORACLE_VERSION_HEX >= 0x0B02
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 2)
     ADD_OCI_CONSTANT(SUBSCR_QOS_HAREG)
 #endif
 
