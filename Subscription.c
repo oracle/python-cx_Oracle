@@ -16,14 +16,19 @@ typedef struct {
     ub4 port;
     ub4 timeout;
     ub4 operations;
+    ub4 qos;
+    ub4 cqqos;
     ub4 rowids;
+    ub4 id;
 } udt_Subscription;
 
 typedef struct {
     PyObject_HEAD
+    udt_Subscription *subscription;
     ub4 type;
     PyObject *dbname;
     PyObject *tables;
+    PyObject *queries;
 } udt_Message;
 
 typedef struct {
@@ -39,6 +44,15 @@ typedef struct {
     ub4 operation;
 } udt_MessageRow;
 
+#if ORACLE_VERSION_HEX >= 0x0B01
+typedef struct {
+    PyObject_HEAD
+    ub8 id;
+    ub4 operation;
+    PyObject *tables;
+} udt_MessageQuery;
+#endif
+
 
 //-----------------------------------------------------------------------------
 // Declaration of subscription functions
@@ -49,6 +63,9 @@ static PyObject *Subscription_RegisterQuery(udt_Subscription*, PyObject*);
 static void Message_Free(udt_Message*);
 static void MessageTable_Free(udt_MessageTable*);
 static void MessageRow_Free(udt_MessageRow*);
+#if ORACLE_VERSION_HEX >= 0x0B01
+static void MessageQuery_Free(udt_MessageQuery*);
+#endif
 
 //-----------------------------------------------------------------------------
 // declaration of members for Python types
@@ -62,14 +79,20 @@ static PyMemberDef g_SubscriptionTypeMembers[] = {
     { "port", T_INT, offsetof(udt_Subscription, port), READONLY },
     { "timeout", T_INT, offsetof(udt_Subscription, timeout), READONLY },
     { "operations", T_INT, offsetof(udt_Subscription, operations), READONLY },
+    { "qos", T_INT, offsetof(udt_Subscription, qos), READONLY },
+    { "cqqos", T_INT, offsetof(udt_Subscription, cqqos), READONLY },
     { "rowids", T_BOOL, offsetof(udt_Subscription, rowids), READONLY },
+    { "id", T_INT, offsetof(udt_Subscription, id), READONLY },
     { NULL }
 };
 
 static PyMemberDef g_MessageTypeMembers[] = {
+    { "subscription", T_OBJECT, offsetof(udt_Message, subscription),
+            READONLY },
     { "type", T_INT, offsetof(udt_Message, type), READONLY },
     { "dbname", T_OBJECT, offsetof(udt_Message, dbname), READONLY },
     { "tables", T_OBJECT, offsetof(udt_Message, tables), READONLY },
+    { "queries", T_OBJECT, offsetof(udt_Message, queries), READONLY },
     { NULL }
 };
 
@@ -85,6 +108,15 @@ static PyMemberDef g_MessageRowTypeMembers[] = {
     { "operation", T_INT, offsetof(udt_MessageRow, operation), READONLY },
     { NULL }
 };
+
+#if ORACLE_VERSION_HEX >= 0x0B01
+static PyMemberDef g_MessageQueryTypeMembers[] = {
+    { "id", T_INT, offsetof(udt_MessageQuery, id), READONLY },
+    { "operation", T_INT, offsetof(udt_MessageQuery, operation), READONLY },
+    { "tables", T_OBJECT, offsetof(udt_MessageQuery, tables), READONLY },
+    { NULL }
+};
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -278,6 +310,53 @@ static PyTypeObject g_MessageRowType = {
 };
 
 
+#if ORACLE_VERSION_HEX >= 0x0B01
+static PyTypeObject g_MessageQueryType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "cx_Oracle.MessageQuery",           // tp_name
+    sizeof(udt_MessageQuery),           // tp_basicsize
+    0,                                  // tp_itemsize
+    (destructor) MessageQuery_Free,     // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0,                                  // tp_doc
+    0,                                  // tp_traverse
+    0,                                  // tp_clear
+    0,                                  // tp_richcompare
+    0,                                  // tp_weaklistoffset
+    0,                                  // tp_iter
+    0,                                  // tp_iternext
+    0,                                  // tp_methods
+    g_MessageQueryTypeMembers,          // tp_members
+    0,                                  // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    0,                                  // tp_init
+    0,                                  // tp_alloc
+    0,                                  // tp_new
+    0,                                  // tp_free
+    0,                                  // tp_is_gc
+    0                                   // tp_bases
+};
+#endif
+
+
 //-----------------------------------------------------------------------------
 // MessageRow_Initialize()
 //   Initialize a new message row with the information from the descriptor.
@@ -388,6 +467,82 @@ static int MessageTable_Initialize(
 }
 
 
+#if ORACLE_VERSION_HEX >= 0x0B01
+//-----------------------------------------------------------------------------
+// MessageQuery_Initialize()
+//   Initialize a new message query with the information from the descriptor.
+//-----------------------------------------------------------------------------
+static int MessageQuery_Initialize(
+    udt_MessageQuery *self,             // object to initialize
+    udt_Environment *env,               // environment to use
+    dvoid *descriptor)                  // descriptor to get information from
+{
+    dvoid **tableDescriptor, *indicator;
+    udt_MessageTable *table;
+    ub4 i;
+    OCIColl *tables;
+    boolean exists;
+    sb4 numTables;
+    sword status;
+
+    // determine query id
+    status = OCIAttrGet(descriptor, OCI_DTYPE_CQDES, &self->id,
+            NULL, OCI_ATTR_CQDES_QUERYID, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+            "MessageQuery_Initialize(): get query id") < 0)
+        return -1;
+
+    // determine operation
+    status = OCIAttrGet(descriptor, OCI_DTYPE_CQDES, &self->operation,
+            NULL, OCI_ATTR_CQDES_OPERATION, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+            "MessageQuery_Initialize(): get operation") < 0)
+        return -1;
+
+    // determine table collection
+    status = OCIAttrGet(descriptor, OCI_DTYPE_CQDES, &tables, NULL,
+            OCI_ATTR_CQDES_TABLE_CHANGES, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+            "MessageQuery_Initialize(): get tables collection") < 0)
+        return -1;
+
+    // determine number of tables
+    if (!tables)
+        numTables = 0;
+    else {
+        status = OCICollSize(env->handle, env->errorHandle, tables,
+                &numTables);
+        if (Environment_CheckForError(env, status,
+                "MessageQuery_Initialize(): get size of collection") < 0)
+            return -1;
+    }
+
+    // create list to hold results
+    self->tables = PyList_New(numTables);
+    if (!self->tables)
+        return -1;
+
+    // populate each entry with a message table instance
+    for (i = 0; i < numTables; i++) {
+        status = OCICollGetElem(env->handle, env->errorHandle, tables, i,
+                &exists, (dvoid*) &tableDescriptor, &indicator);
+        if (Environment_CheckForError(env, status,
+                "MessageQuery_Initialize(): get element from collection") < 0)
+            return -1;
+        table = (udt_MessageTable*)
+                g_MessageTableType.tp_alloc(&g_MessageTableType, 0);
+        if (!table)
+            return -1;
+        PyList_SET_ITEM(self->tables, i, (PyObject*) table);
+        if (MessageTable_Initialize(table, env, *tableDescriptor) < 0)
+            return -1;
+    }
+
+    return 0;
+}
+#endif
+
+
 //-----------------------------------------------------------------------------
 // Message_Initialize()
 //   Initialize a new message with the information from the descriptor.
@@ -395,6 +550,7 @@ static int MessageTable_Initialize(
 static int Message_Initialize(
     udt_Message *self,                  // object to initialize
     udt_Environment *env,               // environment to use
+    udt_Subscription *subscription,     // associated subscription for message
     dvoid *descriptor)                  // descriptor to get information from
 {
     dvoid **tableDescriptor, *indicator;
@@ -404,7 +560,17 @@ static int Message_Initialize(
     boolean exists;
     sb4 numTables;
     char *dbname;
+#if ORACLE_VERSION_HEX >= 0x0B01
+    dvoid **queryDescriptor;
+    udt_MessageQuery *query;
+	OCIColl *queries;
+	sb4 numQueries;
+#endif
     sword status;
+
+    // assign reference to associated subscription
+    Py_INCREF(subscription);
+    self->subscription = subscription;
 
     // determine type
     status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &self->type, NULL,
@@ -424,44 +590,89 @@ static int Message_Initialize(
     if (!self->dbname)
         return -1;
 
-    // determine table collection
-    status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &tables, NULL,
-            OCI_ATTR_CHDES_TABLE_CHANGES, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "Message_Initialize(): get tables collection") < 0)
-        return -1;
-
-    // determine number of tables
-    if (!tables)
-        numTables = 0;
-    else {
-        status = OCICollSize(env->handle, env->errorHandle, tables,
-                &numTables);
+    if (self->type == OCI_EVENT_OBJCHANGE) {
+        // determine table collection
+        status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &tables, NULL,
+                OCI_ATTR_CHDES_TABLE_CHANGES, env->errorHandle);
         if (Environment_CheckForError(env, status,
-                "Message_Initialize(): get size of collection") < 0)
+                "Message_Initialize(): get tables collection") < 0)
             return -1;
+
+        // determine number of tables
+        if (!tables)
+            numTables = 0;
+        else {
+            status = OCICollSize(env->handle, env->errorHandle, tables,
+                    &numTables);
+            if (Environment_CheckForError(env, status,
+                    "Message_Initialize(): get size of collection") < 0)
+                return -1;
+        }
+
+        // create list to hold results
+        self->tables = PyList_New(numTables);
+        if (!self->tables)
+            return -1;
+
+        // populate each entry with a message table instance
+        for (i = 0; i < numTables; i++) {
+            status = OCICollGetElem(env->handle, env->errorHandle, tables, i,
+                    &exists, (dvoid*) &tableDescriptor, &indicator);
+            if (Environment_CheckForError(env, status,
+                    "Message_Initialize(): get element from collection") < 0)
+                return -1;
+            table = (udt_MessageTable*)
+                    g_MessageTableType.tp_alloc(&g_MessageTableType, 0);
+            if (!table)
+                return -1;
+            PyList_SET_ITEM(self->tables, i, (PyObject*) table);
+            if (MessageTable_Initialize(table, env, *tableDescriptor) < 0)
+                return -1;
+        }
     }
 
-    // create list to hold results
-    self->tables = PyList_New(numTables);
-    if (!self->tables)
-        return -1;
-
-    // populate each entry with a message table instance
-    for (i = 0; i < numTables; i++) {
-        status = OCICollGetElem(env->handle, env->errorHandle, tables, i,
-                &exists, (dvoid*) &tableDescriptor, &indicator);
+#if ORACLE_VERSION_HEX >= 0x0B01
+    if (self->type == OCI_EVENT_QUERYCHANGE) {
+        // determine query collection
+        status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &queries, NULL,
+                OCI_ATTR_CHDES_QUERIES, env->errorHandle);
         if (Environment_CheckForError(env, status,
-                "Message_Initialize(): get element from collection") < 0)
+                "Message_Initialize(): get queries collection") < 0)
             return -1;
-        table = (udt_MessageTable*)
-                g_MessageTableType.tp_alloc(&g_MessageTableType, 0);
-        if (!table)
+
+        // determine number of queries
+        if (!queries)
+            numQueries = 0;
+        else {
+            status = OCICollSize(env->handle, env->errorHandle, queries,
+                    &numQueries);
+            if (Environment_CheckForError(env, status,
+                    "Message_Initialize(): get size of collection") < 0)
+                return -1;
+        }
+
+        // create list to hold results
+        self->queries = PyList_New(numQueries);
+        if (!self->queries)
             return -1;
-        PyList_SET_ITEM(self->tables, i, (PyObject*) table);
-        if (MessageTable_Initialize(table, env, *tableDescriptor) < 0)
-            return -1;
+
+        // populate each entry with a message query instance
+        for (i = 0; i < numQueries; i++) {
+            status = OCICollGetElem(env->handle, env->errorHandle, queries, i,
+                    &exists, (dvoid*) &queryDescriptor, &indicator);
+            if (Environment_CheckForError(env, status,
+                    "Message_Initialize(): get element from collection") < 0)
+                return -1;
+            query = (udt_MessageQuery*)
+                    g_MessageQueryType.tp_alloc(&g_MessageQueryType, 0);
+            if (!query)
+                return -1;
+            PyList_SET_ITEM(self->queries, i, (PyObject*) query);
+            if (MessageQuery_Initialize(query, env, *queryDescriptor) < 0)
+                return -1;
+        }
     }
+#endif
 
     return 0;
 }
@@ -483,7 +694,7 @@ static int Subscription_CallbackHandler(
     message = (udt_Message*) g_MessageType.tp_alloc(&g_MessageType, 0);
     if (!message)
         return -1;
-    if (Message_Initialize(message, env, descriptor) < 0) {
+    if (Message_Initialize(message, env, self, descriptor) < 0) {
         Py_DECREF(message);
         return -1;
     }
@@ -608,6 +819,24 @@ static int Subscription_Register(
             return -1;
     }
 
+    // set suscription QOS
+    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
+            (dvoid*) &self->qos, sizeof(ub4), OCI_ATTR_SUBSCR_QOSFLAGS,
+            env->errorHandle);
+    if (Environment_CheckForError(env, status,
+                "Subscription_Register(): set qos flags") < 0)
+        return -1;
+
+#if ORACLE_VERSION_HEX >= 0x0B01
+    // set subscription change notification QOS flags
+    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
+            (dvoid*) &self->cqqos, sizeof(ub4), OCI_ATTR_SUBSCR_CQ_QOSFLAGS,
+            env->errorHandle);
+    if (Environment_CheckForError(env, status,
+                "Subscription_Register(): set cq qos flags") < 0)
+        return -1;
+#endif
+
     // set whether or not rowids are desired
     status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
             (dvoid*) &self->rowids, sizeof(ub4), OCI_ATTR_CHNF_ROWIDS,
@@ -633,6 +862,16 @@ static int Subscription_Register(
                 "Subscription_Register(): register") < 0)
         return -1;
 
+#if ORACLE_VERSION_HEX >= 0x0B01
+    // get the registration id
+    status = OCIAttrGet(self->handle, OCI_HTYPE_SUBSCRIPTION, &self->id,
+              NULL, OCI_ATTR_SUBSCR_CQ_REGID, env->errorHandle);
+    if (Environment_CheckForError(env, status,
+                "Subscription_Register(): get registration id") < 0) {
+        return -1;
+    }
+#endif
+
     return 0;
 }
 
@@ -649,6 +888,8 @@ static udt_Subscription *Subscription_New(
     PyObject *callback,                 // callback routine
     ub4 timeout,                        // timeout (in seconds)
     ub4 operations,                     // operations to notify
+    ub4 qos,                            // QOS flags
+    ub4 cqqos,                          // change notification QOS flags
     int rowids)                         // retrieve rowids?
 {
     udt_Subscription *self;
@@ -667,7 +908,10 @@ static udt_Subscription *Subscription_New(
     self->timeout = timeout;
     self->rowids = rowids;
     self->operations = operations;
+    self->qos = qos;
+    self->cqqos = cqqos;
     self->handle = NULL;
+    self->id = 0;
     if (Subscription_Register(self) < 0) {
         Py_DECREF(self);
         return NULL;
@@ -743,6 +987,9 @@ static PyObject *Subscription_RegisterQuery(
     udt_Buffer statementBuffer;
     udt_Environment *env;
     udt_Cursor *cursor;
+#if ORACLE_VERSION_HEX >= 0x0B01
+    ub8 queryid;
+#endif
     sword status;
 
     // parse arguments
@@ -828,7 +1075,26 @@ static PyObject *Subscription_RegisterQuery(
         Py_DECREF(cursor);
         return NULL;
     }
+
+#if ORACLE_VERSION_HEX >= 0x0B01
+    if (self->cqqos & OCI_SUBSCR_CQ_QOS_QUERY) {
+        // get the query id
+        status = OCIAttrGet(cursor->handle, OCI_HTYPE_STMT, &queryid, NULL,
+                OCI_ATTR_CQ_QUERYID, env->errorHandle);
+        if (Environment_CheckForError(env, status,
+                    "Subscription_RegisterQuery(): get query id") < 0) {
+            Py_DECREF(cursor);
+            return NULL;
+        }
+    }
+#endif
+
     Py_DECREF(cursor);
+
+#if ORACLE_VERSION_HEX >= 0x0B01
+    if (self->cqqos & OCI_SUBSCR_CQ_QOS_QUERY)
+        return PyInt_FromLong(queryid);
+#endif
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -842,8 +1108,10 @@ static PyObject *Subscription_RegisterQuery(
 static void Message_Free(
     udt_Message *self)                  // object to free
 {
+    Py_CLEAR(self->subscription);
     Py_CLEAR(self->dbname);
     Py_CLEAR(self->tables);
+    Py_CLEAR(self->queries);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
@@ -870,4 +1138,18 @@ static void MessageRow_Free(
     Py_CLEAR(self->rowid);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
+
+
+#if ORACLE_VERSION_HEX >= 0x0B01
+//-----------------------------------------------------------------------------
+// MessageQuery_Free()
+//   Free the memory associated with a query in a message.
+//-----------------------------------------------------------------------------
+static void MessageQuery_Free(
+    udt_MessageQuery *self)               // object to free
+{
+    Py_CLEAR(self->tables);
+    Py_TYPE(self)->tp_free((PyObject*) self);
+}
+#endif
 

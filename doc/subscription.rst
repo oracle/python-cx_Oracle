@@ -22,6 +22,19 @@ Subscription Object
    the subscription when it was created.
 
 
+.. attribute:: Subscription.cqqos
+
+   This read-only attribute returns the cqqos used to register the
+   subscription when it was created.
+
+
+.. attribute:: Subscription.id
+
+   This read-only attribute returns the registration ID returned by the
+   database when this subscription was created. Support for this attribute
+   requires Oracle 11g or higher.
+
+
 .. attribute:: Subscription.namespace
 
    This read-only attribute returns the namespace used to register the
@@ -31,7 +44,7 @@ Subscription Object
 .. attribute:: Subscription.operations
 
    This read-only attribute returns the operations that will send notifications
-   for each table that is registered using this subscription.
+   for each table or query that is registered using this subscription.
 
 
 .. attribute:: Subscription.port
@@ -47,11 +60,26 @@ Subscription Object
    subscription when it was created.
 
 
+.. attribute:: Subscription.qos
+
+   This read-only attribute returns the qos used to register the
+   subscription when it was created.
+
+
 .. method:: Subscription.registerquery(statement, [args])
 
    Register the query for subsequent notification when tables referenced by the
    query are changed. This behaves similarly to cursor.execute() but only
    queries are permitted and the arguments must be a sequence or dictionary.
+   If the cqqos parameter included the flag cx_Oracle.SUBSCR_CQ_QOS_QUERY when
+   the subscription was created then the queryid for the registeredquery is
+   returned.
+
+
+.. note::
+
+   Query result set change notification is only available in Oracle 11g and
+   higher.
 
 
 .. attribute:: Subscription.rowids
@@ -82,10 +110,26 @@ Message Objects
    notification.
 
 
+.. attribute:: Message.queries
+
+   This read-only attribute returns a list of message query objects that give
+   information about query result sets  changed for this notification. This
+   attribute will be None if the cqqos parameter did not include the flag
+   cx_Oracle.SUBSCR_CQ_QOS_QUERY when the subscription was created.
+
+
+.. attribute:: Message.subscription
+
+   This read-only attribute returns the subscription object for which this
+   notification was generated.
+
+
 .. attribute:: Message.tables
 
    This read-only attribute returns a list of message table objects that give
-   information about the tables changed for this notification.
+   information about the tables changed for this notification. This
+   attribute will be None if the cqqos parameter included the flag
+   cx_Oracle.SUBSCR_CQ_QOS_QUERY when the subscription was created.
 
 
 .. attribute:: Message.type
@@ -101,7 +145,8 @@ Message Table Objects
 .. note::
 
    This object is created internally for each table changed when notification
-   is received and is found in the tables attribute of message objects.
+   is received and is found in the tables attribute of message objects, and
+   the tables attribute of message query objects.
 
 
 .. attribute:: MessageTable.name
@@ -141,4 +186,41 @@ Message Row Objects
 .. attribute:: MessageRow.rowid
 
    This read-only attribute returns the rowid of the row that was changed.
+
+
+Message Query Objects
+=====================
+
+.. note::
+
+   This object is created internally for each query result set changed when
+   notification is received and is found in the queries attribute of message
+   objects.
+   
+
+.. note::
+
+   Query result set change notification is only available in Oracle 11g and
+   higher.
+
+
+.. attribute:: MessageQuery.id
+
+   This read-only attribute returns the query id of the query for which the
+   result set changed. The value will match the value returned by 
+   Subscription.registerquery when the related query was registered.
+
+
+.. attribute:: MessageQuery.operation
+
+   This read-only attribute returns the operation that took place on the query
+   result set that was changed. Valid values for this attribute are
+   cx_Oracle.EVENT_DEREG and cx_Oracle.EVENT_QUERYCHANGE.
+
+
+.. attribute:: MessageQuery.tables
+
+   This read-only attribute returns a list of message table objects that give
+   information about the table changes that caused the query result set to
+   change for this notification.
 

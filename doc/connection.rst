@@ -312,7 +312,7 @@ Connection Object
       This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, rowids=False, port=0)
+.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, rowids=False, port=0, qos=0, cqqos=0)
 
    Return a new Subscription object (:ref:`subscrobj`) using the connection.
    Currently the namespace and protocol arguments cannot have any other
@@ -323,12 +323,29 @@ Connection Object
    argument enables filtering of the messages that are sent (insert, update,
    delete). The rowids flag specifies whether the rowids of affected rows
    should be included in the messages that are sent. The port specifies the
-   listening port for callback notifications from the database server.
+   listening port for callback notifications from the database server. The qos
+   argument specifies quality of service options common to all subscriptions.
+   Currently the only meaningful option is cx_Oracle.SUBSCR_QOS_PURGE_ON_NTFN
+   which indicates that the subscription should be automatically unregistered
+   after the first notification. The default value of 0 indicates that the
+   subscription should persist after notification. The cqqos argument specifies
+   quality of service options specific to continuous query notification. The
+   default value of 0 indicates that change notification is required at
+   database object granularity. The flag cx_Oracle.SUBSCR_CQ_QOS_QUERY
+   specifies that change notification is required at query result set
+   granularity, and the flag SUBSCR_CQ_QOS_BEST_EFFORT specifies that best
+   effort filtering is accpetable, and false positive notifications may be
+   received.
 
    .. note::
 
       This method is an extension to the DB API definition and is only
       available in Oracle 10g R2 and higher.
+
+   .. note::
+
+      Query result set change notification is only available in Oracle 11g and
+      higher.
 
    .. note::
 

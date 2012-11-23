@@ -30,13 +30,13 @@ typedef struct {
 // constants for the OCI attributes
 //-----------------------------------------------------------------------------
 static ub4 gc_ClientIdentifierAttribute = OCI_ATTR_CLIENT_IDENTIFIER;
-#ifdef ORACLE_10G
+#if ORACLE_VERSION_HEX >= 0x0A01
 static ub4 gc_ModuleAttribute = OCI_ATTR_MODULE;
 static ub4 gc_ActionAttribute = OCI_ATTR_ACTION;
 static ub4 gc_ClientInfoAttribute = OCI_ATTR_CLIENT_INFO;
 #endif
 
-#ifdef ORACLE_10GR2
+#if ORACLE_VERSION_HEX >= 0x0A02
 static ub4 gc_CurrentSchemaAttribute = OCI_ATTR_CURRENT_SCHEMA;
 #endif
 
@@ -66,11 +66,11 @@ static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
 static PyObject *Connection_ChangePasswordExternal(udt_Connection*, PyObject*);
 static PyObject *Connection_GetStmtCacheSize(udt_Connection*, void*);
 static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
-#ifdef ORACLE_10G
+#if ORACLE_VERSION_HEX >= 0x0A02
 static PyObject *Connection_GetOCIAttr(udt_Connection*, ub4*);
 #endif
 static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
-#ifdef ORACLE_10GR2
+#if ORACLE_VERSION_HEX >= 0x0A02
 #if !defined(AIX5) || defined(ORACLE_11g)
 static PyObject *Connection_Ping(udt_Connection*, PyObject*);
 #endif
@@ -95,8 +95,8 @@ static PyMethodDef g_ConnectionMethods[] = {
     { "unregister", (PyCFunction) Connection_UnregisterCallback, METH_VARARGS },
     { "__enter__", (PyCFunction) Connection_ContextManagerEnter, METH_NOARGS },
     { "__exit__", (PyCFunction) Connection_ContextManagerExit, METH_VARARGS },
-#ifdef ORACLE_10GR2
-#if !defined(AIX5) || defined(ORACLE_11g)
+#if ORACLE_VERSION_HEX >= 0x0A02
+#if !defined(AIX5) || ORACLE_VERSION_HEX >= 0x0B01
     { "ping", (PyCFunction) Connection_Ping, METH_NOARGS },
 #endif
     { "shutdown", (PyCFunction) Connection_Shutdown,
@@ -140,7 +140,7 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
             0, 0, 0 },
     { "stmtcachesize", (getter) Connection_GetStmtCacheSize,
             (setter) Connection_SetStmtCacheSize, 0, 0 },
-#ifdef ORACLE_10G
+#if ORACLE_VERSION_HEX >= 0x0A01
     { "module", 0, (setter) Connection_SetOCIAttr, 0, &gc_ModuleAttribute },
     { "action", 0, (setter) Connection_SetOCIAttr, 0, &gc_ActionAttribute },
     { "clientinfo", 0, (setter) Connection_SetOCIAttr, 0,
@@ -148,7 +148,7 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
 #endif
     { "client_identifier", 0, (setter) Connection_SetOCIAttr, 0,
             &gc_ClientIdentifierAttribute },
-#ifdef ORACLE_10GR2
+#if ORACLE_VERSION_HEX >= 0x0A02
     { "current_schema", (getter) Connection_GetOCIAttr,
             (setter) Connection_SetOCIAttr, 0, &gc_CurrentSchemaAttribute },
 #endif
@@ -310,7 +310,7 @@ static int Connection_GetConnection(
         if (!pool && externalCredentials)
             mode |= OCI_SESSGET_CREDEXT;
 
-#ifdef ORACLE_11G
+#if ORACLE_VERSION_HEX >= 0x0B01
         // set the connection class, if applicable
         if (cxBuffer_FromObject(&buffer, cclassObj,
                 self->environment->encoding) < 0)
@@ -376,7 +376,7 @@ static int Connection_GetConnection(
 }
 
 
-#ifdef ORACLE_10G
+#if ORACLE_VERSION_HEX >= 0x0A02
 //-----------------------------------------------------------------------------
 // Connection_GetOCIAttr()
 //   Get the value of the OCI attribute.
@@ -711,7 +711,7 @@ static int Connection_Connect(
             "Connection_Connect(): set session handle") < 0)
         return -1;
 
-#ifdef ORACLE_10G
+#if ORACLE_VERSION_HEX >= 0x0A01
     if (moduleObj) {
         if (cxBuffer_FromObject(&buffer, moduleObj,
                 self->environment->encoding))
@@ -774,7 +774,7 @@ static int Connection_Connect(
 
 #include "Cursor.c"
 #include "Callback.c"
-#ifdef ORACLE_10GR2
+#if ORACLE_VERSION_HEX >= 0x0A02
 #include "Subscription.c"
 #endif
 
@@ -1581,8 +1581,8 @@ static PyObject *Connection_ContextManagerExit(
 }
 
 
-#ifdef ORACLE_10GR2
-#if !defined(AIX5) || defined(ORACLE_11g)
+#if ORACLE_VERSION_HEX >= 0x0A02
+#if !defined(AIX5) || ORACLE_VERSION_HEX >= 0x0B01
 //-----------------------------------------------------------------------------
 // Connection_Ping()
 //   Makes a round trip call to the server to confirm that the connection and
@@ -1703,20 +1703,20 @@ static PyObject *Connection_Subscribe(
     PyObject* keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "namespace", "protocol", "callback",
-            "timeout", "operations", "rowids", "port", NULL };
-    ub4 namespace, protocol, port, timeout, rowids, operations;
+            "timeout", "operations", "rowids", "port", "qos", "cqqos", NULL };
+    ub4 namespace, protocol, port, timeout, rowids, operations, qos, cqqos;
     PyObject *rowidsObj, *callback;
     int temp;
 
     // parse arguments
-    timeout = rowids = port = 0;
+    timeout = rowids = port = qos = cqqos = 0;
     rowidsObj = callback = NULL;
     namespace = OCI_SUBSCR_NAMESPACE_DBCHANGE;
     protocol = OCI_SUBSCR_PROTO_OCI;
     operations = OCI_OPCODE_ALLOPS;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiOi", keywordList,
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiOiii", keywordList,
             &namespace, &protocol, &callback, &timeout, &operations,
-            &rowidsObj, &port))
+            &rowidsObj, &port, &qos, &cqqos))
         return NULL;
 
     // set the value for rowids
@@ -1729,7 +1729,7 @@ static PyObject *Connection_Subscribe(
     }
 
     return (PyObject*) Subscription_New(self, namespace, protocol, port,
-            callback, timeout, operations, rowids);
+            callback, timeout, operations, qos, cqqos, rowids);
 }
 #endif
 

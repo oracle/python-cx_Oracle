@@ -12,14 +12,14 @@
 #include <xa.h>
 
 // define what version of Oracle we are building
-#ifdef OCI_ATTR_MODULE
-#define ORACLE_10G
+#if !defined(OCI_MAJOR_VERSION) && defined(OCI_ATTR_MODULE)
+#define OCI_MAJOR_VERSION 10
+#define OCI_MINOR_VERSION 1
 #endif
-#ifdef OCI_MAJOR_VERSION
-#define ORACLE_10GR2
-#endif
-#ifdef OCI_ATTR_CONNECTION_CLASS
-#define ORACLE_11G
+#if defined(OCI_MAJOR_VERSION) && defined(OCI_MINOR_VERSION)
+#define ORACLE_VERSION_HEX ((OCI_MAJOR_VERSION << 8) | OCI_MINOR_VERSION)
+#else
+#error Unsupported version of OCI.
 #endif
 
 // PY_LONG_LONG was called LONG_LONG before Python 2.3
@@ -241,7 +241,7 @@ static PyObject* MakeDSN(
 }
 
 
-#ifdef ORACLE_10GR2
+#if ORACLE_VERSION_HEX >= 0x0A02
 //-----------------------------------------------------------------------------
 // ClientVersion()
 //   Return the version of the Oracle client being used as a 5-tuple.
@@ -321,7 +321,7 @@ static PyMethodDef g_ModuleMethods[] = {
     { "DateFromTicks", (PyCFunction) DateFromTicks, METH_VARARGS },
     { "TimeFromTicks", (PyCFunction) TimeFromTicks, METH_VARARGS },
     { "TimestampFromTicks", (PyCFunction) TimestampFromTicks, METH_VARARGS },
-#ifdef ORACLE_10GR2
+#if ORACLE_VERSION_HEX >= 0x0A02
     { "clientversion", (PyCFunction) ClientVersion, METH_NOARGS },
 #endif
     { NULL }
@@ -381,11 +381,14 @@ static PyObject *Module_Initialize(void)
     MAKE_TYPE_READY(&g_ObjectAttributeType);
     MAKE_TYPE_READY(&g_ExternalLobVarType);
     MAKE_TYPE_READY(&g_ExternalObjectVarType);
-#ifdef ORACLE_10GR2
+#if ORACLE_VERSION_HEX >= 0x0A02
     MAKE_TYPE_READY(&g_SubscriptionType);
     MAKE_TYPE_READY(&g_MessageType);
     MAKE_TYPE_READY(&g_MessageTableType);
     MAKE_TYPE_READY(&g_MessageRowType);
+#endif
+#if ORACLE_VERSION_HEX > 0x0B01
+    MAKE_TYPE_READY(&g_MessageQueryType);
 #endif
     MAKE_VARIABLE_TYPE_READY(&g_StringVarType);
     MAKE_VARIABLE_TYPE_READY(&g_FixedCharVarType);
@@ -523,7 +526,7 @@ static PyObject *Module_Initialize(void)
     ADD_OCI_CONSTANT(SPOOL_ATTRVAL_WAIT)
     ADD_OCI_CONSTANT(SPOOL_ATTRVAL_NOWAIT)
     ADD_OCI_CONSTANT(SPOOL_ATTRVAL_FORCEGET)
-#ifdef ORACLE_10GR2
+#if ORACLE_VERSION_HEX >= 0x0A02
     ADD_OCI_CONSTANT(PRELIM_AUTH)
     ADD_OCI_CONSTANT(DBSHUTDOWN_ABORT)
     ADD_OCI_CONSTANT(DBSHUTDOWN_FINAL)
@@ -548,11 +551,24 @@ static PyObject *Module_Initialize(void)
     ADD_OCI_CONSTANT(SUBSCR_PROTO_MAIL)
     ADD_OCI_CONSTANT(SUBSCR_PROTO_SERVER)
     ADD_OCI_CONSTANT(SUBSCR_PROTO_HTTP)
+	ADD_OCI_CONSTANT(SUBSCR_QOS_RELIABLE)
+	ADD_OCI_CONSTANT(SUBSCR_QOS_PAYLOAD)
+	ADD_OCI_CONSTANT(SUBSCR_QOS_REPLICATE)
+	ADD_OCI_CONSTANT(SUBSCR_QOS_SECURE)
+	ADD_OCI_CONSTANT(SUBSCR_QOS_PURGE_ON_NTFN)
+	ADD_OCI_CONSTANT(SUBSCR_QOS_MULTICBK)
 #endif
-#ifdef ORACLE_11G
+#if ORACLE_VERSION_HEX >= 0x0B01
     ADD_OCI_CONSTANT(ATTR_PURITY_DEFAULT)
     ADD_OCI_CONSTANT(ATTR_PURITY_NEW)
     ADD_OCI_CONSTANT(ATTR_PURITY_SELF)
+	ADD_OCI_CONSTANT(EVENT_QUERYCHANGE)
+	ADD_OCI_CONSTANT(SUBSCR_CQ_QOS_QUERY)
+	ADD_OCI_CONSTANT(SUBSCR_CQ_QOS_BEST_EFFORT)
+	ADD_OCI_CONSTANT(SUBSCR_CQ_QOS_CLQRYCACHE)
+#endif
+#if ORACLE_VERSION_HEX >= 0x0B02
+    ADD_OCI_CONSTANT(SUBSCR_QOS_HAREG)
 #endif
 
     return module;

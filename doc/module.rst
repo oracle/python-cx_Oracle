@@ -318,6 +318,12 @@ Database Change Notification
    that an object change of some sort has taken place.
 
 
+.. data:: EVENT_QUERYCHANGE
+
+   This constant is a possible value for the type of a message and indicates
+   that the result set of a registered query has changed.
+
+
 .. data:: EVENT_SHUTDOWN
 
    This constant is a possible value for the type of a message and indicates
@@ -387,6 +393,27 @@ Database Change Notification
    of a message.
 
 
+.. data:: SUBSCR_CQ_QOS_QUERY
+
+   This constant can be used when creating a subscription and specifies that
+   notifications should only be sent if the result set of the registered query
+   changes. By default no false positive notifictions will be generated.
+
+
+.. data:: SUBSCR_CQ_QOS_BEST_EFFORT
+
+   This constant can be used when creating a subscription and specifies that
+   best effort filtering for query result set changes is acceptable. False
+   positive notifications may be received. This behaviour may be suitable for
+   caching applications.
+
+
+.. data:: SUBSCR_CQ_QOS_CLQRYCACHE
+
+   This constant is a future possible value for the cqqos argument when
+   creating a subscription. It specifies that client query caching be enabled.
+
+
 .. data:: SUBSCR_NAMESPACE_DBCHANGE
 
    This constant is the default (and currently only) value for the namespace
@@ -418,6 +445,51 @@ Database Change Notification
    This constant is a future possible value for the protocol argument when
    creating a subscription. It specifies that the database procedure will be
    invoked when a message is generated.
+
+
+.. data:: SUBSCR_QOS_HAREG
+	
+   This constant is a future possible value for the qos argument when
+   creating a subscription.
+
+	
+.. data:: SUBSCR_QOS_MULTICBK
+	
+   This constant is a future possible value for the qos argument when
+   creating a subscription.
+   
+
+.. data:: SUBSCR_QOS_PAYLOAD
+
+   This constant is a future possible value for the qos argument when
+   creating a subscription. It specifies that a payload be delivered with the
+   message.
+
+
+.. data:: SUBSCR_QOS_PURGE_ON_NTFN
+
+   This constant can be used when creating a subscription and specifies that
+   the subscription should be automatically unregistered after the first
+   notification.
+
+
+.. data:: SUBSCR_QOS_RELIABLE
+
+   This constant is a future possible value for the qos argument when
+   creating a subscription. It specifies that notifications should not be lost
+   in the event of database failure.
+
+
+.. data:: SUBSCR_QOS_REPLICATE
+
+   This constant is a future possible value for the qos argument when
+   creating a subscription.
+
+
+.. data:: SUBSCR_QOS_SECURE
+
+   This constant is a future possible value for the qos argument when
+   creating a subscription.
 
 
 Database Resident Connection Pooling
