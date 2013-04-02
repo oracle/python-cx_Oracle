@@ -135,7 +135,7 @@ static PyGetSetDef g_CursorCalcMembers[] = {
 //-----------------------------------------------------------------------------
 static PyTypeObject g_CursorType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "OracleCursor",                     // tp_name
+    "cx_Oracle.Cursor",                 // tp_name
     sizeof(udt_Cursor),                 // tp_basicsize
     0,                                  // tp_itemsize
     (destructor) Cursor_Free,           // tp_dealloc
