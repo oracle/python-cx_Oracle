@@ -387,7 +387,7 @@ static PyObject *Connection_GetOCIAttr(
 {
     OCISession *sessionHandle;
     udt_Buffer buffer;
-    ub4 ub4size;
+    ub4 bufferSize;
     sword status;
 
     // make sure connection is connected
@@ -404,13 +404,13 @@ static PyObject *Connection_GetOCIAttr(
 
     // get the value from the OCI
     status = OCIAttrGet(sessionHandle, OCI_HTYPE_SESSION,
-            (text**) &buffer.ptr, &ub4size, *attribute,
+            (text**) &buffer.ptr, &bufferSize, *attribute,
             self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
             "Connection_GetOCIAttr()") < 0)
         return NULL;
 
-    buffer.size = ub4size;
+    buffer.size = bufferSize;
     return cxString_FromEncodedString(buffer.ptr, buffer.size,
             self->environment->encoding);
 }
