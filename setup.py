@@ -69,6 +69,7 @@ def CheckOracleHome(directoryToCheck):
     if sys.platform in ("win32", "cygwin"):
         subDirs = ["bin"]
         filesToCheck = [
+                ("12c", "oraocci12.dll"),
                 ("11g", "oraocci11.dll"),
                 ("10g", "oraocci10.dll"),
                 ("9i", "oraclient9.dll")
@@ -76,6 +77,7 @@ def CheckOracleHome(directoryToCheck):
     elif sys.platform == "darwin":
         subDirs = ["lib"]
         filesToCheck = [
+                ("12c", "libclntsh.dylib.12.1"),
                 ("11g", "libclntsh.dylib.11.1"),
                 ("10g", "libclntsh.dylib.10.1"),
                 ("9i", "libclntsh.dylib.9.0")
@@ -86,6 +88,7 @@ def CheckOracleHome(directoryToCheck):
         else:
             subDirs = ["lib", "lib64"]
         filesToCheck = [
+                ("12c", "libclntsh.so.12.1"),
                 ("11g", "libclntsh.so.11.1"),
                 ("10g", "libclntsh.so.10.1"),
                 ("9i", "libclntsh.so.9.0")
@@ -122,7 +125,7 @@ userOracleHome = os.environ.get("ORACLE_HOME")
 if userOracleHome is not None:
     if not CheckOracleHome(userOracleHome):
         messageFormat = "Oracle home (%s) does not refer to an " \
-                "9i, 10g or 11g installation."
+                "9i, 10g, 11g or 12c installation."
         raise DistutilsSetupError(messageFormat % userOracleHome)
 else:
     for path in os.environ["PATH"].split(os.pathsep):
