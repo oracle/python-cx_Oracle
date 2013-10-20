@@ -36,8 +36,8 @@ the distutils module. Note that on Windows, I have used mingw32
 modification. The commands required to build and install the module are as 
 follows:
 
-	python setup.py build
-	python setup.py install
+    python setup.py build
+    python setup.py install
 
 See BUILD.txt for additional information.
 

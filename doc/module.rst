@@ -448,13 +448,13 @@ Database Change Notification
 
 
 .. data:: SUBSCR_QOS_HAREG
-	
+
    This constant is a future possible value for the qos argument when
    creating a subscription.
 
-	
+
 .. data:: SUBSCR_QOS_MULTICBK
-	
+
    This constant is a future possible value for the qos argument when
    creating a subscription.
    

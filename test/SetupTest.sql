@@ -117,13 +117,13 @@ create table cx_Oracle.TestObjects (
 );
 
 create table cx_Oracle.TestTimestamps (
-  IntCol			    number(9) not null,
+  IntCol                number(9) not null,
   TimestampCol          timestamp not null,
   NullableCol           timestamp
 ) tablespace users;
 
 create table cx_Oracle.TestIntervals (
-  IntCol			    number(9) not null,
+  IntCol                number(9) not null,
   IntervalCol           interval day to second not null,
   NullableCol           interval day to second
 ) tablespace users;
@@ -146,7 +146,7 @@ end;
 
 declare
 
-  t_RawValue			raw(30);
+  t_RawValue            raw(30);
 
   function ConvertHexDigit(a_Value number) return varchar2 is
   begin
@@ -157,8 +157,8 @@ declare
   end;
 
   function ConvertToHex(a_Value varchar2) return varchar2 is
-    t_HexValue			varchar2(60);
-    t_Digit			number;
+    t_HexValue          varchar2(60);
+    t_Digit             number;
   begin
     for i in 1..length(a_Value) loop
       t_Digit := ascii(substr(a_Value, i, 1));

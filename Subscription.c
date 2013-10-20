@@ -563,8 +563,8 @@ static int Message_Initialize(
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     dvoid **queryDescriptor;
     udt_MessageQuery *query;
-	OCIColl *queries;
-	sb4 numQueries;
+    OCIColl *queries;
+    sb4 numQueries;
 #endif
     sword status;
 
