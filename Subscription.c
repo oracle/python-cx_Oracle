@@ -1124,6 +1124,7 @@ static void MessageTable_Free(
     udt_MessageTable *self)             // object to free
 {
     Py_CLEAR(self->name);
+    Py_CLEAR(self->rows);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 

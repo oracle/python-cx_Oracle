@@ -169,7 +169,11 @@ static int Environment_SetBuffer(
     obj = cxString_FromAscii(value);
     if (!obj)
         return -1;
-    return cxBuffer_FromObject(buf, obj, encoding);
+    if (cxBuffer_FromObject(buf, obj, encoding)<0)
+        return -1;
+    Py_CLEAR(obj);
+
+    return 0;
 }
 
 
