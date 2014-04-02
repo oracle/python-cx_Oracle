@@ -544,6 +544,14 @@ static PyObject *NumberVar_GetValue(
         return PyBool_FromLong(integerValue);
     }
 
+    if (var->type == &vt_LongInteger) {
+        // try as int first, as it is faster and usually works
+        status = OCINumberToInt(var->environment->errorHandle, &var->data[pos],
+                sizeof(long), OCI_NUMBER_SIGNED, (dvoid*) &integerValue);
+        if (status == OCI_SUCCESS) {
+            return PyInt_FromLong(integerValue);
+        }
+    }
     if (var->type == &vt_NumberAsString || var->type == &vt_LongInteger) {
         stringLength = sizeof(stringValue);
         status = OCINumberToText(var->environment->errorHandle,
