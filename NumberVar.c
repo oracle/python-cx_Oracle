@@ -512,6 +512,24 @@ static int NumberVar_SetValue(
     return -1;
 }
 
+//-----------------------------------------------------------------------------
+// FitsInLong()
+//   Returns true iff an integer in OCINumber format is certain to fit
+//   within a C long, judging by the base-100 exponent (that is, the 
+//   number of digits is strictly less than the limit for long).
+//   The real exponent is calculated from the OCINumber exponent byte by inverting
+//   it if the MSB is 0, and then subtracting 128+65; see "NUMBER" in
+//   http://docs.oracle.com/cd/B28359_01/appdev.111/b28395/oci03typ.htm
+//-----------------------------------------------------------------------------
+static int FitsInLong(OCINumber *num)
+{
+    static int MAX_LONG_SAFE_DIGITS = sizeof(long)>=8 ? 18 : 9;
+    unsigned char exponent_byte = ((unsigned char *)num)[1];
+    if (exponent_byte==128) return 1; // 0 gets exponent 128
+    int exponent = (int)(exponent_byte >= 128 ? exponent_byte : ~exponent_byte) - (128+65);
+    int maxdigits = (exponent+1)*2; // exponent is for base 100
+    return (maxdigits <= MAX_LONG_SAFE_DIGITS);
+}
 
 //-----------------------------------------------------------------------------
 // NumberVar_GetValue()
@@ -527,31 +545,28 @@ static PyObject *NumberVar_GetValue(
     ub4 stringLength;
     sword status;
 
+    if (var->type == &vt_Boolean || 
 #if PY_MAJOR_VERSION < 3
-    if (var->type == &vt_Integer || var->type == &vt_Boolean) {
-#else
-    if (var->type == &vt_Boolean) {
+        var->type == &vt_Integer ||
 #endif
+	(var->type == &vt_LongInteger && FitsInLong(&var->data[pos]))) {
+
         status = OCINumberToInt(var->environment->errorHandle, &var->data[pos],
                 sizeof(long), OCI_NUMBER_SIGNED, (dvoid*) &integerValue);
         if (Environment_CheckForError(var->environment, status,
                 "NumberVar_GetValue(): as integer") < 0)
             return NULL;
+
+        if (var->type == &vt_LongInteger
 #if PY_MAJOR_VERSION < 3
-        if (var->type == &vt_Integer)
-            return PyInt_FromLong(integerValue);
+            || var->type == &vt_Integer
 #endif
+        ) {
+            return PyInt_FromLong(integerValue);
+	}
         return PyBool_FromLong(integerValue);
     }
 
-    if (var->type == &vt_LongInteger) {
-        // try as int first, as it is faster and usually works
-        status = OCINumberToInt(var->environment->errorHandle, &var->data[pos],
-                sizeof(long), OCI_NUMBER_SIGNED, (dvoid*) &integerValue);
-        if (status == OCI_SUCCESS) {
-            return PyInt_FromLong(integerValue);
-        }
-    }
     if (var->type == &vt_NumberAsString || var->type == &vt_LongInteger) {
         stringLength = sizeof(stringValue);
         status = OCINumberToText(var->environment->errorHandle,
@@ -574,8 +589,9 @@ static PyObject *NumberVar_GetValue(
         result = PyNumber_Int(stringObj);
 #endif
         Py_DECREF(stringObj);
-        if (result || !PyErr_ExceptionMatches(PyExc_ValueError))
+        if (result || !PyErr_ExceptionMatches(PyExc_ValueError)) {
             return result;
+        }
         PyErr_Clear();
     }
 
