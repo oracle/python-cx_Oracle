@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// NumberVar.c
+// Numbervar.c
 //   Defines the routines for handling numeric variables.
 //-----------------------------------------------------------------------------
 
@@ -589,9 +589,8 @@ static PyObject *NumberVar_GetValue(
         result = PyNumber_Int(stringObj);
 #endif
         Py_DECREF(stringObj);
-        if (result || !PyErr_ExceptionMatches(PyExc_ValueError)) {
+        if (result || !PyErr_ExceptionMatches(PyExc_ValueError))
             return result;
-        }
         PyErr_Clear();
     }
 
