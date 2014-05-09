@@ -525,10 +525,11 @@ static int NumberVar_SetValue(
 static int FitsInLong(OCINumber *num)
 {
     static int MAX_LONG_SAFE_DIGITS = sizeof(long) >= 8 ? 18 : 9;
+    int exponent, maxdigits;
     unsigned char exponent_byte = ((unsigned char *)num)[1];
     if (exponent_byte==128) return 1; // 0 gets exponent 128
-    int exponent = (int)(exponent_byte >= 128 ? exponent_byte : ~exponent_byte) - (128+65);
-    int maxdigits = (exponent + 1) * 2; // exponent is for base 100
+    exponent = (int)(exponent_byte >= 128 ? exponent_byte : ~exponent_byte) - (128+65);
+    maxdigits = (exponent + 1) * 2; // exponent is for base 100
     return (maxdigits <= MAX_LONG_SAFE_DIGITS);
 }
 
