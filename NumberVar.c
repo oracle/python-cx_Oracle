@@ -134,7 +134,6 @@ static udt_VariableType vt_NativeFloat = {
 #endif
 
 
-#if PY_MAJOR_VERSION < 3
 static udt_VariableType vt_Integer = {
     (InitializeProc) NULL,
     (FinalizeProc) NULL,
@@ -154,7 +153,6 @@ static udt_VariableType vt_Integer = {
     1,                                  // can be copied
     1                                   // can be in array
 };
-#endif
 
 
 static udt_VariableType vt_LongInteger = {
@@ -229,6 +227,7 @@ static int NumberVar_PreDefine(
     udt_NumberVar *var,                 // variable to initialize
     OCIParam *param)                    // parameter handle
 {
+    static int maxLongSafeDigits = sizeof(long) >= 8 ? 18 : 9;
     sb2 precision;
     sword status;
     sb1 scale;
@@ -250,10 +249,8 @@ static int NumberVar_PreDefine(
             return -1;
         if (scale == 0 || (scale == -127 && precision == 0)) {
             var->type = &vt_LongInteger;
-#if PY_MAJOR_VERSION < 3
-        if (precision > 0 && precision < 10)
-            var->type = &vt_Integer;
-#endif
+            if (precision > 0 && precision <= maxLongSafeDigits)
+                var->type = &vt_Integer;
         }
     }
 
@@ -514,27 +511,6 @@ static int NumberVar_SetValue(
 
 
 //-----------------------------------------------------------------------------
-// FitsInLong()
-//   Returns true iff an integer in OCINumber format is certain to fit
-//   within a C long, judging by the base-100 exponent (that is, the 
-//   number of digits is strictly less than the limit for long).
-//   The real exponent is calculated from the OCINumber exponent byte by inverting
-//   it if the MSB is 0, and then subtracting 128+65; see "NUMBER" in
-//   http://docs.oracle.com/cd/B28359_01/appdev.111/b28395/oci03typ.htm
-//-----------------------------------------------------------------------------
-static int FitsInLong(OCINumber *num)
-{
-    static int MAX_LONG_SAFE_DIGITS = sizeof(long) >= 8 ? 18 : 9;
-    int exponent, maxdigits;
-    unsigned char exponent_byte = ((unsigned char *)num)[1];
-    if (exponent_byte==128) return 1; // 0 gets exponent 128
-    exponent = (int)(exponent_byte >= 128 ? exponent_byte : ~exponent_byte) - (128+65);
-    maxdigits = (exponent + 1) * 2; // exponent is for base 100
-    return (maxdigits <= MAX_LONG_SAFE_DIGITS);
-}
-
-
-//-----------------------------------------------------------------------------
 // NumberVar_GetValue()
 //   Returns the value stored at the given array position.
 //-----------------------------------------------------------------------------
@@ -548,12 +524,7 @@ static PyObject *NumberVar_GetValue(
     ub4 stringLength;
     sword status;
 
-    if (var->type == &vt_Boolean || 
-#if PY_MAJOR_VERSION < 3
-            var->type == &vt_Integer ||
-#endif
-            (var->type == &vt_LongInteger && FitsInLong(&var->data[pos]))) {
-
+    if (var->type == &vt_Boolean || var->type == &vt_Integer) {
         status = OCINumberToInt(var->environment->errorHandle, &var->data[pos],
                 sizeof(long), OCI_NUMBER_SIGNED, (dvoid*) &integerValue);
         if (Environment_CheckForError(var->environment, status,
@@ -562,7 +533,11 @@ static PyObject *NumberVar_GetValue(
 
         if (var->type == &vt_Boolean)
             return PyBool_FromLong(integerValue);
+#if PY_MAJOR_VERSION >= 3
+        return PyLong_FromLong(integerValue);
+#else
         return PyInt_FromLong(integerValue);
+#endif
     }
 
     if (var->type == &vt_NumberAsString || var->type == &vt_LongInteger) {
