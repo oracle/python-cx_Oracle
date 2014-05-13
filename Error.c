@@ -9,7 +9,7 @@
 typedef struct {
     PyObject_HEAD
     sb4 code;
-    ub4 offset;
+    ub2 offset;
     PyObject *message;
     const char *context;
 } udt_Error;

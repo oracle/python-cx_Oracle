@@ -528,14 +528,19 @@ static int Cursor_SetRowCount(
 static void Cursor_SetErrorOffset(
     udt_Cursor *self)                   // cursor to get the error offset from
 {
-    PyObject *type, *value, *traceback;
+    PyObject *type, *value, *traceback, *args;
     udt_Error *error;
+    ub2 offset = 0;
 
     PyErr_Fetch(&type, &value, &traceback);
     if (type == g_DatabaseErrorException) {
-        error = (udt_Error*) value;
-        OCIAttrGet(self->handle, OCI_HTYPE_STMT, &error->offset, 0,
+        PyErr_NormalizeException(&type, &value, &traceback);
+        OCIAttrGet(self->handle, OCI_HTYPE_STMT, &offset, 0,
                 OCI_ATTR_PARSE_ERROR_OFFSET, self->environment->errorHandle);
+        args = PyObject_GetAttrString(value, "args");
+        error = (udt_Error*) PyTuple_GET_ITEM(args, 0);
+        error->offset = offset;
+        Py_DECREF(args);
     }
     PyErr_Restore(type, value, traceback);
 }
