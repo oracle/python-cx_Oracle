@@ -69,8 +69,6 @@ static PyObject *Callback_BindByNameArgs(
     ub4 nameLength, allocatedElements, *actualElements;
     ub2 dataType, *actualLength, *returnCode;
     dvoid *indicator, *value;
-    OCIBind **bindHandlePtr;
-    OCIError *errorHandle;
     udt_Variable *var;
     PyObject *result;
     sb4 valueLength;
@@ -78,8 +76,8 @@ static PyObject *Callback_BindByNameArgs(
     text *name;
 
     handle = va_arg(args, OCIStmt*);
-    bindHandlePtr = va_arg(args, OCIBind**);
-    errorHandle = va_arg(args, OCIError*);
+    va_arg(args, OCIBind**);
+    va_arg(args, OCIError*);
     name = va_arg(args, text*);
     nameLength = va_arg(args, ub4);
     value = va_arg(args, dvoid*);
@@ -115,9 +113,7 @@ static PyObject *Callback_DefineByPosArgs(
     va_list args)                       // arguments to OCI function
 {
     ub2 dataType, *actualLength, *returnCode;
-    OCIDefine **defineHandle;
     dvoid *indicator, *value;
-    OCIError *errorHandle;
     udt_Variable *var;
     PyObject *result;
     OCIStmt *handle;
@@ -125,8 +121,8 @@ static PyObject *Callback_DefineByPosArgs(
     ub4 position;
 
     handle = va_arg(args, OCIStmt*);
-    defineHandle = va_arg(args, OCIDefine**);
-    errorHandle = va_arg(args, OCIError*);
+    va_arg(args, OCIDefine**);
+    va_arg(args, OCIError*);
     position = va_arg(args, ub4);
     value = va_arg(args, dvoid*);
     valueLength = va_arg(args, sb4);
@@ -154,14 +150,12 @@ static PyObject *Callback_DefineByPosArgs(
 static PyObject *Callback_ExecuteArgs(
     va_list args)                       // arguments to OCI function
 {
-    OCISvcCtx* serviceContextHandle;
-    OCIError *errorHandle;
     ub4 iters, rowoff;
     OCIStmt *handle;
 
-    serviceContextHandle = va_arg(args, OCISvcCtx*);
+    va_arg(args, OCISvcCtx*);
     handle = va_arg(args, OCIStmt*);
-    errorHandle = va_arg(args, OCIError*);
+    va_arg(args, OCIError*);
     iters = va_arg(args, ub4);
     rowoff = va_arg(args, ub4);
 
@@ -178,12 +172,11 @@ static PyObject *Callback_FetchArgs(
     va_list args)                       // arguments to OCI function
 {
     ub4 numRows, rowCount;
-    OCIError *errorHandle;
     OCIStmt *handle;
     sword status;
 
     handle = va_arg(args, OCIStmt*);
-    errorHandle = va_arg(args, OCIError*);
+    va_arg(args, OCIError*);
     numRows = va_arg(args, ub4);
 
     status = OCIAttrGet(handle, OCI_HTYPE_STMT, &rowCount, 0,
@@ -203,13 +196,12 @@ static PyObject *Callback_FetchArgs(
 static PyObject *Callback_PrepareArgs(
     va_list args)                       // arguments to OCI function
 {
-    OCIError *errorHandle;
     ub4 statementLength;
     OCIStmt *handle;
     text *statement;
 
     handle = va_arg(args, OCIStmt*);
-    errorHandle = va_arg(args, OCIError*);
+    va_arg(args, OCIError*);
     statement = va_arg(args, text *);
     statementLength = va_arg(args, ub4);
 
