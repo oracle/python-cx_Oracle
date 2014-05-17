@@ -18,9 +18,7 @@ typedef struct {
 static int StringVar_Initialize(udt_StringVar*, udt_Cursor*);
 static int StringVar_SetValue(udt_StringVar*, unsigned, PyObject*);
 static PyObject *StringVar_GetValue(udt_StringVar*, unsigned);
-#if PY_MAJOR_VERSION < 3
 static int StringVar_PostDefine(udt_StringVar*);
-#endif
 static ub4 StringVar_GetBufferSize(udt_StringVar*);
 
 //-----------------------------------------------------------------------------
@@ -204,7 +202,6 @@ static udt_VariableType vt_String = {
 };
 
 
-#if PY_MAJOR_VERSION < 3
 static udt_VariableType vt_NationalCharString = {
     (InitializeProc) StringVar_Initialize,
     (FinalizeProc) NULL,
@@ -215,7 +212,11 @@ static udt_VariableType vt_NationalCharString = {
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
     (GetBufferSizeProc) StringVar_GetBufferSize,
+#if PY_MAJOR_VERSION < 3
     &g_UnicodeVarType,                  // Python type
+#else
+    &g_StringVarType,                   // Python type
+#endif
     SQLT_CHR,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
     MAX_STRING_CHARS,                   // element length (default)
@@ -224,7 +225,6 @@ static udt_VariableType vt_NationalCharString = {
     1,                                  // can be copied
     1                                   // can be in array
 };
-#endif
 
 
 static udt_VariableType vt_FixedChar = {
@@ -248,7 +248,6 @@ static udt_VariableType vt_FixedChar = {
 };
 
 
-#if PY_MAJOR_VERSION < 3
 static udt_VariableType vt_FixedNationalChar = {
     (InitializeProc) StringVar_Initialize,
     (FinalizeProc) NULL,
@@ -259,7 +258,11 @@ static udt_VariableType vt_FixedNationalChar = {
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
     (GetBufferSizeProc) StringVar_GetBufferSize,
+#if PY_MAJOR_VERSION < 3
     &g_FixedUnicodeVarType,             // Python type
+#else
+    &g_FixedCharVarType,                // Python type
+#endif
     SQLT_AFC,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
     2000,                               // element length (default)
@@ -268,7 +271,6 @@ static udt_VariableType vt_FixedNationalChar = {
     1,                                  // can be copied
     1                                   // can be in array
 };
-#endif
 
 
 static udt_VariableType vt_Rowid = {
@@ -388,18 +390,15 @@ static PyObject *StringVar_GetValue(
     data = var->data + pos * var->bufferSize;
     if (var->type == &vt_Binary)
         return PyBytes_FromStringAndSize(data, var->actualLength[pos]);
-#if PY_MAJOR_VERSION < 3
     if (var->type == &vt_FixedNationalChar
             || var->type == &vt_NationalCharString)
         return PyUnicode_Decode(data, var->actualLength[pos],
                 var->environment->nencoding, NULL);
-#endif
     return cxString_FromEncodedString(data, var->actualLength[pos],
             var->environment->encoding);
 }
 
 
-#if PY_MAJOR_VERSION < 3
 //-----------------------------------------------------------------------------
 // StringVar_PostDefine()
 //   Set the character set information when values are fetched from this
@@ -419,7 +418,6 @@ static int StringVar_PostDefine(
 
     return 0;
 }
-#endif
 
 
 //-----------------------------------------------------------------------------

@@ -577,16 +577,12 @@ static udt_VariableType *Variable_TypeByOracleDataType (
         case SQLT_LNG:
             return &vt_LongString;
         case SQLT_AFC:
-#if PY_MAJOR_VERSION < 3
             if (charsetForm == SQLCS_NCHAR)
                 return &vt_FixedNationalChar;
-#endif
             return &vt_FixedChar;
         case SQLT_CHR:
-#if PY_MAJOR_VERSION < 3
             if (charsetForm == SQLCS_NCHAR)
                 return &vt_NationalCharString;
-#endif
             return &vt_String;
         case SQLT_RDD:
             return &vt_Rowid;
@@ -1096,7 +1092,6 @@ static int Variable_InternalBind(
             "Variable_InternalBind()") < 0)
         return -1;
 
-#if PY_MAJOR_VERSION < 3
     // set the charset form and id if applicable
     if (var->type->charsetForm != SQLCS_IMPLICIT) {
         status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
@@ -1112,7 +1107,6 @@ static int Variable_InternalBind(
                 "Variable_InternalBind(): set max data size") < 0)
             return -1;
     }
-#endif
 
     // set the max data size for strings
     if ((var->type == &vt_String || var->type == &vt_FixedChar)
