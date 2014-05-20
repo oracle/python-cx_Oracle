@@ -1,58 +1,34 @@
-.. cx_Oracle documentation master file
 
-.. include:: <isonum.txt>
+Welcome to cx_Oracle's documentation!
+=====================================
 
-*************
-  cx_Oracle  
-*************
+**cx_Oracle** is a module that enables access to Oracle databases and conforms
+to the Python database API specification. This module is currently built
+against Oracle 11.2 and 12.1 and works for both Python 2.x and 3.x.
 
-:Author: Anthony Tuininga
-
-:Date: |today|
-
-.. |release| replace:: HEAD
-
-.. % date of release
-.. % software release
-.. % empty for final release
-.. % major.minor only for software
-
-
-.. _front:
-
-************
-Front Matter
-************
-
-
-Copyright |copy| 2007-2012 Anthony Tuininga. All rights reserved.
-
-Copyright |copy| 2001-2007 Computronix. All rights reserved.
-
-See :ref:`license` for complete license and permissions information.
-
-
-.. topic:: Abstract
-
-   cx_Oracle is a Python extension module that allows access to Oracle and
-   conforms to the Python database API 2.0 specifications with a few
-   exceptions. See http://www.python.org/topics/database/DatabaseAPI-2.0.html
-   for more information on the Python database API specification.
-
+**cx_Oracle** is distributed under an open-source :ref:`license <license>`
+(the PSF license).
 
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   module
-   connection
-   cursor
-   variable
-   session_pool
-   subscription
-   lob
-   license
+    module.rst
+    connection.rst
+    cursor.rst
+    variable.rst
+    session_pool.rst
+    subscription.rst
+    lob.rst
+    releasenotes.rst
+    license.rst
+
+
+Indices and tables
+==================
 
 * :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 

@@ -69,3 +69,7 @@ samples in the samples directory. You can also look at the scripts in the
 cx_OracleTools (http://cx-oracletools.sourceforge.net) and the modules in the
 cx_PyOracleLib (http://cx-pyoraclelib.sourceforge.net) projects.
 
+For further information see
+
+http://cx_oracle.readthedocs.org
+
