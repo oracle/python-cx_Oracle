@@ -16,7 +16,7 @@ Version 5.1.3
     retrieved properly without conversion issues. Thanks to Joakim Andersson
     for pointing out the issue and the possible solution.
 5)  Fix bug when an exception is caught and then another exception is raised
-    while handling that exception in Python 3.x. Thanks to Shai Berger for
+    while handling that exception in Python 3.x. Thanks to Boris Dzuba for
     pointing out the issue and providing a test case.
 6)  Enhance performance returning integers between 10 and 18 digits on 64-bit
     platforms that support it. Thanks for Shai Berger for the initial patch.
