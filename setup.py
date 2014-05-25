@@ -44,7 +44,7 @@ dataFiles = None
 if sys.platform in ("win32", "cygwin"):
     baseName = "cx_Oracle-doc"
     dataFiles = [ (baseName,
-            [ "BUILD.txt", "LICENSE.TXT", "README.TXT", "HISTORY.txt"]) ]
+            [ "BUILD.txt", "README.txt"]) ]
     for dir in ("samples", "test"):
         files = []
         fullDirName = "%s/%s" % (baseName, dir)
