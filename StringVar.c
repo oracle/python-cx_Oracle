@@ -49,7 +49,6 @@ static PyTypeObject g_StringVarType = {
 };
 
 
-#if PY_MAJOR_VERSION < 3
 static PyTypeObject g_UnicodeVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.UNICODE",                // tp_name
@@ -73,7 +72,6 @@ static PyTypeObject g_UnicodeVarType = {
     Py_TPFLAGS_DEFAULT,                 // tp_flags
     0                                   // tp_doc
 };
-#endif
 
 
 static PyTypeObject g_FixedCharVarType = {
@@ -101,7 +99,6 @@ static PyTypeObject g_FixedCharVarType = {
 };
 
 
-#if PY_MAJOR_VERSION < 3
 static PyTypeObject g_FixedUnicodeVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.FIXED_UNICODE",          // tp_name
@@ -125,7 +122,6 @@ static PyTypeObject g_FixedUnicodeVarType = {
     Py_TPFLAGS_DEFAULT,                 // tp_flags
     0                                   // tp_doc
 };
-#endif
 
 
 static PyTypeObject g_RowidVarType = {
@@ -212,11 +208,7 @@ static udt_VariableType vt_NationalCharString = {
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
     (GetBufferSizeProc) StringVar_GetBufferSize,
-#if PY_MAJOR_VERSION < 3
     &g_UnicodeVarType,                  // Python type
-#else
-    &g_StringVarType,                   // Python type
-#endif
     SQLT_CHR,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
     MAX_STRING_CHARS,                   // element length (default)
@@ -258,11 +250,7 @@ static udt_VariableType vt_FixedNationalChar = {
     (SetValueProc) StringVar_SetValue,
     (GetValueProc) StringVar_GetValue,
     (GetBufferSizeProc) StringVar_GetBufferSize,
-#if PY_MAJOR_VERSION < 3
     &g_FixedUnicodeVarType,             // Python type
-#else
-    &g_FixedCharVarType,                // Python type
-#endif
     SQLT_AFC,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
     2000,                               // element length (default)

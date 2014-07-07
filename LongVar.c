@@ -48,7 +48,6 @@ static PyTypeObject g_LongStringVarType = {
 };
 
 
-#if PY_MAJOR_VERSION < 3
 static PyTypeObject g_LongUnicodeVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.LONG_UNICODE",           // tp_name
@@ -72,7 +71,6 @@ static PyTypeObject g_LongUnicodeVarType = {
     Py_TPFLAGS_DEFAULT,                 // tp_flags
     0                                   // tp_doc
 };
-#endif
 
 
 static PyTypeObject g_LongBinaryVarType = {
@@ -124,7 +122,6 @@ static udt_VariableType vt_LongString = {
 };
 
 
-#if PY_MAJOR_VERSION < 3
 static udt_VariableType vt_LongNationalCharString = {
     (InitializeProc) NULL,
     (FinalizeProc) NULL,
@@ -144,7 +141,6 @@ static udt_VariableType vt_LongNationalCharString = {
     1,                                  // can be copied
     0                                   // can be in array
 };
-#endif
 
 
 static udt_VariableType vt_LongBinary = {

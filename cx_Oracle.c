@@ -409,11 +409,9 @@ static PyObject *Module_Initialize(void)
     MAKE_VARIABLE_TYPE_READY(&g_BFILEVarType);
     MAKE_VARIABLE_TYPE_READY(&g_CursorVarType);
     MAKE_VARIABLE_TYPE_READY(&g_ObjectVarType);
-#if PY_MAJOR_VERSION < 3
     MAKE_VARIABLE_TYPE_READY(&g_UnicodeVarType);
     MAKE_VARIABLE_TYPE_READY(&g_FixedUnicodeVarType);
     MAKE_VARIABLE_TYPE_READY(&g_LongUnicodeVarType);
-#endif
     MAKE_VARIABLE_TYPE_READY(&g_NCLOBVarType);
 #ifdef SQLT_BFLOAT
     MAKE_VARIABLE_TYPE_READY(&g_NativeFloatVarType);
@@ -482,11 +480,9 @@ static PyObject *Module_Initialize(void)
     ADD_TYPE_OBJECT("OBJECT", &g_ObjectVarType)
     ADD_TYPE_OBJECT("DATETIME", &g_DateTimeVarType)
     ADD_TYPE_OBJECT("FIXED_CHAR", &g_FixedCharVarType)
-#if PY_MAJOR_VERSION < 3
     ADD_TYPE_OBJECT("FIXED_UNICODE", &g_FixedUnicodeVarType)
     ADD_TYPE_OBJECT("UNICODE", &g_UnicodeVarType)
     ADD_TYPE_OBJECT("LONG_UNICODE", &g_LongUnicodeVarType)
-#endif
     ADD_TYPE_OBJECT("INTERVAL", &g_IntervalVarType)
     ADD_TYPE_OBJECT("LOB", &g_ExternalLobVarType)
     ADD_TYPE_OBJECT("LONG_BINARY", &g_LongBinaryVarType)
