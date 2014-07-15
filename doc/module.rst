@@ -36,7 +36,7 @@ Module Interface
    the format ``user/password@dsn``, the same format accepted by Oracle
    applications such as SQL\*Plus.
   
-   If the mode is specified, it must be one of :data:`SYSDBA` or
+   If the mode is specified, it must be one of :data:`SYSDBA`, :data:`SYSASM` or
    :data:`SYSOPER` which are defined at the module level; otherwise it defaults
    to the normal mode of connecting.
   
@@ -194,6 +194,14 @@ Global
 
       This constant is an extension to the DB API definition.
 
+.. data:: SYSASM
+
+   Value to be passed to the connect() method which indicates that SYSASM
+   access is to be acquired. See the Oracle documentation for more details.
+
+   .. note::
+
+      This constant is an extension to the DB API definition.
 
 .. data:: SYSOPER
 
