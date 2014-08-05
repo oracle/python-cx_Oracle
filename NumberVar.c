@@ -497,10 +497,10 @@ static int NumberVar_SetValue(
     if (PyInt_Check(value))
         return NumberVar_SetValueFromInteger(var, pos, value);
 #endif
-    if (PyLong_Check(value))
-        return NumberVar_SetValueFromLong(var, pos, value);
     if (PyBool_Check(value))
         return NumberVar_SetValueFromBoolean(var, pos, value);
+    if (PyLong_Check(value))
+        return NumberVar_SetValueFromLong(var, pos, value);
     if (PyFloat_Check(value))
         return NumberVar_SetValueFromFloat(var, pos, value);
     if (Py_TYPE(value) == g_DecimalType)

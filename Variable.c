@@ -505,6 +505,8 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_Binary;
     }
 #endif
+    if (PyBool_Check(value))
+        return &vt_Boolean;
     if (PyLong_Check(value))
         return &vt_LongInteger;
     if (PyFloat_Check(value))
@@ -519,8 +521,6 @@ static udt_VariableType *Variable_TypeByValue(
             return &vt_LongBinary;
         return &vt_Binary;
     }
-    if (PyBool_Check(value))
-        return &vt_Boolean;
     if (PyDateTime_Check(value))
         return &vt_DateTime;
     if (PyDate_Check(value))
