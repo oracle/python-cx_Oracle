@@ -441,6 +441,7 @@ static PyObject *SessionPool_InternalRelease(
     Py_DECREF(connection->sessionPool);
     connection->sessionPool = NULL;
     connection->handle = NULL;
+    connection->release = 0;
 
     Py_INCREF(Py_None);
     return Py_None;

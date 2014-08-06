@@ -1206,25 +1206,42 @@ static PyObject *Connection_Close(
         return NULL;
 
     // logoff of the server
-    if (self->sessionHandle) {
+    if (self->release) {
         Py_BEGIN_ALLOW_THREADS
-        status = OCISessionEnd(self->handle, self->environment->errorHandle,
-                self->sessionHandle, OCI_DEFAULT);
+        status = OCISessionRelease(self->handle,
+                self->environment->errorHandle, NULL, 0, OCI_DEFAULT);
         Py_END_ALLOW_THREADS
         if (Environment_CheckForError(self->environment, status,
-                "Connection_Close(): end session") < 0)
+                "Connection_Close(): release session") < 0)
             return NULL;
-        OCIHandleFree(self->handle, OCI_HTYPE_SVCCTX);
+        self->release = 0;
+    }
+    else {
+        if (self->sessionHandle) {
+            Py_BEGIN_ALLOW_THREADS
+            status = OCISessionEnd(self->handle,
+                    self->environment->errorHandle, self->sessionHandle,
+                    OCI_DEFAULT);
+            Py_END_ALLOW_THREADS
+            if (Environment_CheckForError(self->environment, status,
+                    "Connection_Close(): end session") < 0)
+                return NULL;
+            OCIHandleFree(self->sessionHandle, OCI_HTYPE_SESSION);
+            self->sessionHandle = NULL;
+            OCIHandleFree(self->handle, OCI_HTYPE_SVCCTX);
+        }
+
+        if (self->serverHandle) {
+            status = OCIServerDetach(self->serverHandle,
+                self->environment->errorHandle, OCI_DEFAULT);
+            if (Environment_CheckForError(self->environment, status,
+                "Connection_Close(): server detach") < 0)
+                return NULL;
+            OCIHandleFree(self->serverHandle, OCI_HTYPE_SERVER);
+            self->serverHandle = NULL;
+        }
     }
     self->handle = NULL;
-    if (self->serverHandle) {
-        status = OCIServerDetach(self->serverHandle,
-                self->environment->errorHandle, OCI_DEFAULT);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Close(): server detach") < 0)
-            return NULL;
-        self->serverHandle = NULL;
-    }
 
     Py_INCREF(Py_None);
     return Py_None;
