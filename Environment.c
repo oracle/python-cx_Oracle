@@ -14,18 +14,11 @@ typedef struct {
     int fixedWidth;
     char *encoding;
     char *nencoding;
-    ub4 maxStringBytes;
     PyObject *cloneEnv;
     udt_Buffer numberToStringFormatBuffer;
     udt_Buffer numberFromStringFormatBuffer;
     udt_Buffer nlsNumericCharactersBuffer;
 } udt_Environment;
-
-//-----------------------------------------------------------------------------
-// maximum number of characters/bytes applicable to strings/binaries
-//-----------------------------------------------------------------------------
-#define MAX_STRING_CHARS                4000
-#define MAX_BINARY_BYTES                4000
 
 //-----------------------------------------------------------------------------
 // forward declarations
@@ -82,7 +75,6 @@ static udt_Environment *Environment_New(
     env->errorHandle = NULL;
     env->fixedWidth = 1;
     env->maxBytesPerCharacter = 1;
-    env->maxStringBytes = MAX_STRING_CHARS;
     env->cloneEnv = NULL;
     cxBuffer_Init(&env->numberToStringFormatBuffer);
     cxBuffer_Init(&env->numberFromStringFormatBuffer);
@@ -226,7 +218,6 @@ static udt_Environment *Environment_NewFromScratch(
         Py_DECREF(env);
         return NULL;
     }
-    env->maxStringBytes = MAX_STRING_CHARS * env->maxBytesPerCharacter;
 
     // acquire whether character set is fixed width
     status = OCINlsNumericInfoGet(env->handle, env->errorHandle,
@@ -275,7 +266,6 @@ static udt_Environment *Environment_Clone(
     if (!env)
         return NULL;
     env->maxBytesPerCharacter = cloneEnv->maxBytesPerCharacter;
-    env->maxStringBytes = cloneEnv->maxStringBytes;
     env->fixedWidth = cloneEnv->fixedWidth;
     Py_INCREF(cloneEnv);
     env->cloneEnv = (PyObject*) cloneEnv;

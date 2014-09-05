@@ -10,7 +10,7 @@ class TestLongVar(BaseTestCase):
         for i in range(1, 11):
             char = chr(ord('A') + i - 1)
             longString += char * 25000
-            self.cursor.setinputsizes(p_LongString = a_InputType)
+            self.cursor.setinputsizes(longString = a_InputType)
             if a_Type == "LongRaw" and sys.version_info[0] >= 3:
                 bindValue = longString.encode("ascii")
             else:
@@ -20,11 +20,11 @@ class TestLongVar(BaseTestCase):
                       IntCol,
                       %sCol
                     ) values (
-                      :p_IntegerValue,
-                      :p_LongString
+                      :integerValue,
+                      :longString
                     )""" % (a_Type, a_Type),
-                    p_IntegerValue = i,
-                    p_LongString = bindValue)
+                    integerValue = i,
+                    longString = bindValue)
         self.connection.commit()
         self.cursor.setoutputsize(250000, 2)
         self.cursor.execute("""

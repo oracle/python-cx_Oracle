@@ -14,7 +14,7 @@ static udt_Variable *Callback_NewVariable(
     void *data,                         // data pointer
     void *indicator,                    // indicator pointer
     ub2 *returnCode,                    // return code pointer
-    ub2 *actualLength)                  // actual length pointer
+    ACTUAL_LENGTH_TYPE *actualLength)   // actual length pointer
 {
     udt_VariableType *type;
     udt_Variable *var;
@@ -67,7 +67,8 @@ static PyObject *Callback_BindByNameArgs(
     va_list args)                       // arguments to OCI function
 {
     ub4 nameLength, allocatedElements, *actualElements;
-    ub2 dataType, *actualLength, *returnCode;
+    ACTUAL_LENGTH_TYPE *actualLength;
+    ub2 dataType, *returnCode;
     dvoid *indicator, *value;
     udt_Variable *var;
     PyObject *result;
@@ -84,7 +85,7 @@ static PyObject *Callback_BindByNameArgs(
     valueLength = va_arg(args, sb4);
     dataType = va_arg(args, int);
     indicator = va_arg(args, dvoid*);
-    actualLength = va_arg(args, ub2*);
+    actualLength = va_arg(args, ACTUAL_LENGTH_TYPE*);
     returnCode = va_arg(args, ub2*);
     allocatedElements = va_arg(args, ub4);
     actualElements = va_arg(args, ub4*);
@@ -112,7 +113,8 @@ static PyObject *Callback_DefineByPosArgs(
     udt_Connection *connection,         // connection to use
     va_list args)                       // arguments to OCI function
 {
-    ub2 dataType, *actualLength, *returnCode;
+    ACTUAL_LENGTH_TYPE *actualLength;
+    ub2 dataType, *returnCode;
     dvoid *indicator, *value;
     udt_Variable *var;
     PyObject *result;
@@ -128,7 +130,7 @@ static PyObject *Callback_DefineByPosArgs(
     valueLength = va_arg(args, sb4);
     dataType = va_arg(args, int);
     indicator = va_arg(args, dvoid*);
-    actualLength = va_arg(args, ub2*);
+    actualLength = va_arg(args, ACTUAL_LENGTH_TYPE*);
     returnCode = va_arg(args, ub2*);
 
     // create a variable

@@ -26,25 +26,25 @@ class TestCursor(BaseTestCase):
     def testExecuteKeywordArgs(self):
         """test executing a statement with keyword arguments"""
         simpleVar = self.cursor.var(cx_Oracle.NUMBER)
-        result = self.cursor.execute(u"begin :p_Value := 5; end;",
-                p_Value = simpleVar)
+        result = self.cursor.execute(u"begin :value := 5; end;",
+                value = simpleVar)
         self.failUnlessEqual(result, None)
         self.failUnlessEqual(simpleVar.getvalue(), 5)
 
     def testExecuteDictionaryArg(self):
         """test executing a statement with a dictionary argument"""
         simpleVar = self.cursor.var(cx_Oracle.NUMBER)
-        dictArg = { u"p_Value" : simpleVar }
-        result = self.cursor.execute(u"begin :p_Value := 10; end;", dictArg)
+        dictArg = { u"value" : simpleVar }
+        result = self.cursor.execute(u"begin :value := 10; end;", dictArg)
         self.failUnlessEqual(result, None)
         self.failUnlessEqual(simpleVar.getvalue(), 10)
 
     def testExecuteMultipleMethod(self):
         """test executing a statement with both a dict arg and keyword args"""
         simpleVar = self.cursor.var(cx_Oracle.NUMBER)
-        dictArg = { u"p_Value" : simpleVar }
+        dictArg = { u"value" : simpleVar }
         self.failUnlessRaises(cx_Oracle.InterfaceError, self.cursor.execute,
-                u"begin :p_Value := 15; end;", dictArg, p_Value = simpleVar)
+                u"begin :value := 15; end;", dictArg, value = simpleVar)
 
     def testExecuteAndModifyArraySize(self):
         """test executing a statement and then changing the array size"""
@@ -127,8 +127,8 @@ class TestCursor(BaseTestCase):
     def testExecuteManyWithExecption(self):
         """test executing a statement multiple times (with exception)"""
         self.cursor.execute(u"truncate table TestExecuteMany")
-        rows = [ { u"p_Value" : n } for n in (1, 2, 3, 2, 5) ]
-        statement = u"insert into TestExecuteMany (IntCol) values (:p_Value)"
+        rows = [ { u"value" : n } for n in (1, 2, 3, 2, 5) ]
+        statement = u"insert into TestExecuteMany (IntCol) values (:value)"
         self.failUnlessRaises(cx_Oracle.DatabaseError, self.cursor.executemany,
                 statement, rows)
         self.failUnlessEqual(self.cursor.rowcount, 3)
@@ -136,16 +136,16 @@ class TestCursor(BaseTestCase):
     def testPrepare(self):
         """test preparing a statement and executing it multiple times"""
         self.failUnlessEqual(self.cursor.statement, None)
-        statement = u"begin :p_Value := :p_Value + 5; end;"
+        statement = u"begin :value := :value + 5; end;"
         self.cursor.prepare(statement)
         var = self.cursor.var(cx_Oracle.NUMBER)
         self.failUnlessEqual(self.cursor.statement, statement)
         var.setvalue(0, 2)
-        self.cursor.execute(None, p_Value = var)
+        self.cursor.execute(None, value = var)
         self.failUnlessEqual(var.getvalue(), 7)
-        self.cursor.execute(None, p_Value = var)
+        self.cursor.execute(None, value = var)
         self.failUnlessEqual(var.getvalue(), 12)
-        self.cursor.execute(u"begin :p_Value2 := 3; end;", p_Value2 = var)
+        self.cursor.execute(u"begin :value2 := 3; end;", value2 = var)
         self.failUnlessEqual(var.getvalue(), 3)
 
     def testExceptionOnClose(self):

@@ -42,32 +42,32 @@ class TestTimestampVar(BaseTestCase):
 
     def testBindNull(self):
         "test binding in a null"
-        self.cursor.setinputsizes(p_Value = cx_Oracle.TIMESTAMP)
+        self.cursor.setinputsizes(value = cx_Oracle.TIMESTAMP)
         self.cursor.execute("""
                 select * from TestTimestamps
-                where TimestampCol = :p_Value""",
-                p_Value = None)
+                where TimestampCol = :value""",
+                value = None)
         self.failUnlessEqual(self.cursor.fetchall(), [])
 
     def testBindOutSetInputSizes(self):
         "test binding out with set input sizes defined"
-        vars = self.cursor.setinputsizes(p_Value = cx_Oracle.TIMESTAMP)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.TIMESTAMP)
         self.cursor.execute("""
                 begin
-                  :p_Value := to_timestamp('20021209', 'YYYYMMDD');
+                  :value := to_timestamp('20021209', 'YYYYMMDD');
                 end;""")
-        self.failUnlessEqual(vars["p_Value"].getvalue(),
+        self.failUnlessEqual(vars["value"].getvalue(),
                cx_Oracle.Timestamp(2002, 12, 9))
 
     def testBindInOutSetInputSizes(self):
         "test binding in/out with set input sizes defined"
-        vars = self.cursor.setinputsizes(p_Value = cx_Oracle.TIMESTAMP)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.TIMESTAMP)
         self.cursor.execute("""
                 begin
-                  :p_Value := :p_Value + 5.25;
+                  :value := :value + 5.25;
                 end;""",
-                p_Value = cx_Oracle.Timestamp(2002, 12, 12, 10, 0, 0))
-        self.failUnlessEqual(vars["p_Value"].getvalue(),
+                value = cx_Oracle.Timestamp(2002, 12, 12, 10, 0, 0))
+        self.failUnlessEqual(vars["value"].getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 17, 16, 0, 0))
 
     def testBindOutVar(self):
@@ -75,10 +75,10 @@ class TestTimestampVar(BaseTestCase):
         var = self.cursor.var(cx_Oracle.TIMESTAMP)
         self.cursor.execute("""
                 begin
-                  :p_Value := to_date('20021231 12:31:00',
+                  :value := to_date('20021231 12:31:00',
                       'YYYYMMDD HH24:MI:SS');
                 end;""",
-                p_Value = var)
+                value = var)
         self.failUnlessEqual(var.getvalue(),
                cx_Oracle.Timestamp(2002, 12, 31, 12, 31, 0))
 
@@ -88,9 +88,9 @@ class TestTimestampVar(BaseTestCase):
         var.setvalue(0, cx_Oracle.Timestamp(2002, 12, 9, 6, 0, 0))
         self.cursor.execute("""
                 begin
-                  :p_Value := :p_Value + 5.25;
+                  :value := :value + 5.25;
                 end;""",
-                p_Value = var)
+                value = var)
         self.failUnlessEqual(var.getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 14, 12, 0, 0))
 

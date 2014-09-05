@@ -6,6 +6,18 @@
 //-----------------------------------------------------------------------------
 // define structure common to all variables
 //-----------------------------------------------------------------------------
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+    #define OCIBINDBYNAME               OCIBindByName2
+    #define OCIBINDBYPOS                OCIBindByPos2
+    #define OCIDEFINEBYPOS              OCIDefineByPos2
+    #define ACTUAL_LENGTH_TYPE          ub4
+#else
+    #define OCIBINDBYNAME               OCIBindByName
+    #define OCIBINDBYPOS                OCIBindByPos
+    #define OCIDEFINEBYPOS              OCIDefineByPos
+    #define ACTUAL_LENGTH_TYPE          ub2
+#endif
+
 struct _udt_VariableType;
 #define Variable_HEAD \
     PyObject_HEAD \
@@ -24,7 +36,7 @@ struct _udt_VariableType;
     int isAllocatedInternally; \
     sb2 *indicator; \
     ub2 *returnCode; \
-    ub2 *actualLength; \
+    ACTUAL_LENGTH_TYPE *actualLength; \
     ub4 size; \
     ub4 bufferSize; \
     struct _udt_VariableType *type;
@@ -484,15 +496,11 @@ static udt_VariableType *Variable_TypeByValue(
     }
     if (cxString_Check(value)) {
         *size = cxString_GetSize(value);
-        if (*size > MAX_STRING_CHARS)
-            return &vt_LongString;
         return &vt_String;
     }
 #if PY_MAJOR_VERSION < 3
     if (PyUnicode_Check(value)) {
         *size = PyUnicode_GET_SIZE(value);
-        if (*size > MAX_STRING_CHARS)
-            return &vt_LongNationalCharString;
         return &vt_NationalCharString;
     }
     if (PyInt_Check(value))
@@ -500,8 +508,6 @@ static udt_VariableType *Variable_TypeByValue(
 #else
     if (PyBytes_Check(value)) {
         *size = PyBytes_GET_SIZE(value);
-        if (*size > MAX_BINARY_BYTES)
-            return &vt_LongBinary;
         return &vt_Binary;
     }
 #endif
@@ -517,8 +523,6 @@ static udt_VariableType *Variable_TypeByValue(
             return NULL;
         *size = temp.size;
         cxBuffer_Clear(&temp);
-        if (*size > MAX_BINARY_BYTES)
-            return &vt_LongBinary;
         return &vt_Binary;
     }
     if (PyDateTime_Check(value))
@@ -824,9 +828,7 @@ static udt_Variable *Variable_NewByType(
         size = PyInt_AsLong(value);
         if (PyErr_Occurred())
             return NULL;
-        if (size > MAX_STRING_CHARS)
-            varType = &vt_LongString;
-        else varType = &vt_String;
+        varType = &vt_String;
         return Variable_New(cursor, numElements, varType, size);
     }
 
@@ -993,7 +995,7 @@ static udt_Variable *Variable_DefineHelper(
     }
 
     // perform the define
-    status = OCIDefineByPos(cursor->handle, &var->defineHandle,
+    status = OCIDEFINEBYPOS(cursor->handle, &var->defineHandle,
             var->environment->errorHandle, position, var->data,
             var->bufferSize, var->type->oracleType, var->indicator,
             var->actualLength, var->returnCode, OCI_DEFAULT);
@@ -1058,14 +1060,14 @@ static int Variable_InternalBind(
                 var->environment->encoding) < 0)
             return -1;
         if (var->isArray) {
-            status = OCIBindByName(var->boundCursorHandle, &var->bindHandle,
+            status = OCIBINDBYNAME(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, (text*) buffer.ptr,
                     buffer.size, var->data, var->bufferSize,
                     var->type->oracleType, var->indicator, var->actualLength,
                     var->returnCode, var->allocatedElements,
                     &var->actualElements, OCI_DEFAULT);
         } else {
-            status = OCIBindByName(var->boundCursorHandle, &var->bindHandle,
+            status = OCIBINDBYNAME(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, (text*) buffer.ptr,
                     buffer.size, var->data, var->bufferSize,
                     var->type->oracleType, var->indicator, var->actualLength,
@@ -1074,13 +1076,13 @@ static int Variable_InternalBind(
         cxBuffer_Clear(&buffer);
     } else {
         if (var->isArray) {
-            status = OCIBindByPos(var->boundCursorHandle, &var->bindHandle,
+            status = OCIBINDBYPOS(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, var->boundPos, var->data,
                     var->bufferSize, var->type->oracleType, var->indicator,
                     var->actualLength, var->returnCode, var->allocatedElements,
                     &var->actualElements, OCI_DEFAULT);
         } else {
-            status = OCIBindByPos(var->boundCursorHandle, &var->bindHandle,
+            status = OCIBINDBYPOS(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, var->boundPos, var->data,
                     var->bufferSize, var->type->oracleType, var->indicator,
                     var->actualLength, var->returnCode, 0, 0, OCI_DEFAULT);

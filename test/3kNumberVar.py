@@ -83,33 +83,33 @@ class TestNumberVar(BaseTestCase):
         array = [r[1] for r in self.rawData]
         statement = """
                 begin
-                  :p_ReturnValue := pkg_TestNumberArrays.TestInArrays(
-                      :p_StartValue, :p_Array);
+                  :returnValue := pkg_TestNumberArrays.TestInArrays(
+                      :startValue, :array);
                 end;"""
         self.cursor.execute(statement,
-                p_ReturnValue = returnValue,
-                p_StartValue = 5,
-                p_Array = array)
+                returnValue = returnValue,
+                startValue = 5,
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 73.75)
         array = list(range(15))
         self.cursor.execute(statement,
-                p_StartValue = 10,
-                p_Array = array)
+                startValue = 10,
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 115.0)
 
     def testBindNumberArrayBySizes(self):
         "test binding in a number array (with setinputsizes)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        self.cursor.setinputsizes(p_Array = [cx_Oracle.NUMBER, 10])
+        self.cursor.setinputsizes(array = [cx_Oracle.NUMBER, 10])
         array = [r[1] for r in self.rawData]
         self.cursor.execute("""
                 begin
-                  :p_ReturnValue := pkg_TestNumberArrays.TestInArrays(
-                      :p_StartValue, :p_Array);
+                  :returnValue := pkg_TestNumberArrays.TestInArrays(
+                      :startValue, :array);
                 end;""",
-                p_ReturnValue = returnValue,
-                p_StartValue = 6,
-                p_Array = array)
+                returnValue = returnValue,
+                startValue = 6,
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 74.75)
 
     def testBindNumberArrayByVar(self):
@@ -120,12 +120,12 @@ class TestNumberVar(BaseTestCase):
         array.setvalue(0, [r[1] for r in self.rawData])
         self.cursor.execute("""
                 begin
-                  :p_ReturnValue := pkg_TestNumberArrays.TestInArrays(
-                      :p_IntegerValue, :p_Array);
+                  :returnValue := pkg_TestNumberArrays.TestInArrays(
+                      :integerValue, :array);
                 end;""",
-                p_ReturnValue = returnValue,
-                p_IntegerValue = 7,
-                p_Array = array)
+                returnValue = returnValue,
+                integerValue = 7,
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 75.75)
 
     def testBindZeroLengthNumberArrayByVar(self):
@@ -134,12 +134,12 @@ class TestNumberVar(BaseTestCase):
         array = self.cursor.arrayvar(cx_Oracle.NUMBER, 0)
         self.cursor.execute("""
                 begin
-                  :p_ReturnValue := pkg_TestNumberArrays.TestInArrays(
-                      :p_IntegerValue, :p_Array);
+                  :returnValue := pkg_TestNumberArrays.TestInArrays(
+                      :integerValue, :array);
                 end;""",
-                p_ReturnValue = returnValue,
-                p_IntegerValue = 8,
-                p_Array = array)
+                returnValue = returnValue,
+                integerValue = 8,
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 8.0)
         self.failUnlessEqual(array.getvalue(), [])
 
@@ -152,10 +152,10 @@ class TestNumberVar(BaseTestCase):
         array.setvalue(0, originalData)
         self.cursor.execute("""
                 begin
-                  pkg_TestNumberArrays.TestInOutArrays(:p_NumElems, :p_Array);
+                  pkg_TestNumberArrays.TestInOutArrays(:numElems, :array);
                 end;""",
-                p_NumElems = 5,
-                p_Array = array)
+                numElems = 5,
+                array = array)
         self.failUnlessEqual(array.getvalue(), expectedData)
 
     def testBindOutNumberArrayByVar(self):
@@ -164,10 +164,10 @@ class TestNumberVar(BaseTestCase):
         expectedData = [i * 100 for i in range(1, 7)]
         self.cursor.execute("""
                 begin
-                  pkg_TestNumberArrays.TestOutArrays(:p_NumElems, :p_Array);
+                  pkg_TestNumberArrays.TestOutArrays(:numElems, :array);
                 end;""",
-                p_NumElems = 6,
-                p_Array = array)
+                numElems = 6,
+                array = array)
         self.failUnlessEqual(array.getvalue(), expectedData)
 
     def testBindOutSetInputSizes(self):

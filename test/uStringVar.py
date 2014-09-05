@@ -22,8 +22,8 @@ class TestStringVar(BaseTestCase):
         "test binding in a string"
         self.cursor.execute(u"""
                 select * from TestStrings
-                where StringCol = :p_Value""",
-                p_Value = u"String 5")
+                where StringCol = :value""",
+                value = u"String 5")
         self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
     def testBindDifferentVar(self):
@@ -39,26 +39,26 @@ class TestStringVar(BaseTestCase):
 
     def testBindStringAfterNumber(self):
         "test binding in a string after setting input sizes to a number"
-        self.cursor.setinputsizes(p_Value = cx_Oracle.NUMBER)
+        self.cursor.setinputsizes(value = cx_Oracle.NUMBER)
         self.cursor.execute(u"""
                 select * from TestStrings
-                where StringCol = :p_Value""",
-                p_Value = u"String 6")
+                where StringCol = :value""",
+                value = u"String 6")
         self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[6]])
 
     def testBindStringArrayBySizes(self):
         "test binding in a string array (with setinputsizes)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        self.cursor.setinputsizes(p_Array = [cx_Oracle.STRING, 10])
+        self.cursor.setinputsizes(array = [cx_Oracle.STRING, 10])
         array = [r[1] for r in self.rawData]
         self.cursor.execute(u"""
                 begin
-                  :p_ReturnValue := pkg_TestStringArrays.TestInArrays(
-                      :p_IntegerValue, :p_Array);
+                  :returnValue := pkg_TestStringArrays.TestInArrays(
+                      :integerValue, :array);
                 end;""",
-                p_ReturnValue = returnValue,
-                p_IntegerValue = 6,
-                p_Array = array)
+                returnValue = returnValue,
+                integerValue = 6,
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 87)
 
     def testBindStringArrayByVar(self):
@@ -68,12 +68,12 @@ class TestStringVar(BaseTestCase):
         array.setvalue(0, [r[1] for r in self.rawData])
         self.cursor.execute(u"""
                 begin
-                  :p_ReturnValue := pkg_TestStringArrays.TestInArrays(
-                      :p_IntegerValue, :p_Array);
+                  :returnValue := pkg_TestStringArrays.TestInArrays(
+                      :integerValue, :array);
                 end;""",
-                p_ReturnValue = returnValue,
-                p_IntegerValue = 7,
-                p_Array = array)
+                returnValue = returnValue,
+                integerValue = 7,
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 88)
 
     def testBindInOutStringArrayByVar(self):
@@ -86,10 +86,10 @@ class TestStringVar(BaseTestCase):
         array.setvalue(0, originalData)
         self.cursor.execute(u"""
                 begin
-                  pkg_TestStringArrays.TestInOutArrays(:p_NumElems, :p_Array);
+                  pkg_TestStringArrays.TestInOutArrays(:numElems, :array);
                 end;""",
-                p_NumElems = 5,
-                p_Array = array)
+                numElems = 5,
+                array = array)
         self.failUnlessEqual(array.getvalue(), expectedData)
 
     def testBindOutStringArrayByVar(self):
@@ -98,19 +98,19 @@ class TestStringVar(BaseTestCase):
         expectedData = [u"Test out element # %d" % i for i in range(1, 7)]
         self.cursor.execute(u"""
                 begin
-                  pkg_TestStringArrays.TestOutArrays(:p_NumElems, :p_Array);
+                  pkg_TestStringArrays.TestOutArrays(:numElems, :array);
                 end;""",
-                p_NumElems = 6,
-                p_Array = array)
+                numElems = 6,
+                array = array)
         self.failUnlessEqual(array.getvalue(), expectedData)
 
     def testBindRaw(self):
         "test binding in a raw"
-        self.cursor.setinputsizes(p_Value = cx_Oracle.BINARY)
+        self.cursor.setinputsizes(value = cx_Oracle.BINARY)
         self.cursor.execute(u"""
                 select * from TestStrings
-                where RawCol = :p_Value""",
-                p_Value = "Raw 4")
+                where RawCol = :value""",
+                value = "Raw 4")
         self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
     def testBindAndFetchRowid(self):
@@ -123,64 +123,64 @@ class TestStringVar(BaseTestCase):
         self.cursor.execute(u"""
                 select *
                 from TestStrings
-                where rowid = :p_Value""",
-                p_Value = rowid)
+                where rowid = :value""",
+                value = rowid)
         self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[3]])
 
     def testBindNull(self):
         "test binding in a null"
         self.cursor.execute(u"""
                 select * from TestStrings
-                where StringCol = :p_Value""",
-                p_Value = None)
+                where StringCol = :value""",
+                value = None)
         self.failUnlessEqual(self.cursor.fetchall(), [])
 
     def testBindOutSetInputSizesByType(self):
         "test binding out with set input sizes defined (by type)"
-        vars = self.cursor.setinputsizes(p_Value = cx_Oracle.STRING)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.STRING)
         self.cursor.execute(u"""
                 begin
-                  :p_Value := 'TSI';
+                  :value := 'TSI';
                 end;""")
-        self.failUnlessEqual(vars["p_Value"].getvalue(), u"TSI")
+        self.failUnlessEqual(vars["value"].getvalue(), u"TSI")
 
     def testBindOutSetInputSizesByInteger(self):
         "test binding out with set input sizes defined (by integer)"
-        vars = self.cursor.setinputsizes(p_Value = 30)
+        vars = self.cursor.setinputsizes(value = 30)
         self.cursor.execute(u"""
                 begin
-                  :p_Value := 'TSI (I)';
+                  :value := 'TSI (I)';
                 end;""")
-        self.failUnlessEqual(vars["p_Value"].getvalue(), u"TSI (I)")
+        self.failUnlessEqual(vars["value"].getvalue(), u"TSI (I)")
 
     def testBindInOutSetInputSizesByType(self):
         "test binding in/out with set input sizes defined (by type)"
-        vars = self.cursor.setinputsizes(p_Value = cx_Oracle.STRING)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.STRING)
         self.cursor.execute(u"""
                 begin
-                  :p_Value := :p_Value || ' TSI';
+                  :value := :value || ' TSI';
                 end;""",
-                p_Value = u"InVal")
-        self.failUnlessEqual(vars["p_Value"].getvalue(), u"InVal TSI")
+                value = u"InVal")
+        self.failUnlessEqual(vars["value"].getvalue(), u"InVal TSI")
 
     def testBindInOutSetInputSizesByInteger(self):
         "test binding in/out with set input sizes defined (by integer)"
-        vars = self.cursor.setinputsizes(p_Value = 30)
+        vars = self.cursor.setinputsizes(value = 30)
         self.cursor.execute(u"""
                 begin
-                  :p_Value := :p_Value || ' TSI (I)';
+                  :value := :value || ' TSI (I)';
                 end;""",
-                p_Value = u"InVal")
-        self.failUnlessEqual(vars["p_Value"].getvalue(), u"InVal TSI (I)")
+                value = u"InVal")
+        self.failUnlessEqual(vars["value"].getvalue(), u"InVal TSI (I)")
 
     def testBindOutVar(self):
         "test binding out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.STRING)
         self.cursor.execute(u"""
                 begin
-                  :p_Value := 'TSI (VAR)';
+                  :value := 'TSI (VAR)';
                 end;""",
-                p_Value = var)
+                value = var)
         self.failUnlessEqual(var.getvalue(), u"TSI (VAR)")
 
     def testBindInOutVarDirectSet(self):
@@ -189,9 +189,9 @@ class TestStringVar(BaseTestCase):
         var.setvalue(0, u"InVal")
         self.cursor.execute(u"""
                 begin
-                  :p_Value := :p_Value || ' TSI (VAR)';
+                  :value := :value || ' TSI (VAR)';
                 end;""",
-                p_Value = var)
+                value = var)
         self.failUnlessEqual(var.getvalue(), u"InVal TSI (VAR)")
 
     def testBindLongString(self):
@@ -207,26 +207,12 @@ class TestStringVar(BaseTestCase):
     def testBindLongStringAfterSettingSize(self):
         "test that setinputsizes() returns a long variable"
         var = self.cursor.setinputsizes(test = 90000)["test"]
-        self.failUnlessEqual(type(var), cx_Oracle.LONG_STRING)
         inString = u"1234567890" * 9000
         var.setvalue(0, inString)
         outString = var.getvalue()
         self.failUnlessEqual(inString, outString,
                 "output does not match: in was %d, out was %d" % \
                 (len(inString), len(outString)))
-
-    def testStringMaximumReached(self):
-        "test that an error is raised when maximum string length exceeded"
-        var = self.cursor.setinputsizes(test = 100)["test"]
-        inString = u"1234567890" * 400
-        var.setvalue(0, inString)
-        outString = var.getvalue()
-        self.failUnlessEqual(inString, outString,
-                "output does not match: in was %d, out was %d" % \
-                (len(inString), len(outString)))
-        badStringSize = 4001
-        inString = u"X" * badStringSize
-        self.failUnlessRaises(ValueError, var.setvalue, 0, inString)
 
     def testCursorDescription(self):
         "test cursor description is accurate"

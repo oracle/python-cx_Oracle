@@ -11,9 +11,9 @@ class TestCursorVar(BaseTestCase):
         self.failUnlessEqual(cursor.description, None)
         self.cursor.execute("""
                 begin
-                  open :p_Cursor for select 'X' StringValue from dual;
+                  open :cursor for select 'X' StringValue from dual;
                 end;""",
-                p_Cursor = cursor)
+                cursor = cursor)
         self.failUnlessEqual(cursor.description,
                 [ ('STRINGVALUE', cx_Oracle.FIXED_CHAR, 1, 1, 0, 0, 1) ])
         self.failUnlessEqual(cursor.fetchall(), [('X',)])

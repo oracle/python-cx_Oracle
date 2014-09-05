@@ -184,18 +184,6 @@ class TestUnicodeVar(BaseTestCase):
                 value = var)
         self.failUnlessEqual(var.getvalue(), u"InVal \u3041 TSI (VAR) \u3042")
 
-    def testUnicodeMaximumReached(self):
-        "test that an error is raised when maximum unicode length exceeded"
-        var = self.cursor.setinputsizes(test = cx_Oracle.UNICODE)["test"]
-        inUnicode = u"1234567890" * 400
-        var.setvalue(0, inUnicode)
-        outUnicode = var.getvalue()
-        self.failUnlessEqual(inUnicode, outUnicode,
-                "output does not match: in was %d, out was %d" % \
-                (len(inUnicode), len(outUnicode)))
-        inUnicode = inUnicode + u"0"
-        self.failUnlessRaises(ValueError, var.setvalue, 0, inUnicode)
-
     def testCursorDescription(self):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestUnicodes")

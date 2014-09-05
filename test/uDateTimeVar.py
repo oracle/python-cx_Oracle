@@ -27,8 +27,8 @@ class TestDateTimeVar(BaseTestCase):
         "test binding in a date"
         self.cursor.execute(u"""
                 select * from TestDates
-                where DateCol = :p_Value""",
-                p_Value = cx_Oracle.Timestamp(2002, 12, 13, 9, 36, 0))
+                where DateCol = :value""",
+                value = cx_Oracle.Timestamp(2002, 12, 13, 9, 36, 0))
         self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
     def testBindDateTime(self):
@@ -41,20 +41,20 @@ class TestDateTimeVar(BaseTestCase):
 
     def testBindDateAfterString(self):
         "test binding in a date after setting input sizes to a string"
-        self.cursor.setinputsizes(p_Value = 15)
+        self.cursor.setinputsizes(value = 15)
         self.cursor.execute(u"""
                 select * from TestDates
-                where DateCol = :p_Value""",
-                p_Value = cx_Oracle.Timestamp(2002, 12, 14, 12, 0, 0))
+                where DateCol = :value""",
+                value = cx_Oracle.Timestamp(2002, 12, 14, 12, 0, 0))
         self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
     def testBindNull(self):
         "test binding in a null"
-        self.cursor.setinputsizes(p_Value = cx_Oracle.DATETIME)
+        self.cursor.setinputsizes(value = cx_Oracle.DATETIME)
         self.cursor.execute(u"""
                 select * from TestDates
-                where DateCol = :p_Value""",
-                p_Value = None)
+                where DateCol = :value""",
+                value = None)
         self.failUnlessEqual(self.cursor.fetchall(), [])
 
     def testBindDateArrayDirect(self):
@@ -63,36 +63,36 @@ class TestDateTimeVar(BaseTestCase):
         array = [r[1] for r in self.rawData]
         statement = u"""
                 begin
-                  :p_ReturnValue := pkg_TestDateArrays.TestInArrays(
-                      :p_StartValue, :p_BaseDate, :p_Array);
+                  :returnValue := pkg_TestDateArrays.TestInArrays(
+                      :startValue, :baseDate, :array);
                 end;"""
         self.cursor.execute(statement,
-                p_ReturnValue = returnValue,
-                p_StartValue = 5,
-                p_BaseDate = cx_Oracle.Date(2002, 12, 12),
-                p_Array = array)
+                returnValue = returnValue,
+                startValue = 5,
+                baseDate = cx_Oracle.Date(2002, 12, 12),
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 35.5)
         array = array + array[:5]
         self.cursor.execute(statement,
-                p_StartValue = 7,
-                p_BaseDate = cx_Oracle.Date(2002, 12, 13),
-                p_Array = array)
+                startValue = 7,
+                baseDate = cx_Oracle.Date(2002, 12, 13),
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 24.0)
 
     def testBindDateArrayBySizes(self):
         "test binding in a date array (with setinputsizes)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        self.cursor.setinputsizes(p_Array = [cx_Oracle.DATETIME, 10])
+        self.cursor.setinputsizes(array = [cx_Oracle.DATETIME, 10])
         array = [r[1] for r in self.rawData]
         self.cursor.execute(u"""
                 begin
-                  :p_ReturnValue := pkg_TestDateArrays.TestInArrays(
-                      :p_StartValue, :p_BaseDate, :p_Array);
+                  :returnValue := pkg_TestDateArrays.TestInArrays(
+                      :startValue, :baseDate, :array);
                 end;""",
-                p_ReturnValue = returnValue,
-                p_StartValue = 6,
-                p_BaseDate = cx_Oracle.Date(2002, 12, 13),
-                p_Array = array)
+                returnValue = returnValue,
+                startValue = 6,
+                baseDate = cx_Oracle.Date(2002, 12, 13),
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 26.5)
 
     def testBindDateArrayByVar(self):
@@ -102,13 +102,13 @@ class TestDateTimeVar(BaseTestCase):
         array.setvalue(0, [r[1] for r in self.rawData])
         self.cursor.execute(u"""
                 begin
-                  :p_ReturnValue := pkg_TestDateArrays.TestInArrays(
-                      :p_StartValue, :p_BaseDate, :p_Array);
+                  :returnValue := pkg_TestDateArrays.TestInArrays(
+                      :startValue, :baseDate, :array);
                 end;""",
-                p_ReturnValue = returnValue,
-                p_StartValue = 7,
-                p_BaseDate = cx_Oracle.Date(2002, 12, 14),
-                p_Array = array)
+                returnValue = returnValue,
+                startValue = 7,
+                baseDate = cx_Oracle.Date(2002, 12, 14),
+                array = array)
         self.failUnlessEqual(returnValue.getvalue(), 17.5)
 
     def testBindInOutDateArrayByVar(self):
@@ -118,10 +118,10 @@ class TestDateTimeVar(BaseTestCase):
         array.setvalue(0, originalData)
         self.cursor.execute(u"""
                 begin
-                  pkg_TestDateArrays.TestInOutArrays(:p_NumElems, :p_Array);
+                  pkg_TestDateArrays.TestInOutArrays(:numElems, :array);
                 end;""",
-                p_NumElems = 5,
-                p_Array = array)
+                numElems = 5,
+                array = array)
         self.failUnlessEqual(array.getvalue(),
                 [ cx_Oracle.Timestamp(2002, 12, 17, 2, 24, 0),
                   cx_Oracle.Timestamp(2002, 12, 18, 4, 48, 0),
@@ -135,10 +135,10 @@ class TestDateTimeVar(BaseTestCase):
         array = self.cursor.arrayvar(cx_Oracle.DATETIME, 6, 100)
         self.cursor.execute(u"""
                 begin
-                  pkg_TestDateArrays.TestOutArrays(:p_NumElems, :p_Array);
+                  pkg_TestDateArrays.TestOutArrays(:numElems, :array);
                 end;""",
-                p_NumElems = 6,
-                p_Array = array)
+                numElems = 6,
+                array = array)
         self.failUnlessEqual(array.getvalue(),
                 [ cx_Oracle.Timestamp(2002, 12, 13, 4, 48, 0),
                   cx_Oracle.Timestamp(2002, 12, 14, 9, 36, 0),
@@ -149,23 +149,23 @@ class TestDateTimeVar(BaseTestCase):
 
     def testBindOutSetInputSizes(self):
         "test binding out with set input sizes defined"
-        vars = self.cursor.setinputsizes(p_Value = cx_Oracle.DATETIME)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.DATETIME)
         self.cursor.execute(u"""
                 begin
-                  :p_Value := to_date(20021209, 'YYYYMMDD');
+                  :value := to_date(20021209, 'YYYYMMDD');
                 end;""")
-        self.failUnlessEqual(vars["p_Value"].getvalue(),
+        self.failUnlessEqual(vars["value"].getvalue(),
                cx_Oracle.Timestamp(2002, 12, 9))
 
     def testBindInOutSetInputSizes(self):
         "test binding in/out with set input sizes defined"
-        vars = self.cursor.setinputsizes(p_Value = cx_Oracle.DATETIME)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.DATETIME)
         self.cursor.execute(u"""
                 begin
-                  :p_Value := :p_Value + 5.25;
+                  :value := :value + 5.25;
                 end;""",
-                p_Value = cx_Oracle.Timestamp(2002, 12, 12, 10, 0, 0))
-        self.failUnlessEqual(vars["p_Value"].getvalue(),
+                value = cx_Oracle.Timestamp(2002, 12, 12, 10, 0, 0))
+        self.failUnlessEqual(vars["value"].getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 17, 16, 0, 0))
 
     def testBindOutVar(self):
@@ -173,10 +173,10 @@ class TestDateTimeVar(BaseTestCase):
         var = self.cursor.var(cx_Oracle.DATETIME)
         self.cursor.execute(u"""
                 begin
-                  :p_Value := to_date('20021231 12:31:00',
+                  :value := to_date('20021231 12:31:00',
                       'YYYYMMDD HH24:MI:SS');
                 end;""",
-                p_Value = var)
+                value = var)
         self.failUnlessEqual(var.getvalue(),
                cx_Oracle.Timestamp(2002, 12, 31, 12, 31, 0))
 
@@ -186,9 +186,9 @@ class TestDateTimeVar(BaseTestCase):
         var.setvalue(0, cx_Oracle.Timestamp(2002, 12, 9, 6, 0, 0))
         self.cursor.execute(u"""
                 begin
-                  :p_Value := :p_Value + 5.25;
+                  :value := :value + 5.25;
                 end;""",
-                p_Value = var)
+                value = var)
         self.failUnlessEqual(var.getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 14, 12, 0, 0))
 

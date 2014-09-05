@@ -190,7 +190,7 @@ static udt_VariableType vt_String = {
     &g_StringVarType,                   // Python type
     SQLT_CHR,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
-    MAX_STRING_CHARS,                   // element length (default)
+    4000,                               // element length (default)
     1,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
@@ -211,7 +211,7 @@ static udt_VariableType vt_NationalCharString = {
     &g_UnicodeVarType,                  // Python type
     SQLT_CHR,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
-    MAX_STRING_CHARS,                   // element length (default)
+    4000,                               // element length (default)
     1,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
@@ -295,7 +295,7 @@ static udt_VariableType vt_Binary = {
     &g_BinaryVarType,                   // Python type
     SQLT_BIN,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
-    MAX_BINARY_BYTES,                   // element length (default)
+    4000,                               // element length (default)
     0,                                  // is character data
     1,                                  // is variable length
     1,                                  // can be copied
@@ -311,12 +311,18 @@ static int StringVar_Initialize(
     udt_StringVar *var,                 // variable to initialize
     udt_Cursor *cursor)                 // cursor to use
 {
-    var->actualLength = (ub2*) PyMem_Malloc(var->allocatedElements *
-            sizeof(ub2));
+    ub4 i;
+
+    var->actualLength = (ACTUAL_LENGTH_TYPE *)
+            PyMem_Malloc(var->allocatedElements * sizeof(ACTUAL_LENGTH_TYPE));
     if (!var->actualLength) {
         PyErr_NoMemory();
         return -1;
     }
+
+    for (i = 0; i < var->allocatedElements; i++)
+        var->actualLength[i] = 0;
+
     return 0;
 }
 
@@ -335,17 +341,6 @@ static int StringVar_SetValue(
     // populate the buffer and confirm the maximum size is not exceeded
     if (cxBuffer_FromObject(&buffer, value, var->environment->encoding) < 0)
         return -1;
-    if (var->type->isCharacterData
-            && buffer.numCharacters > MAX_STRING_CHARS) {
-        cxBuffer_Clear(&buffer);
-        PyErr_SetString(PyExc_ValueError, "string data too large");
-        return -1;
-    } else if (!var->type->isCharacterData
-            && buffer.size > MAX_BINARY_BYTES) {
-        cxBuffer_Clear(&buffer);
-        PyErr_SetString(PyExc_ValueError, "binary data too large");
-        return -1;
-    }
 
     // ensure that the buffer is large enough
     if (buffer.size > var->bufferSize) {
@@ -356,7 +351,7 @@ static int StringVar_SetValue(
     }
 
     // keep a copy of the string
-    var->actualLength[pos] = (ub2) buffer.size;
+    var->actualLength[pos] = (ACTUAL_LENGTH_TYPE) buffer.size;
     if (buffer.size)
         memcpy(var->data + var->bufferSize * pos, buffer.ptr, buffer.size);
     cxBuffer_Clear(&buffer);
