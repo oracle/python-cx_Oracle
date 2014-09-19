@@ -35,7 +35,8 @@ Connection Object
 .. attribute:: Connection.action
 
    This write-only attribute sets the action column in the v$session table and
-   is only available in Oracle 10g.
+   is only available in Oracle 10g. It is a string attribute and cannot be set
+   to None -- use the empty string instead.
 
    .. note::
 
