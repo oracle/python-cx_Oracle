@@ -16,6 +16,16 @@ typedef struct {
 
 
 //-----------------------------------------------------------------------------
+// maximum size of error message string in bytes
+//-----------------------------------------------------------------------------
+#ifdef OCI_ERROR_MAXMSG_SIZE2
+#define ERROR_BUF_SIZE                OCI_ERROR_MAXMSG_SIZE2
+#else
+#define ERROR_BUF_SIZE                OCI_ERROR_MAXMSG_SIZE
+#endif
+
+
+//-----------------------------------------------------------------------------
 // forward declarations
 //-----------------------------------------------------------------------------
 static void Error_Free(udt_Error*);
@@ -80,7 +90,7 @@ static udt_Error *Error_New(
     const char *context,                // context in which error occurred
     int retrieveError)                  // retrieve error from OCI?
 {
-    char errorText[4096];
+    char errorText[ERROR_BUF_SIZE];
     udt_Error *self;
     ub4 handleType;
     dvoid *handle;
