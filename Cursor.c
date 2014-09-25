@@ -50,7 +50,7 @@ static PyObject *Cursor_Close(udt_Cursor*, PyObject*);
 static PyObject *Cursor_CallFunc(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_CallProc(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_Execute(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_ExecuteMany(udt_Cursor*, PyObject*);
+static PyObject *Cursor_ExecuteMany(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_ExecuteManyPrepared(udt_Cursor*, PyObject*);
 static PyObject *Cursor_FetchOne(udt_Cursor*, PyObject*);
 static PyObject *Cursor_FetchMany(udt_Cursor*, PyObject*, PyObject*);
@@ -67,6 +67,9 @@ static PyObject *Cursor_GetDescription(udt_Cursor*, void*);
 static PyObject *Cursor_New(PyTypeObject*, PyObject*, PyObject*);
 static int Cursor_Init(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_Repr(udt_Cursor*);
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+static PyObject *Cursor_GetArrayDMLRowCounts(udt_Cursor*);
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -84,7 +87,8 @@ static PyMethodDef g_CursorMethods[] = {
     { "parse", (PyCFunction) Cursor_Parse, METH_VARARGS },
     { "setinputsizes", (PyCFunction) Cursor_SetInputSizes,
               METH_VARARGS | METH_KEYWORDS },
-    { "executemany", (PyCFunction) Cursor_ExecuteMany, METH_VARARGS },
+    { "executemany", (PyCFunction) Cursor_ExecuteMany,
+              METH_VARARGS | METH_KEYWORDS },
     { "callproc", (PyCFunction) Cursor_CallProc,
               METH_VARARGS  | METH_KEYWORDS },
     { "callfunc", (PyCFunction) Cursor_CallFunc,
@@ -96,6 +100,10 @@ static PyMethodDef g_CursorMethods[] = {
     { "arrayvar", (PyCFunction) Cursor_ArrayVar, METH_VARARGS },
     { "bindnames", (PyCFunction) Cursor_BindNames, METH_NOARGS },
     { "close", (PyCFunction) Cursor_Close, METH_NOARGS },
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+    { "getarraydmlrowcounts", (PyCFunction) Cursor_GetArrayDMLRowCounts,
+              METH_NOARGS },
+#endif    
     { NULL, NULL }
 };
 
@@ -553,7 +561,8 @@ static void Cursor_SetErrorOffset(
 //-----------------------------------------------------------------------------
 static int Cursor_InternalExecute(
     udt_Cursor *self,                   // cursor to perform the execute on
-    ub4 numIters)                       // number of iterations to execute
+    ub4 numIters,                       // number of iterations to execute
+    ub4 additionalMode)                 // additional modes to set
 {
     sword status;
     ub4 mode;
@@ -561,6 +570,7 @@ static int Cursor_InternalExecute(
     if (self->connection->autocommit)
         mode = OCI_COMMIT_ON_SUCCESS;
     else mode = OCI_DEFAULT;
+    mode |= additionalMode;
 
     Py_BEGIN_ALLOW_THREADS
     status = OCIStmtExecute(self->connection->handle, self->handle,
@@ -1637,7 +1647,7 @@ static PyObject *Cursor_Execute(
 
     // execute the statement
     isQuery = (self->statementType == OCI_STMT_SELECT);
-    if (Cursor_InternalExecute(self, isQuery ? 0 : 1) < 0)
+    if (Cursor_InternalExecute(self, isQuery ? 0 : 1, 0) < 0)
         return NULL;
 
     // perform defines, if necessary
@@ -1667,19 +1677,30 @@ static PyObject *Cursor_Execute(
 //-----------------------------------------------------------------------------
 static PyObject *Cursor_ExecuteMany(
     udt_Cursor *self,                   // cursor to execute
-    PyObject *args)                     // arguments
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
+    static char *keywordList[] = { "statement", "parameters",
+            "arraydmlrowcounts", NULL };
     PyObject *arguments, *listOfArguments, *statement;
-    int i, numRows;
+    int i, numRows, arrayDMLRowCountsEnabled = 0;
+    ub4 additionalMode = 0;
 
-    // expect statement text (optional) plus list of mappings
-    if (!PyArg_ParseTuple(args, "OO!", &statement, &PyList_Type,
-            &listOfArguments))
+    // expect statement text (optional) plus list of sequences/mappings
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!|i", keywordList,
+            &statement, &PyList_Type, &listOfArguments,
+            &arrayDMLRowCountsEnabled))
         return NULL;
 
     // make sure the cursor is open
     if (Cursor_IsOpen(self) < 0)
         return NULL;
+
+    // define additional mode, if needed
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+    if (arrayDMLRowCountsEnabled)
+        additionalMode |= OCI_RETURN_ROW_COUNT_ARRAY;
+#endif
 
     // prepare the statement
     if (Cursor_InternalPrepare(self, statement, NULL) < 0)
@@ -1711,7 +1732,7 @@ static PyObject *Cursor_ExecuteMany(
     // execute the statement, but only if the number of rows is greater than
     // zero since Oracle raises an error otherwise
     if (numRows > 0) {
-        if (Cursor_InternalExecute(self, numRows) < 0)
+        if (Cursor_InternalExecute(self, numRows, additionalMode) < 0)
             return NULL;
     }
 
@@ -1757,7 +1778,7 @@ static PyObject *Cursor_ExecuteManyPrepared(
         return NULL;
 
     // execute the statement
-    if (Cursor_InternalExecute(self, numIters) < 0)
+    if (Cursor_InternalExecute(self, numIters, 0) < 0)
         return NULL;
 
     Py_INCREF(Py_None);
@@ -2270,4 +2291,44 @@ static PyObject *Cursor_GetNext(
     // no more rows, return NULL without setting an exception
     return NULL;
 }
+
+
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+//-----------------------------------------------------------------------------
+// Cursor_GetArrayDMLRowCounts
+//    Populates the array dml row count list. Raises error for failure.
+//-----------------------------------------------------------------------------
+static PyObject* Cursor_GetArrayDMLRowCounts(
+    udt_Cursor *self)
+{
+    PyObject *result, *element;
+    ub8 *arrayDMLRowCount;
+    ub4 rowCountArraySize;
+    sword status;
+    int i;
+ 
+    // get number of iterations 
+    status = OCIAttrGet(self->handle, (ub4) OCI_HTYPE_STMT,
+            (ub8 *) &arrayDMLRowCount, &rowCountArraySize,
+            OCI_ATTR_DML_ROW_COUNT_ARRAY, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_GetArrayDMLRowCounts(): row count") < 0)
+        return NULL;
+
+    // return array
+    result = PyList_New(rowCountArraySize);
+    if (!result)
+        return NULL;
+    for (i = 0; i < rowCountArraySize; i++) {
+        element = PyLong_FromUnsignedLong(arrayDMLRowCount[i]);
+        if (!element) {
+            Py_DECREF(result);
+            return NULL;
+        }
+        PyList_SET_ITEM(result, i, element);
+    }
+
+    return result;
+}
+#endif
 

@@ -1071,7 +1071,7 @@ static PyObject *Subscription_RegisterQuery(
     }
 
     // execute the query which registers it
-    if (Cursor_InternalExecute(cursor, 0) < 0) {
+    if (Cursor_InternalExecute(cursor, 0, 0) < 0) {
         Py_DECREF(cursor);
         return NULL;
     }
