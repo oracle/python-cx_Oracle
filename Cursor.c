@@ -67,6 +67,7 @@ static PyObject *Cursor_GetDescription(udt_Cursor*, void*);
 static PyObject *Cursor_New(PyTypeObject*, PyObject*, PyObject*);
 static int Cursor_Init(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_Repr(udt_Cursor*);
+static PyObject* Cursor_GetBatchErrors(udt_Cursor*);
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
 static PyObject *Cursor_GetArrayDMLRowCounts(udt_Cursor*);
 #endif
@@ -100,6 +101,7 @@ static PyMethodDef g_CursorMethods[] = {
     { "arrayvar", (PyCFunction) Cursor_ArrayVar, METH_VARARGS },
     { "bindnames", (PyCFunction) Cursor_BindNames, METH_NOARGS },
     { "close", (PyCFunction) Cursor_Close, METH_NOARGS },
+    { "getbatcherrors", (PyCFunction) Cursor_GetBatchErrors, METH_NOARGS },
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
     { "getarraydmlrowcounts", (PyCFunction) Cursor_GetArrayDMLRowCounts,
               METH_NOARGS },
@@ -1680,16 +1682,16 @@ static PyObject *Cursor_ExecuteMany(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
-    static char *keywordList[] = { "statement", "parameters",
+    static char *keywordList[] = { "statement", "parameters", "batcherrors",
             "arraydmlrowcounts", NULL };
+    int i, numRows, arrayDMLRowCountsEnabled = 0, batchErrorsEnabled = 0;
     PyObject *arguments, *listOfArguments, *statement;
-    int i, numRows, arrayDMLRowCountsEnabled = 0;
     ub4 additionalMode = 0;
 
     // expect statement text (optional) plus list of sequences/mappings
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!|i", keywordList,
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!|ii", keywordList,
             &statement, &PyList_Type, &listOfArguments,
-            &arrayDMLRowCountsEnabled))
+            &batchErrorsEnabled, &arrayDMLRowCountsEnabled))
         return NULL;
 
     // make sure the cursor is open
@@ -1697,6 +1699,8 @@ static PyObject *Cursor_ExecuteMany(
         return NULL;
 
     // define additional mode, if needed
+    if (batchErrorsEnabled)
+        additionalMode |= OCI_BATCH_ERRORS;
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
     if (arrayDMLRowCountsEnabled)
         additionalMode |= OCI_RETURN_ROW_COUNT_ARRAY;
@@ -2290,6 +2294,134 @@ static PyObject *Cursor_GetNext(
 
     // no more rows, return NULL without setting an exception
     return NULL;
+}
+
+
+//-----------------------------------------------------------------------------
+// Cursor_GetBatchErrorsHelper()
+//    Populates the list with the error objects.
+//-----------------------------------------------------------------------------
+static int Cursor_GetBatchErrorsHelper(
+    udt_Cursor *self,                   // cursor object
+    PyObject *listObj,                  // list object to populate
+    ub8 numBatchErrors,                 // number of batch errors
+    OCIError *errorHandle,              // first error handle
+    OCIError *localErrorHandle)         // second (local) error handle
+{
+    char errorText[ERROR_BUF_SIZE];
+    sb4 rowOffset, errorCode;
+#if PY_MAJOR_VERSION >= 3
+    Py_ssize_t errorLength;
+#endif
+    udt_Error *errorObj;
+    sword status;
+    ub8 i;
+
+    for (i = 0; i < numBatchErrors; i++) {
+
+        // fetch batch error for iteration
+        status = OCIParamGet(self->environment->errorHandle, OCI_HTYPE_ERROR,
+                errorHandle, (void **) &localErrorHandle, i);
+        if (Environment_CheckForError(self->environment, status,
+                "Cursor_GetBatchErrorsHelper(): get parameter") < 0)
+            return -1;
+
+        // determine row offset
+        status = OCIAttrGet(localErrorHandle, OCI_HTYPE_ERROR, &rowOffset, 0,
+                OCI_ATTR_DML_ROW_OFFSET, errorHandle);
+        if (Environment_CheckForError(self->environment, status,
+                "Cursor_GetBatchErrorsHelper(): get row offset") < 0)
+            return -1;
+
+        // determine error text
+        OCIErrorGet(localErrorHandle, 1, 0, &errorCode,
+                (text*) errorText, (ub4) sizeof(errorText),
+                (ub4) OCI_HTYPE_ERROR);
+
+        // create error object
+        errorObj = Error_New(self->environment, "Batch Error", 0);
+        if (!errorObj)
+            return -1;
+        errorObj->code = errorCode;
+        errorObj->offset = rowOffset;
+#if PY_MAJOR_VERSION < 3
+        errorObj->message = PyBytes_FromString(errorText);
+#else
+        errorLength = strlen(errorText);
+        errorObj->message = PyUnicode_Decode(errorText, errorLength,
+                self->environment->encoding, NULL);
+#endif
+        if (!errorObj->message) {
+            Py_DECREF(errorObj);
+            return -1;
+        }
+
+        // populate list
+        PyList_SET_ITEM(listObj, i, (PyObject*) errorObj);
+
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// Cursor_GetBatchErrors()
+//    Returns a list of batch error objects.
+//-----------------------------------------------------------------------------
+static PyObject* Cursor_GetBatchErrors(
+    udt_Cursor *self)
+{
+    OCIError *errorHandle, *localErrorHandle;
+    ub8 numBatchErrors;
+    PyObject *result;
+    sword status;
+
+    // determine the number of errors
+    status = OCIAttrGet(self->handle, (ub4) OCI_HTYPE_STMT,
+            (ub8 *) &numBatchErrors, 0, OCI_ATTR_NUM_DML_ERRORS,
+            self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_GetBatchErrors(): get number of errors") < 0)
+        return NULL;
+
+    // create list and if no errors, simply return immediately
+    result = PyList_New(numBatchErrors);
+    if (!result)
+        return NULL;
+    if (numBatchErrors == 0)
+        return result;
+
+    // allocate first error handle
+    status = OCIHandleAlloc((void *) self->environment->handle,
+            (void **) &errorHandle, (ub4) OCI_HTYPE_ERROR, 0, (void *) 0);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_GetBatchErrors(): allocate first error handle") < 0) {
+        Py_DECREF(result);
+        return NULL;
+    }
+
+    // allocate second (local) error handle
+    status = OCIHandleAlloc((void *) self->environment->handle,
+            (void **) &localErrorHandle, (ub4) OCI_HTYPE_ERROR, 0, (void *) 0);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_GetBatchErrors(): allocate second error handle") < 0) {
+        Py_DECREF(result);
+        OCIHandleFree(errorHandle, OCI_HTYPE_ERROR);
+        return NULL;
+    }
+
+    // create error objects
+    if (Cursor_GetBatchErrorsHelper(self, result, numBatchErrors, errorHandle,
+            localErrorHandle) < 0) {
+        Py_DECREF(result);
+        result = NULL;
+    }
+
+    // cleanup and return result
+    OCIHandleFree(errorHandle, OCI_HTYPE_ERROR);
+    OCIHandleFree(localErrorHandle, OCI_HTYPE_ERROR);
+    return result;
 }
 
 
