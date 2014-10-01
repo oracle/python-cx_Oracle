@@ -2304,7 +2304,7 @@ static PyObject *Cursor_GetNext(
 static int Cursor_GetBatchErrorsHelper(
     udt_Cursor *self,                   // cursor object
     PyObject *listObj,                  // list object to populate
-    ub8 numBatchErrors,                 // number of batch errors
+    ub4 numBatchErrors,                 // number of batch errors
     OCIError *errorHandle,              // first error handle
     OCIError *localErrorHandle)         // second (local) error handle
 {
@@ -2315,7 +2315,7 @@ static int Cursor_GetBatchErrorsHelper(
 #endif
     udt_Error *errorObj;
     sword status;
-    ub8 i;
+    ub4 i;
 
     for (i = 0; i < numBatchErrors; i++) {
 
@@ -2373,13 +2373,13 @@ static PyObject* Cursor_GetBatchErrors(
     udt_Cursor *self)
 {
     OCIError *errorHandle, *localErrorHandle;
-    ub8 numBatchErrors;
+    ub4 numBatchErrors;
     PyObject *result;
     sword status;
 
     // determine the number of errors
     status = OCIAttrGet(self->handle, (ub4) OCI_HTYPE_STMT,
-            (ub8 *) &numBatchErrors, 0, OCI_ATTR_NUM_DML_ERRORS,
+            (ub4 *) &numBatchErrors, 0, OCI_ATTR_NUM_DML_ERRORS,
             self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
             "Cursor_GetBatchErrors(): get number of errors") < 0)
