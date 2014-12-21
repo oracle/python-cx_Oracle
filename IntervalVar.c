@@ -138,7 +138,7 @@ static int IntervalVar_SetValue(
     seconds -= minutes * 60;
     status = OCIIntervalSetDaySecond(var->environment->handle,
             var->environment->errorHandle, delta->days, hours, minutes,
-            seconds, delta->microseconds, var->data[pos]);
+            seconds, delta->microseconds*1000, var->data[pos]);
     if (Environment_CheckForError(var->environment, status,
                 "IntervalVar_SetValue()") < 0)
         return -1;
