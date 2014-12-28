@@ -61,6 +61,18 @@ class TestIntervalVar(BaseTestCase):
         self.failUnlessEqual(vars["value"].getvalue(),
                 datetime.timedelta(days = 10, hours = 10, minutes = 45))
 
+    def testBindInOutFractionalSecond(self):
+        "test binding in/out with set input sizes defined"
+        vars = self.cursor.setinputsizes(value = cx_Oracle.INTERVAL)
+        self.cursor.execute("""
+                begin
+                  :value := :value + to_dsinterval('5 08:30:00');
+                end;""",
+                value = datetime.timedelta(days = 5, seconds=12.123789))
+        self.failUnlessEqual(vars["value"].getvalue(),
+                datetime.timedelta(days = 10, hours = 8, minutes = 30,
+                                   seconds=12, microseconds=123789))
+
     def testBindOutVar(self):
         "test binding out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.INTERVAL)
