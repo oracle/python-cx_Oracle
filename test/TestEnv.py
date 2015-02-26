@@ -5,6 +5,9 @@ import os
 import sys
 import unittest
 
+lang = os.environ.get("NLS_LANG")
+if lang is None:
+    os.environ["NLS_LANG"] = ".UTF8"
 if sys.version_info[0] < 3:
     input = raw_input
 
