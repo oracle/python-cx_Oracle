@@ -2308,12 +2308,8 @@ static int Cursor_GetBatchErrorsHelper(
     OCIError *errorHandle,              // first error handle
     OCIError *localErrorHandle)         // second (local) error handle
 {
-    char errorText[ERROR_BUF_SIZE];
-    sb4 rowOffset, errorCode;
-#if PY_MAJOR_VERSION >= 3
-    Py_ssize_t errorLength;
-#endif
     udt_Error *errorObj;
+    sb4 rowOffset;
     sword status;
     ub4 i;
 
@@ -2322,39 +2318,25 @@ static int Cursor_GetBatchErrorsHelper(
         // fetch batch error for iteration
         status = OCIParamGet(self->environment->errorHandle, OCI_HTYPE_ERROR,
                 errorHandle, (void **) &localErrorHandle, i);
-        if (Environment_CheckForError(self->environment, status,
-                "Cursor_GetBatchErrorsHelper(): get parameter") < 0)
+        if (Error_Check(self->environment, status, 
+                "Cursor_GetBatchErrorsHelper(): get parameter",
+                errorHandle) < 0)
             return -1;
 
         // determine row offset
         status = OCIAttrGet(localErrorHandle, OCI_HTYPE_ERROR, &rowOffset, 0,
                 OCI_ATTR_DML_ROW_OFFSET, errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Cursor_GetBatchErrorsHelper(): get row offset") < 0)
+        if (Error_Check(self->environment, status, 
+                "Cursor_GetBatchErrorsHelper(): get row offset",
+                errorHandle) < 0)
             return -1;
 
-        // determine error text
-        OCIErrorGet(localErrorHandle, 1, 0, &errorCode,
-                (text*) errorText, (ub4) sizeof(errorText),
-                (ub4) OCI_HTYPE_ERROR);
-
-        // create error object
-        errorObj = Error_New(self->environment, "Batch Error", 0);
+        // determine error object
+        errorObj = Error_New(self->environment, "Batch Error", OCI_HTYPE_ERROR,
+                localErrorHandle);
         if (!errorObj)
             return -1;
-        errorObj->code = errorCode;
         errorObj->offset = rowOffset;
-#if PY_MAJOR_VERSION < 3
-        errorObj->message = PyBytes_FromString(errorText);
-#else
-        errorLength = strlen(errorText);
-        errorObj->message = PyUnicode_Decode(errorText, errorLength,
-                self->environment->encoding, NULL);
-#endif
-        if (!errorObj->message) {
-            Py_DECREF(errorObj);
-            return -1;
-        }
 
         // populate list
         PyList_SET_ITEM(listObj, i, (PyObject*) errorObj);

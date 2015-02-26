@@ -65,6 +65,7 @@ static udt_Environment *Environment_New(
     OCIEnv *handle)                     // handle to use
 {
     udt_Environment *env;
+    udt_Error *errorObj;
     sword status;
 
     // create a new object for the Oracle environment
@@ -83,8 +84,14 @@ static udt_Environment *Environment_New(
     // create the error handle
     status = OCIHandleAlloc(handle, (dvoid**) &env->errorHandle,
             OCI_HTYPE_ERROR, 0, 0);
-    if (Environment_CheckForError(env, status,
-            "Environment_New(): create error handle") < 0) {
+    if (status != OCI_SUCCESS) {
+        errorObj = Error_New(env, "Environment_New(): create error handle",
+                OCI_HTYPE_ENV, handle);
+        if (!errorObj) {
+            Py_DECREF(env);
+            return NULL;
+        }
+        PyErr_SetObject(g_DatabaseErrorException, (PyObject*) errorObj);
         Py_DECREF(env);
         return NULL;
     }
@@ -308,67 +315,6 @@ static void Environment_Free(
 
 
 //-----------------------------------------------------------------------------
-// Environment_RaiseError()
-//   Reads the error that was caused by the last Oracle statement and raise an
-// exception for Python. At this point it is assumed that the Oracle
-// environment is fully initialized.
-//-----------------------------------------------------------------------------
-static int Environment_RaiseError(
-    udt_Environment *environment,       // environment to raise error for
-    const char *context)                // context in which error occurred
-{
-    PyObject *exceptionType;
-    udt_Error *error;
-
-    error = Error_New(environment, context, 1);
-    if (error) {
-        switch (error->code) {
-            case 1:
-            case 1400:
-            case 2290:
-            case 2291:
-            case 2292:
-                exceptionType = g_IntegrityErrorException;
-                break;
-            case 22:
-            case 378:
-            case 602:
-            case 603:
-            case 604:
-            case 609:
-            case 1012:
-            case 1013:
-            case 1033:
-            case 1034:
-            case 1041:
-            case 1043:
-            case 1089:
-            case 1090:
-            case 1092:
-            case 3113:
-            case 3114:
-            case 3122:
-            case 3135:
-            case 12153:
-            case 12203:
-            case 12500:
-            case 12571:
-            case 27146:
-            case 28511:
-                exceptionType = g_OperationalErrorException;
-                break;
-            default:
-                exceptionType = g_DatabaseErrorException;
-                break;
-        }
-        PyErr_SetObject(exceptionType, (PyObject*) error);
-        Py_DECREF(error);
-    }
-    return -1;
-}
-
-
-//-----------------------------------------------------------------------------
 // Environment_CheckForError()
 //   Check for an error in the last call and if an error has occurred, raise a
 // Python exception.
@@ -378,21 +324,6 @@ static int Environment_CheckForError(
     sword status,                       // status of last call
     const char *context)                // context
 {
-    udt_Error *error;
-
-    if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO) {
-        if (status != OCI_INVALID_HANDLE)
-            return Environment_RaiseError(environment, context);
-        error = Error_New(environment, context, 0);
-        if (!error)
-            return -1;
-        error->code = 0;
-        error->message = cxString_FromAscii("Invalid handle!");
-        if (!error->message)
-            Py_DECREF(error);
-        else PyErr_SetObject(g_DatabaseErrorException, (PyObject*) error);
-        return -1;
-    }
-    return 0;
+    return Error_Check(environment, status, context, environment->errorHandle);
 }
 

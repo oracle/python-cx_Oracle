@@ -88,12 +88,11 @@ static PyTypeObject g_ErrorType = {
 static udt_Error *Error_New(
     udt_Environment *environment,       // environment object
     const char *context,                // context in which error occurred
-    int retrieveError)                  // retrieve error from OCI?
+    ub4 handleType,                     // handle type
+    dvoid* handle)                      // handle
 {
     char errorText[ERROR_BUF_SIZE];
     udt_Error *self;
-    ub4 handleType;
-    dvoid *handle;
     sword status;
 #if PY_MAJOR_VERSION >= 3
     Py_ssize_t len;
@@ -103,14 +102,8 @@ static udt_Error *Error_New(
     if (!self)
         return NULL;
     self->context = context;
-    if (retrieveError) {
-        if (environment->errorHandle) {
-            handle = environment->errorHandle;
-            handleType = OCI_HTYPE_ERROR;
-        } else {
-            handle = environment->handle;
-            handleType = OCI_HTYPE_ENV;
-        }
+
+    if (handle) {
         status = OCIErrorGet(handle, 1, 0, &self->code,
                 (unsigned char*) errorText, sizeof(errorText), handleType);
         if (status != OCI_SUCCESS) {
@@ -159,5 +152,96 @@ static PyObject *Error_Str(
         return self->message;
     }
     return cxString_FromAscii("");
+}
+
+
+//-----------------------------------------------------------------------------
+// Error_Raise()
+//   Reads the error that was caused by the last Oracle statement and raise an
+// exception for Python. Return -1 as a convenience to the caller.
+//-----------------------------------------------------------------------------
+static int Error_Raise(
+    udt_Environment *environment,       // environment object
+    const char *context,                // context in which error occurred
+    OCIError* errorHandle)              // handle
+{
+    PyObject *exceptionType;
+    udt_Error *error;
+
+    error = Error_New(environment, context, OCI_HTYPE_ERROR, errorHandle);
+    if (error) {
+        switch (error->code) {
+            case 1:
+            case 1400:
+            case 2290:
+            case 2291:
+            case 2292:
+                exceptionType = g_IntegrityErrorException;
+                break;
+            case 22:
+            case 378:
+            case 602:
+            case 603:
+            case 604:
+            case 609:
+            case 1012:
+            case 1013:
+            case 1033:
+            case 1034:
+            case 1041:
+            case 1043:
+            case 1089:
+            case 1090:
+            case 1092:
+            case 3113:
+            case 3114:
+            case 3122:
+            case 3135:
+            case 12153:
+            case 12203:
+            case 12500:
+            case 12571:
+            case 27146:
+            case 28511:
+                exceptionType = g_OperationalErrorException;
+                break;
+            default:
+                exceptionType = g_DatabaseErrorException;
+                break;
+        }
+        PyErr_SetObject(exceptionType, (PyObject*) error);
+        Py_DECREF(error);
+    }
+    return -1;
+}
+
+
+//-----------------------------------------------------------------------------
+// Error_Check()
+//   Check for an error in the last call and if an error has occurred, raise a
+// Python exception.
+//-----------------------------------------------------------------------------
+static int Error_Check(
+    udt_Environment *environment,       // environment to raise error in
+    sword status,                       // status of last call
+    const char *context,                // context
+    OCIError *errorHandle)              // error handle to use
+{
+    udt_Error *error;
+
+    if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO) {
+        if (status != OCI_INVALID_HANDLE)
+            return Error_Raise(environment, context, errorHandle);
+        error = Error_New(environment, context, 0, NULL);
+        if (!error)
+            return -1;
+        error->code = 0;
+        error->message = cxString_FromAscii("Invalid handle!");
+        if (!error->message)
+            Py_DECREF(error);
+        else PyErr_SetObject(g_DatabaseErrorException, (PyObject*) error);
+        return -1;
+    }
+    return 0;
 }
 
