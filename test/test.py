@@ -6,7 +6,8 @@ import os
 import sys
 import unittest
 
-print "Running tests for cx_Oracle version", cx_Oracle.version
+print "Running tests for cx_Oracle version", cx_Oracle.version,
+print cx_Oracle.buildtime
 
 import TestEnv
 
