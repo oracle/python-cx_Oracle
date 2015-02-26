@@ -107,7 +107,17 @@ create table cx_Oracle.TestLongRaws (
 
 create table cx_Oracle.TestExecuteMany (
   IntCol                number(9) not null,
-  StringCol             varchar2(100)
+  StringCol             varchar2(100),
+  constraint TestExecuteMany_pk primary key (IntCol)
+      using index tablespace users
+) tablespace users;
+
+create table cx_Oracle.TestArrayDML (
+  IntCol                number(9) not null,
+  StringCol             varchar2(100),
+  IntCol2               number(3),
+  constraint TestArrayDML_pk primary key (IntCol)
+      using index tablespace users
 ) tablespace users;
 
 create table cx_Oracle.TestObjects (
@@ -127,12 +137,6 @@ create table cx_Oracle.TestIntervals (
   IntervalCol           interval day to second not null,
   NullableCol           interval day to second
 ) tablespace users;
-
-alter table cx_Oracle.testexecutemany
-add constraint testexecutemany_pk
-primary key (
-  intcol
-) using index tablespace users;
 
 -- populate tables
 begin
