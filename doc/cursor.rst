@@ -169,7 +169,7 @@ Cursor Object
    When true, the batcherrors parameter enables batch error support within
    Oracle and ensures that the call succeeds even if an exception takes place
    in one or more of the sequence of parameters. The errors can then be
-   retrieved using :method:`~Cursor.getbatcherrors()`.
+   retrieved using :meth:`~Cursor.getbatcherrors()`.
 
    When true, the arraydmlrowcounts parameter enables DML row counts to be
    retrieved from Oracle after the method has completed. The row counts can
