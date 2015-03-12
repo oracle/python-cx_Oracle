@@ -33,15 +33,15 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'cx_Oracle'
-copyright = '2014, Anthony Tuininga'
+copyright = '2015, Anthony Tuininga'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '5.1'
+version = '5.2'
 # The full version, including alpha/beta/rc tags.
-release = '5.1.3'
+release = '5.2'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
