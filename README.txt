@@ -26,15 +26,14 @@ Place the file cx_Oracle.pyd or cx_Oracle.so anywhere on your Python path.
 
 Source Install
 --------------
-This module has been built with Oracle 9.2.0, 10.2.0, 11.1.0 on Linux,
-Solaris and Windows. Others have reported success with other platforms
-such as Mac OS X.
+This module has been built with Oracle 10g, 11g and 12c on Linux and Windows.
+Others have reported success with other platforms such as Mac OS X.
 
-Use the provided setup.py to build and install the module which makes use of 
-the distutils module. Note that on Windows, I have used mingw32 
-(http://www.mingw.org) and the module will not build with MSVC without 
-modification. The commands required to build and install the module are as 
-follows:
+For simplified installation use pip
+
+    pip install cx_Oracle
+
+Otherwise, you can use the provided setup.py to build and install the module
 
     python setup.py build
     python setup.py install

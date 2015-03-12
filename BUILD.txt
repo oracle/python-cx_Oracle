@@ -3,7 +3,9 @@ Linux Build Hints
 (Tested on RedHat 4.x, Gentoo 2008.0, Ubuntu 8.x, and Debian 4.x)
 These hints are based on using Oracle's instantclient_11_1.  It is necessary
 to download both 'instantclient-linux-basic' and 'instantclient-sdk-linux' from
-oracle.com in order to successfully compile.  
+oracle.com in order to successfully compile. Note, however, that if using RPMs
+you do not need to do anything as cx_Oracle will compile out of the box without
+any changes to the configuration of the machine.
 
 http://www.oracle.com/technology/software/tech/oci/instantclient/index.html
 
