@@ -26,6 +26,7 @@ import os
 import re
 import struct
 import sys
+import glob
 
 from distutils.errors import DistutilsSetupError
 
@@ -120,6 +121,38 @@ def CheckOracleHome(directoryToCheck):
     oracleHome = oracleVersion = oracleLibDir = None
     return False
 
+# Look for the highest version Instant Client "basic" or "basiclite" RPM
+# Newer Instant Client dirs have the form:
+#    /usr/lib/oracle/12.1/client[64]/lib
+# Older Instant Client dirs have the form:
+#    /usr/lib/oracle/10.2.0.5/client[64]/lib
+def FindInstantClientRPMLib():
+    versions = []
+    for path in glob.glob(os.path.join(rpmBaseLibDir, "[0-9.]*")):
+        versions.append(os.path.basename(path))
+    versions.sort(key = lambda x: [int(s) for s in x.split(".")])
+    versions.reverse()
+    for version in versions:
+        path = os.path.join(rpmBaseLibDir, version, rpmClientDir, "lib")
+        if os.path.exists(path) and CheckOracleHome(path):
+            return path
+
+# If the lib dir appears to be an Instant Client RPM dir, then look only
+# for matching SDK headers
+def FindInstantClientRPMInclude(libDir):
+    version = os.path.basename(os.path.dirname(os.path.dirname(libDir)))
+    includeDir = os.path.join("/usr/include/oracle", version, rpmClientDir)
+    if os.path.isfile(os.path.join(includeDir, "oci.h")):
+        return [includeDir]
+    raise DistutilsSetupError("cannot locate Oracle Instant Client " \
+            "SDK RPM header files")
+
+# define Linux Instant Client RPM path components
+# Assume 64 bit builds if the platform is 64 bit
+rpmBaseLibDir = "/usr/lib/oracle"
+rpmClientDir = "client" if struct.calcsize("P") == 4 else "client64"
+instantClientRPMLib = None
+
 # try to determine the Oracle home
 userOracleHome = os.environ.get("ORACLE_HOME")
 if userOracleHome is not None:
@@ -131,6 +164,8 @@ else:
     for path in os.environ["PATH"].split(os.pathsep):
         if CheckOracleHome(path):
             break
+    if oracleHome is None and sys.platform.startswith("linux"):
+        instantClientRPMLib = FindInstantClientRPMLib()
     if oracleHome is None:
         raise DistutilsSetupError("cannot locate an Oracle software " \
                 "installation")
@@ -162,25 +197,28 @@ elif sys.platform == "cygwin":
 else:
     libDirs = [oracleLibDir]
     libs = ["clntsh"]
-    possibleIncludeDirs = ["rdbms/demo", "rdbms/public", "network/public",
-            "sdk/include"]
-    if sys.platform == "darwin":
-        possibleIncludeDirs.append("plsql/public")
-    includeDirs = []
-    for dir in possibleIncludeDirs:
-        path = os.path.join(oracleHome, dir)
-        if os.path.isdir(path):
-            includeDirs.append(path)
-    if not includeDirs:
-        path = os.path.join(oracleLibDir, "include")
-        if os.path.isdir(path):
-            includeDirs.append(path)
-    if not includeDirs:
-        path = re.sub("lib(64)?", "include", oracleHome)
-        if os.path.isdir(path):
-            includeDirs.append(path)
-    if not includeDirs:
-        raise DistutilsSetupError("cannot locate Oracle include files")
+    if instantClientRPMLib is not None:
+        includeDirs = FindInstantClientRPMInclude(instantClientRPMLib)
+    else:
+        possibleIncludeDirs = ["rdbms/demo", "rdbms/public", "network/public",
+                "sdk/include"]
+        if sys.platform == "darwin":
+            possibleIncludeDirs.append("plsql/public")
+        includeDirs = []
+        for dir in possibleIncludeDirs:
+            path = os.path.join(oracleHome, dir)
+            if os.path.isdir(path):
+                includeDirs.append(path)
+        if not includeDirs:
+            path = os.path.join(oracleLibDir, "include")
+            if os.path.isdir(path):
+                includeDirs.append(path)
+        if not includeDirs:
+            path = re.sub("lib(64)?", "include", oracleHome)
+            if os.path.isdir(path):
+                includeDirs.append(path)
+        if not includeDirs:
+            raise DistutilsSetupError("cannot locate Oracle include files")
 
 # NOTE: on HP-UX Itanium with Oracle 10g you need to add the library "ttsh10"
 # to the list of libraries along with "clntsh"; since I am unable to test, I'll
@@ -203,7 +241,7 @@ elif sys.platform == "darwin":
 # force the inclusion of an RPATH linker directive if desired; this will
 # eliminate the need for setting LD_LIBRARY_PATH but it also means that this
 # location will be the only location searched for the Oracle client library
-if "FORCE_RPATH" in os.environ:
+if "FORCE_RPATH" in os.environ or instantClientRPMLib:
     extraLinkArgs.append("-Wl,-rpath,%s" % oracleLibDir)
 
 # tweak distribution full name to include the Oracle version

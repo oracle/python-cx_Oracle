@@ -12,14 +12,16 @@ Version 5.2
 2)  Added support for getting array DML row counts (new in Oracle 12c).
 3)  Added support for fetching batch errors.
 4)  Added support for connections as SYSASM.
-5)  Exposed the UNICODE, FIXED_UNICODE and LONG_UNICODE types in Python 3 so
+5)  Added support for building without any configuration changes to the machine
+    when using instant client RPMs on Linux.
+6)  Exposed the UNICODE, FIXED_UNICODE and LONG_UNICODE types in Python 3 so
     that they can be used to directly specify the use of the NCHAR type fields
     when binding or using setinputsizes().
-6)  Fixed binding of booleans in Python 3.x.
-7)  Fixed handling of datetime intervals.
-8)  Test suite now sets NLS_LANG if not already set.
-9)  Enhanced documentation for connection.action attribute.
-10) Ensure that sessions are released to the pool when calling
+7)  Fixed binding of booleans in Python 3.x.
+8)  Fixed handling of datetime intervals.
+9)  Test suite now sets NLS_LANG if not already set.
+10) Enhanced documentation for connection.action attribute.
+11) Ensure that sessions are released to the pool when calling
     connection.close()
     (`Issue #2 <https://bitbucket.org/anthony_tuininga/cx_oracle/issue/2/use-of-cclass-causes-connection-leaks>`_)
 
