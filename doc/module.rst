@@ -683,9 +683,7 @@ Types
 
    .. note::
 
-      This type is an extension to the DB API definition and is only available
-      in Python 2.x. In Python 3.x these types of columns are returned as
-      FIXED_CHAR.
+      This type is an extension to the DB API definition.
 
 
 .. data:: INTERVAL
@@ -802,9 +800,7 @@ Types
 
    .. note::
 
-      This type is an extension to the DB API definition and is only available
-      in Python 2.x. In Python 3.x these types of columns are returned as
-      STRING.
+      This type is an extension to the DB API definition.
 
 
 .. _exceptions:
