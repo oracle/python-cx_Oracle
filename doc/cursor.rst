@@ -159,12 +159,21 @@ Cursor Object
       ::The DB API definition does not define the return value of this method.
 
 
-.. method:: Cursor.executemany(statement, parameters)
+.. method:: Cursor.executemany(statement, parameters, batcherrors=False, arraydmlrowcounts=False)
 
    Prepare a statement for execution against a database and then execute it
    against all parameter mappings or sequences found in the sequence
    parameters. The statement is managed in the same way as the execute()
    method manages it.
+
+   When true, the batcherrors parameter enables batch error support within
+   Oracle and ensures that the call succeeds even if an exception takes place
+   in one or more of the sequence of parameters. The errors can then be
+   retrieved using :method:`~Cursor.getbatcherrors()`.
+
+   When true, the arraydmlrowcounts parameter enables DML row counts to be
+   retrieved from Oracle after the method has completed. The row counts can
+   then be retrieved using :meth:`~Cursor.getarraydmlrowcounts()`.
 
 
 .. method:: Cursor.executemanyprepared(numIters)
@@ -240,6 +249,31 @@ Cursor Object
    .. note::
 
       The DB API definition does not define this attribute.
+
+
+.. method:: Cursor.getarraydmlrowcounts()
+
+   Retrieve the DML row counts after a call to :meth:`~Cursor.executemany()`
+   with arraydmlrowcounts enabled. This will return a list of integers
+   corresponding to the number of rows affected by the DML statement for each
+   element of the array passed to :meth:`~Cursor.executemany()`.
+
+   .. note::
+
+      The DB API definition does not define this method and is only available
+      for Oracle 12c.
+
+
+.. method:: Cursor.getbatcherrors()
+
+   Retrieve the exceptions that took place after a call to
+   :meth:`~Cursor.executemany()` with batcherors enabled. This will return a
+   list of Error objects, one error for each iteration that failed. The offset
+   can be determined by looking at the offset attribute of the error object.
+
+   .. note::
+
+      The DB API definition does not define this method.
 
 
 .. attribute:: Cursor.inputtypehandler
