@@ -886,7 +886,7 @@ Exception handling
 
    With cx_Oracle every exception object has exactly one argument in the
    ``args`` tuple. This argument is a ``cx_Oracle._Error`` object which has
-   the following three read-only attributes.
+   the following four read-only attributes.
 
 .. attribute:: _Error.code
 
