@@ -165,12 +165,21 @@ static int ExternalLobVar_Verify(
 static int ExternalLobVar_InternalRead(
     udt_ExternalLobVar *var,            // variable to return the size of
     char *buffer,                       // buffer in which to put data
-    ub4 bufferSize,                     // size of buffer
-    ub4 *length,                        // length of data (IN/OUT)
-    int offset)                         // offset
+    oraub8 bufferSize,                  // size of buffer
+    oraub8 *length,                     // length of data (IN/OUT)
+    oraub8 offset)                      // offset
 {
+    oraub8 lengthInBytes, lengthInChars;
     ub2 charsetId;
     sword status;
+
+    if (var->lobVar->type == &vt_NCLOB || var->lobVar->type == &vt_CLOB) {
+        lengthInBytes = 0;
+        lengthInChars = *length;
+    } else {
+        lengthInChars = 0;
+        lengthInBytes = *length;
+    }
 
     if (var->lobVar->isFile) {
         Py_BEGIN_ALLOW_THREADS
@@ -187,18 +196,27 @@ static int ExternalLobVar_InternalRead(
     if (var->lobVar->type == &vt_NCLOB)
         charsetId = OCI_UTF16ID;
     else charsetId = 0;
-    status = OCILobRead(var->lobVar->connection->handle,
-            var->lobVar->environment->errorHandle,
-            var->lobVar->data[var->pos], length, offset, buffer,
-            bufferSize, NULL, NULL, charsetId, var->lobVar->type->charsetForm); 
+    status = OCILobRead2(var->lobVar->connection->handle,
+            var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
+            &lengthInBytes, &lengthInChars, offset, buffer, bufferSize,
+            OCI_ONE_PIECE, NULL, NULL, charsetId,
+            var->lobVar->type->charsetForm);
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_LobRead()") < 0) {
-        OCILobFileClose(var->lobVar->connection->handle,
-                var->lobVar->environment->errorHandle,
-                var->lobVar->data[var->pos]);
+        if (var->lobVar->isFile) {
+            Py_BEGIN_ALLOW_THREADS
+            OCILobFileClose(var->lobVar->connection->handle,
+                    var->lobVar->environment->errorHandle,
+                    var->lobVar->data[var->pos]);
+            Py_END_ALLOW_THREADS
+        }
         return -1;
     }
+
+    if (var->lobVar->type == &vt_NCLOB || var->lobVar->type == &vt_CLOB)
+        *length = lengthInChars;
+    else *length = lengthInBytes;
 
     if (var->lobVar->isFile) {
         Py_BEGIN_ALLOW_THREADS
@@ -220,21 +238,21 @@ static int ExternalLobVar_InternalRead(
 //   Return the size of the LOB variable for internal comsumption.
 //-----------------------------------------------------------------------------
 static int ExternalLobVar_InternalSize(
-    udt_ExternalLobVar *var)            // variable to return the size of
+    udt_ExternalLobVar *var,            // variable to return the size of
+    oraub8 *length)                     // length to return
 {
     sword status;
-    ub4 length;
 
     Py_BEGIN_ALLOW_THREADS
-    status = OCILobGetLength(var->lobVar->connection->handle,
+    status = OCILobGetLength2(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle,
-            var->lobVar->data[var->pos], &length);
+            var->lobVar->data[var->pos], length);
     Py_END_ALLOW_THREADS
     if (Environment_CheckForError(var->lobVar->environment, status,
             "ExternalLobVar_InternalSize()") < 0)
         return -1;
 
-    return length;
+    return 0;
 }
 
 
@@ -244,23 +262,20 @@ static int ExternalLobVar_InternalSize(
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_Value(
     udt_ExternalLobVar *var,            // variable to return the size of
-    int offset,                         // offset into LOB
-    int amount)                         // amount to read from LOB
+    oraub8 offset,                      // offset into LOB
+    oraub8 amount)                      // amount to read from LOB
 {
-    ub4 length, bufferSize;
+    oraub8 length, bufferSize;
     PyObject *result;
     char *buffer;
 
     // modify the arguments
-    if (offset < 0)
-        offset = 1;
-    if (amount < 0) {
-        amount = ExternalLobVar_InternalSize(var);
-        if (amount < 0)
+    if (amount == (oraub8)(-1)) {
+        if (ExternalLobVar_InternalSize(var, &amount) < 0)
             return NULL;
-        amount = amount - offset + 1;
-        if (amount <= 0)
-            amount = 1;
+        if (amount >= offset)
+            amount = amount - offset + 1;
+        else amount = 1;
     }
     length = amount;
     if (var->lobVar->type == &vt_CLOB)
@@ -303,14 +318,13 @@ static PyObject *ExternalLobVar_Size(
     udt_ExternalLobVar *var,            // variable to return the size of
     PyObject *args)                     // arguments
 {
-    int length;
+    oraub8 length;
 
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
-    length = ExternalLobVar_InternalSize(var);
-    if (length < 0)
+    if (ExternalLobVar_InternalSize(var, &length) < 0)
         return NULL;
-    return PyInt_FromLong(length);
+    return PyLong_FromUnsignedLong(length);
 }
 
 
@@ -374,11 +388,12 @@ static PyObject *ExternalLobVar_Read(
     PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "offset", "amount", NULL };
-    int offset, amount;
+    oraub8 offset, amount;
 
     // offset and amount are expected, both optional
-    offset = amount = -1;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|ii", keywordList,
+    offset = 1;
+    amount = (oraub8)(-1);
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|kk", keywordList,
             &offset, &amount))
         return NULL;
 
@@ -397,7 +412,7 @@ static PyObject *ExternalLobVar_Str(
 {
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
-    return ExternalLobVar_Value(var, 1, -1);
+    return ExternalLobVar_Value(var, 1, (oraub8)(-1));
 }
 
 
@@ -411,17 +426,14 @@ static PyObject *ExternalLobVar_Write(
     PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "data", "offset", NULL };
+    oraub8 amount, offset;
     PyObject *dataObj;
-    ub4 amount;
-    int offset;
 
-    // buffer and offset are expected, offset is optional
-    offset = -1;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|i", keywordList,
+    // buffer is expected, offset is optional
+    offset = 1;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|k", keywordList,
             &dataObj, &offset))
         return NULL;
-    if (offset < 0)
-        offset = 1;
 
     // perform the write, if possible
     if (ExternalLobVar_Verify(var) < 0)
@@ -430,7 +442,7 @@ static PyObject *ExternalLobVar_Write(
         return NULL;
 
     // return the result
-    return PyInt_FromLong(amount);
+    return PyLong_FromUnsignedLong(amount);
 }
 
 
@@ -444,12 +456,12 @@ static PyObject *ExternalLobVar_Trim(
     PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "newSize", NULL };
+    oraub8 newSize;
     sword status;
-    ub4 newSize;
 
     // buffer and offset are expected, offset is optional
     newSize = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|i", keywordList,
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|k", keywordList,
             &newSize))
         return NULL;
 
@@ -457,7 +469,7 @@ static PyObject *ExternalLobVar_Trim(
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
     Py_BEGIN_ALLOW_THREADS
-    status = OCILobTrim(var->lobVar->connection->handle,
+    status = OCILobTrim2(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
             newSize);
     Py_END_ALLOW_THREADS

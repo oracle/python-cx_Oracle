@@ -21,7 +21,7 @@ static int LobVar_PreFetch(udt_LobVar*);
 static void LobVar_Finalize(udt_LobVar*);
 static PyObject *LobVar_GetValue(udt_LobVar*, unsigned);
 static int LobVar_SetValue(udt_LobVar*, unsigned, PyObject*);
-static int LobVar_Write(udt_LobVar*, unsigned, PyObject*, ub4, ub4*);
+static int LobVar_Write(udt_LobVar*, unsigned, PyObject*, oraub8, oraub8*);
 
 //-----------------------------------------------------------------------------
 // Python type declarations
@@ -314,8 +314,8 @@ static int LobVar_Write(
     udt_LobVar *var,                    // variable to perform write against
     unsigned position,                  // position to perform write against
     PyObject *dataObj,                  // data object to write into LOB
-    ub4 offset,                         // offset into variable
-    ub4 *amount)                        // amount to write
+    oraub8 offset,                      // offset into variable
+    oraub8 *amount)                     // amount to write
 {
     udt_Buffer buffer;
     sword status;
@@ -353,15 +353,16 @@ static int LobVar_Write(
     }
 
     Py_BEGIN_ALLOW_THREADS
-    status = OCILobWrite(var->connection->handle,
-            var->environment->errorHandle, var->data[position], amount, offset,
-            (void*) buffer.ptr, buffer.size, OCI_ONE_PIECE, NULL, NULL, 0,
-            var->type->charsetForm);
+    status = OCILobWrite2(var->connection->handle,
+            var->environment->errorHandle, var->data[position], amount, 0,
+            offset, (void*) buffer.ptr, buffer.size, OCI_ONE_PIECE, NULL, NULL,
+            0, var->type->charsetForm);
     Py_END_ALLOW_THREADS
     cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(var->environment, status,
             "LobVar_Write()") < 0)
         return -1;
+
     return 0;
 }
 
@@ -388,9 +389,9 @@ static int LobVar_SetValue(
     PyObject *value)                    // value to set
 {
     boolean isTemporary;
+    oraub8 amount;
     sword status;
     ub1 lobType;
-    ub4 amount;
 
     // make sure have temporary LOBs set up
     status = OCILobIsTemporary(var->environment->handle,
