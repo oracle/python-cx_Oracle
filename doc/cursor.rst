@@ -260,8 +260,8 @@ Cursor Object
 
    .. note::
 
-      The DB API definition does not define this method and is only available
-      for Oracle 12c.
+      The DB API definition does not define this method and it is only
+      available for Oracle 12c.
 
 
 .. method:: Cursor.getbatcherrors()
