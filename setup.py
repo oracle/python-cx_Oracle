@@ -150,7 +150,10 @@ def FindInstantClientRPMInclude(libDir):
 # define Linux Instant Client RPM path components
 # Assume 64 bit builds if the platform is 64 bit
 rpmBaseLibDir = "/usr/lib/oracle"
-rpmClientDir = "client" if struct.calcsize("P") == 4 else "client64"
+if struct.calcsize("P") == 4:
+    rpmClientDir = "client"
+else:
+    rpmClientDir = "client64"
 instantClientRPMLib = None
 
 # try to determine the Oracle home
