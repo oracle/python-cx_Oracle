@@ -6,7 +6,7 @@ SessionPool Object
 
 .. note::
 
-   This object is an extension the DB API and is only available in Oracle 9i.
+   This object is an extension the DB API.
 
 
 .. method:: SessionPool.acquire()

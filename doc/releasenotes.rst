@@ -21,10 +21,11 @@ Version 5.2
 8)  Fixed binding of booleans in Python 3.x.
 9)  Test suite now sets NLS_LANG if not already set.
 10) Enhanced documentation for connection.action attribute.
-11) Ensure that sessions are released to the pool when calling
+11) Removed remaining remnants of support Oracle 9i.
+12) Ensure that sessions are released to the pool when calling
     connection.close()
     (`Issue #2 <https://bitbucket.org/anthony_tuininga/cx_oracle/issue/2/use-of-cclass-causes-connection-leaks>`_)
-12) Fixed handling of datetime intervals
+13) Fixed handling of datetime intervals
     (`Issue #7 <https://bitbucket.org/anthony_tuininga/cx_oracle/issue/7/timedeltas-going-in-have-their>`_)
 
 

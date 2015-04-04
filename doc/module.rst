@@ -114,7 +114,7 @@ Module Interface
 
 .. function:: SessionPool(user, password, database, min, max, increment, [connectiontype, threaded, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True])
 
-   Create a session pool (see Oracle 9i documentation for more information) and
+   Create a session pool (see Oracle documentation for more information) and
    return a session pool object (:ref:`sesspool`). This allows for very fast
    connections to the database and is of primary use in a server where the same
    connection is being made multiple times in rapid succession (a web server,
@@ -128,8 +128,7 @@ Module Interface
 
    .. note::
 
-      This method is an extension to the DB API definition and is only
-      available in Oracle 9i.
+      This method is an extension to the DB API definition.
 
 
 .. function:: Time(hour, minute, second)
@@ -789,8 +788,7 @@ Types
 
    .. note::
 
-      This attribute is an extension to the DB API definition and is only
-      available in Oracle 9i.
+      This attribute is an extension to the DB API definition.
 
 
 .. data:: UNICODE

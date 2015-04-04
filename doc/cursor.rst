@@ -354,9 +354,9 @@ Cursor Object
    This can be used before a call to execute() to define the statement that
    will be executed. When this is done, the prepare phase will not be performed
    when the call to execute() is made with None or the same string object as
-   the statement.  If specified (Oracle 9i and higher) the statement will be
-   returned to the statement cache with the given tag. See the Oracle
-   documentation for more information about the statement cache.
+   the statement.  If specified the statement will be returned to the statement
+   cache with the given tag. See the Oracle documentation for more information
+   about the statement cache.
 
    .. note::
 
