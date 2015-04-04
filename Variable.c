@@ -496,11 +496,15 @@ static udt_VariableType *Variable_TypeByValue(
     }
     if (cxString_Check(value)) {
         *size = cxString_GetSize(value);
+        if (*size > 32768)
+            return &vt_LongString;
         return &vt_String;
     }
 #if PY_MAJOR_VERSION < 3
     if (PyUnicode_Check(value)) {
         *size = PyUnicode_GET_SIZE(value);
+        if (*size > 32768)
+            return &vt_LongNationalCharString;
         return &vt_NationalCharString;
     }
     if (PyInt_Check(value))
@@ -828,7 +832,9 @@ static udt_Variable *Variable_NewByType(
         size = PyInt_AsLong(value);
         if (PyErr_Occurred())
             return NULL;
-        varType = &vt_String;
+        if (size > 32768)
+            varType = &vt_LongString;
+        else varType = &vt_String;
         return Variable_New(cursor, numElements, varType, size);
     }
 

@@ -17,8 +17,6 @@ if len(sys.argv) > 1 and not inSetup:
     moduleNames = [os.path.splitext(v)[0] for v in sys.argv[1:]]
 else:
     moduleNames = [
-            "ArrayDMLBatchError",
-            "uArrayDMLBatchError",
             "Connection",
             "uConnection",
             "Cursor",
@@ -45,6 +43,9 @@ else:
             "uTimestampVar",
             "UnicodeVar"
     ]
+    if cx_Oracle.clientversion()[0] >= 12:
+        moduleNames.insert(0, "uArrayDMLBatchError")
+        moduleNames.insert(0, "ArrayDMLBatchError")
 
 class BaseTestCase(unittest.TestCase):
 
