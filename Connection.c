@@ -30,11 +30,9 @@ typedef struct {
 // constants for the OCI attributes
 //-----------------------------------------------------------------------------
 static ub4 gc_ClientIdentifierAttribute = OCI_ATTR_CLIENT_IDENTIFIER;
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 1)
 static ub4 gc_ModuleAttribute = OCI_ATTR_MODULE;
 static ub4 gc_ActionAttribute = OCI_ATTR_ACTION;
 static ub4 gc_ClientInfoAttribute = OCI_ATTR_CLIENT_INFO;
-#endif
 
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
 static ub4 gc_CurrentSchemaAttribute = OCI_ATTR_CURRENT_SCHEMA;
@@ -140,12 +138,10 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
             0, 0, 0 },
     { "stmtcachesize", (getter) Connection_GetStmtCacheSize,
             (setter) Connection_SetStmtCacheSize, 0, 0 },
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 1)
     { "module", 0, (setter) Connection_SetOCIAttr, 0, &gc_ModuleAttribute },
     { "action", 0, (setter) Connection_SetOCIAttr, 0, &gc_ActionAttribute },
     { "clientinfo", 0, (setter) Connection_SetOCIAttr, 0,
             &gc_ClientInfoAttribute },
-#endif
     { "client_identifier", 0, (setter) Connection_SetOCIAttr, 0,
             &gc_ClientIdentifierAttribute },
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
@@ -713,7 +709,6 @@ static int Connection_Connect(
             "Connection_Connect(): set session handle") < 0)
         return -1;
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 1)
     if (moduleObj) {
         if (cxBuffer_FromObject(&buffer, moduleObj,
                 self->environment->encoding))
@@ -752,7 +747,6 @@ static int Connection_Connect(
                 "Connection_Connect(): set clientinfo") < 0)
             return -1;
     }
-#endif
 
     // if a new password has been specified, change it which will also
     // establish the session
