@@ -195,10 +195,8 @@ static udt_Environment *Environment_NewFromScratch(
     mode = OCI_OBJECT;
     if (threaded)
         mode |= OCI_THREADED;
-#ifdef OCI_EVENTS
     if (events)
         mode |= OCI_EVENTS;
-#endif
 
     // create the new environment handle
     status = OCIEnvNlsCreate(&handle, mode, NULL, NULL, NULL, NULL, 0, NULL, 0,
