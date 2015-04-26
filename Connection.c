@@ -69,7 +69,7 @@ static PyObject *Connection_GetOCIAttr(udt_Connection*, ub4*);
 #endif
 static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
-#if !defined(AIX5) || defined(ORACLE_11g)
+#if !defined(AIX5) || ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
 static PyObject *Connection_Ping(udt_Connection*, PyObject*);
 #endif
 static PyObject *Connection_Shutdown(udt_Connection*, PyObject*, PyObject*);
@@ -691,7 +691,7 @@ static int Connection_Connect(
     }
     cxBuffer_Clear(&buffer);
 
-#ifdef OCI_ATTR_DRIVER_NAME
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11,1)
     status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
             (text*) DRIVER_NAME, strlen(DRIVER_NAME), OCI_ATTR_DRIVER_NAME,
             self->environment->errorHandle);
@@ -869,7 +869,7 @@ static int Connection_Init(
     moduleObj = actionObj = clientinfoObj = NULL;
     threaded = twophase = events = purity = 0;
     encoding = nencoding = NULL;
-#ifdef ORACLE_11G
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     purity = OCI_ATTR_PURITY_DEFAULT;
 #endif
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
