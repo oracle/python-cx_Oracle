@@ -381,11 +381,8 @@ static int Variable_Check(
             Py_TYPE(object) == &g_RowidVarType ||
             Py_TYPE(object) == &g_BinaryVarType ||
             Py_TYPE(object) == &g_TimestampVarType ||
-            Py_TYPE(object) == &g_IntervalVarType
-#ifdef SQLT_BFLOAT
-            || Py_TYPE(object) == &g_NativeFloatVarType
-#endif
-            );
+            Py_TYPE(object) == &g_IntervalVarType ||
+            Py_TYPE(object) == &g_NativeFloatVarType);
 }
 
 
@@ -461,10 +458,8 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_Timestamp;
     if (type == (PyObject*) &g_CursorVarType)
         return &vt_Cursor;
-#ifdef SQLT_BFLOAT
     if (type == (PyObject*) &g_NativeFloatVarType)
         return &vt_NativeFloat;
-#endif
     if (type == (PyObject*) &g_ObjectVarType)
         return &vt_Object;
 
@@ -596,13 +591,11 @@ static udt_VariableType *Variable_TypeByOracleDataType (
             return &vt_Binary;
         case SQLT_LBI:
             return &vt_LongBinary;
-#ifdef SQLT_BFLOAT
         case SQLT_BFLOAT:
         case SQLT_IBFLOAT:
         case SQLT_BDOUBLE:
         case SQLT_IBDOUBLE:
             return &vt_NativeFloat;
-#endif
         case SQLT_NUM:
         case SQLT_VNU:
             return &vt_Float;

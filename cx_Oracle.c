@@ -413,9 +413,7 @@ static PyObject *Module_Initialize(void)
     MAKE_VARIABLE_TYPE_READY(&g_FixedUnicodeVarType);
     MAKE_VARIABLE_TYPE_READY(&g_LongUnicodeVarType);
     MAKE_VARIABLE_TYPE_READY(&g_NCLOBVarType);
-#ifdef SQLT_BFLOAT
     MAKE_VARIABLE_TYPE_READY(&g_NativeFloatVarType);
-#endif
     MAKE_VARIABLE_TYPE_READY(&g_IntervalVarType);
 
     // initialize module and retrieve the dictionary
@@ -492,9 +490,7 @@ static PyObject *Module_Initialize(void)
     ADD_TYPE_OBJECT("ROWID", &g_RowidVarType)
     ADD_TYPE_OBJECT("STRING", &g_StringVarType)
     ADD_TYPE_OBJECT("TIMESTAMP", &g_TimestampVarType)
-#ifdef SQLT_BFLOAT
     ADD_TYPE_OBJECT("NATIVE_FLOAT", &g_NativeFloatVarType)
-#endif
 
     // create constants required by Python DB API 2.0
     if (PyModule_AddStringConstant(module, "apilevel", "2.0") < 0)

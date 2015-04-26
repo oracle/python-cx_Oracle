@@ -12,12 +12,10 @@ typedef struct {
 } udt_NumberVar;
 
 
-#ifdef SQLT_BFLOAT
 typedef struct {
     Variable_HEAD
     double *data;
 } udt_NativeFloatVar;
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -26,10 +24,8 @@ typedef struct {
 static int NumberVar_PreDefine(udt_NumberVar*, OCIParam*);
 static int NumberVar_SetValue(udt_NumberVar*, unsigned, PyObject*);
 static PyObject *NumberVar_GetValue(udt_NumberVar*, unsigned);
-#ifdef SQLT_BFLOAT
 static int NativeFloatVar_SetValue(udt_NativeFloatVar*, unsigned, PyObject*);
 static PyObject *NativeFloatVar_GetValue(udt_NativeFloatVar*, unsigned);
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -60,7 +56,6 @@ static PyTypeObject g_NumberVarType = {
 };
 
 
-#ifdef SQLT_BFLOAT
 static PyTypeObject g_NativeFloatVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.NATIVE_FLOAT",           // tp_name
@@ -84,7 +79,6 @@ static PyTypeObject g_NativeFloatVarType = {
     Py_TPFLAGS_DEFAULT,                 // tp_flags
     0                                   // tp_doc
 };
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -111,7 +105,6 @@ static udt_VariableType vt_Float = {
 };
 
 
-#ifdef SQLT_BFLOAT
 static udt_VariableType vt_NativeFloat = {
     (InitializeProc) NULL,
     (FinalizeProc) NULL,
@@ -131,7 +124,6 @@ static udt_VariableType vt_NativeFloat = {
     1,                                  // can be copied
     1                                   // can be in array
 };
-#endif
 
 
 static udt_VariableType vt_Integer = {
@@ -571,7 +563,6 @@ static PyObject *NumberVar_GetValue(
 }
 
 
-#ifdef SQLT_BFLOAT
 //-----------------------------------------------------------------------------
 // NativeFloatVar_GetValue()
 //   Returns the value stored at the given array position as a float.
@@ -600,5 +591,4 @@ static int NativeFloatVar_SetValue(
     var->data[pos] = PyFloat_AS_DOUBLE(value);
     return 0;
 }
-#endif
 
