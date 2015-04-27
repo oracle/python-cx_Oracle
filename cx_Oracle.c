@@ -504,6 +504,9 @@ static PyObject *Module_Initialize(void)
     if (PyModule_AddStringConstant(module, "version",
             BUILD_VERSION_STRING) < 0)
         return NULL;
+    if (PyModule_AddStringConstant(module, "__version__",
+            BUILD_VERSION_STRING) < 0)
+        return NULL;
     if (PyModule_AddStringConstant(module, "buildtime",
             __DATE__ " " __TIME__) < 0)
         return NULL;
