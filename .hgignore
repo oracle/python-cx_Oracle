@@ -3,6 +3,6 @@ syntax: glob
 build/
 dist/
 doc/.build/
-html/.buildinfo
+html
 cx_Oracle.egg-info/
 MANIFEST
