@@ -348,6 +348,11 @@ Cursor Object
 
       The DB API definition does not define this method.
 
+   .. note::
+
+      You can parse any DML or DDL statement. DDL statements are executed
+      immediately and an implied commit takes place.
+
 
 .. method:: Cursor.prepare(statement, [tag])
 

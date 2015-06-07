@@ -21,7 +21,9 @@ Version 5.2
     NCHAR type fields when binding or using setinputsizes().
 8)  Fixed binding of booleans in Python 3.x.
 9)  Test suite now sets NLS_LANG if not already set.
-10) Enhanced documentation for connection.action attribute.
+10) Enhanced documentation for connection.action attribute and added note
+    on cursor.parse() method to make clear that DDL statements are executed
+    when parsed.
 11) Removed remaining remnants of support Oracle 9i.
 12) Added __version__ attribute to conform with PEP 396.
 13) Ensure that sessions are released to the pool when calling
