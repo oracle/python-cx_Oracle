@@ -426,12 +426,6 @@ static int Connection_SetOCIAttr(
     udt_Buffer buffer;
     sword status;
 
-    // verify arguments
-    if (!cxString_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "value must be a string");
-        return -1;
-    }
-
     // make sure connection is connected
     if (Connection_IsConnected(self) < 0)
         return -1;
