@@ -48,9 +48,9 @@ static PyTypeObject g_LongStringVarType = {
 };
 
 
-static PyTypeObject g_LongUnicodeVarType = {
+static PyTypeObject g_LongNCharVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.LONG_UNICODE",           // tp_name
+    "cx_Oracle.LONG_NCHAR",             // tp_name
     sizeof(udt_LongVar),                // tp_basicsize
     0,                                  // tp_itemsize
     0,                                  // tp_dealloc
@@ -132,7 +132,7 @@ static udt_VariableType vt_LongNationalCharString = {
     (SetValueProc) LongVar_SetValue,
     (GetValueProc) LongVar_GetValue,
     (GetBufferSizeProc) LongVar_GetBufferSize,
-    &g_LongUnicodeVarType,              // Python type
+    &g_LongNCharVarType,                // Python type
     SQLT_LVC,                           // Oracle type
     SQLCS_NCHAR,                        // charset form
     128 * 1024,                         // element length (default)

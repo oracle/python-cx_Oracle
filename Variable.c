@@ -375,9 +375,9 @@ static int Variable_Check(
             Py_TYPE(object) == &g_StringVarType ||
             Py_TYPE(object) == &g_FixedCharVarType ||
             Py_TYPE(object) == &g_NCLOBVarType ||
-            Py_TYPE(object) == &g_UnicodeVarType ||
-            Py_TYPE(object) == &g_FixedUnicodeVarType ||
-            Py_TYPE(object) == &g_LongUnicodeVarType ||
+            Py_TYPE(object) == &g_NCharVarType ||
+            Py_TYPE(object) == &g_FixedNCharVarType ||
+            Py_TYPE(object) == &g_LongNCharVarType ||
             Py_TYPE(object) == &g_RowidVarType ||
             Py_TYPE(object) == &g_BinaryVarType ||
             Py_TYPE(object) == &g_TimestampVarType ||
@@ -401,15 +401,15 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_String;
     if (type == (PyObject*) &g_FixedCharVarType)
         return &vt_FixedChar;
-    if (type == (PyObject*) &g_UnicodeVarType)
+    if (type == (PyObject*) &g_NCharVarType)
         return &vt_NationalCharString;
 #if PY_MAJOR_VERSION < 3
     if (type == (PyObject*) &PyUnicode_Type)
         return &vt_NationalCharString;
 #endif
-    if (type == (PyObject*) &g_FixedUnicodeVarType)
+    if (type == (PyObject*) &g_FixedNCharVarType)
         return &vt_FixedNationalChar;
-    if (type == (PyObject*) &g_LongUnicodeVarType)
+    if (type == (PyObject*) &g_LongNCharVarType)
         return &vt_LongNationalCharString;
     if (type == (PyObject*) &g_NCLOBVarType)
         return &vt_NCLOB;

@@ -15,9 +15,10 @@ Version 5.2
 5)  Added support for connections as SYSASM.
 6)  Added support for building without any configuration changes to the machine
     when using instant client RPMs on Linux.
-7)  Exposed the UNICODE, FIXED_UNICODE and LONG_UNICODE types in Python 3 so
-    that they can be used to directly specify the use of the NCHAR type fields
-    when binding or using setinputsizes().
+7)  Added types NCHAR, FIXED_NCHAR and LONG_NCHAR to replace the types UNICODE,
+    FIXED_UNICODE and LONG_UNICODE (which are now deprecated). These types are
+    available in Python 3 as well so they can be used to specify the use of
+    NCHAR type fields when binding or using setinputsizes().
 8)  Fixed binding of booleans in Python 3.x.
 9)  Test suite now sets NLS_LANG if not already set.
 10) Enhanced documentation for connection.action attribute.

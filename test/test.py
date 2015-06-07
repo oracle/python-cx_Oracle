@@ -31,6 +31,7 @@ else:
             "uLobVar",
             "LongVar",
             "uLongVar",
+            "NCharVar",
             "NumberVar",
             "uNumberVar",
             "ObjectVar",
@@ -40,8 +41,7 @@ else:
             "StringVar",
             "uStringVar",
             "TimestampVar",
-            "uTimestampVar",
-            "UnicodeVar"
+            "uTimestampVar"
     ]
     if cx_Oracle.clientversion()[0] >= 12:
         moduleNames.insert(0, "uArrayDMLBatchError")

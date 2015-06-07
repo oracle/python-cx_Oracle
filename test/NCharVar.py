@@ -1,6 +1,6 @@
-"""Module for testing unicode variables."""
+"""Module for testing NCHAR variables."""
 
-class TestUnicodeVar(BaseTestCase):
+class TestNCharVar(BaseTestCase):
 
     def setUp(self):
         BaseTestCase.setUp(self)
@@ -38,8 +38,8 @@ class TestUnicodeVar(BaseTestCase):
 
     def testBindDifferentVar(self):
         "test binding a different variable on second execution"
-        retval_1 = self.cursor.var(cx_Oracle.UNICODE, 30)
-        retval_2 = self.cursor.var(cx_Oracle.UNICODE, 30)
+        retval_1 = self.cursor.var(cx_Oracle.NCHAR, 30)
+        retval_2 = self.cursor.var(cx_Oracle.NCHAR, 30)
         self.cursor.execute(r"begin :retval := unistr('Called \3042'); end;",
                 retval = retval_1)
         self.failUnlessEqual(retval_1.getvalue(), u"Called \u3042")
@@ -79,7 +79,7 @@ class TestUnicodeVar(BaseTestCase):
     def testBindUnicodeArrayBySizes(self):
         "test binding in a unicode array (with setinputsizes)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        self.cursor.setinputsizes(array = [cx_Oracle.UNICODE, 10])
+        self.cursor.setinputsizes(array = [cx_Oracle.NCHAR, 10])
         array = [r[1] for r in self.rawData]
         self.cursor.execute("""
                 begin
@@ -94,7 +94,7 @@ class TestUnicodeVar(BaseTestCase):
     def testBindUnicodeArrayByVar(self):
         "test binding in a unicode array (with arrayvar)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        array = self.cursor.arrayvar(cx_Oracle.UNICODE, 10, 20)
+        array = self.cursor.arrayvar(cx_Oracle.NCHAR, 10, 20)
         array.setvalue(0, [r[1] for r in self.rawData])
         self.cursor.execute("""
                 begin
@@ -108,7 +108,7 @@ class TestUnicodeVar(BaseTestCase):
 
     def testBindInOutUnicodeArrayByVar(self):
         "test binding in/out a unicode array (with arrayvar)"
-        array = self.cursor.arrayvar(cx_Oracle.UNICODE, 10, 100)
+        array = self.cursor.arrayvar(cx_Oracle.NCHAR, 10, 100)
         originalData = [r[1] for r in self.rawData]
         format = u"Converted element \u3042 # %d originally had length %d"
         expectedData = [format % (i, len(originalData[i - 1])) \
@@ -124,7 +124,7 @@ class TestUnicodeVar(BaseTestCase):
 
     def testBindOutUnicodeArrayByVar(self):
         "test binding out a unicode array (with arrayvar)"
-        array = self.cursor.arrayvar(cx_Oracle.UNICODE, 6, 100)
+        array = self.cursor.arrayvar(cx_Oracle.NCHAR, 6, 100)
         format = u"Test out element \u3042 # %d"
         expectedData = [format % i for i in range(1, 7)]
         self.cursor.execute("""
@@ -145,7 +145,7 @@ class TestUnicodeVar(BaseTestCase):
 
     def testBindOutSetInputSizesByType(self):
         "test binding out with set input sizes defined (by type)"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.UNICODE)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.NCHAR)
         self.cursor.execute(r"""
                 begin
                   :value := unistr('TSI \3042');
@@ -154,7 +154,7 @@ class TestUnicodeVar(BaseTestCase):
 
     def testBindInOutSetInputSizesByType(self):
         "test binding in/out with set input sizes defined (by type)"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.UNICODE)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.NCHAR)
         self.cursor.execute(r"""
                 begin
                   :value := :value || unistr(' TSI \3042');
@@ -165,7 +165,7 @@ class TestUnicodeVar(BaseTestCase):
 
     def testBindOutVar(self):
         "test binding out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.UNICODE)
+        var = self.cursor.var(cx_Oracle.NCHAR)
         self.cursor.execute(r"""
                 begin
                   :value := unistr('TSI (VAR) \3042');
@@ -175,7 +175,7 @@ class TestUnicodeVar(BaseTestCase):
 
     def testBindInOutVarDirectSet(self):
         "test binding in/out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.UNICODE)
+        var = self.cursor.var(cx_Oracle.NCHAR)
         var.setvalue(0, u"InVal \u3041")
         self.cursor.execute(r"""
                 begin
@@ -189,10 +189,9 @@ class TestUnicodeVar(BaseTestCase):
         self.cursor.execute("select * from TestUnicodes")
         self.failUnlessEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('UNICODECOL', cx_Oracle.UNICODE, 20, 40, 0, 0, 0),
-                  ('FIXEDUNICODECOL', cx_Oracle.FIXED_UNICODE,
-                      40, 80, 0, 0, 0),
-                  ('NULLABLECOL', cx_Oracle.UNICODE, 50, 100, 0, 0, 1) ])
+                  ('UNICODECOL', cx_Oracle.NCHAR, 20, 40, 0, 0, 0),
+                  ('FIXEDUNICODECOL', cx_Oracle.FIXED_NCHAR, 40, 80, 0, 0, 0),
+                  ('NULLABLECOL', cx_Oracle.NCHAR, 50, 100, 0, 0, 1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"

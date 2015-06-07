@@ -710,13 +710,13 @@ static PyObject *Cursor_ItemDescriptionHelper(
     type = (PyObject*) varType->pythonType;
     if (type == (PyObject*) &g_StringVarType)
         displaySize = charSize;
-    else if (type == (PyObject*) &g_UnicodeVarType)
+    else if (type == (PyObject*) &g_NCharVarType)
         displaySize = charSize;
     else if (type == (PyObject*) &g_BinaryVarType)
         displaySize = internalSize;
     else if (type == (PyObject*) &g_FixedCharVarType)
         displaySize = charSize;
-    else if (type == (PyObject*) &g_FixedUnicodeVarType)
+    else if (type == (PyObject*) &g_FixedNCharVarType)
         displaySize = charSize;
     else if (type == (PyObject*) &g_NumberVarType) {
         if (precision) {

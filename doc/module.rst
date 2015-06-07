@@ -673,16 +673,22 @@ Types
       This attribute is an extension to the DB API definition.
 
 
-.. data:: FIXED_UNICODE
+.. data:: FIXED_NCHAR
 
-   This type object is used to describe columns in a database that are fixed
-   length unicode strings (in Oracle this is NCHAR columns); these behave
-   differently in Oracle than nvarchar2 so they are differentiated here even
-   though the DB API does not differentiate them.
+   This type object is used to describe columns in a database that are NCHAR
+   columns in Oracle; these behave differently in Oracle than nvarchar2 so they
+   are differentiated here even though the DB API does not differentiate them.
 
    .. note::
 
       This type is an extension to the DB API definition.
+
+
+.. data:: FIXED_UNICODE
+
+   .. note::
+
+      Deprecated. Please use FIXED_NCHAR instead.
 
 
 .. data:: INTERVAL
@@ -715,6 +721,18 @@ Types
       This type is an extension to the DB API definition.
 
 
+.. data:: LONG_NCHAR
+
+   This type object is used to describe columns in a database that are long
+   NCHAR columns.  There is no direct support for this in Oracle but long
+   NCHAR strings are bound this way in order to avoid the "unimplemented or
+   unreasonable conversion requested" error.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
 .. data:: LONG_STRING
 
    This type object is used to describe columns in a database that are long
@@ -727,20 +745,25 @@ Types
 
 .. data:: LONG_UNICODE
 
-   This type object is used to describe columns in a database that are long
-   strings (in Oracle these are LONG columns). There is no direct support for
-   this in Oracle but long unicode strings are bound this way in order to
-   avoid the "unimplemented or unreasonable conversion requested" error.
-
    .. note::
 
-      This type is an extension to the DB API definition.
+      Deprecated. Please use LONG_NCHAR instead.
 
 
 .. data:: NATIVE_FLOAT
 
    This type object is used to describe columns in a database that are of type
    binary_double or binary_float and is only available in Oracle 10g.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: NCHAR
+
+   This type object is used to describe national character strings (NVARCHAR2)
+   in Oracle.
 
    .. note::
 
@@ -793,12 +816,9 @@ Types
 
 .. data:: UNICODE
 
-   This type object is used to describe columns in a database that are unicode
-   (in Oracle this is NVARCHAR2 columns).
-
    .. note::
 
-      This type is an extension to the DB API definition.
+      Deprecated. Please use NCHAR instead.
 
 
 .. _exceptions:
