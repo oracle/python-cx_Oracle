@@ -213,10 +213,7 @@ static int ExternalLobVar_InternalRead(
         }
         return -1;
     }
-
-    if (var->lobVar->type == &vt_NCLOB || var->lobVar->type == &vt_CLOB)
-        *length = lengthInChars;
-    else *length = lengthInBytes;
+    *length = lengthInBytes;
 
     if (var->lobVar->isFile) {
         Py_BEGIN_ALLOW_THREADS
@@ -296,12 +293,10 @@ static PyObject *ExternalLobVar_Value(
 
     // return the result
     if (var->lobVar->type == &vt_CLOB) {
-        if (var->lobVar->environment->fixedWidth)
-            length = length * var->lobVar->environment->maxBytesPerCharacter;
         result = cxString_FromEncodedString(buffer, length,
                 var->lobVar->environment->encoding);
     } else if (var->lobVar->type == &vt_NCLOB) {
-        result = PyUnicode_DecodeUTF16(buffer, length * 2, NULL, NULL);
+        result = PyUnicode_DecodeUTF16(buffer, length, NULL, NULL);
     } else {
         result = PyBytes_FromStringAndSize(buffer, length);
     }
@@ -393,7 +388,7 @@ static PyObject *ExternalLobVar_Read(
     // offset and amount are expected, both optional
     offset = 1;
     amount = (oraub8)(-1);
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|kk", keywordList,
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|KK", keywordList,
             &offset, &amount))
         return NULL;
 
@@ -431,7 +426,7 @@ static PyObject *ExternalLobVar_Write(
 
     // buffer is expected, offset is optional
     offset = 1;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|k", keywordList,
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|K", keywordList,
             &dataObj, &offset))
         return NULL;
 
@@ -461,7 +456,7 @@ static PyObject *ExternalLobVar_Trim(
 
     // buffer and offset are expected, offset is optional
     newSize = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|k", keywordList,
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|K", keywordList,
             &newSize))
         return NULL;
 
