@@ -21,8 +21,6 @@ class TestConnection(TestCase):
     def verifyArgs(self, connection):
         self.failUnlessEqual(connection.username, self.username,
                 "user name differs")
-        self.failUnlessEqual(connection.password, self.password,
-                "password differs")
         self.failUnlessEqual(connection.tnsentry, self.tnsentry,
                 "tnsentry differs")
 

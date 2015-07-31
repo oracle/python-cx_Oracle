@@ -16,7 +16,6 @@ typedef struct {
     int homogeneous;
     PyObject *name;
     PyObject *username;
-    PyObject *password;
     PyObject *dsn;
     udt_Environment *environment;
     PyTypeObject *connectionType;
@@ -60,7 +59,6 @@ static PyMethodDef g_SessionPoolMethods[] = {
 //-----------------------------------------------------------------------------
 static PyMemberDef g_SessionPoolMembers[] = {
     { "username", T_OBJECT, offsetof(udt_SessionPool, username), READONLY },
-    { "password", T_OBJECT, offsetof(udt_SessionPool, password), 0 },
     { "dsn", T_OBJECT, offsetof(udt_SessionPool, dsn), READONLY },
     { "tnsentry", T_OBJECT, offsetof(udt_SessionPool, dsn), READONLY },
     { "name", T_OBJECT, offsetof(udt_SessionPool, name), READONLY },
@@ -169,8 +167,8 @@ static int SessionPool_Init(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
+    PyObject *threadedObj, *eventsObj, *homogeneousObj, *passwordObj;
     unsigned minSessions, maxSessions, sessionIncrement;
-    PyObject *threadedObj, *eventsObj, *homogeneousObj;
     udt_Buffer username, password, dsn;
     int threaded, events, homogeneous;
     PyTypeObject *connectionType;
@@ -188,12 +186,12 @@ static int SessionPool_Init(
     // parse arguments and keywords
     homogeneous = 1;
     threaded = events = 0;
-    threadedObj = eventsObj = homogeneousObj = NULL;
+    threadedObj = eventsObj = homogeneousObj = passwordObj = NULL;
     connectionType = &g_ConnectionType;
     getMode = OCI_SPOOL_ATTRVAL_NOWAIT;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O!O!iii|OObOO",
             keywordList, cxString_Type, &self->username,
-            cxString_Type, &self->password, cxString_Type, &self->dsn,
+            cxString_Type, &passwordObj, cxString_Type, &self->dsn,
             &minSessions, &maxSessions, &sessionIncrement, &connectionType,
             &threadedObj, &getMode, &eventsObj, &homogeneousObj))
         return -1;
@@ -228,7 +226,6 @@ static int SessionPool_Init(
     self->connectionType = connectionType;
     Py_INCREF(self->dsn);
     Py_INCREF(self->username);
-    Py_INCREF(self->password);
     self->minSessions = minSessions;
     self->maxSessions = maxSessions;
     self->sessionIncrement = sessionIncrement;
@@ -256,7 +253,7 @@ static int SessionPool_Init(
     if (cxBuffer_FromObject(&username, self->username,
             self->environment->encoding) < 0)
         return -1;
-    if (cxBuffer_FromObject(&password, self->password,
+    if (cxBuffer_FromObject(&password, passwordObj,
             self->environment->encoding) < 0) {
         cxBuffer_Clear(&username);
         return -1;
@@ -314,7 +311,6 @@ static void SessionPool_Free(
     Py_XDECREF(self->name);
     Py_XDECREF(self->environment);
     Py_XDECREF(self->username);
-    Py_XDECREF(self->password);
     Py_XDECREF(self->dsn);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }

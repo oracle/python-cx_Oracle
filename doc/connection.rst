@@ -81,8 +81,7 @@ Connection Object
 
 .. method:: Connection.changepassword(oldpassword, newpassword)
 
-   Change the password of the logon. This method also modifies the attribute
-   :data:`Connection.password` upon successful completion.
+   Change the password of the logon.
 
    .. note::
 
@@ -211,16 +210,6 @@ Connection Object
    and the return value is expected to be a variable object or None in which
    case a default variable object will be created. If this attribute is None,
    the default behavior will take place for all values fetched from cursors.
-
-   .. note::
-
-      This attribute is an extension to the DB API definition.
-
-
-.. attribute:: Connection.password
-
-   This read-write attribute initially contains the password of the user which
-   established the connection to the database.
 
    .. note::
 

@@ -16,7 +16,6 @@ class TestConnection(TestCase):
         """test that the pool is created and has the right attributes"""
         pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3)
         self.failUnlessEqual(pool.username, USERNAME, "user name differs")
-        self.failUnlessEqual(pool.password, PASSWORD, "password differs")
         self.failUnlessEqual(pool.tnsentry, TNSENTRY, "tnsentry differs")
         self.failUnlessEqual(pool.max, 8, "max differs")
         self.failUnlessEqual(pool.min, 2, "min differs")

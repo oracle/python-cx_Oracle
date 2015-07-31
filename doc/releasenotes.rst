@@ -5,6 +5,15 @@ Release notes
 ############
 
 
+Version 5.2.next
+----------------
+
+1) Removed password attribute from connection and session pool objects in order
+   to promote best security practices (if stored in RAM in cleartext it can be
+   read in process dumps, for example). For those who would like to retain this
+   feature, a subclass of Connection could be used to store the password.
+
+
 Version 5.2
 -----------
 

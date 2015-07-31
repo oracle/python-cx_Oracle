@@ -70,12 +70,6 @@ SessionPool Object
    the session pool.
 
 
-.. attribute:: SessionPool.password
-
-   This read-only attribute returns the password of the user which established
-   the connection to the database.
-
-
 .. method:: SessionPool.release(connection)
 
    Release the connection back to the pool. This will be done automatically as

@@ -16,7 +16,6 @@ typedef struct {
     PyObject *inputTypeHandler;
     PyObject *outputTypeHandler;
     PyObject *username;
-    PyObject *password;
     PyObject *dsn;
     PyObject *version;
     ub4 commitMode;
@@ -115,7 +114,6 @@ static PyMethodDef g_ConnectionMethods[] = {
 //-----------------------------------------------------------------------------
 static PyMemberDef g_ConnectionMembers[] = {
     { "username", T_OBJECT, offsetof(udt_Connection, username), READONLY },
-    { "password", T_OBJECT, offsetof(udt_Connection, password), 0 },
     { "dsn", T_OBJECT, offsetof(udt_Connection, dsn), READONLY },
     { "tnsentry", T_OBJECT, offsetof(udt_Connection, dsn), READONLY },
     { "autocommit", T_INT, offsetof(udt_Connection, autocommit), 0 },
@@ -225,6 +223,7 @@ static int Connection_IsConnected(
 static int Connection_GetConnection(
     udt_Connection *self,               // connection
     udt_SessionPool *pool,              // pool to acquire connection from
+    PyObject *passwordObj,              // password
     PyObject *cclassObj,                // connection class (DRCP)
     ub4 purity)                         // purity (DRCP)
 {
@@ -286,7 +285,7 @@ static int Connection_GetConnection(
         cxBuffer_Clear(&buffer);
 
         // set the password, if applicable
-        if (cxBuffer_FromObject(&buffer, self->password,
+        if (cxBuffer_FromObject(&buffer, passwordObj,
                 self->environment->encoding) < 0)
             return -1;
         if (buffer.size > 0) {
@@ -358,8 +357,6 @@ static int Connection_GetConnection(
         if (!proxyCredentials) {
             Py_INCREF(pool->username);
             self->username = pool->username;
-            Py_INCREF(pool->password);
-            self->password = pool->password;
         }
         Py_INCREF(pool->dsn);
         self->dsn = pool->dsn;
@@ -545,9 +542,6 @@ static int Connection_ChangePassword(
             "Connection_ChangePassword(): change password") < 0)
         return -1;
 
-    Py_XDECREF(self->password);
-    Py_INCREF(newPasswordObj);
-    self->password = newPasswordObj;
     return 0;
 }
 
@@ -583,6 +577,7 @@ static int Connection_Connect(
     udt_Connection *self,               // connection
     ub4 mode,                           // mode to connect as
     int twophase,                       // allow two phase commit?
+    PyObject *passwordObj,              // password
     PyObject *newPasswordObj,           // new password (if desired)
     PyObject *moduleObj,                // session "module" value
     PyObject *actionObj,                // session "action" value
@@ -669,7 +664,7 @@ static int Connection_Connect(
     cxBuffer_Clear(&buffer);
 
     // set password in session handle
-    if (cxBuffer_FromObject(&buffer, self->password,
+    if (cxBuffer_FromObject(&buffer, passwordObj,
             self->environment->encoding) < 0)
         return -1;
     if (buffer.size > 0) {
@@ -745,7 +740,7 @@ static int Connection_Connect(
     // if a new password has been specified, change it which will also
     // establish the session
     if (newPasswordObj)
-        return Connection_ChangePassword(self, self->password, newPasswordObj);
+        return Connection_ChangePassword(self, passwordObj, newPasswordObj);
 
     // begin the session
     Py_BEGIN_ALLOW_THREADS
@@ -900,24 +895,23 @@ static int Connection_Init(
     // keep a copy of the credentials
     Py_XINCREF(usernameObj);
     self->username = usernameObj;
-    Py_XINCREF(passwordObj);
-    self->password = passwordObj;
     Py_XINCREF(dsnObj);
     self->dsn = dsnObj;
 
     // perform some parsing, if necessary
-    if (Connection_SplitComponent(&self->username, &self->password, "/") < 0)
+    if (Connection_SplitComponent(&self->username, &passwordObj, "/") < 0)
         return -1;
-    if (Connection_SplitComponent(&self->password, &self->dsn, "@") < 0)
+    if (Connection_SplitComponent(&passwordObj, &self->dsn, "@") < 0)
         return -1;
 
     // handle the different ways of initializing the connection
     if (handle)
         return Connection_Attach(self, handle);
     if (pool || cclassObj)
-        return Connection_GetConnection(self, pool, cclassObj, purity);
-    return Connection_Connect(self, connectMode, twophase, newPasswordObj,
-            moduleObj, actionObj, clientinfoObj);
+        return Connection_GetConnection(self, pool, passwordObj, cclassObj,
+                purity);
+    return Connection_Connect(self, connectMode, twophase, passwordObj,
+            newPasswordObj, moduleObj, actionObj, clientinfoObj);
 }
 
 
@@ -951,7 +945,6 @@ static void Connection_Free(
     Py_CLEAR(self->environment);
     Py_CLEAR(self->sessionPool);
     Py_CLEAR(self->username);
-    Py_CLEAR(self->password);
     Py_CLEAR(self->dsn);
     Py_CLEAR(self->version);
     Py_CLEAR(self->inputTypeHandler);
