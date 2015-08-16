@@ -14,6 +14,7 @@ typedef struct {
     ub4 sessionIncrement;
     ub4 cacheSize;
     int homogeneous;
+    int externalAuth;
     PyObject *name;
     PyObject *username;
     PyObject *dsn;
@@ -169,9 +170,10 @@ static int SessionPool_Init(
 {
     PyObject *threadedObj, *eventsObj, *homogeneousObj, *passwordObj;
     unsigned minSessions, maxSessions, sessionIncrement;
+    int threaded, events, homogeneous, externalAuth;
     udt_Buffer username, password, dsn;
-    int threaded, events, homogeneous;
     PyTypeObject *connectionType;
+    PyObject *externalAuthObj;
     unsigned poolNameLength;
     const char *poolName;
     sword status;
@@ -181,19 +183,21 @@ static int SessionPool_Init(
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "min", "max",
             "increment", "connectiontype", "threaded", "getmode", "events",
-            "homogeneous", NULL };
+            "homogeneous", "externalauth", NULL };
 
     // parse arguments and keywords
     homogeneous = 1;
-    threaded = events = 0;
+    externalAuthObj = NULL;
+    threaded = events = externalAuth = 0;
     threadedObj = eventsObj = homogeneousObj = passwordObj = NULL;
     connectionType = &g_ConnectionType;
     getMode = OCI_SPOOL_ATTRVAL_NOWAIT;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O!O!iii|OObOO",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O!O!iii|OObOOO",
             keywordList, cxString_Type, &self->username,
             cxString_Type, &passwordObj, cxString_Type, &self->dsn,
             &minSessions, &maxSessions, &sessionIncrement, &connectionType,
-            &threadedObj, &getMode, &eventsObj, &homogeneousObj))
+            &threadedObj, &getMode, &eventsObj, &homogeneousObj,
+            &externalAuthObj))
         return -1;
     if (!PyType_Check(connectionType)) {
         PyErr_SetString(g_ProgrammingErrorException,
@@ -215,6 +219,12 @@ static int SessionPool_Init(
         if (events < 0)
             return -1;
     }
+    if (externalAuthObj) {
+        externalAuth = PyObject_IsTrue(externalAuthObj);
+        if (externalAuth < 0)
+            return -1;
+        homogeneous = 0;
+    }
     if (homogeneousObj) {
         homogeneous = PyObject_IsTrue(homogeneousObj);
         if (homogeneous < 0)
@@ -230,6 +240,7 @@ static int SessionPool_Init(
     self->maxSessions = maxSessions;
     self->sessionIncrement = sessionIncrement;
     self->homogeneous = homogeneous;
+    self->externalAuth = externalAuth;
 
     // set up the environment
     self->environment = Environment_NewFromScratch(threaded, events, NULL,

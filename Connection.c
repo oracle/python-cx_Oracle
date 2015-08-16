@@ -227,8 +227,8 @@ static int Connection_GetConnection(
     PyObject *cclassObj,                // connection class (DRCP)
     ub4 purity)                         // purity (DRCP)
 {
-    int externalCredentials, proxyCredentials;
     udt_Environment *environment;
+    int externalAuth, proxyAuth;
     udt_Buffer buffer;
     OCIAuthInfo *authInfo;
     PyObject *dbNameObj;
@@ -238,15 +238,16 @@ static int Connection_GetConnection(
 
     // set things up for the call to acquire a session
     authInfo = NULL;
-    proxyCredentials = 0;
+    externalAuth = proxyAuth = 0;
     if (pool) {
         environment = pool->environment;
         dbNameObj = pool->name;
         mode = OCI_SESSGET_SPOOL;
+        externalAuth = pool->externalAuth;
         if (!pool->homogeneous && pool->username && self->username) {
-            proxyCredentials = PyObject_RichCompareBool(self->username,
+            proxyAuth = PyObject_RichCompareBool(self->username,
                     pool->username, Py_NE);
-            if (proxyCredentials < 0)
+            if (proxyAuth < 0)
                 return -1;
             mode = mode | OCI_SESSGET_CREDPROXY;
         }
@@ -257,7 +258,7 @@ static int Connection_GetConnection(
     }
 
     // set up authorization handle, if needed
-    if (!pool || cclassObj || proxyCredentials) {
+    if (!pool || cclassObj || proxyAuth) {
 
         // create authorization handle
         status = OCIHandleAlloc(environment->handle, (dvoid*) &authInfo,
@@ -267,12 +268,12 @@ static int Connection_GetConnection(
             return -1;
 
         // set the user name, if applicable
-        externalCredentials = 1;
+        externalAuth = 1;
         if (cxBuffer_FromObject(&buffer, self->username,
                 self->environment->encoding) < 0)
             return -1;
         if (buffer.size > 0) {
-            externalCredentials = 0;
+            externalAuth = 0;
             status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
                     (text*) buffer.ptr, buffer.size, OCI_ATTR_USERNAME,
                     environment->errorHandle);
@@ -289,7 +290,7 @@ static int Connection_GetConnection(
                 self->environment->encoding) < 0)
             return -1;
         if (buffer.size > 0) {
-            externalCredentials = 0;
+            externalAuth = 0;
             status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
                     (text*) buffer.ptr, buffer.size, OCI_ATTR_PASSWORD,
                     environment->errorHandle);
@@ -300,10 +301,6 @@ static int Connection_GetConnection(
             }
         }
         cxBuffer_Clear(&buffer);
-
-        // if no user name or password are set, using external credentials
-        if (!pool && externalCredentials)
-            mode |= OCI_SESSGET_CREDEXT;
 
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
         // set the connection class, if applicable
@@ -334,6 +331,10 @@ static int Connection_GetConnection(
 #endif
     }
 
+    // external auth requested (no username/password or specified via pool)
+    if (externalAuth)
+        mode |= OCI_SESSGET_CREDEXT;
+
     // acquire the new session
     if (cxBuffer_FromObject(&buffer, dbNameObj,
             self->environment->encoding) < 0)
@@ -354,7 +355,7 @@ static int Connection_GetConnection(
 
     // copy members in the case where a pool is being used
     if (pool) {
-        if (!proxyCredentials) {
+        if (!proxyAuth) {
             Py_INCREF(pool->username);
             self->username = pool->username;
         }
