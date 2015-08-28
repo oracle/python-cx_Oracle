@@ -337,9 +337,15 @@ static int StringVar_SetValue(
     PyObject *value)                    // value to set
 {
     udt_Buffer buffer;
+    char *encoding;
+
+    // determine which encoding should be used
+    if (var->type->charsetForm == SQLCS_NCHAR)
+        encoding = var->environment->nencoding;
+    else encoding = var->environment->encoding;
 
     // populate the buffer and confirm the maximum size is not exceeded
-    if (cxBuffer_FromObject(&buffer, value, var->environment->encoding) < 0)
+    if (cxBuffer_FromObject(&buffer, value, encoding) < 0)
         return -1;
 
     // ensure that the buffer is large enough
