@@ -112,7 +112,7 @@ Module Interface
       This method is an extension to the DB API definition.
 
 
-.. function:: SessionPool(user, password, database, min, max, increment, [connectiontype, threaded, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True])
+.. function:: SessionPool(user, password, database, min, max, increment, [connectiontype, threaded, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True, externalauth=True])
 
    Create a session pool (see Oracle documentation for more information) and
    return a session pool object (:ref:`sesspool`). This allows for very fast
