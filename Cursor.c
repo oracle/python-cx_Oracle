@@ -226,7 +226,7 @@ static int Cursor_FreeHandle(
                     self->environment, status, "Cursor_FreeHandle()") < 0)
                 return -1;
         } else if (self->connection->handle != 0) {
-            if (!cxBuffer_FromObject(&buffer, self->statementTag,
+            if (cxBuffer_FromObject(&buffer, self->statementTag,
                     self->environment->encoding) < 0)
                 return (raiseException) ? -1 : 0;
             status = OCIStmtRelease(self->handle,
