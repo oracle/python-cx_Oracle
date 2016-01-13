@@ -8,10 +8,19 @@ Release notes
 Version 5.2.next
 ----------------
 
-1) Removed password attribute from connection and session pool objects in order
+Version 5.2.1
+-------------
+
+1) Added support for Python 3.5.
+2) Removed password attribute from connection and session pool objects in order
    to promote best security practices (if stored in RAM in cleartext it can be
    read in process dumps, for example). For those who would like to retain this
    feature, a subclass of Connection could be used to store the password.
+3) Added optional parameter externalauth to SessionPool() which enables wallet
+   based or other external authentication mechanisms to be used.
+4) Use the national character set encoding when required (when char set form is
+   SQLCS_NCHAR); otherwise, the wrong encoding would be used if the environment
+   variable NLS_NCHAR is set.
 
 
 Version 5.2
