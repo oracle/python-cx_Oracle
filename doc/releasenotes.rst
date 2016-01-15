@@ -21,6 +21,8 @@ Version 5.2.1
 4) Use the national character set encoding when required (when char set form is
    SQLCS_NCHAR); otherwise, the wrong encoding would be used if the environment
    variable NLS_NCHAR is set.
+5) Added support for binding boolean values to PL/SQL blocks and stored
+   procedures (available in Oracle 12.1).
 
 
 Version 5.2

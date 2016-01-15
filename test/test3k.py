@@ -31,6 +31,7 @@ else:
     ]
     if cx_Oracle.clientversion()[0] >= 12:
         moduleNames.insert(0, "3kArrayDMLBatchError")
+        moduleNames.append("BooleanVar")
 
 class BaseTestCase(unittest.TestCase):
 

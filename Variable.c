@@ -162,6 +162,9 @@ static PyTypeObject g_BaseVarType = {
 };
 
 
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+#include "BooleanVar.c"
+#endif
 #include "Transforms.c"
 #include "StringVar.c"
 #include "LongVar.c"
@@ -382,6 +385,9 @@ static int Variable_Check(
             Py_TYPE(object) == &g_BinaryVarType ||
             Py_TYPE(object) == &g_TimestampVarType ||
             Py_TYPE(object) == &g_IntervalVarType ||
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+            Py_TYPE(object) == &g_BooleanVarType ||
+#endif
             Py_TYPE(object) == &g_NativeFloatVarType);
 }
 
@@ -442,6 +448,10 @@ static udt_VariableType *Variable_TypeByPythonType(
 #endif
     if (type == (PyObject*) &PyLong_Type)
         return &vt_LongInteger;
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+    if (type == (PyObject*) &g_BooleanVarType)
+        return &vt_Boolean;
+#endif
     if (type == (PyObject*) &PyBool_Type)
         return &vt_Boolean;
     if (type == (PyObject*) &g_DateTimeVarType)
@@ -495,6 +505,8 @@ static udt_VariableType *Variable_TypeByValue(
             return &vt_LongString;
         return &vt_String;
     }
+    if (PyBool_Check(value))
+        return &vt_Boolean;
 #if PY_MAJOR_VERSION < 3
     if (PyUnicode_Check(value)) {
         *size = PyUnicode_GET_SIZE(value);
@@ -510,8 +522,6 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_Binary;
     }
 #endif
-    if (PyBool_Check(value))
-        return &vt_Boolean;
     if (PyLong_Check(value))
         return &vt_LongInteger;
     if (PyFloat_Check(value))

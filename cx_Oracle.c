@@ -415,6 +415,9 @@ static PyObject *Module_Initialize(void)
     MAKE_VARIABLE_TYPE_READY(&g_NCLOBVarType);
     MAKE_VARIABLE_TYPE_READY(&g_NativeFloatVarType);
     MAKE_VARIABLE_TYPE_READY(&g_IntervalVarType);
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+    MAKE_VARIABLE_TYPE_READY(&g_BooleanVarType);
+#endif
 
     // initialize module and retrieve the dictionary
 #if PY_MAJOR_VERSION >= 3
@@ -494,6 +497,9 @@ static PyObject *Module_Initialize(void)
     ADD_TYPE_OBJECT("STRING", &g_StringVarType)
     ADD_TYPE_OBJECT("TIMESTAMP", &g_TimestampVarType)
     ADD_TYPE_OBJECT("NATIVE_FLOAT", &g_NativeFloatVarType)
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+    ADD_TYPE_OBJECT("BOOLEAN", &g_BooleanVarType)
+#endif
 
     // create constants required by Python DB API 2.0
     if (PyModule_AddStringConstant(module, "apilevel", "2.0") < 0)

@@ -637,6 +637,17 @@ Types
       This type is an extension to the DB API definition.
 
 
+.. data:: BOOLEAN
+
+   This type object is used to represent PL/SQL booleans.
+
+   .. note::
+
+      This type is an extension to the DB API definition. It is only available
+      in Oracle 12.1 and higher and within PL/SQL. It cannot be used in
+      columns.
+
+
 .. data:: CLOB
 
    This type object is used to describe columns in a database that are CLOBs.

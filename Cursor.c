@@ -1313,7 +1313,7 @@ static int Cursor_CallCalculateSize(
 
     // assume up to 9 characters for each positional argument
     // this allows up to four digits for the placeholder if the bind variale
-    // is a boolean value
+    // is a boolean value (prior to Oracle 12.1)
     if (listOfArguments) {
         numPositionalArgs = PySequence_Size(listOfArguments);
         if (numPositionalArgs < 0)
@@ -1323,7 +1323,7 @@ static int Cursor_CallCalculateSize(
 
     // assume up to 15 characters for each keyword argument
     // this allows up to four digits for the placeholder if the bind variable
-    // is a boolean value
+    // is a boolean value (prior to Oracle 12.1)
     if (keywordArguments) {
         numKeywordArgs = PyDict_Size(keywordArguments);
         if (numKeywordArgs < 0)
@@ -1400,8 +1400,10 @@ static int Cursor_CallBuildStatement(
             if (i > 0)
                 *ptr++ = ',';
             ptr += sprintf(ptr, ":%d", argNum++);
+#if ORACLE_VERSION_HEX < ORACLE_VERSION(12, 1)
             if (PyBool_Check(PySequence_Fast_GET_ITEM(positionalArgs, i)))
                 ptr += sprintf(ptr, " = 1");
+#endif
         }
         Py_DECREF(positionalArgs);
     }
@@ -1421,8 +1423,10 @@ static int Cursor_CallBuildStatement(
             if ((argNum > 1 && !returnValue) || (argNum > 2 && returnValue))
                 *ptr++ = ',';
             ptr += sprintf(ptr, "%%s => :%d", argNum++);
+#if ORACLE_VERSION_HEX < ORACLE_VERSION(12, 1)
             if (PyBool_Check(value))
                 ptr += sprintf(ptr, " = 1");
+#endif
         }
     }
 

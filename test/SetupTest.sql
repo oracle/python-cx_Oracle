@@ -560,5 +560,42 @@ create or replace package body cx_Oracle.pkg_TestOutCursors as
 end;
 /
 
+create or replace package cx_Oracle.pkg_TestBooleans as
+
+    function GetStringRep (
+        a_Value             boolean
+    ) return varchar2;
+
+    function IsLessThan10 (
+        a_Value             number
+    ) return boolean;
+
+end;
+/
+
+create or replace package body cx_Oracle.pkg_TestBooleans as
+
+    function GetStringRep (
+        a_Value             boolean
+    ) return varchar2 is
+    begin
+        if a_Value is null then
+            return 'NULL';
+        elsif a_Value then
+            return 'TRUE';
+        end if;
+        return 'FALSE';
+    end;
+
+    function IsLessThan10 (
+        a_Value             number
+    ) return boolean is
+    begin
+        return a_Value < 10;
+    end;
+
+end;
+/
+
 exit
 

@@ -189,6 +189,7 @@ static udt_VariableType vt_NumberAsString = {
 };
 
 
+#if ORACLE_VERSION_HEX < ORACLE_VERSION(12, 1)
 static udt_VariableType vt_Boolean = {
     (InitializeProc) NULL,
     (FinalizeProc) NULL,
@@ -208,6 +209,7 @@ static udt_VariableType vt_Boolean = {
     1,                                  // can be copied
     1                                   // can be in array
 };
+#endif
 
 
 //-----------------------------------------------------------------------------
