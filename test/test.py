@@ -8,6 +8,8 @@ import unittest
 
 print "Running tests for cx_Oracle version", cx_Oracle.version,
 print cx_Oracle.buildtime
+print "File:", cx_Oracle.__file__
+sys.stdout.flush()
 
 import TestEnv
 

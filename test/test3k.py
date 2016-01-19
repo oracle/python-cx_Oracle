@@ -10,6 +10,8 @@ inSetup = (os.path.basename(sys.argv[0]).lower() == "setup.py")
 
 print("Running tests for cx_Oracle version", cx_Oracle.version,
         cx_Oracle.buildtime)
+print("File:", cx_Oracle.__file__)
+sys.stdout.flush()
 
 import TestEnv
 
