@@ -41,7 +41,7 @@ copyright = '2015, Anthony Tuininga'
 # The short X.Y version.
 version = '5.2'
 # The full version, including alpha/beta/rc tags.
-release = '5.2'
+release = '5.2.1'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
