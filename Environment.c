@@ -85,8 +85,9 @@ static udt_Environment *Environment_New(
     status = OCIHandleAlloc(handle, (dvoid**) &env->errorHandle,
             OCI_HTYPE_ERROR, 0, 0);
     if (status != OCI_SUCCESS) {
-        errorObj = Error_New(env, "Environment_New(): create error handle",
-                OCI_HTYPE_ENV, handle);
+        errorObj = Error_InternalNew(env,
+                "Environment_New(): create error handle", OCI_HTYPE_ENV,
+                handle);
         if (!errorObj) {
             Py_DECREF(env);
             return NULL;

@@ -2336,8 +2336,8 @@ static int Cursor_GetBatchErrorsHelper(
             return -1;
 
         // determine error object
-        errorObj = Error_New(self->environment, "Batch Error", OCI_HTYPE_ERROR,
-                localErrorHandle);
+        errorObj = Error_InternalNew(self->environment, "Batch Error",
+                OCI_HTYPE_ERROR, localErrorHandle);
         if (!errorObj)
             return -1;
         errorObj->offset = rowOffset;

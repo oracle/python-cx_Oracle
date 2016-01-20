@@ -30,6 +30,17 @@ typedef struct {
 //-----------------------------------------------------------------------------
 static void Error_Free(udt_Error*);
 static PyObject *Error_Str(udt_Error*);
+static PyObject *Error_New(PyTypeObject*, PyObject*, PyObject*);
+static PyObject *Error_Reduce(udt_Error*);
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef g_ErrorMethods[] = {
+    { "__reduce__", (PyCFunction) Error_Reduce, METH_NOARGS },
+    { NULL, NULL }
+};
 
 
 //-----------------------------------------------------------------------------
@@ -75,17 +86,84 @@ static PyTypeObject g_ErrorType = {
     0,                                  // tp_weaklistoffset
     0,                                  // tp_iter
     0,                                  // tp_iternext
-    0,                                  // tp_methods
+    g_ErrorMethods,                     // tp_methods
     g_ErrorMembers,                     // tp_members
-    0                                   // tp_getset
+    0,                                  // tp_getset
+    0,                                  // tp_base
+    0,                                  // tp_dict
+    0,                                  // tp_descr_get
+    0,                                  // tp_descr_set
+    0,                                  // tp_dictoffset
+    0,                                  // tp_init
+    0,                                  // tp_alloc
+    Error_New,                          // tp_new
+    0,                                  // tp_free
+    0,                                  // tp_is_gc
+    0                                   // tp_bases
 };
 
 
 //-----------------------------------------------------------------------------
-// Error_New()
-//   Create a new error object.
+// Error_Free()
+//   Deallocate the environment, disconnecting from the database if necessary.
 //-----------------------------------------------------------------------------
-static udt_Error *Error_New(
+static void Error_Free(
+    udt_Error *self)                    // error object
+{
+    Py_CLEAR(self->message);
+    PyObject_Del(self);
+}
+
+
+//-----------------------------------------------------------------------------
+// Error_New()
+//   Create a new error object. This is intended to only be used by the
+// unpickling routine, and not by direct creation!
+//-----------------------------------------------------------------------------
+static PyObject *Error_New(
+    PyTypeObject *type,                 // type object
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
+{
+    PyObject *message;
+    udt_Error *self;
+    unsigned offset;
+    char *context;
+    int code;
+
+    if (!PyArg_ParseTuple(args, "OiIs", &message, &code, &offset, &context))
+        return NULL;
+    self = (udt_Error*) type->tp_alloc(type, 0);
+    if (!self)
+        return NULL;
+
+    self->context = context;
+    self->code = code;
+    self->offset = offset;
+    Py_INCREF(message);
+    self->message = message;
+
+    return (PyObject*) self;
+}
+
+
+//-----------------------------------------------------------------------------
+// Error_Str()
+//   Return a string representation of the error variable.
+//-----------------------------------------------------------------------------
+static PyObject *Error_Str(
+    udt_Error *self)                    // variable to return the string for
+{
+    Py_INCREF(self->message);
+    return self->message;
+}
+
+
+//-----------------------------------------------------------------------------
+// Error_InternalNew()
+//   Internal method for creating an error object.
+//-----------------------------------------------------------------------------
+static udt_Error *Error_InternalNew(
     udt_Environment *environment,       // environment object
     const char *context,                // context in which error occurred
     ub4 handleType,                     // handle type
@@ -129,33 +207,6 @@ static udt_Error *Error_New(
 
 
 //-----------------------------------------------------------------------------
-// Error_Free()
-//   Deallocate the environment, disconnecting from the database if necessary.
-//-----------------------------------------------------------------------------
-static void Error_Free(
-    udt_Error *self)                    // error object
-{
-    Py_CLEAR(self->message);
-    PyObject_Del(self);
-}
-
-
-//-----------------------------------------------------------------------------
-// Error_Str()
-//   Return a string representation of the error variable.
-//-----------------------------------------------------------------------------
-static PyObject *Error_Str(
-    udt_Error *self)                    // variable to return the string for
-{
-    if (self->message) {
-        Py_INCREF(self->message);
-        return self->message;
-    }
-    return cxString_FromAscii("");
-}
-
-
-//-----------------------------------------------------------------------------
 // Error_Raise()
 //   Reads the error that was caused by the last Oracle statement and raise an
 // exception for Python. Return -1 as a convenience to the caller.
@@ -168,7 +219,8 @@ static int Error_Raise(
     PyObject *exceptionType;
     udt_Error *error;
 
-    error = Error_New(environment, context, OCI_HTYPE_ERROR, errorHandle);
+    error = Error_InternalNew(environment, context, OCI_HTYPE_ERROR,
+            errorHandle);
     if (error) {
         switch (error->code) {
             case 1:
@@ -232,7 +284,7 @@ static int Error_Check(
     if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO) {
         if (status != OCI_INVALID_HANDLE)
             return Error_Raise(environment, context, errorHandle);
-        error = Error_New(environment, context, 0, NULL);
+        error = Error_InternalNew(environment, context, 0, NULL);
         if (!error)
             return -1;
         error->code = 0;
@@ -243,5 +295,17 @@ static int Error_Check(
         return -1;
     }
     return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// Error_Reduce()
+//   Method provided for pickling/unpickling of Error objects.
+//-----------------------------------------------------------------------------
+static PyObject *Error_Reduce(
+    udt_Error *self)                    // error object
+{
+    return Py_BuildValue("(O(OiIs))", Py_TYPE(self), self->message,
+            self->code, self->offset, self->context);
 }
 

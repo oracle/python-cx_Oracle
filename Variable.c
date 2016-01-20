@@ -1171,8 +1171,8 @@ static int Variable_VerifyFetch(
 
     if (var->type->isVariableLength) {
         if (var->returnCode[arrayPos] != 0) {
-            error = Error_New(var->environment, "Variable_VerifyFetch()", 0,
-                    NULL);
+            error = Error_InternalNew(var->environment,
+                    "Variable_VerifyFetch()", 0, NULL);
             error->code = var->returnCode[arrayPos];
             sprintf(messageText, 
                     "column at array pos %d fetched with error: %d",
