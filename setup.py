@@ -124,11 +124,15 @@ def CheckOracleHome(directoryToCheck):
 # Older Instant Client dirs have the form:
 #    /usr/lib/oracle/10.2.0.5/client[64]/lib
 def FindInstantClientRPMLib():
-    versions = []
-    for path in glob.glob(os.path.join(rpmBaseLibDir, "[0-9.]*")):
-        versions.append(os.path.basename(path))
-    versions.sort(key = lambda x: [int(s) for s in x.split(".")])
-    versions.reverse()
+    version = os.environ.get("IC_VERSION")
+    if version is not None:
+        versions = [version]
+    else:
+        versions = []
+        for path in glob.glob(os.path.join(rpmBaseLibDir, "[0-9.]*")):
+            versions.append(os.path.basename(path))
+        versions.sort(key = lambda x: [int(s) for s in x.split(".")])
+        versions.reverse()
     for version in versions:
         path = os.path.join(rpmBaseLibDir, version, rpmClientDir, "lib")
         if os.path.exists(path) and CheckOracleHome(path):
