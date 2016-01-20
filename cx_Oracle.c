@@ -137,7 +137,7 @@ typedef int Py_ssize_t;
 #define xstr(s)                 str(s)
 #define str(s)                  #s
 #define BUILD_VERSION_STRING    xstr(BUILD_VERSION)
-#define DRIVER_NAME             "cx_Oracle-"BUILD_VERSION_STRING
+#define DRIVER_NAME             "cx_Oracle : "BUILD_VERSION_STRING
 
 #include "Buffer.c"
 
