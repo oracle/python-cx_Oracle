@@ -28,7 +28,7 @@ class TestNumberVar(BaseTestCase):
                 where NumberCol - :value1 - :value2 = trunc(NumberCol)""",
                 value1 = decimal.Decimal("0.20"),
                 value2 = decimal.Decimal("0.05"))
-        self.failUnlessEqual(self.cursor.fetchall(),
+        self.assertEqual(self.cursor.fetchall(),
                 [self.dataByKey[1], self.dataByKey[5], self.dataByKey[9]])
 
     def testBindFloat(self):
@@ -37,7 +37,7 @@ class TestNumberVar(BaseTestCase):
                 select * from TestNumbers
                 where NumberCol - :value = trunc(NumberCol)""",
                 value = 0.25)
-        self.failUnlessEqual(self.cursor.fetchall(),
+        self.assertEqual(self.cursor.fetchall(),
                 [self.dataByKey[1], self.dataByKey[5], self.dataByKey[9]])
 
     def testBindSmallLong(self):
@@ -46,7 +46,7 @@ class TestNumberVar(BaseTestCase):
                 select * from TestNumbers
                 where IntCol = :value""",
                 value = 3)
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[3]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
 
     def testBindLargeLong(self):
         "test binding in a large long integer"
@@ -58,7 +58,7 @@ class TestNumberVar(BaseTestCase):
                 end;""",
                 value = valueVar)
         value = valueVar.getvalue()
-        self.failUnlessEqual(value, 6088343249)
+        self.assertEqual(value, 6088343249)
 
     def testBindIntegerAfterString(self):
         "test binding in an number after setting input sizes to a string"
@@ -67,7 +67,7 @@ class TestNumberVar(BaseTestCase):
                 select * from TestNumbers
                 where IntCol = :value""",
                 value = 3)
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[3]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
 
     def testBindNull(self):
         "test binding in a null"
@@ -75,7 +75,7 @@ class TestNumberVar(BaseTestCase):
                 select * from TestNumbers
                 where IntCol = :value""",
                 value = None)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testBindNumberArrayDirect(self):
         "test binding in a number array"
@@ -90,12 +90,12 @@ class TestNumberVar(BaseTestCase):
                 returnValue = returnValue,
                 startValue = 5,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 73.75)
+        self.assertEqual(returnValue.getvalue(), 73.75)
         array = list(range(15))
         self.cursor.execute(statement,
                 startValue = 10,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 115.0)
+        self.assertEqual(returnValue.getvalue(), 115.0)
 
     def testBindNumberArrayBySizes(self):
         "test binding in a number array (with setinputsizes)"
@@ -110,7 +110,7 @@ class TestNumberVar(BaseTestCase):
                 returnValue = returnValue,
                 startValue = 6,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 74.75)
+        self.assertEqual(returnValue.getvalue(), 74.75)
 
     def testBindNumberArrayByVar(self):
         "test binding in a number array (with arrayvar)"
@@ -126,7 +126,7 @@ class TestNumberVar(BaseTestCase):
                 returnValue = returnValue,
                 integerValue = 7,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 75.75)
+        self.assertEqual(returnValue.getvalue(), 75.75)
 
     def testBindZeroLengthNumberArrayByVar(self):
         "test binding in a zero length number array (with arrayvar)"
@@ -140,8 +140,8 @@ class TestNumberVar(BaseTestCase):
                 returnValue = returnValue,
                 integerValue = 8,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 8.0)
-        self.failUnlessEqual(array.getvalue(), [])
+        self.assertEqual(returnValue.getvalue(), 8.0)
+        self.assertEqual(array.getvalue(), [])
 
     def testBindInOutNumberArrayByVar(self):
         "test binding in/out a number array (with arrayvar)"
@@ -156,7 +156,7 @@ class TestNumberVar(BaseTestCase):
                 end;""",
                 numElems = 5,
                 array = array)
-        self.failUnlessEqual(array.getvalue(), expectedData)
+        self.assertEqual(array.getvalue(), expectedData)
 
     def testBindOutNumberArrayByVar(self):
         "test binding out a Number array (with arrayvar)"
@@ -168,7 +168,7 @@ class TestNumberVar(BaseTestCase):
                 end;""",
                 numElems = 6,
                 array = array)
-        self.failUnlessEqual(array.getvalue(), expectedData)
+        self.assertEqual(array.getvalue(), expectedData)
 
     def testBindOutSetInputSizes(self):
         "test binding out with set input sizes defined"
@@ -177,7 +177,7 @@ class TestNumberVar(BaseTestCase):
                 begin
                   :value := 5;
                 end;""")
-        self.failUnlessEqual(vars["value"].getvalue(), 5)
+        self.assertEqual(vars["value"].getvalue(), 5)
 
     def testBindInOutSetInputSizes(self):
         "test binding in/out with set input sizes defined"
@@ -187,7 +187,7 @@ class TestNumberVar(BaseTestCase):
                   :value := :value + 5;
                 end;""",
                 value = 1.25)
-        self.failUnlessEqual(vars["value"].getvalue(), 6.25)
+        self.assertEqual(vars["value"].getvalue(), 6.25)
 
     def testBindOutVar(self):
         "test binding out with cursor.var() method"
@@ -197,7 +197,7 @@ class TestNumberVar(BaseTestCase):
                   :value := 5;
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(), 5)
+        self.assertEqual(var.getvalue(), 5)
 
     def testBindInOutVarDirectSet(self):
         "test binding in/out with cursor.var() method"
@@ -208,12 +208,12 @@ class TestNumberVar(BaseTestCase):
                   :value := :value + 5;
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(), 7.25)
+        self.assertEqual(var.getvalue(), 7.25)
 
     def testCursorDescription(self):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestNumbers")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   ('NUMBERCOL', cx_Oracle.NUMBER, 13, 22, 9, 2, 0),
                   ('FLOATCOL', cx_Oracle.NUMBER, 127, 22, 126, -127, 0),
@@ -223,17 +223,17 @@ class TestNumberVar(BaseTestCase):
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestNumbers order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchall(), self.rawData)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), self.rawData)
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testFetchMany(self):
         "test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestNumbers order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[0:3])
-        self.failUnlessEqual(self.cursor.fetchmany(2), self.rawData[3:5])
-        self.failUnlessEqual(self.cursor.fetchmany(4), self.rawData[5:9])
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[9:])
-        self.failUnlessEqual(self.cursor.fetchmany(3), [])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
+        self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
+        self.assertEqual(self.cursor.fetchmany(4), self.rawData[5:9])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
+        self.assertEqual(self.cursor.fetchmany(3), [])
 
     def testFetchOne(self):
         "test that fetching a single row returns the correct results"
@@ -242,13 +242,13 @@ class TestNumberVar(BaseTestCase):
                 from TestNumbers
                 where IntCol in (3, 4)
                 order by IntCol""")
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[3])
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[4])
-        self.failUnlessEqual(self.cursor.fetchone(), None)
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[3])
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[4])
+        self.assertEqual(self.cursor.fetchone(), None)
 
     def testReturnAsFloat(self):
         "test that fetching a floating point number returns such in Python"
         self.cursor.execute("select 1.25 from dual")
         result, = self.cursor.fetchone()
-        self.failUnlessEqual(result, 1.25)
+        self.assertEqual(result, 1.25)
 

@@ -38,8 +38,8 @@ class TestLobVar(BaseTestCase):
         for row in self.cursor:
             integerValue, lob = row
             if integerValue == 0:
-                self.failUnlessEqual(lob.size(), 0)
-                self.failUnlessEqual(lob.read(), "")
+                self.assertEqual(lob.size(), 0)
+                self.assertEqual(lob.read(), "")
             else:
                 if type.endswith("CLOB"):
                     char = unichr(ord('A') + integerValue - 1)
@@ -50,14 +50,14 @@ class TestLobVar(BaseTestCase):
                     prevChar = chr(ord('A') + integerValue - 2)
                     actualValue = str(lob)
                 longString += char * 25000
-                self.failUnlessEqual(lob.size(), len(longString))
-                self.failUnlessEqual(lob.read(), longString)
-                self.failUnlessEqual(actualValue, longString)
-                self.failUnlessEqual(lob.read(len(longString)), char)
+                self.assertEqual(lob.size(), len(longString))
+                self.assertEqual(lob.read(), longString)
+                self.assertEqual(actualValue, longString)
+                self.assertEqual(lob.read(len(longString)), char)
             if integerValue > 1:
                 offset = (integerValue - 1) * 25000 - 4
                 string = prevChar * 5 + char * 5
-                self.failUnlessEqual(lob.read(offset, 10), string)
+                self.assertEqual(lob.read(offset, 10), string)
 
     def __TestTrim(self, type):
         self.cursor.execute(u"truncate table Test%ss" % type)
@@ -80,16 +80,16 @@ class TestLobVar(BaseTestCase):
                 from Test%ss
                 where IntCol = 1""" % (type, type))
         lob, = self.cursor.fetchone()
-        self.failUnlessEqual(lob.size(), 75000)
+        self.assertEqual(lob.size(), 75000)
         lob.trim(25000)
-        self.failUnlessEqual(lob.size(), 25000)
+        self.assertEqual(lob.size(), 25000)
         lob.trim()
-        self.failUnlessEqual(lob.size(), 0)
+        self.assertEqual(lob.size(), 0)
 
     def testBLOBCursorDescription(self):
         "test cursor description is accurate for BLOBs"
         self.cursor.execute(u"select * from TestBLOBs")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ (u'INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   (u'BLOBCOL', cx_Oracle.BLOB, -1, 4000, 0, 0, 0) ])
 
@@ -108,7 +108,7 @@ class TestLobVar(BaseTestCase):
     def testCLOBCursorDescription(self):
         "test cursor description is accurate for CLOBs"
         self.cursor.execute(u"select * from TestCLOBs")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ (u'INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   (u'CLOBCOL', cx_Oracle.CLOB, -1, 4000, 0, 0, 0) ])
 
@@ -129,12 +129,12 @@ class TestLobVar(BaseTestCase):
         self.cursor.arraysize = 1
         self.cursor.execute(u"select CLOBCol from TestCLOBS")
         rows = self.cursor.fetchall()
-        self.failUnlessRaises(cx_Oracle.ProgrammingError, rows[1][0].read)
+        self.assertRaises(cx_Oracle.ProgrammingError, rows[1][0].read)
 
     def testNCLOBCursorDescription(self):
         "test cursor description is accurate for NCLOBs"
         self.cursor.execute(u"select * from TestNCLOBs")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ (u'INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   (u'NCLOBCOL', cx_Oracle.NCLOB, -1, 4000, 0, 0, 0) ])
 

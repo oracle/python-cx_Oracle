@@ -11,7 +11,7 @@ class TestConnection(TestCase):
         cursor = connection.cursor()
         cursor.execute("select count(*) from TestNumbers")
         count, = cursor.fetchone()
-        self.failUnlessEqual(count, 10)
+        self.assertEqual(count, 10)
 
     def setUp(self):
         self.username = USERNAME
@@ -19,9 +19,9 @@ class TestConnection(TestCase):
         self.tnsentry = TNSENTRY
 
     def verifyArgs(self, connection):
-        self.failUnlessEqual(connection.username, self.username,
+        self.assertEqual(connection.username, self.username,
                 "user name differs")
-        self.failUnlessEqual(connection.tnsentry, self.tnsentry,
+        self.assertEqual(connection.tnsentry, self.tnsentry,
                 "tnsentry differs")
 
     def testAllArgs(self):
@@ -32,16 +32,16 @@ class TestConnection(TestCase):
 
     def testBadConnectString(self):
         "connection to database with bad connect string"
-        self.failUnlessRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
+        self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 self.username)
-        self.failUnlessRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
+        self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 self.username + "@" + self.tnsentry)
-        self.failUnlessRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
+        self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 self.username + "@" + self.tnsentry + "/" + self.password)
 
     def testBadPassword(self):
         "connection to database with bad password"
-        self.failUnlessRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
+        self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 self.username, self.password + "X", self.tnsentry)
 
     def testExceptionOnClose(self):
@@ -49,7 +49,7 @@ class TestConnection(TestCase):
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
         connection.close()
-        self.failUnlessRaises(cx_Oracle.InterfaceError, connection.rollback)
+        self.assertRaises(cx_Oracle.InterfaceError, connection.rollback)
 
     def testMakeDSN(self):
         "test making a data source name from host, port and sid"
@@ -57,7 +57,7 @@ class TestConnection(TestCase):
                 "(HOST=%s)(PORT=%d)))(CONNECT_DATA=(SID=%s)))"
         args = ("hostname", 1521, "TEST")
         result = cx_Oracle.makedsn(*args)
-        self.failUnlessEqual(result, formatString % args)
+        self.assertEqual(result, formatString % args)
 
     def testSingleArg(self):
         "connection to database with user, password, TNS together"
@@ -69,7 +69,7 @@ class TestConnection(TestCase):
         "connection version is a string"
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
-        self.failUnless(isinstance(connection.version, str))
+        self.assertTrue(isinstance(connection.version, str))
 
     def testRollbackOnClose(self):
         "connection rolls back before close"
@@ -84,7 +84,7 @@ class TestConnection(TestCase):
         otherConnection.close()
         cursor.execute("select count(*) from TestExecuteMany")
         count, = cursor.fetchone()
-        self.failUnlessEqual(count, 0)
+        self.assertEqual(count, 0)
 
     def testRollbackOnDel(self):
         "connection rolls back before destruction"
@@ -100,7 +100,7 @@ class TestConnection(TestCase):
         del otherConnection
         cursor.execute("select count(*) from TestExecuteMany")
         count, = cursor.fetchone()
-        self.failUnlessEqual(count, 0)
+        self.assertEqual(count, 0)
 
     def testThreading(self):
         "connection to database with multiple threads"

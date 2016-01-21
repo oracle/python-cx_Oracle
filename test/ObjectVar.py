@@ -13,9 +13,9 @@ class TestObjectVar(BaseTestCase):
                 value = getattr(objectValue, attribute.name)
                 attributeValues.append(value)
             objectValue = tuple(attributeValues)
-        self.failUnlessEqual(intValue, expectedIntValue)
-        self.failUnlessEqual(objectValue, expectedObjectValue)
-        self.failUnlessEqual(arrayValue, expectedArrayValue)
+        self.assertEqual(intValue, expectedIntValue)
+        self.assertEqual(objectValue, expectedObjectValue)
+        self.assertEqual(arrayValue, expectedArrayValue)
 
     def testFetchData(self):
         "test fetching objects"
@@ -26,7 +26,7 @@ class TestObjectVar(BaseTestCase):
                   ArrayCol
                 from TestObjects
                 order by IntCol""")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   ('OBJECTCOL', cx_Oracle.OBJECT, -1, 2000, 0, 0, 1),
                   ('ARRAYCOL', cx_Oracle.OBJECT, -1, 2000, 0, 0, 1) ])
@@ -46,8 +46,8 @@ class TestObjectVar(BaseTestCase):
                 where ObjectCol is not null
                   and rownum <= 1""")
         objValue, = self.cursor.fetchone()
-        self.failUnlessEqual(objValue.type.schema,
+        self.assertEqual(objValue.type.schema,
                 self.connection.username.upper())
-        self.failUnlessEqual(objValue.type.name, "UDT_OBJECT")
-        self.failUnlessEqual(objValue.type.attributes[0].name, "NUMBERVALUE")
+        self.assertEqual(objValue.type.name, "UDT_OBJECT")
+        self.assertEqual(objValue.type.attributes[0].name, "NUMBERVALUE")
 

@@ -28,7 +28,7 @@ class TestIntervalVar(BaseTestCase):
                 where IntervalCol = :value""",
                 value = datetime.timedelta(days = 5, hours = 5, minutes = 10,
                         seconds = 15))
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[5]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
     def testBindNull(self):
         "test binding in a null"
@@ -37,7 +37,7 @@ class TestIntervalVar(BaseTestCase):
                 select * from TestIntervals
                 where IntervalCol = :value""",
                 value = None)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testBindOutSetInputSizes(self):
         "test binding out with set input sizes defined"
@@ -46,7 +46,7 @@ class TestIntervalVar(BaseTestCase):
                 begin
                   :value := to_dsinterval('8 09:24:18.123789');
                 end;""")
-        self.failUnlessEqual(vars["value"].getvalue(),
+        self.assertEqual(vars["value"].getvalue(),
                 datetime.timedelta(days = 8, hours = 9, minutes = 24,
                         seconds = 18, microseconds = 123789))
 
@@ -58,7 +58,7 @@ class TestIntervalVar(BaseTestCase):
                   :value := :value + to_dsinterval('5 08:30:00');
                 end;""",
                 value = datetime.timedelta(days = 5, hours = 2, minutes = 15))
-        self.failUnlessEqual(vars["value"].getvalue(),
+        self.assertEqual(vars["value"].getvalue(),
                 datetime.timedelta(days = 10, hours = 10, minutes = 45))
 
     def testBindInOutFractionalSecond(self):
@@ -69,7 +69,7 @@ class TestIntervalVar(BaseTestCase):
                   :value := :value + to_dsinterval('5 08:30:00');
                 end;""",
                 value = datetime.timedelta(days = 5, seconds=12.123789))
-        self.failUnlessEqual(vars["value"].getvalue(),
+        self.assertEqual(vars["value"].getvalue(),
                 datetime.timedelta(days = 10, hours = 8, minutes = 30,
                                    seconds=12, microseconds=123789))
 
@@ -81,7 +81,7 @@ class TestIntervalVar(BaseTestCase):
                   :value := to_dsinterval('15 18:35:45.586');
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(),
+        self.assertEqual(var.getvalue(),
                 datetime.timedelta(days = 15, hours = 18, minutes = 35,
                         seconds = 45, milliseconds = 586))
 
@@ -94,13 +94,13 @@ class TestIntervalVar(BaseTestCase):
                   :value := :value + to_dsinterval('8 05:15:00');
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(),
+        self.assertEqual(var.getvalue(),
                 datetime.timedelta(days = 9, hours = 6, minutes = 5))
 
     def testCursorDescription(self):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestIntervals")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   ('INTERVALCOL', cx_Oracle.INTERVAL, -1, 11, 0, 0, 0),
                   ('NULLABLECOL', cx_Oracle.INTERVAL, -1, 11, 0, 0, 1) ])
@@ -108,17 +108,17 @@ class TestIntervalVar(BaseTestCase):
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestIntervals order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchall(), self.rawData)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), self.rawData)
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testFetchMany(self):
         "test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestIntervals order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[0:3])
-        self.failUnlessEqual(self.cursor.fetchmany(2), self.rawData[3:5])
-        self.failUnlessEqual(self.cursor.fetchmany(4), self.rawData[5:9])
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[9:])
-        self.failUnlessEqual(self.cursor.fetchmany(3), [])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
+        self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
+        self.assertEqual(self.cursor.fetchmany(4), self.rawData[5:9])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
+        self.assertEqual(self.cursor.fetchmany(3), [])
 
     def testFetchOne(self):
         "test that fetching a single row returns the correct results"
@@ -127,7 +127,7 @@ class TestIntervalVar(BaseTestCase):
                 from TestIntervals
                 where IntCol in (3, 4)
                 order by IntCol""")
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[3])
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[4])
-        self.failUnlessEqual(self.cursor.fetchone(), None)
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[3])
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[4])
+        self.assertEqual(self.cursor.fetchone(), None)
 

@@ -38,7 +38,7 @@ class TestTimestampVar(BaseTestCase):
                 select * from TestTimestamps
                 where TimestampCol = :value""",
                 value = cx_Oracle.Timestamp(2002, 12, 14, 0, 0, 10, 250000))
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[5]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
     def testBindNull(self):
         "test binding in a null"
@@ -47,7 +47,7 @@ class TestTimestampVar(BaseTestCase):
                 select * from TestTimestamps
                 where TimestampCol = :value""",
                 value = None)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testBindOutSetInputSizes(self):
         "test binding out with set input sizes defined"
@@ -56,7 +56,7 @@ class TestTimestampVar(BaseTestCase):
                 begin
                   :value := to_timestamp('20021209', 'YYYYMMDD');
                 end;""")
-        self.failUnlessEqual(vars["value"].getvalue(),
+        self.assertEqual(vars["value"].getvalue(),
                cx_Oracle.Timestamp(2002, 12, 9))
 
     def testBindInOutSetInputSizes(self):
@@ -67,7 +67,7 @@ class TestTimestampVar(BaseTestCase):
                   :value := :value + 5.25;
                 end;""",
                 value = cx_Oracle.Timestamp(2002, 12, 12, 10, 0, 0))
-        self.failUnlessEqual(vars["value"].getvalue(),
+        self.assertEqual(vars["value"].getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 17, 16, 0, 0))
 
     def testBindOutVar(self):
@@ -79,7 +79,7 @@ class TestTimestampVar(BaseTestCase):
                       'YYYYMMDD HH24:MI:SS');
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(),
+        self.assertEqual(var.getvalue(),
                cx_Oracle.Timestamp(2002, 12, 31, 12, 31, 0))
 
     def testBindInOutVarDirectSet(self):
@@ -91,13 +91,13 @@ class TestTimestampVar(BaseTestCase):
                   :value := :value + 5.25;
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(),
+        self.assertEqual(var.getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 14, 12, 0, 0))
 
     def testCursorDescription(self):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestTimestamps")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   ('TIMESTAMPCOL', cx_Oracle.TIMESTAMP, -1, 11, 0, 0, 0),
                   ('NULLABLECOL', cx_Oracle.TIMESTAMP, -1, 11, 0, 0, 1) ])
@@ -105,17 +105,17 @@ class TestTimestampVar(BaseTestCase):
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestTimestamps order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchall(), self.rawData)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), self.rawData)
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testFetchMany(self):
         "test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestTimestamps order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[0:3])
-        self.failUnlessEqual(self.cursor.fetchmany(2), self.rawData[3:5])
-        self.failUnlessEqual(self.cursor.fetchmany(4), self.rawData[5:9])
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[9:])
-        self.failUnlessEqual(self.cursor.fetchmany(3), [])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
+        self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
+        self.assertEqual(self.cursor.fetchmany(4), self.rawData[5:9])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
+        self.assertEqual(self.cursor.fetchmany(3), [])
 
     def testFetchOne(self):
         "test that fetching a single row returns the correct results"
@@ -124,7 +124,7 @@ class TestTimestampVar(BaseTestCase):
                 from TestTimestamps
                 where IntCol in (3, 4)
                 order by IntCol""")
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[3])
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[4])
-        self.failUnlessEqual(self.cursor.fetchone(), None)
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[3])
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[4])
+        self.assertEqual(self.cursor.fetchone(), None)
 

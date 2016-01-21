@@ -39,8 +39,8 @@ class TestLongVar(BaseTestCase):
             integerValue, fetchedValue = row
             char = unichr(ord('A') + integerValue - 1)
             longString += char * 25000
-            self.failUnlessEqual(len(fetchedValue), integerValue * 25000)
-            self.failUnlessEqual(fetchedValue, longString)
+            self.assertEqual(len(fetchedValue), integerValue * 25000)
+            self.assertEqual(fetchedValue, longString)
 
     def testLongs(self):
         "test binding and fetching long data"
@@ -53,14 +53,14 @@ class TestLongVar(BaseTestCase):
     def testLongCursorDescription(self):
         "test cursor description is accurate for longs"
         self.cursor.execute(u"select * from TestLongs")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ (u'INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   (u'LONGCOL', cx_Oracle.LONG_STRING, -1, 0, 0, 0, 0) ])
 
     def testLongRawCursorDescription(self):
         "test cursor description is accurate for long raws"
         self.cursor.execute(u"select * from TestLongRaws")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ (u'INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   (u'LONGRAWCOL', cx_Oracle.LONG_BINARY, -1, 0, 0, 0, 0) ])
 
@@ -69,20 +69,20 @@ class TestLongVar(BaseTestCase):
         self.cursor.setoutputsize(25000)
         self.cursor.execute(u"select * from TestLongRaws")
         longVar = self.cursor.fetchvars[1]
-        self.failUnlessEqual(longVar.size, 25000)
-        self.failUnlessEqual(longVar.bufferSize, 25004)
+        self.assertEqual(longVar.size, 25000)
+        self.assertEqual(longVar.bufferSize, 25004)
 
     def testSetOutputSizesWrongColumn(self):
         "test setoutputsizes is valid (wrong column)"
         self.cursor.setoutputsize(25000, 1)
         self.cursor.execute(u"select * from TestLongRaws")
         longVar = self.cursor.fetchvars[1]
-        self.failUnlessEqual(longVar.size, 131072)
-        self.failUnlessEqual(longVar.bufferSize, 131076)
+        self.assertEqual(longVar.size, 131072)
+        self.assertEqual(longVar.bufferSize, 131076)
 
     def testArraySizeTooLarge(self):
         "test array size too large generates an exception"
         self.cursor.arraysize = 65536
-        self.failUnlessRaises(ValueError, self.cursor.execute,
+        self.assertRaises(ValueError, self.cursor.execute,
                 u"select * from TestLongRaws")
 

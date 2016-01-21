@@ -26,7 +26,7 @@ class TestNCharVar(BaseTestCase):
                 end;""",
                 value = u"InVal \u3042",
                 retval = returnValue)
-        self.failUnlessEqual(returnValue.getvalue(), 7)
+        self.assertEqual(returnValue.getvalue(), 7)
 
     def testBindUnicode(self):
         "test binding in a unicode"
@@ -34,7 +34,7 @@ class TestNCharVar(BaseTestCase):
                 select * from TestUnicodes
                 where UnicodeCol = :value""",
                 value = u"Unicode \u3042 5")
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[5]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
     def testBindDifferentVar(self):
         "test binding a different variable on second execution"
@@ -42,10 +42,10 @@ class TestNCharVar(BaseTestCase):
         retval_2 = self.cursor.var(cx_Oracle.NCHAR, 30)
         self.cursor.execute(r"begin :retval := unistr('Called \3042'); end;",
                 retval = retval_1)
-        self.failUnlessEqual(retval_1.getvalue(), u"Called \u3042")
+        self.assertEqual(retval_1.getvalue(), u"Called \u3042")
         self.cursor.execute("begin :retval := 'Called'; end;",
                 retval = retval_2)
-        self.failUnlessEqual(retval_2.getvalue(), "Called")
+        self.assertEqual(retval_2.getvalue(), "Called")
 
     def testBindUnicodeAfterNumber(self):
         "test binding in a unicode after setting input sizes to a number"
@@ -54,7 +54,7 @@ class TestNCharVar(BaseTestCase):
                 select * from TestUnicodes
                 where UnicodeCol = :value""",
                 value = u"Unicode \u3042 6")
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[6]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[6]])
 
     def testBindUnicodeArrayDirect(self):
         "test binding in a unicode array"
@@ -69,12 +69,12 @@ class TestNCharVar(BaseTestCase):
                 retval = returnValue,
                 integerValue = 5,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 116)
+        self.assertEqual(returnValue.getvalue(), 116)
         array = [ u"Unicode - \u3042 %d" % i for i in range(15) ]
         self.cursor.execute(statement,
                 integerValue = 8,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 208)
+        self.assertEqual(returnValue.getvalue(), 208)
 
     def testBindUnicodeArrayBySizes(self):
         "test binding in a unicode array (with setinputsizes)"
@@ -89,7 +89,7 @@ class TestNCharVar(BaseTestCase):
                 retval = returnValue,
                 integerValue = 6,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 117)
+        self.assertEqual(returnValue.getvalue(), 117)
 
     def testBindUnicodeArrayByVar(self):
         "test binding in a unicode array (with arrayvar)"
@@ -104,7 +104,7 @@ class TestNCharVar(BaseTestCase):
                 retval = returnValue,
                 integerValue = 7,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 118)
+        self.assertEqual(returnValue.getvalue(), 118)
 
     def testBindInOutUnicodeArrayByVar(self):
         "test binding in/out a unicode array (with arrayvar)"
@@ -120,7 +120,7 @@ class TestNCharVar(BaseTestCase):
                 end;""",
                 numElems = 5,
                 array = array)
-        self.failUnlessEqual(array.getvalue(), expectedData)
+        self.assertEqual(array.getvalue(), expectedData)
 
     def testBindOutUnicodeArrayByVar(self):
         "test binding out a unicode array (with arrayvar)"
@@ -133,7 +133,7 @@ class TestNCharVar(BaseTestCase):
                 end;""",
                 numElems = 6,
                 array = array)
-        self.failUnlessEqual(array.getvalue(), expectedData)
+        self.assertEqual(array.getvalue(), expectedData)
 
     def testBindNull(self):
         "test binding in a null"
@@ -141,7 +141,7 @@ class TestNCharVar(BaseTestCase):
                 select * from TestUnicodes
                 where UnicodeCol = :value""",
                 value = None)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testBindOutSetInputSizesByType(self):
         "test binding out with set input sizes defined (by type)"
@@ -150,7 +150,7 @@ class TestNCharVar(BaseTestCase):
                 begin
                   :value := unistr('TSI \3042');
                 end;""")
-        self.failUnlessEqual(vars["value"].getvalue(), u"TSI \u3042")
+        self.assertEqual(vars["value"].getvalue(), u"TSI \u3042")
 
     def testBindInOutSetInputSizesByType(self):
         "test binding in/out with set input sizes defined (by type)"
@@ -160,7 +160,7 @@ class TestNCharVar(BaseTestCase):
                   :value := :value || unistr(' TSI \3042');
                 end;""",
                 value = u"InVal \u3041")
-        self.failUnlessEqual(vars["value"].getvalue(),
+        self.assertEqual(vars["value"].getvalue(),
                 u"InVal \u3041 TSI \u3042")
 
     def testBindOutVar(self):
@@ -171,7 +171,7 @@ class TestNCharVar(BaseTestCase):
                   :value := unistr('TSI (VAR) \3042');
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(), u"TSI (VAR) \u3042")
+        self.assertEqual(var.getvalue(), u"TSI (VAR) \u3042")
 
     def testBindInOutVarDirectSet(self):
         "test binding in/out with cursor.var() method"
@@ -182,12 +182,12 @@ class TestNCharVar(BaseTestCase):
                   :value := :value || unistr(' TSI (VAR) \3042');
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(), u"InVal \u3041 TSI (VAR) \u3042")
+        self.assertEqual(var.getvalue(), u"InVal \u3041 TSI (VAR) \u3042")
 
     def testCursorDescription(self):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestUnicodes")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   ('UNICODECOL', cx_Oracle.NCHAR, 20, 40, 0, 0, 0),
                   ('FIXEDUNICODECOL', cx_Oracle.FIXED_NCHAR, 40, 80, 0, 0, 0),
@@ -196,17 +196,17 @@ class TestNCharVar(BaseTestCase):
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestUnicodes order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchall(), self.rawData)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), self.rawData)
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testFetchMany(self):
         "test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestUnicodes order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[0:3])
-        self.failUnlessEqual(self.cursor.fetchmany(2), self.rawData[3:5])
-        self.failUnlessEqual(self.cursor.fetchmany(4), self.rawData[5:9])
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[9:])
-        self.failUnlessEqual(self.cursor.fetchmany(3), [])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
+        self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
+        self.assertEqual(self.cursor.fetchmany(4), self.rawData[5:9])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
+        self.assertEqual(self.cursor.fetchmany(3), [])
 
     def testFetchOne(self):
         "test that fetching a single row returns the correct results"
@@ -215,7 +215,7 @@ class TestNCharVar(BaseTestCase):
                 from TestUnicodes
                 where IntCol in (3, 4)
                 order by IntCol""")
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[3])
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[4])
-        self.failUnlessEqual(self.cursor.fetchone(), None)
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[3])
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[4])
+        self.assertEqual(self.cursor.fetchone(), None)
 

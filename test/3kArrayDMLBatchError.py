@@ -9,12 +9,12 @@ class TestArrayDMLBatchError(BaseTestCase):
                  (2, "Second") ]
         sql = "insert into TestArrayDML (IntCol,StringCol) values (:1,:2)"
         self.cursor.executemany(sql, rows, arraydmlrowcounts = False)
-        self.failUnlessRaises(cx_Oracle.DatabaseError,
+        self.assertRaises(cx_Oracle.DatabaseError,
                 self.cursor.getarraydmlrowcounts)
         rows = [ (3, "Third"),
                  (4, "Fourth") ]
         self.cursor.executemany(sql, rows)
-        self.failUnlessRaises(cx_Oracle.DatabaseError,
+        self.assertRaises(cx_Oracle.DatabaseError,
                 self.cursor.getarraydmlrowcounts)
 
     def testArrayDMLRowCountsOn(self):
@@ -29,11 +29,11 @@ class TestArrayDMLBatchError(BaseTestCase):
                 "values (:1,:2,:3)"
         self.cursor.executemany(sql, rows, arraydmlrowcounts = True)
         self.connection.commit()
-        self.failUnlessEqual(self.cursor.getarraydmlrowcounts(),
+        self.assertEqual(self.cursor.getarraydmlrowcounts(),
                 [1, 1, 1, 1, 1])
         self.cursor.execute("select count(*) from TestArrayDML")
         count, = self.cursor.fetchone()
-        self.failUnlessEqual(count, len(rows))
+        self.assertEqual(count, len(rows))
 
     def testExceptionInIteration(self):
         "test executing with arraydmlrowcounts with exception"
@@ -43,9 +43,9 @@ class TestArrayDMLBatchError(BaseTestCase):
                  (2, "Third"),
                  (4, "Fourth") ]
         sql = "insert into TestArrayDML (IntCol,StringCol) values (:1,:2)"
-        self.failUnlessRaises(cx_Oracle.DatabaseError, self.cursor.executemany,
+        self.assertRaises(cx_Oracle.DatabaseError, self.cursor.executemany,
                 sql, rows, arraydmlrowcounts = True)
-        self.failUnlessEqual(self.cursor.getarraydmlrowcounts(), [1, 1])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1])
 
     def testExecutingDelete(self):
         "test executing delete statement with arraydmlrowcount mode"
@@ -64,7 +64,7 @@ class TestArrayDMLBatchError(BaseTestCase):
         rows = [ (200,), (300,), (400,) ]
         statement = "delete from TestArrayDML where IntCol2 = :1"
         self.cursor.executemany(statement, rows, arraydmlrowcounts = True)
-        self.failUnlessEqual(self.cursor.getarraydmlrowcounts(), [1, 3, 2])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 3, 2])
 
     def testExecutingUpdate(self):
         "test executing update statement with arraydmlrowcount mode"
@@ -86,7 +86,7 @@ class TestArrayDMLBatchError(BaseTestCase):
                  ("Four", 400) ]
         sql = "update TestArrayDML set StringCol = :1 where IntCol2 = :2"
         self.cursor.executemany(sql, rows, arraydmlrowcounts = True)
-        self.failUnlessEqual(self.cursor.getarraydmlrowcounts(), [1, 1, 3, 2])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1, 3, 2])
 
     def testInsertWithBatchError(self):
         "test executing insert with multiple distinct batch errors"
@@ -108,8 +108,8 @@ class TestArrayDMLBatchError(BaseTestCase):
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]
-        self.failUnlessEqual(actualErrors, expectedErrors)
-        self.failUnlessEqual(self.cursor.getarraydmlrowcounts(),
+        self.assertEqual(actualErrors, expectedErrors)
+        self.assertEqual(self.cursor.getarraydmlrowcounts(),
                 [1, 1, 0, 1, 0])
 
     def testBatchErrorFalse(self):
@@ -120,7 +120,7 @@ class TestArrayDMLBatchError(BaseTestCase):
                  (2, "Third", 300) ]
         sql = "insert into TestArrayDML (IntCol, StringCol, IntCol2) " \
                 "values (:1, :2, :3)"
-        self.failUnlessRaises(cx_Oracle.IntegrityError,
+        self.assertRaises(cx_Oracle.IntegrityError,
                 self.cursor.executemany, sql, rows, batcherrors = False)
 
     def testUpdatewithBatchError(self):
@@ -143,7 +143,7 @@ class TestArrayDMLBatchError(BaseTestCase):
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]
-        self.failUnlessEqual(actualErrors, expectedErrors)
+        self.assertEqual(actualErrors, expectedErrors)
         rows = [ (101, "First"),
                  (201, "Second"),
                  (3000, "Third"),
@@ -158,8 +158,8 @@ class TestArrayDMLBatchError(BaseTestCase):
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]
-        self.failUnlessEqual(actualErrors, expectedErrors)
-        self.failUnlessEqual(self.cursor.getarraydmlrowcounts(),
+        self.assertEqual(actualErrors, expectedErrors)
+        self.assertEqual(self.cursor.getarraydmlrowcounts(),
                 [1, 2, 0, 0, 1])
-        self.failUnlessEqual(self.cursor.rowcount, 4)
+        self.assertEqual(self.cursor.rowcount, 4)
 

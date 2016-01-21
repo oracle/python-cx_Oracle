@@ -24,7 +24,7 @@ class TestStringVar(BaseTestCase):
                 select * from TestStrings
                 where StringCol = :value""",
                 value = u"String 5")
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[5]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
     def testBindDifferentVar(self):
         "test binding a different variable on second execution"
@@ -32,10 +32,10 @@ class TestStringVar(BaseTestCase):
         retval_2 = self.cursor.var(cx_Oracle.STRING, 30)
         self.cursor.execute(u"begin :retval := 'Called'; end;",
                 retval = retval_1)
-        self.failUnlessEqual(retval_1.getvalue(), u"Called")
+        self.assertEqual(retval_1.getvalue(), u"Called")
         self.cursor.execute(u"begin :retval := 'Called'; end;",
                 retval = retval_2)
-        self.failUnlessEqual(retval_2.getvalue(), u"Called")
+        self.assertEqual(retval_2.getvalue(), u"Called")
 
     def testBindStringAfterNumber(self):
         "test binding in a string after setting input sizes to a number"
@@ -44,7 +44,7 @@ class TestStringVar(BaseTestCase):
                 select * from TestStrings
                 where StringCol = :value""",
                 value = u"String 6")
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[6]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[6]])
 
     def testBindStringArrayBySizes(self):
         "test binding in a string array (with setinputsizes)"
@@ -59,7 +59,7 @@ class TestStringVar(BaseTestCase):
                 returnValue = returnValue,
                 integerValue = 6,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 87)
+        self.assertEqual(returnValue.getvalue(), 87)
 
     def testBindStringArrayByVar(self):
         "test binding in a string array (with arrayvar)"
@@ -74,7 +74,7 @@ class TestStringVar(BaseTestCase):
                 returnValue = returnValue,
                 integerValue = 7,
                 array = array)
-        self.failUnlessEqual(returnValue.getvalue(), 88)
+        self.assertEqual(returnValue.getvalue(), 88)
 
     def testBindInOutStringArrayByVar(self):
         "test binding in/out a string array (with arrayvar)"
@@ -90,7 +90,7 @@ class TestStringVar(BaseTestCase):
                 end;""",
                 numElems = 5,
                 array = array)
-        self.failUnlessEqual(array.getvalue(), expectedData)
+        self.assertEqual(array.getvalue(), expectedData)
 
     def testBindOutStringArrayByVar(self):
         "test binding out a string array (with arrayvar)"
@@ -102,7 +102,7 @@ class TestStringVar(BaseTestCase):
                 end;""",
                 numElems = 6,
                 array = array)
-        self.failUnlessEqual(array.getvalue(), expectedData)
+        self.assertEqual(array.getvalue(), expectedData)
 
     def testBindRaw(self):
         "test binding in a raw"
@@ -111,7 +111,7 @@ class TestStringVar(BaseTestCase):
                 select * from TestStrings
                 where RawCol = :value""",
                 value = "Raw 4")
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[4]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
     def testBindAndFetchRowid(self):
         "test binding (and fetching) a rowid"
@@ -125,7 +125,7 @@ class TestStringVar(BaseTestCase):
                 from TestStrings
                 where rowid = :value""",
                 value = rowid)
-        self.failUnlessEqual(self.cursor.fetchall(), [self.dataByKey[3]])
+        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
 
     def testBindNull(self):
         "test binding in a null"
@@ -133,7 +133,7 @@ class TestStringVar(BaseTestCase):
                 select * from TestStrings
                 where StringCol = :value""",
                 value = None)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testBindOutSetInputSizesByType(self):
         "test binding out with set input sizes defined (by type)"
@@ -142,7 +142,7 @@ class TestStringVar(BaseTestCase):
                 begin
                   :value := 'TSI';
                 end;""")
-        self.failUnlessEqual(vars["value"].getvalue(), u"TSI")
+        self.assertEqual(vars["value"].getvalue(), u"TSI")
 
     def testBindOutSetInputSizesByInteger(self):
         "test binding out with set input sizes defined (by integer)"
@@ -151,7 +151,7 @@ class TestStringVar(BaseTestCase):
                 begin
                   :value := 'TSI (I)';
                 end;""")
-        self.failUnlessEqual(vars["value"].getvalue(), u"TSI (I)")
+        self.assertEqual(vars["value"].getvalue(), u"TSI (I)")
 
     def testBindInOutSetInputSizesByType(self):
         "test binding in/out with set input sizes defined (by type)"
@@ -161,7 +161,7 @@ class TestStringVar(BaseTestCase):
                   :value := :value || ' TSI';
                 end;""",
                 value = u"InVal")
-        self.failUnlessEqual(vars["value"].getvalue(), u"InVal TSI")
+        self.assertEqual(vars["value"].getvalue(), u"InVal TSI")
 
     def testBindInOutSetInputSizesByInteger(self):
         "test binding in/out with set input sizes defined (by integer)"
@@ -171,7 +171,7 @@ class TestStringVar(BaseTestCase):
                   :value := :value || ' TSI (I)';
                 end;""",
                 value = u"InVal")
-        self.failUnlessEqual(vars["value"].getvalue(), u"InVal TSI (I)")
+        self.assertEqual(vars["value"].getvalue(), u"InVal TSI (I)")
 
     def testBindOutVar(self):
         "test binding out with cursor.var() method"
@@ -181,7 +181,7 @@ class TestStringVar(BaseTestCase):
                   :value := 'TSI (VAR)';
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(), u"TSI (VAR)")
+        self.assertEqual(var.getvalue(), u"TSI (VAR)")
 
     def testBindInOutVarDirectSet(self):
         "test binding in/out with cursor.var() method"
@@ -192,7 +192,7 @@ class TestStringVar(BaseTestCase):
                   :value := :value || ' TSI (VAR)';
                 end;""",
                 value = var)
-        self.failUnlessEqual(var.getvalue(), u"InVal TSI (VAR)")
+        self.assertEqual(var.getvalue(), u"InVal TSI (VAR)")
 
     def testBindLongString(self):
         "test that binding a long string succeeds"
@@ -210,14 +210,14 @@ class TestStringVar(BaseTestCase):
         inString = u"1234567890" * 9000
         var.setvalue(0, inString)
         outString = var.getvalue()
-        self.failUnlessEqual(inString, outString,
+        self.assertEqual(inString, outString,
                 "output does not match: in was %d, out was %d" % \
                 (len(inString), len(outString)))
 
     def testCursorDescription(self):
         "test cursor description is accurate"
         self.cursor.execute(u"select * from TestStrings")
-        self.failUnlessEqual(self.cursor.description,
+        self.assertEqual(self.cursor.description,
                 [ (u'INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
                   (u'STRINGCOL', cx_Oracle.STRING, 20, 20, 0, 0, 0),
                   (u'RAWCOL', cx_Oracle.BINARY, 30, 30, 0, 0, 0),
@@ -227,17 +227,17 @@ class TestStringVar(BaseTestCase):
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"
         self.cursor.execute(u"select * From TestStrings order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchall(), self.rawData)
-        self.failUnlessEqual(self.cursor.fetchall(), [])
+        self.assertEqual(self.cursor.fetchall(), self.rawData)
+        self.assertEqual(self.cursor.fetchall(), [])
 
     def testFetchMany(self):
         "test that fetching data in chunks returns the correct results"
         self.cursor.execute(u"select * From TestStrings order by IntCol")
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[0:3])
-        self.failUnlessEqual(self.cursor.fetchmany(2), self.rawData[3:5])
-        self.failUnlessEqual(self.cursor.fetchmany(4), self.rawData[5:9])
-        self.failUnlessEqual(self.cursor.fetchmany(3), self.rawData[9:])
-        self.failUnlessEqual(self.cursor.fetchmany(3), [])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
+        self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
+        self.assertEqual(self.cursor.fetchmany(4), self.rawData[5:9])
+        self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
+        self.assertEqual(self.cursor.fetchmany(3), [])
 
     def testFetchOne(self):
         "test that fetching a single row returns the correct results"
@@ -246,7 +246,7 @@ class TestStringVar(BaseTestCase):
                 from TestStrings
                 where IntCol in (3, 4)
                 order by IntCol""")
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[3])
-        self.failUnlessEqual(self.cursor.fetchone(), self.dataByKey[4])
-        self.failUnlessEqual(self.cursor.fetchone(), None)
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[3])
+        self.assertEqual(self.cursor.fetchone(), self.dataByKey[4])
+        self.assertEqual(self.cursor.fetchone(), None)
 
