@@ -27,6 +27,7 @@ else:
             "uCursorVar",
             "DateTimeVar",
             "uDateTimeVar",
+            "Error",
             "IntervalVar",
             "uIntervalVar",
             "LobVar",

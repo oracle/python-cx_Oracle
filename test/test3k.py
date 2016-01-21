@@ -23,6 +23,7 @@ else:
             "Cursor",
             "CursorVar",
             "DateTimeVar",
+            "Error",
             "LobVar",
             "LongVar",
             "3kNumberVar",
