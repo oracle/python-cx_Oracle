@@ -33,7 +33,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'cx_Oracle'
-copyright = '2015, Anthony Tuininga'
+copyright = '2016, Anthony Tuininga'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
