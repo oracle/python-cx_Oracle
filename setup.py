@@ -307,11 +307,8 @@ class test(distutils.core.Command):
         buildCommand = self.distribution.get_command_obj("build")
         sys.path.insert(0, os.path.abspath("test"))
         sys.path.insert(0, os.path.abspath(buildCommand.build_lib))
-        if sys.version_info[0] < 3:
-            execfile(os.path.join("test", "test.py"))
-        else:
-            fileName = os.path.join("test", "test3k.py")
-            exec(open(fileName).read())
+        fileName = os.path.join("test", "test.py")
+        exec(open(fileName).read())
 
 commandClasses = dict(build = build, bdist_rpm = bdist_rpm, test = test)
 

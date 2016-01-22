@@ -9,7 +9,7 @@ class TestStringVar(BaseTestCase):
         for i in range(1, 11):
             stringCol = "String %d" % i
             fixedCharCol = ("Fixed Char %d" % i).ljust(40)
-            rawCol = "Raw %d" % i
+            rawCol = ("Raw %d" % i).encode("ascii")
             if i % 2:
                 nullableCol = "Nullable %d" % i
             else:
@@ -130,7 +130,7 @@ class TestStringVar(BaseTestCase):
         self.cursor.execute("""
                 select * from TestStrings
                 where RawCol = :value""",
-                value = "Raw 4")
+                value = "Raw 4".encode("ascii"))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
     def testBindAndFetchRowid(self):

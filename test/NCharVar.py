@@ -60,6 +60,7 @@ class TestNCharVar(BaseTestCase):
         "test binding in a unicode array"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
         array = [r[1] for r in self.rawData]
+        arrayVar = self.cursor.arrayvar(cx_Oracle.NCHAR, array)
         statement = """
                 begin
                   :retval := pkg_TestUnicodeArrays.TestInArrays(
@@ -68,12 +69,13 @@ class TestNCharVar(BaseTestCase):
         self.cursor.execute(statement,
                 retval = returnValue,
                 integerValue = 5,
-                array = array)
+                array = arrayVar)
         self.assertEqual(returnValue.getvalue(), 116)
         array = [ u"Unicode - \u3042 %d" % i for i in range(15) ]
+        arrayVar = self.cursor.arrayvar(cx_Oracle.NCHAR, array)
         self.cursor.execute(statement,
                 integerValue = 8,
-                array = array)
+                array = arrayVar)
         self.assertEqual(returnValue.getvalue(), 208)
 
     def testBindUnicodeArrayBySizes(self):

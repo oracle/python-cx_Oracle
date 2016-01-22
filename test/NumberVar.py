@@ -2,6 +2,10 @@
 
 import cx_Oracle
 import decimal
+import sys
+
+if sys.version_info > (3,):
+    long = int
 
 class TestNumberVar(BaseTestCase):
 
@@ -14,7 +18,7 @@ class TestNumberVar(BaseTestCase):
           floatCol = i + i * 0.75
           unconstrainedCol = i ** 3 + i * 0.5
           if i % 2:
-              nullableCol = 143L ** i
+              nullableCol = long(143) ** i
           else:
               nullableCol = None
           dataTuple = (i, numberCol, floatCol, unconstrainedCol, nullableCol)
@@ -53,7 +57,7 @@ class TestNumberVar(BaseTestCase):
         self.cursor.execute("""
                 select * from TestNumbers
                 where IntCol = :value""",
-                value = 3L)
+                value = long(3))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
 
     def testBindLargeLong(self):
@@ -99,7 +103,7 @@ class TestNumberVar(BaseTestCase):
                 startValue = 5,
                 array = array)
         self.assertEqual(returnValue.getvalue(), 73.75)
-        array = range(15)
+        array = list(range(15))
         self.cursor.execute(statement,
                 startValue = 10,
                 array = array)

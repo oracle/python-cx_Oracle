@@ -1,6 +1,11 @@
-"""Module for testing row count per iteration for DML Array and Batch errors"""
+"""Module for testing features introduced in 12.1"""
 
-class TestArrayDMLBatchError(BaseTestCase):
+import sys
+
+if sys.version_info > (3,):
+    long = int
+
+class TestFeatures12_1(BaseTestCase):
 
     def testArrayDMLRowCountsOff(self):
         "test executing with arraydmlrowcounts mode disabled"
@@ -30,7 +35,7 @@ class TestArrayDMLBatchError(BaseTestCase):
         self.cursor.executemany(sql, rows, arraydmlrowcounts = True)
         self.connection.commit()
         self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [1L, 1L, 1L, 1L, 1L])
+                [long(1), long(1), long(1), long(1), long(1)])
         self.cursor.execute("select count(*) from TestArrayDML")
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
@@ -45,7 +50,8 @@ class TestArrayDMLBatchError(BaseTestCase):
         sql = "insert into TestArrayDML (IntCol,StringCol) values (:1,:2)"
         self.assertRaises(cx_Oracle.DatabaseError, self.cursor.executemany,
                 sql, rows, arraydmlrowcounts = True)
-        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1L, 1L])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(),
+                [long(1), long(1)])
 
     def testExecutingDelete(self):
         "test executing delete statement with arraydmlrowcount mode"
@@ -64,7 +70,8 @@ class TestArrayDMLBatchError(BaseTestCase):
         rows = [ (200,), (300,), (400,) ]
         statement = "delete from TestArrayDML where IntCol2 = :1"
         self.cursor.executemany(statement, rows, arraydmlrowcounts = True)
-        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1L, 3L, 2L])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(),
+                [long(1), long(3), long(2)])
 
     def testExecutingUpdate(self):
         "test executing update statement with arraydmlrowcount mode"
@@ -87,7 +94,7 @@ class TestArrayDMLBatchError(BaseTestCase):
         sql = "update TestArrayDML set StringCol = :1 where IntCol2 = :2"
         self.cursor.executemany(sql, rows, arraydmlrowcounts = True)
         self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [1L, 1L, 3L, 2L])
+                [long(1), long(1), long(3), long(2)])
 
     def testInsertWithBatchError(self):
         "test executing insert with multiple distinct batch errors"
@@ -111,7 +118,7 @@ class TestArrayDMLBatchError(BaseTestCase):
                 for e in self.cursor.getbatcherrors()]
         self.assertEqual(actualErrors, expectedErrors)
         self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [1L, 1L, 0L, 1L, 0L])
+                [long(1), long(1), long(0), long(1), long(0)])
 
     def testBatchErrorFalse(self):
         "test batcherrors mode set to False"
@@ -161,6 +168,6 @@ class TestArrayDMLBatchError(BaseTestCase):
                 for e in self.cursor.getbatcherrors()]
         self.assertEqual(actualErrors, expectedErrors)
         self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [1L, 2L, 0L, 0L, 1L])
+                [long(1), long(2), long(0), long(0), long(1)])
         self.assertEqual(self.cursor.rowcount, 4)
 
