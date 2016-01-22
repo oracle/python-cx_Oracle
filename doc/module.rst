@@ -641,6 +641,8 @@ Types
 
    This type object is used to represent PL/SQL booleans.
 
+   .. versionadded:: 5.2.1
+
    .. note::
 
       This type is an extension to the DB API definition. It is only available
