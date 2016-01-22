@@ -70,6 +70,7 @@ static PyObject *Cursor_Repr(udt_Cursor*);
 static PyObject* Cursor_GetBatchErrors(udt_Cursor*);
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
 static PyObject *Cursor_GetArrayDMLRowCounts(udt_Cursor*);
+static PyObject *Cursor_GetImplicitResults(udt_Cursor*);
 #endif
 
 
@@ -104,6 +105,8 @@ static PyMethodDef g_CursorMethods[] = {
     { "getbatcherrors", (PyCFunction) Cursor_GetBatchErrors, METH_NOARGS },
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
     { "getarraydmlrowcounts", (PyCFunction) Cursor_GetArrayDMLRowCounts,
+              METH_NOARGS },
+    { "getimplicitresults", (PyCFunction) Cursor_GetImplicitResults,
               METH_NOARGS },
 #endif    
     { NULL, NULL }
@@ -2417,7 +2420,7 @@ static PyObject* Cursor_GetBatchErrors(
 //    Populates the array dml row count list. Raises error for failure.
 //-----------------------------------------------------------------------------
 static PyObject* Cursor_GetArrayDMLRowCounts(
-    udt_Cursor *self)
+    udt_Cursor *self)                   // cursor object
 {
     PyObject *result, *element;
     ub8 *arrayDMLRowCount;
@@ -2444,6 +2447,70 @@ static PyObject* Cursor_GetArrayDMLRowCounts(
             return NULL;
         }
         PyList_SET_ITEM(result, i, element);
+    }
+
+    return result;
+}
+
+
+//-----------------------------------------------------------------------------
+// Cursor_GetImplicitResults
+//   Return a list of cursors available implicitly after execution of a PL/SQL
+// block or stored procedure. If none are available, an empty list is returned.
+//-----------------------------------------------------------------------------
+static PyObject * Cursor_GetImplicitResults(
+    udt_Cursor *self)                   // cursor object
+{
+    ub4 i, numImplicitResults, returnType;
+    udt_Cursor *childCursor;
+    PyObject *result;
+    sword status;
+
+    // make sure the cursor is open
+    if (Cursor_IsOpen(self) < 0)
+        return NULL;
+
+    // make sure we have a statement executed (handle defined)
+    if (!self->handle) {
+        PyErr_SetString(g_InterfaceErrorException, "no statement executed");
+        return NULL;
+    }
+
+    // determine the number of implicit results that are available
+    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &numImplicitResults, 0,
+            OCI_ATTR_IMPLICIT_RESULT_COUNT, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_GetImplicitResults(): get number of implicit results") < 0)
+        return NULL;
+
+    // create the list
+    result = PyList_New(numImplicitResults);
+    if (!result)
+        return NULL;
+
+    // populate it with the implicit results
+    for (i = 0; i < numImplicitResults; i++) {
+        childCursor = (udt_Cursor*) Connection_NewCursor(self->connection,
+                NULL);
+        if (!childCursor) {
+            Py_DECREF(result);
+            return NULL;
+        }
+        PyList_SET_ITEM(result, i, (PyObject*) childCursor);
+        status = OCIStmtGetNextResult(self->handle,
+                self->environment->errorHandle, (dvoid**) &childCursor->handle,
+                &returnType, OCI_DEFAULT);
+        if (Environment_CheckForError(self->environment, status,
+                "Cursor_GetImplicitResults(): get next result") < 0) {
+            Py_DECREF(result);
+            return NULL;
+        }
+        if (returnType != OCI_RESULT_TYPE_SELECT) {
+            PyErr_SetString(g_InternalErrorException,
+                    "Cursor_GetImplicitResults(): unexpected result type");
+            Py_DECREF(result);
+            return NULL; 
+        }
     }
 
     return result;

@@ -276,6 +276,24 @@ Cursor Object
       The DB API definition does not define this method.
 
 
+.. method:: Cursor.getimplicitresults()
+
+   Return a list of cursors which correspond to implicit results made available
+   from a PL/SQL block or procedure without the use of OUT ref cursor
+   parameters. The PL/SQL block or procedure opens the cursors and marks them 
+   for return to the client using the procedure dbms_sql.return_result. Cursors
+   returned in this fashion should not be closed. They will be closed
+   automatically by the parent cursor when it is closed. Closing the parent
+   cursor will invalidate the cursors returned by this method.
+
+   .. versionadded:: 5.x
+
+   .. note::
+
+      The DB API definition does not define this method and it is only
+      available for Oracle 12c.
+
+
 .. attribute:: Cursor.inputtypehandler
 
    This read-write attribute specifies a method called for each value that is
