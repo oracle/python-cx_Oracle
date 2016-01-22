@@ -96,6 +96,39 @@ class TestFeatures12_1(BaseTestCase):
         self.assertEqual(self.cursor.getarraydmlrowcounts(),
                 [long(1), long(1), long(3), long(2)])
 
+    def testImplicitResults(self):
+        "test getimplicitresults() returns the correct data"
+        self.cursor.execute("""
+                declare
+                    c1 sys_refcursor;
+                    c2 sys_refcursor;
+                begin
+
+                    open c1 for
+                    select NumberCol
+                    from TestNumbers
+                    where IntCol between 3 and 5;
+
+                    dbms_sql.return_result(c1);
+
+                    open c2 for
+                    select NumberCol
+                    from TestNumbers
+                    where IntCol between 7 and 10;
+
+                    dbms_sql.return_result(c2);
+
+                end;""")
+        results = self.cursor.getimplicitresults()
+        self.assertEqual(len(results), 2)
+        self.assertEqual([n for n, in results[0]], [3.75, 5, 6.25])
+        self.assertEqual([n for n, in results[1]], [8.75, 10, 11.25, 12.5])
+
+    def testImplicitResultsNoStatement(self):
+        "test getimplicitresults() without executing a statement"
+        self.assertRaises(cx_Oracle.InterfaceError,
+                self.cursor.getimplicitresults)
+
     def testInsertWithBatchError(self):
         "test executing insert with multiple distinct batch errors"
         self.cursor.execute("truncate table TestArrayDML")
