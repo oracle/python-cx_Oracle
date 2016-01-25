@@ -5,6 +5,8 @@
 # advanced example.
 #------------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import cx_Oracle
 
 class Test(object):
@@ -14,7 +16,7 @@ class Test(object):
         self.b = b
         self.c = c
 
-connection = cx_Oracle.Connection("cx_Oracle/password")
+connection = cx_Oracle.Connection("user/pw@tns")
 cursor = connection.cursor()
 
 # change this to True if you want to create the table, or create it using
@@ -33,7 +35,7 @@ if False:
 # retrieve the data and display it
 cursor.execute("select * from TestInstances")
 cursor.rowfactory = Test
-print "Rows:"
+print("Rows:")
 for row in cursor:
-    print "a = %s, b = %s, c = %s" % (row.a, row.b, row.c)
+    print("a = %s, b = %s, c = %s" % (row.a, row.b, row.c))
 

@@ -6,6 +6,8 @@
 # to get the actual values.
 #------------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import cx_Oracle
 
 def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
@@ -14,10 +16,10 @@ def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
     if defaultType == cx_Oracle.BLOB:
         return cursor.var(cx_Oracle.LONG_BINARY, 100004, cursor.arraysize)
 
-connection = cx_Oracle.Connection("cx_Oracle/password")
+connection = cx_Oracle.Connection("user/pw@tns")
 connection.outputtypehandler = OutputTypeHandler
 cursor = connection.cursor()
-print "CLOBS returned as longs"
+print("CLOBS returned as longs")
 cursor.execute("""
         select
           IntCol,
@@ -26,9 +28,9 @@ cursor.execute("""
         where dbms_lob.getlength(ClobCol) <= 80000
         order by IntCol""")
 for intCol, value in cursor:
-    print "Row:", intCol, "string of length", len(value)
-print
-print "BLOBS returned as longs"
+    print("Row:", intCol, "string of length", len(value))
+print()
+print("BLOBS returned as longs")
 cursor.execute("""
         select
           IntCol,
@@ -37,5 +39,5 @@ cursor.execute("""
         where dbms_lob.getlength(BlobCol) <= 100000
         order by IntCol""")
 for intCol, value in cursor:
-    print "Row:", intCol, "string of length", value and len(value) or 0
+    print("Row:", intCol, "string of length", value and len(value) or 0)
 
