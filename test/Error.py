@@ -20,6 +20,7 @@ class TestBooleanVar(BaseTestCase):
         self.assertEqual(errorObj.code, 20101)
         self.assertEqual(errorObj.offset, 0)
         self.assertEqual(errorObj.context, "Cursor_InternalExecute()")
+        self.assertTrue(isinstance(errorObj.isrecoverable, bool))
         pickledData = pickle.dumps(errorObj)
         newErrorObj = pickle.loads(pickledData)
         self.assertEqual(type(newErrorObj), cx_Oracle._Error)
@@ -27,4 +28,5 @@ class TestBooleanVar(BaseTestCase):
         self.assertTrue(newErrorObj.code == errorObj.code)
         self.assertTrue(newErrorObj.offset == errorObj.offset)
         self.assertTrue(newErrorObj.context == errorObj.context)
+        self.assertTrue(newErrorObj.isrecoverable == errorObj.isrecoverable)
 

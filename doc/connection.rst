@@ -170,6 +170,22 @@ Connection Object
       This attribute is an extension to the DB API definition.
 
 
+.. attribute:: Connection.ltxid
+
+   This read-only attribute returns the logical transaction id for the
+   connection. It is used within Oracle Transaction Guard as a means of
+   ensuring that transactions are not duplicated. See the Oracle documentation
+   and the provided sample for more information.
+
+   .. versionadded:: development
+
+   .. note:
+
+      This attribute is an extension to the DB API definition. It is only
+      available when Oracle Database 12.1 or higher is in use on both the
+      server and the client.
+
+
 .. attribute:: Connection.maxBytesPerCharacter
 
    This read-only attribute returns the maximum number of bytes each character

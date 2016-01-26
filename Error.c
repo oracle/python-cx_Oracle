@@ -12,6 +12,7 @@ typedef struct {
     ub2 offset;
     PyObject *message;
     const char *context;
+    boolean isRecoverable;
 } udt_Error;
 
 
@@ -51,6 +52,7 @@ static PyMemberDef g_ErrorMembers[] = {
     { "offset", T_INT, offsetof(udt_Error, offset), READONLY },
     { "message", T_OBJECT, offsetof(udt_Error, message), READONLY },
     { "context", T_STRING, offsetof(udt_Error, context), READONLY },
+    { "isrecoverable", T_BOOL, offsetof(udt_Error, context), READONLY },
     { NULL }
 };
 
@@ -125,13 +127,16 @@ static PyObject *Error_New(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
+    boolean isRecoverable;
     PyObject *message;
     udt_Error *self;
     unsigned offset;
     char *context;
     int code;
 
-    if (!PyArg_ParseTuple(args, "OiIs", &message, &code, &offset, &context))
+    isRecoverable = 0;
+    if (!PyArg_ParseTuple(args, "OiIs|i", &message, &code, &offset, &context,
+            &isRecoverable))
         return NULL;
     self = (udt_Error*) type->tp_alloc(type, 0);
     if (!self)
@@ -140,6 +145,7 @@ static PyObject *Error_New(
     self->context = context;
     self->code = code;
     self->offset = offset;
+    self->isRecoverable = isRecoverable;
     Py_INCREF(message);
     self->message = message;
 
@@ -200,6 +206,18 @@ static udt_Error *Error_InternalNew(
             Py_DECREF(self);
             return NULL;
         }
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+        // determine if error is recoverable (Transaction Guard)
+        // if the attribute cannot be read properly, simply set it to false;
+        // otherwise, that error will mask the one that we really want to see
+        if (handleType == OCI_HTYPE_ERROR) {
+            status = OCIAttrGet(handle, handleType,
+                    (dvoid*) &self->isRecoverable, 0,
+                    OCI_ATTR_ERROR_IS_RECOVERABLE, handle);
+            if (status != OCI_SUCCESS)
+                self->isRecoverable = 0;
+        }
+#endif
     }
 
     return self;

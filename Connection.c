@@ -75,6 +75,9 @@ static PyObject *Connection_Shutdown(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Startup(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Subscribe(udt_Connection*, PyObject*, PyObject*);
 #endif
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
+static PyObject *Connection_GetLTXID(udt_Connection*, void*);
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -145,6 +148,9 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
     { "current_schema", (getter) Connection_GetOCIAttr,
             (setter) Connection_SetOCIAttr, 0, &gc_CurrentSchemaAttribute },
+#endif
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+    { "ltxid", (getter) Connection_GetLTXID, 0, 0, 0 },
 #endif
     { NULL }
 };
@@ -1137,6 +1143,45 @@ static PyObject *Connection_GetEncoding(
 {
     return cxString_FromAscii(self->environment->encoding);
 }
+
+
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+//-----------------------------------------------------------------------------
+// Connection_GetLTXID()
+//   Return the logical transaction id used with Transaction Guard.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetLTXID(
+    udt_Connection *self,               // connection object
+    void *arg)                          // optional argument (ignored)
+{
+    OCISession *sessionHandle;
+    ub4 ltxidLength;
+    sword status;
+    ub1 *ltxid;
+
+    // make sure connection is connected
+    if (Connection_IsConnected(self) < 0)
+        return NULL;
+
+    // acquire the session handle
+    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
+            (dvoid**) &sessionHandle, 0, OCI_ATTR_SESSION,
+            self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_GetLTXID(): determine session handle") < 0)
+        return NULL;
+
+    // get the value from the OCI
+    status = OCIAttrGet(sessionHandle, OCI_HTYPE_SESSION,
+            &ltxid, &ltxidLength, OCI_ATTR_LTXID,
+            self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_GetLTXID()") < 0)
+        return NULL;
+
+    return PyBytes_FromStringAndSize( (char*) ltxid, (Py_ssize_t) ltxidLength);
+}
+#endif
 
 
 //-----------------------------------------------------------------------------

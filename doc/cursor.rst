@@ -286,7 +286,7 @@ Cursor Object
    automatically by the parent cursor when it is closed. Closing the parent
    cursor will invalidate the cursors returned by this method.
 
-   .. versionadded:: 5.x
+   .. versionadded:: development
 
    .. note::
 

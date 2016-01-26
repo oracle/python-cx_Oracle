@@ -913,7 +913,7 @@ Exception handling
 
    With cx_Oracle every exception object has exactly one argument in the
    ``args`` tuple. This argument is a ``cx_Oracle._Error`` object which has
-   the following four read-only attributes.
+   the following five read-only attributes.
 
 .. attribute:: _Error.code
 
@@ -931,7 +931,16 @@ Exception handling
 .. attribute:: _Error.context
 
    String attribute representing the context in which the exception was
-   raised..
+   raised.
+
+.. attribute:: _Error.isrecoverable
+
+   Boolean attribute representing whether the error is recoverable or not. This
+   is False in all cases unless Oracle Database 12.1 is being used on both the
+   server and the client.
+
+   .. versionadded:: development
+
 
 This allows you to use the exceptions for example in the following way:
 
