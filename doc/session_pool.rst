@@ -51,6 +51,17 @@ SessionPool Object
    session pool can control.
 
 
+.. attribute:: SessionPool.max_lifetime_session
+
+   This read-write attribute returns the lifetime (in seconds) for all of the
+   sessions in the pool. Sessions in the pool are terminated when they have
+   reached their lifetime. If timeout is also set, the session will be
+   terminated if either the idle timeout happens or the max lifetime setting
+   is exceeded. This attribute is only available in Oracle Database 12.1.
+
+   .. versionadded:: development
+
+
 .. attribute:: SessionPool.min
 
    This read-only attribute returns the number of sessions with which the

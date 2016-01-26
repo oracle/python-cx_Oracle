@@ -29,6 +29,9 @@ static ub4 gc_OpenAttribute = OCI_ATTR_SPOOL_OPEN_COUNT;
 static ub4 gc_BusyAttribute = OCI_ATTR_SPOOL_BUSY_COUNT;
 static ub4 gc_TimeoutAttribute = OCI_ATTR_SPOOL_TIMEOUT;
 static ub4 gc_GetModeAttribute = OCI_ATTR_SPOOL_GETMODE;
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+static ub4 gc_MaxLifetimeAttribute = OCI_ATTR_SPOOL_MAX_LIFETIME_SESSION;
+#endif
 
 //-----------------------------------------------------------------------------
 // functions for the Python type "SessionPool"
@@ -82,6 +85,10 @@ static PyGetSetDef g_SessionPoolCalcMembers[] = {
             (setter) SessionPool_SetOCIAttr, 0, &gc_TimeoutAttribute },
     { "getmode", (getter) SessionPool_GetOCIAttr,
             (setter) SessionPool_SetOCIAttr, 0, &gc_GetModeAttribute },
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+    { "max_lifetime_session", (getter) SessionPool_GetOCIAttr,
+            (setter) SessionPool_SetOCIAttr, 0, &gc_MaxLifetimeAttribute },
+#endif
     { NULL }
 };
 
