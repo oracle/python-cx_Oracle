@@ -4,10 +4,9 @@ cx_Oracle is a Python extension module that allows access to Oracle and
 conforms to the Python database API 2.0 specifications with a number of
 additions. The time data type is not supported by Oracle and is therefore not
 implemented. The method cursor.nextset() is not implemented either as the DB
-API specification assumes an implementation of cursors that fits poorly with
-Oracle's implementation of implicit results. Instead, the method
-cursor.getimplicitresults() can be used (only available with Oracle Database
-12.1 and later).
+API specification assumes an implementation of cursors that does not fit well
+with Oracle's implementation of cursors and implicit results. See the method
+cursor.getimplicitresults() for more information.
 
 See http://www.python.org/topics/database/DatabaseAPI-2.0.html for more
 information on the Python database API specification. See the included

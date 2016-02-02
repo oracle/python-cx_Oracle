@@ -291,7 +291,11 @@ Cursor Object
    .. note::
 
       The DB API definition does not define this method and it is only
-      available for Oracle 12c.
+      available for Oracle Database 12.1 (both client and server must be at
+      this level or higher). It is most like the DB API method nextset(), but
+      unlike that method (which requires that the next result set overwrite
+      the current result set), this method returns cursors which can be fetched
+      independently of each other.
 
 
 .. attribute:: Cursor.inputtypehandler
