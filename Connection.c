@@ -75,7 +75,7 @@ static PyObject *Connection_Shutdown(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Startup(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Subscribe(udt_Connection*, PyObject*, PyObject*);
 #endif
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
 static PyObject *Connection_GetLTXID(udt_Connection*, void*);
 #endif
 
