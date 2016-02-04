@@ -2,9 +2,8 @@
 # Editioning.py
 #   This script demonstrates the use of editioning, available in Oracle
 # Database 11.2 and higher. See the Oracle documentation on the subject for
-# additional information. This script makes use of SYSDBA but can be adjusted
-# to make use of any user that has the ability to create users. It creates the
-# user and edition noted in the constants at the top of the script.
+# additional information. Adjust the contants at the top of the script for
+# your own database as needed.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
@@ -14,10 +13,13 @@ import cx_Oracle
 # define constants used throughout the script; adjust as desired
 USER_NAME = "CX_ORACLE_TESTEDITIONS"
 PASSWORD = "dev"
+DBA_USER_NAME = "system"
+DBA_PASSWORD = ""
+DSN = ""
 EDITION_NAME = "CX_ORACLE_E1"
 
 # create user dropping it first, if necessary
-connection = cx_Oracle.Connection(mode = cx_Oracle.SYSDBA)
+connection = cx_Oracle.Connection(DBA_USER_NAME, DBA_PASSWORD, DSN)
 cursor = connection.cursor()
 cursor.execute("""
         select username
@@ -48,8 +50,7 @@ cursor.execute("create edition %s" % EDITION_NAME)
 cursor.execute("grant use on edition %s to %s" % (EDITION_NAME, USER_NAME))
 
 # now connect to the newly created user and create a procedure
-connectString = "%s/%s" % (USER_NAME, PASSWORD)
-connection = cx_Oracle.Connection(connectString)
+connection = cx_Oracle.Connection(USER_NAME, PASSWORD, DSN)
 print("Edition should be None at this point, actual value is",
         connection.edition)
 cursor = connection.cursor()
@@ -80,14 +81,15 @@ result = cursor.callfunc("TestEditions", str)
 print("Function call should return Base Edition, actually returns", result)
 
 # the edition can be set upon connection
-connection = cx_Oracle.Connection(connectString, edition = EDITION_NAME)
+connection = cx_Oracle.Connection(USER_NAME, PASSWORD, DSN,
+        edition = EDITION_NAME)
 cursor = connection.cursor()
 result = cursor.callfunc("TestEditions", str)
 print("Function call should return Edition 1, actually returns", result)
 
 # it can also be set via the environment variable ORA_EDITION
 os.environ["ORA_EDITION"] = EDITION_NAME
-connection = cx_Oracle.Connection(connectString)
+connection = cx_Oracle.Connection(USER_NAME, PASSWORD, DSN)
 print("Edition should be %s at this point, actual value is" % EDITION_NAME,
         connection.edition)
 cursor = connection.cursor()
