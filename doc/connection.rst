@@ -145,6 +145,19 @@ Connection Object
       This attribute is an extension to the DB API definition.
 
 
+.. attribute:: Connection.edition
+
+   This read-only attribute gets the session edition and is only available in
+   Oracle Database 11.2 (both client and server must be at this level or higher
+   for this to work).
+
+   .. versionadded:: development
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
 .. attribute:: Connection.encoding
 
    This read-only attribute returns the IANA character set name of the

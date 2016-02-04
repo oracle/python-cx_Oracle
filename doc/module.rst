@@ -23,8 +23,8 @@ Module Interface
       available in Oracle 10g Release 2 and higher.
 
 
-.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword])
-              connect([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword])
+.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition])
+              connect([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition])
 
    Constructor for creating a connection to the database. Return a Connection
    object (:ref:`connobj`). All arguments are optional and can be specified as
@@ -75,6 +75,20 @@ Module Interface
 
    The newpassword argument is expected to be a string if specified and sets
    the password for the logon during the connection process.
+
+   The encoding argument is expected to be a string if specified and sets the
+   encoding to use for regular database strings.
+
+   The nencoding argument is expected to be a string if specified and sets the
+   national encoding to use for national character set database strings.
+
+   The module, action and clientinfo arguments are expected to be strings if
+   specified and sets the module, action and client_info attributes on the
+   connection respectively.
+
+   The edition argument is expected to be a string if specified and sets the
+   edition to use for the session. It is only relevant if both the client and
+   the server are at least Oracle Database 11.2.
 
 
 .. function:: Cursor(connection)
@@ -778,6 +792,8 @@ Types
    This type object is used to bind integers using Oracle's native integer
    support, rather than the standard number support, which improves
    performance.
+
+   .. versionadded:: development
 
    .. note::
 
