@@ -766,7 +766,18 @@ Types
 .. data:: NATIVE_FLOAT
 
    This type object is used to describe columns in a database that are of type
-   binary_double or binary_float and is only available in Oracle 10g.
+   binary_double or binary_float.
+
+   .. note::
+
+      This type is an extension to the DB API definition.
+
+
+.. data:: NATIVE_INT
+
+   This type object is used to bind integers using Oracle's native integer
+   support, rather than the standard number support, which improves
+   performance.
 
    .. note::
 

@@ -388,7 +388,8 @@ static int Variable_Check(
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
             Py_TYPE(object) == &g_BooleanVarType ||
 #endif
-            Py_TYPE(object) == &g_NativeFloatVarType);
+            Py_TYPE(object) == &g_NativeFloatVarType ||
+            Py_TYPE(object) == &g_NativeIntVarType);
 }
 
 
@@ -470,6 +471,8 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_Cursor;
     if (type == (PyObject*) &g_NativeFloatVarType)
         return &vt_NativeFloat;
+    if (type == (PyObject*) &g_NativeIntVarType)
+        return &vt_NativeInteger;
     if (type == (PyObject*) &g_ObjectVarType)
         return &vt_Object;
 
@@ -606,6 +609,8 @@ static udt_VariableType *Variable_TypeByOracleDataType (
         case SQLT_BDOUBLE:
         case SQLT_IBDOUBLE:
             return &vt_NativeFloat;
+        case SQLT_INT:
+            return &vt_NativeInteger;
         case SQLT_NUM:
         case SQLT_VNU:
             return &vt_Float;

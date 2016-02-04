@@ -18,6 +18,12 @@ typedef struct {
 } udt_NativeFloatVar;
 
 
+typedef struct {
+    Variable_HEAD
+    long *data;
+} udt_NativeIntVar;
+
+
 //-----------------------------------------------------------------------------
 // Declaration of number variable functions.
 //-----------------------------------------------------------------------------
@@ -26,6 +32,8 @@ static int NumberVar_SetValue(udt_NumberVar*, unsigned, PyObject*);
 static PyObject *NumberVar_GetValue(udt_NumberVar*, unsigned);
 static int NativeFloatVar_SetValue(udt_NativeFloatVar*, unsigned, PyObject*);
 static PyObject *NativeFloatVar_GetValue(udt_NativeFloatVar*, unsigned);
+static int NativeIntVar_SetValue(udt_NativeIntVar*, unsigned, PyObject*);
+static PyObject *NativeIntVar_GetValue(udt_NativeIntVar*, unsigned);
 
 
 //-----------------------------------------------------------------------------
@@ -60,6 +68,31 @@ static PyTypeObject g_NativeFloatVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.NATIVE_FLOAT",           // tp_name
     sizeof(udt_NativeFloatVar),         // tp_basicsize
+    0,                                  // tp_itemsize
+    0,                                  // tp_dealloc
+    0,                                  // tp_print
+    0,                                  // tp_getattr
+    0,                                  // tp_setattr
+    0,                                  // tp_compare
+    0,                                  // tp_repr
+    0,                                  // tp_as_number
+    0,                                  // tp_as_sequence
+    0,                                  // tp_as_mapping
+    0,                                  // tp_hash
+    0,                                  // tp_call
+    0,                                  // tp_str
+    0,                                  // tp_getattro
+    0,                                  // tp_setattro
+    0,                                  // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                 // tp_flags
+    0                                   // tp_doc
+};
+
+
+static PyTypeObject g_NativeIntVarType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "cx_Oracle.NATIVE_INT",             // tp_name
+    sizeof(udt_NativeIntVar),           // tp_basicsize
     0,                                  // tp_itemsize
     0,                                  // tp_dealloc
     0,                                  // tp_print
@@ -119,6 +152,27 @@ static udt_VariableType vt_NativeFloat = {
     SQLT_BDOUBLE,                       // Oracle type
     SQLCS_IMPLICIT,                     // charset form
     sizeof(double),                     // element length
+    0,                                  // is character data
+    0,                                  // is variable length
+    1,                                  // can be copied
+    1                                   // can be in array
+};
+
+
+static udt_VariableType vt_NativeInteger = {
+    (InitializeProc) NULL,
+    (FinalizeProc) NULL,
+    (PreDefineProc) NULL,
+    (PostDefineProc) NULL,
+    (PreFetchProc) NULL,
+    (IsNullProc) NULL,
+    (SetValueProc) NativeIntVar_SetValue,
+    (GetValueProc) NativeIntVar_GetValue,
+    (GetBufferSizeProc) NULL,
+    &g_NativeIntVarType,                // Python type
+    SQLT_INT,                           // Oracle type
+    SQLCS_IMPLICIT,                     // charset form
+    sizeof(long),                       // element length
     0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
@@ -591,6 +645,40 @@ static int NativeFloatVar_SetValue(
         return -1;
     }
     var->data[pos] = PyFloat_AS_DOUBLE(value);
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// NativeIntVar_GetValue()
+//   Returns the value stored at the given array position as an integer.
+//-----------------------------------------------------------------------------
+static PyObject *NativeIntVar_GetValue(
+    udt_NativeIntVar *var,              // variable to determine value for
+    unsigned pos)                       // array position
+{
+//printf("Getting native integer (value %ld)\n", var->data[pos]);
+    return PyInt_FromLong(var->data[pos]);
+}
+
+
+//-----------------------------------------------------------------------------
+// NativeIntVar_SetValue()
+//   Set the value of the variable which should be a native integer.
+//-----------------------------------------------------------------------------
+static int NativeIntVar_SetValue(
+    udt_NativeIntVar *var,              // variable to set value for
+    unsigned pos,                       // array position to set
+    PyObject *value)                    // value to set
+{
+    if (!PyInt_Check(value)) {
+        PyErr_SetString(PyExc_TypeError, "expecting integer");
+        return -1;
+    }
+    var->data[pos] = PyInt_AsLong(value);
+//printf("Setting native integer to value %ld:\n", var->data[pos]);
+    if (PyErr_Occurred())
+        return -1;
     return 0;
 }
 
