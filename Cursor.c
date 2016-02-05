@@ -18,18 +18,18 @@ typedef struct {
     PyObject *rowFactory;
     PyObject *inputTypeHandler;
     PyObject *outputTypeHandler;
-    int arraySize;
-    int bindArraySize;
-    int fetchArraySize;
+    ub4 arraySize;
+    ub4 bindArraySize;
+    ub4 fetchArraySize;
     int numbersAsStrings;
     int setInputSizes;
     int outputSize;
     int outputSizeColumn;
-    int rowCount;
-    int actualRows;
-    int rowNum;
+    ub8 rowCount;
+    ub4 bufferRowCount;
+    ub4 bufferRowIndex;
     int statementType;
-    int isDML;
+    int hasRowsToFetch;
     int isOpen;
     int isOwned;
 } udt_Cursor;
@@ -117,9 +117,9 @@ static PyMethodDef g_CursorMethods[] = {
 // declaration of members for Python type "Cursor"
 //-----------------------------------------------------------------------------
 static PyMemberDef g_CursorMembers[] = {
-    { "arraysize", T_INT, offsetof(udt_Cursor, arraySize), 0 },
-    { "bindarraysize", T_INT, offsetof(udt_Cursor, bindArraySize), 0 },
-    { "rowcount", T_INT, offsetof(udt_Cursor, rowCount), READONLY },
+    { "arraysize", T_UINT, offsetof(udt_Cursor, arraySize), 0 },
+    { "bindarraysize", T_UINT, offsetof(udt_Cursor, bindArraySize), 0 },
+    { "rowcount", T_ULONGLONG, offsetof(udt_Cursor, rowCount), READONLY },
     { "statement", T_OBJECT, offsetof(udt_Cursor, statement), READONLY },
     { "connection", T_OBJECT_EX, offsetof(udt_Cursor, connection), READONLY },
     { "numbersAsStrings", T_INT, offsetof(udt_Cursor, numbersAsStrings), 0 },
@@ -502,32 +502,53 @@ static int Cursor_PerformDefine(
 
 
 //-----------------------------------------------------------------------------
+// Cursor_GetRowCount()
+//   Get the row count from the statement handle. This is a 64-bit value in
+// Oracle Database 12.1 and later and a 32-bit value prior to that.
+//-----------------------------------------------------------------------------
+static int Cursor_GetRowCount(
+    udt_Cursor *self,                   // cursor to get the row count on
+    ub8* value)                         // the row count (OUT)
+{
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+    ub8 rowCount;
+    ub4 attribute = OCI_ATTR_UB8_ROW_COUNT;
+#else
+    ub4 rowCount;
+    ub4 attribute = OCI_ATTR_ROW_COUNT;
+#endif
+    sword status;
+
+    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &rowCount, 0,
+            attribute, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_GetRowCount()") < 0)
+        return -1;
+    *value = rowCount;
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // Cursor_SetRowCount()
 //   Set the rowcount variable.
 //-----------------------------------------------------------------------------
 static int Cursor_SetRowCount(
     udt_Cursor *self)                   // cursor to set the rowcount on
 {
-    ub4 rowCount;
-    sword status;
-
+    self->rowCount = 0;
+    self->hasRowsToFetch = 0;
     if (self->statementType == OCI_STMT_SELECT) {
-        self->rowCount = 0;
-        self->actualRows = -1;
-        self->rowNum = 0;
+        self->bufferRowCount = 0;
+        self->bufferRowIndex = self->fetchArraySize;
+        self->hasRowsToFetch = 1;
     } else if (self->statementType == OCI_STMT_INSERT ||
                self->statementType == OCI_STMT_UPDATE ||
                self->statementType == OCI_STMT_DELETE ||
                self->statementType == OCI_STMT_BEGIN ||
                self->statementType == OCI_STMT_DECLARE) {
-        status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &rowCount, 0,
-                OCI_ATTR_ROW_COUNT, self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Cursor_SetRowCount()") < 0)
+        if (Cursor_GetRowCount(self, &self->rowCount) < 0)
             return -1;
-        self->rowCount = rowCount;
-    } else {
-        self->rowCount = -1;
     }
 
     return 0;
@@ -1115,7 +1136,7 @@ static PyObject *Cursor_CreateRow(
     // acquire the value for each item
     for (pos = 0; pos < numItems; pos++) {
         var = (udt_Variable*) PyList_GET_ITEM(self->fetchVariables, pos);
-        item = Variable_GetValue(var, self->rowNum);
+        item = Variable_GetValue(var, self->bufferRowIndex);
         if (!item) {
             Py_DECREF(tuple);
             return NULL;
@@ -1124,7 +1145,7 @@ static PyObject *Cursor_CreateRow(
     }
 
     // increment row counters
-    self->rowNum++;
+    self->bufferRowIndex++;
     self->rowCount++;
 
     // if a row factory is defined, call it
@@ -1762,7 +1783,7 @@ static PyObject *Cursor_ExecuteManyPrepared(
     udt_Cursor *self,                   // cursor to execute
     PyObject *args)                     // arguments
 {
-    int numIters;
+    ub4 numIters;
 
     // expect number of times to execute the statement
     if (!PyArg_ParseTuple(args, "i", &numIters))
@@ -1832,7 +1853,7 @@ static int Cursor_InternalFetch(
 {
     udt_Variable *var;
     sword status;
-    ub4 rowCount;
+    ub8 rowCount;
     int i;
 
     if (!self->fetchVariables) {
@@ -1848,21 +1869,25 @@ static int Cursor_InternalFetch(
         }
     }
     Py_BEGIN_ALLOW_THREADS
-    status = OCIStmtFetch(self->handle, self->environment->errorHandle,
-            numRows, OCI_FETCH_NEXT, OCI_DEFAULT);
+    status = OCIStmtFetch2(self->handle, self->environment->errorHandle,
+            numRows, OCI_FETCH_NEXT, 0, OCI_DEFAULT);
     Py_END_ALLOW_THREADS
-    if (status != OCI_NO_DATA) {
-        if (Environment_CheckForError(self->environment, status,
-                "Cursor_InternalFetch(): fetch") < 0)
-            return -1;
-    }
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &rowCount, 0,
-            OCI_ATTR_ROW_COUNT, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_InternalFetch(): row count") < 0)
+    if (status == OCI_NO_DATA)
+        self->hasRowsToFetch = 0;
+    else if (Environment_CheckForError(self->environment, status,
+            "Cursor_InternalFetch(): fetch") < 0)
         return -1;
-    self->actualRows = rowCount - self->rowCount;
-    self->rowNum = 0;
+
+    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &self->bufferRowCount, 0,
+            OCI_ATTR_ROWS_FETCHED, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_InternalFetch(): get rows fetched") < 0)
+        return -1;
+    if (Cursor_GetRowCount(self, &rowCount) < 0)
+        return -1;
+    self->rowCount = rowCount - self->bufferRowCount;
+    self->bufferRowIndex = 0;
+
     return 0;
 }
 
@@ -1875,12 +1900,12 @@ static int Cursor_InternalFetch(
 static int Cursor_MoreRows(
     udt_Cursor *self)                   // cursor to fetch from
 {
-    if (self->rowNum >= self->actualRows) {
-        if (self->actualRows < 0 || self->actualRows == self->fetchArraySize) {
+    if (self->bufferRowIndex >= self->bufferRowCount) {
+        if (self->hasRowsToFetch) {
             if (Cursor_InternalFetch(self, self->fetchArraySize) < 0)
                 return -1;
         }
-        if (self->rowNum >= self->actualRows)
+        if (self->bufferRowIndex >= self->bufferRowCount)
             return 0;
     }
     return 1;
@@ -2007,7 +2032,7 @@ static PyObject *Cursor_FetchRaw(
     PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "numRows", NULL };
-    int numRowsToFetch, numRowsFetched;
+    ub4 numRowsToFetch, numRowsFetched;
 
     // expect an optional number of rows to retrieve
     numRowsToFetch = self->fetchArraySize;
@@ -2021,17 +2046,17 @@ static PyObject *Cursor_FetchRaw(
     }
 
     // do not attempt to perform fetch if no more rows to fetch
-    if (self->actualRows > 0 && self->actualRows < self->fetchArraySize)
+    if (self->bufferRowCount > 0 && self->bufferRowCount < self->fetchArraySize)
         return PyInt_FromLong(0);
 
     // perform internal fetch
     if (Cursor_InternalFetch(self, numRowsToFetch) < 0)
         return NULL;
 
-    self->rowCount += self->actualRows;
-    numRowsFetched = self->actualRows;
-    if (self->actualRows == numRowsToFetch)
-        self->actualRows = -1;
+    self->rowCount += self->bufferRowCount;
+    numRowsFetched = self->bufferRowCount;
+    if (self->bufferRowCount == numRowsToFetch)
+        self->bufferRowCount = 0;
     return PyInt_FromLong(numRowsFetched);
 }
 
@@ -2423,10 +2448,9 @@ static PyObject* Cursor_GetArrayDMLRowCounts(
     udt_Cursor *self)                   // cursor object
 {
     PyObject *result, *element;
+    ub4 rowCountArraySize, i;
     ub8 *arrayDMLRowCount;
-    ub4 rowCountArraySize;
     sword status;
-    int i;
  
     // get number of iterations 
     status = OCIAttrGet(self->handle, (ub4) OCI_HTYPE_STMT,

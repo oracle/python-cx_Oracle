@@ -104,7 +104,7 @@ static int ObjectVar_Initialize(
     udt_ObjectVar *self,                // variable to initialize
     udt_Cursor *cursor)                 // cursor to use
 {
-    int i;
+    ub4 i;
 
     Py_INCREF(cursor->connection);
     self->connection = cursor->connection;
@@ -130,7 +130,7 @@ static int ObjectVar_Initialize(
 static void ObjectVar_Finalize(
     udt_ObjectVar *self)                // variable to free
 {
-    int i;
+    ub4 i;
 
     for (i = 0; i < self->allocatedElements; i++) {
         if (self->data[i])
