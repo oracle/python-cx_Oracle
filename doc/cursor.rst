@@ -149,10 +149,9 @@ Cursor Object
    values that are later bound as numbers or dates will raise a TypeError
    exception.
 
-   If the statement is a query, a list of variable objects (:ref:`varobj`) will
-   be returned corresponding to the list of variables into which data will be
-   fetched with the :meth:`~Cursor.fetchone()`, :meth:`~Cursor.fetchmany()` and
-   :meth:`~Cursor.fetchall()` methods; otherwise, ``None`` will be returned.
+   If the statement is a query, the cursor is returned as a convenience to the
+   caller (so it can be used directly as an iterator over the rows in the
+   cursor); otherwise, ``None`` is returned.
 
    .. note
 
