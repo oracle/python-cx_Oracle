@@ -3,7 +3,7 @@
 import cx_Oracle
 import pickle
 
-class TestBooleanVar(BaseTestCase):
+class TestError(BaseTestCase):
 
     def testPickleError(self):
         "test picking/unpickling an error object"

@@ -52,7 +52,7 @@ static PyMemberDef g_ErrorMembers[] = {
     { "offset", T_INT, offsetof(udt_Error, offset), READONLY },
     { "message", T_OBJECT, offsetof(udt_Error, message), READONLY },
     { "context", T_STRING, offsetof(udt_Error, context), READONLY },
-    { "isrecoverable", T_BOOL, offsetof(udt_Error, context), READONLY },
+    { "isrecoverable", T_BOOL, offsetof(udt_Error, isRecoverable), READONLY },
     { NULL }
 };
 
