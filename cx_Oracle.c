@@ -27,34 +27,6 @@
 #error Unsupported version of OCI.
 #endif
 
-// PY_LONG_LONG was called LONG_LONG before Python 2.3
-#ifndef PY_LONG_LONG
-#define PY_LONG_LONG LONG_LONG
-#endif
-
-// define Py_ssize_t for versions before Python 2.5
-#if PY_VERSION_HEX < 0x02050000
-typedef int Py_ssize_t;
-#define PY_SSIZE_T_MAX INT_MAX
-#define PY_SSIZE_T_MIN INT_MIN
-#endif
-
-// define T_BOOL for versions before Python 2.5
-#ifndef T_BOOL
-#define T_BOOL                  T_INT
-#endif
-
-// define Py_TYPE for versions before Python 2.6
-#ifndef Py_TYPE
-#define Py_TYPE(ob)             (((PyObject*)(ob))->ob_type)
-#endif
-
-// define PyVarObject_HEAD_INIT for versions before Python 2.6
-#ifndef PyVarObject_HEAD_INIT
-#define PyVarObject_HEAD_INIT(type, size) \
-        PyObject_HEAD_INIT(type) size,
-#endif
-
 // define PyInt_* macros for Python 3.x
 #ifndef PyInt_Check
 #define PyInt_Check             PyLong_Check
