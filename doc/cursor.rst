@@ -408,6 +408,42 @@ Cursor Object
       The DB API definition does not define this attribute.
 
 
+.. method:: Cursor.scroll(value = 0, mode="relative")
+
+   Scroll the cursor in the result set to a new position according to the mode.
+
+   If mode is "relative" (the default value), the value is taken as an offset
+   to the current position in the result set. If set to "absolute", value
+   states an absolute target position. If set to "first", the cursor is
+   positioned at the first row and if set to "last", the cursor is set to the
+   last row in the result set.
+
+   An IndexError is raised if the mode is "relative" or "absolute" and the
+   scroll operation would position the cursor outside of the result set.
+
+   .. versionadded:: development
+
+   .. note::
+
+      This method is an extension to the DB API definition but it is
+      mentioned in PEP 249 as an optional extension.
+
+
+.. attribute:: Cursor.scrollable
+
+   This read-write boolean attribute specifies whether the cursor can be
+   scrolled or not. By default, cursors are not scrollable, as the server
+   resources and response times are greater than nonscrollable cursors. This
+   attribute is checked and the corresponding mode set in Oracle when calling
+   the method :meth:`~Cursor.execute()`.
+
+   .. versionadded:: development
+
+   .. note::
+
+      The DB API definition does not define this attribute.
+
+
 .. method:: Cursor.setinputsizes(\*args, \*\*keywordArgs)
 
    This can be used before a call to execute(), callfunc() or callproc() to

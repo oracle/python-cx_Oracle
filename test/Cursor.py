@@ -5,6 +5,17 @@ import sys
 
 class TestCursor(BaseTestCase):
 
+    def testCreateScrollableCursor(self):
+        """test creating a scrollable cursor"""
+        cursor = self.connection.cursor()
+        self.assertEqual(cursor.scrollable, False)
+        cursor = self.connection.cursor(True)
+        self.assertEqual(cursor.scrollable, True)
+        cursor = self.connection.cursor(scrollable = True)
+        self.assertEqual(cursor.scrollable, True)
+        cursor.scrollable = False
+        self.assertEqual(cursor.scrollable, False)
+
     def testExecuteNoArgs(self):
         """test executing a statement without any arguments"""
         result = self.cursor.execute("begin null; end;")
@@ -235,6 +246,140 @@ class TestCursor(BaseTestCase):
                 self.cursor.execute, "select y from dual")
         self.assertRaises(cx_Oracle.InterfaceError,
                 self.cursor.fetchall)
+
+    def testScrollAbsoluteExceptionAfter(self):
+        """test scrolling absolute yields an exception (after result set)"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        self.assertRaises(IndexError, cursor.scroll, 12, "absolute")
+
+    def testScrollAbsoluteInBuffer(self):
+        """test scrolling absolute (when in buffers)"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        cursor.fetchmany()
+        self.assertTrue(cursor.arraysize > 1,
+                "array size must exceed 1 for this test to work correctly")
+        cursor.scroll(1, mode = "absolute")
+        row = cursor.fetchone()
+        self.assertEqual(row[0], 1.25)
+        self.assertEqual(cursor.rowcount, 1)
+
+    def testScrollAbsoluteNotInBuffer(self):
+        """test scrolling absolute (when not in buffers)"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        cursor.scroll(6, mode = "absolute")
+        row = cursor.fetchone()
+        self.assertEqual(row[0], 7.5)
+        self.assertEqual(cursor.rowcount, 6)
+
+    def testScrollFirstInBuffer(self):
+        """test scrolling to first row in result set (when in buffers)"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        cursor.fetchmany()
+        cursor.scroll(mode = "first")
+        row = cursor.fetchone()
+        self.assertEqual(row[0], 1.25)
+        self.assertEqual(cursor.rowcount, 1)
+
+    def testScrollFirstNotInBuffer(self):
+        """test scrolling to first row in result set (when not in buffers)"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        cursor.fetchmany()
+        cursor.fetchmany()
+        cursor.scroll(mode = "first")
+        row = cursor.fetchone()
+        self.assertEqual(row[0], 1.25)
+        self.assertEqual(cursor.rowcount, 1)
+
+    def testScrollLast(self):
+        """test scrolling to last row in result set"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        cursor.scroll(mode = "last")
+        row = cursor.fetchone()
+        self.assertEqual(row[0], 12.5)
+        self.assertEqual(cursor.rowcount, 10)
+
+    def testScrollRelativeExceptionAfter(self):
+        """test scrolling relative yields an exception (after result set)"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        self.assertRaises(IndexError, cursor.scroll, 15)
+
+    def testScrollRelativeExceptionBefore(self):
+        """test scrolling relative yields an exception (before result set)"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        self.assertRaises(IndexError, cursor.scroll, -5)
+
+    def testScrollRelativeInBuffer(self):
+        """test scrolling relative (when in buffers)"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        cursor.fetchmany()
+        self.assertTrue(cursor.arraysize > 1,
+                "array size must exceed 1 for this test to work correctly")
+        cursor.scroll(2 - cursor.rowcount)
+        row = cursor.fetchone()
+        self.assertEqual(row[0], 2.5)
+        self.assertEqual(cursor.rowcount, 2)
+
+    def testScrollRelativeNotInBuffer(self):
+        """test scrolling relative (when not in buffers)"""
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.arraysize = self.cursor.arraysize
+        cursor.execute("""
+                select NumberCol
+                from TestNumbers
+                order by IntCol""")
+        cursor.fetchmany()
+        cursor.fetchmany()
+        self.assertTrue(cursor.arraysize > 1,
+                "array size must exceed 2 for this test to work correctly")
+        cursor.scroll(3 - cursor.rowcount)
+        row = cursor.fetchone()
+        self.assertEqual(row[0], 3.75)
+        self.assertEqual(cursor.rowcount, 3)
 
     def testSetInputSizesMultipleMethod(self):
         """test setting input sizes with both positional and keyword args"""

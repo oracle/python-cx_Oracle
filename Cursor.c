@@ -32,6 +32,7 @@ typedef struct {
     int hasRowsToFetch;
     int isOpen;
     int isOwned;
+    boolean isScrollable;
 } udt_Cursor;
 
 
@@ -58,6 +59,7 @@ static PyObject *Cursor_FetchAll(udt_Cursor*, PyObject*);
 static PyObject *Cursor_FetchRaw(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_Parse(udt_Cursor*, PyObject*);
 static PyObject *Cursor_Prepare(udt_Cursor*, PyObject*);
+static PyObject *Cursor_Scroll(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_SetInputSizes(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_SetOutputSize(udt_Cursor*, PyObject*);
 static PyObject *Cursor_Var(udt_Cursor*, PyObject*, PyObject*);
@@ -98,6 +100,7 @@ static PyMethodDef g_CursorMethods[] = {
     { "executemanyprepared", (PyCFunction) Cursor_ExecuteManyPrepared,
               METH_VARARGS },
     { "setoutputsize", (PyCFunction) Cursor_SetOutputSize, METH_VARARGS },
+    { "scroll", (PyCFunction) Cursor_Scroll, METH_VARARGS | METH_KEYWORDS },
     { "var", (PyCFunction) Cursor_Var, METH_VARARGS | METH_KEYWORDS },
     { "arrayvar", (PyCFunction) Cursor_ArrayVar, METH_VARARGS },
     { "bindnames", (PyCFunction) Cursor_BindNames, METH_NOARGS },
@@ -130,6 +133,7 @@ static PyMemberDef g_CursorMembers[] = {
             0 },
     { "outputtypehandler", T_OBJECT, offsetof(udt_Cursor, outputTypeHandler),
             0 },
+    { "scrollable", T_BOOL, offsetof(udt_Cursor, isScrollable), 0 },
     { NULL }
 };
 
@@ -287,10 +291,14 @@ static int Cursor_Init(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
+    static char *keywordList[] = { "connection", "scrollable", NULL };
     udt_Connection *connection;
+    PyObject *scrollableObj;
 
     // parse arguments
-    if (!PyArg_ParseTuple(args, "O!", &g_ConnectionType, &connection))
+    scrollableObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|O", keywordList,
+            &g_ConnectionType, &connection, &scrollableObj))
         return -1;
 
     // initialize members
@@ -304,6 +312,11 @@ static int Cursor_Init(
     self->outputSize = -1;
     self->outputSizeColumn = -1;
     self->isOpen = 1;
+    if (scrollableObj) {
+        self->isScrollable = PyObject_IsTrue(scrollableObj);
+        if (self->isScrollable < 0)
+            return -1;
+    }
 
     return 0;
 }
@@ -1637,6 +1650,7 @@ static PyObject *Cursor_Execute(
 {
     PyObject *statement, *executeArgs;
     int isQuery;
+    ub4 mode;
 
     executeArgs = NULL;
     if (!PyArg_ParseTuple(args, "O|O", &statement, &executeArgs))
@@ -1676,8 +1690,11 @@ static PyObject *Cursor_Execute(
         return NULL;
 
     // execute the statement
+    mode = OCI_DEFAULT;
     isQuery = (self->statementType == OCI_STMT_SELECT);
-    if (Cursor_InternalExecute(self, isQuery ? 0 : 1, 0) < 0)
+    if (isQuery && self->isScrollable)
+        mode = OCI_STMT_SCROLLABLE_READONLY;
+    if (Cursor_InternalExecute(self, isQuery ? 0 : 1, mode) < 0)
         return NULL;
 
     // perform defines, if necessary
@@ -1851,9 +1868,9 @@ static int Cursor_InternalFetch(
     udt_Cursor *self,                   // cursor to fetch from
     int numRows)                        // number of rows to fetch
 {
+    ub4 currentPosition;
     udt_Variable *var;
     sword status;
-    ub8 rowCount;
     int i;
 
     if (!self->fetchVariables) {
@@ -1878,14 +1895,22 @@ static int Cursor_InternalFetch(
             "Cursor_InternalFetch(): fetch") < 0)
         return -1;
 
+    // determine the number of rows fetched into buffers
     status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &self->bufferRowCount, 0,
             OCI_ATTR_ROWS_FETCHED, self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
             "Cursor_InternalFetch(): get rows fetched") < 0)
         return -1;
-    if (Cursor_GetRowCount(self, &rowCount) < 0)
+
+    // determine the current position in the cursor
+    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &currentPosition, 0,
+            OCI_ATTR_CURRENT_POSITION, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_InternalFetch(): get current position") < 0)
         return -1;
-    self->rowCount = rowCount - self->bufferRowCount;
+
+    // reset buffer row index and row count
+    self->rowCount = currentPosition - self->bufferRowCount;
     self->bufferRowIndex = 0;
 
     return 0;
@@ -2058,6 +2083,115 @@ static PyObject *Cursor_FetchRaw(
     if (self->bufferRowCount == numRowsToFetch)
         self->bufferRowCount = 0;
     return PyInt_FromLong(numRowsFetched);
+}
+
+
+//-----------------------------------------------------------------------------
+// Cursor_Scroll()
+//   Scroll the cursor using the value and mode specified.
+//-----------------------------------------------------------------------------
+static PyObject *Cursor_Scroll(
+    udt_Cursor *self,                   // cursor to execute
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
+{
+    static char *keywordList[] = { "value", "mode", NULL };
+    ub8 desiredRow, minRowInBuffers, maxRowInBuffers;
+    ub4 fetchMode, numRows, currentPosition;
+    sword status;
+    char *mode;
+    int value;
+
+    // parse arguments
+    value = 0;
+    mode = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|is", keywordList,
+            &value, &mode))
+        return NULL;
+
+    // validate mode
+    if (!mode) {
+        fetchMode = OCI_FETCH_RELATIVE;
+        desiredRow = self->rowCount + value;
+    } else if (strcmp(mode, "relative") == 0) {
+        fetchMode = OCI_FETCH_RELATIVE;
+        desiredRow = self->rowCount + value;
+    } else if (strcmp(mode, "absolute") == 0) {
+        fetchMode = OCI_FETCH_ABSOLUTE;
+        desiredRow = value;
+    } else if (strcmp(mode, "first") == 0) {
+        fetchMode = OCI_FETCH_FIRST;
+        desiredRow = 1;
+    } else if (strcmp(mode, "last") == 0) {
+        fetchMode = OCI_FETCH_LAST;
+        desiredRow = 0;
+    } else {
+        PyErr_SetString(g_InterfaceErrorException,
+                "mode must be one of relative, absolute, first or last");
+        return NULL;
+    }
+
+    // make sure the cursor is open
+    if (Cursor_IsOpen(self) < 0)
+        return NULL;
+
+    // determine if a fetch is actually required; "last" is always fetched
+    if (fetchMode != OCI_FETCH_LAST && self->bufferRowCount > 0) {
+        minRowInBuffers = self->rowCount - self->bufferRowIndex;
+        maxRowInBuffers = self->rowCount + self->bufferRowCount -
+                self->bufferRowIndex - 1;
+        if (self->bufferRowIndex == self->bufferRowCount) {
+            minRowInBuffers += 1;
+            maxRowInBuffers += 1;
+        }
+        if (desiredRow >= minRowInBuffers && desiredRow <= maxRowInBuffers) {
+            self->bufferRowIndex = desiredRow - minRowInBuffers;
+            self->rowCount = desiredRow - 1;
+            Py_RETURN_NONE;
+        }
+    }
+
+    // perform fetch; when fetching the last row, only fetch a single row
+    numRows = (fetchMode == OCI_FETCH_LAST) ? 1 : self->fetchArraySize;
+    Py_BEGIN_ALLOW_THREADS
+    status = OCIStmtFetch2(self->handle, self->environment->errorHandle,
+            numRows, fetchMode, value, OCI_DEFAULT);
+    Py_END_ALLOW_THREADS
+    if (status == OCI_NO_DATA) {
+        if (fetchMode == OCI_FETCH_FIRST || fetchMode == OCI_FETCH_LAST) {
+            self->hasRowsToFetch = 0;
+            self->rowCount = 0;
+            self->bufferRowCount = 0;
+            self->bufferRowIndex = 0;
+        } else {
+            PyErr_SetString(PyExc_IndexError,
+                    "requested scroll operation would leave result set");
+            return NULL;
+        }
+    } else if (Environment_CheckForError(self->environment, status,
+            "Cursor_Scroll(): fetch") < 0)
+        return NULL;
+    self->hasRowsToFetch = 1;
+
+    // determine the number of rows actually fetched
+    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &self->bufferRowCount, 0,
+            OCI_ATTR_ROWS_FETCHED, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_Scroll(): get rows fetched") < 0)
+        return NULL;
+
+    // determine the current position of the cursor
+    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &currentPosition, 0,
+            OCI_ATTR_CURRENT_POSITION, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_Scroll(): get current position") < 0)
+        return NULL;
+
+    // reset buffer row index and row count
+    self->rowCount = currentPosition - self->bufferRowCount;
+    self->bufferRowIndex = 0;
+
+    Py_RETURN_NONE;
 }
 
 
@@ -2515,7 +2649,7 @@ static PyObject * Cursor_GetImplicitResults(
     // populate it with the implicit results
     for (i = 0; i < numImplicitResults; i++) {
         childCursor = (udt_Cursor*) Connection_NewCursor(self->connection,
-                NULL);
+                NULL, NULL);
         if (!childCursor) {
             Py_DECREF(result);
             return NULL;

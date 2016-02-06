@@ -1007,7 +1007,7 @@ static PyObject *Subscription_RegisterQuery(
 
     // create cursor to perform query
     env = self->connection->environment;
-    cursor = (udt_Cursor*) Connection_NewCursor(self->connection, NULL);
+    cursor = (udt_Cursor*) Connection_NewCursor(self->connection, NULL, NULL);
     if (!cursor)
         return NULL;
 

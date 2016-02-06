@@ -92,7 +92,8 @@ static int CursorVar_Initialize(
     if (!var->cursors)
         return -1;
     for (i = 0; i < var->allocatedElements; i++) {
-        tempCursor = (udt_Cursor*) Connection_NewCursor(var->connection, NULL);
+        tempCursor = (udt_Cursor*) Connection_NewCursor(var->connection, NULL,
+                NULL);
         if (!tempCursor) {
             Py_DECREF(var);
             return -1;

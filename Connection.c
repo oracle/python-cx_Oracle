@@ -53,7 +53,7 @@ static PyObject *Connection_Commit(udt_Connection*, PyObject*);
 static PyObject *Connection_Begin(udt_Connection*, PyObject*);
 static PyObject *Connection_Prepare(udt_Connection*, PyObject*);
 static PyObject *Connection_Rollback(udt_Connection*, PyObject*);
-static PyObject *Connection_NewCursor(udt_Connection*, PyObject*);
+static PyObject *Connection_NewCursor(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Cancel(udt_Connection*, PyObject*);
 static PyObject *Connection_RegisterCallback(udt_Connection*, PyObject*);
 static PyObject *Connection_UnregisterCallback(udt_Connection*, PyObject*);
@@ -87,7 +87,8 @@ static PyObject *Connection_GetLTXID(udt_Connection*, void*);
 // declaration of methods for Python type "Connection"
 //-----------------------------------------------------------------------------
 static PyMethodDef g_ConnectionMethods[] = {
-    { "cursor", (PyCFunction) Connection_NewCursor, METH_NOARGS },
+    { "cursor", (PyCFunction) Connection_NewCursor,
+            METH_VARARGS | METH_KEYWORDS },
     { "commit", (PyCFunction) Connection_Commit, METH_NOARGS },
     { "rollback", (PyCFunction) Connection_Rollback, METH_NOARGS },
     { "begin", (PyCFunction) Connection_Begin, METH_VARARGS },
@@ -1102,7 +1103,7 @@ static PyObject *Connection_GetVersion(
     }
 
     // allocate a cursor to retrieve the version
-    cursor = (udt_Cursor*) Connection_NewCursor(self, NULL);
+    cursor = (udt_Cursor*) Connection_NewCursor(self, NULL, NULL);
     if (!cursor)
         return NULL;
 
@@ -1489,16 +1490,23 @@ static PyObject *Connection_Rollback(
 //-----------------------------------------------------------------------------
 static PyObject *Connection_NewCursor(
     udt_Connection *self,               // connection to create cursor on
-    PyObject *args)                     // arguments
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
     PyObject *createArgs, *result;
+    Py_ssize_t numArgs = 0, i;
 
-    createArgs = PyTuple_New(1);
+    if (args)
+        numArgs = PyTuple_GET_SIZE(args);
+    createArgs = PyTuple_New(1 + numArgs);
     if (!createArgs)
         return NULL;
     Py_INCREF(self);
     PyTuple_SET_ITEM(createArgs, 0, (PyObject*) self);
-    result = PyObject_Call( (PyObject*) &g_CursorType, createArgs, NULL);
+    for (i = 0; i < numArgs; i++)
+        PyTuple_SET_ITEM(createArgs, i + 1, PyTuple_GET_ITEM(args, i));
+    result = PyObject_Call( (PyObject*) &g_CursorType, createArgs,
+            keywordArgs);
     Py_DECREF(createArgs);
     return result;
 }
