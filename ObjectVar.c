@@ -4,7 +4,7 @@
 //-----------------------------------------------------------------------------
 
 #include "ObjectType.c"
-#include "ExternalObjectVar.c"
+#include "Object.c"
 
 //-----------------------------------------------------------------------------
 // Object type
@@ -13,6 +13,7 @@ typedef struct {
     Variable_HEAD
     dvoid **data;
     dvoid **objectIndicator;
+    PyObject **objects;
     udt_Connection *connection;
     udt_ObjectType *objectType;
 } udt_ObjectVar;
@@ -25,6 +26,7 @@ static void ObjectVar_Finalize(udt_ObjectVar*);
 static PyObject *ObjectVar_GetValue(udt_ObjectVar*, unsigned);
 static int ObjectVar_PreDefine(udt_ObjectVar*, OCIParam*);
 static int ObjectVar_PostDefine(udt_ObjectVar*);
+static int ObjectVar_PreFetch(udt_ObjectVar*);
 static int ObjectVar_IsNull(udt_ObjectVar*, unsigned);
 
 //-----------------------------------------------------------------------------
@@ -80,7 +82,7 @@ static udt_VariableType vt_Object = {
     (FinalizeProc) ObjectVar_Finalize,
     (PreDefineProc) ObjectVar_PreDefine,
     (PostDefineProc) ObjectVar_PostDefine,
-    (PreFetchProc) NULL,
+    (PreFetchProc) ObjectVar_PreFetch,
     (IsNullProc) ObjectVar_IsNull,
     (SetValueProc) NULL,
     (GetValueProc) ObjectVar_GetValue,
@@ -115,9 +117,16 @@ static int ObjectVar_Initialize(
         PyErr_NoMemory();
         return -1;
     }
+    self->objects = PyMem_Malloc(self->allocatedElements * sizeof(PyObject*));
+    if (!self->objects) {
+        PyErr_NoMemory();
+        return -1;
+    }
+
     for (i = 0; i < self->allocatedElements; i++) {
         self->data[i] = NULL;
         self->objectIndicator[i] = NULL;
+        self->objects[i] = NULL;
     }
     return 0;
 }
@@ -133,15 +142,18 @@ static void ObjectVar_Finalize(
     ub4 i;
 
     for (i = 0; i < self->allocatedElements; i++) {
+        Py_CLEAR(self->objects[i]);
         if (self->data[i])
             OCIObjectFree(self->environment->handle,
                     self->environment->errorHandle, self->data[i],
-                    OCI_OBJECTFREE_FORCE);
+                    OCI_DEFAULT);
     }
-    Py_DECREF(self->connection);
-    Py_XDECREF(self->objectType);
+    Py_CLEAR(self->connection);
+    Py_CLEAR(self->objectType);
     if (self->objectIndicator)
         PyMem_Free(self->objectIndicator);
+    if (self->objects)
+        PyMem_Free(self->objects);
 }
 
 
@@ -179,6 +191,26 @@ static int ObjectVar_PostDefine(
 
 
 //-----------------------------------------------------------------------------
+// ObjectVar_PreFetch()
+//   Free objects prior to next fetch.
+//-----------------------------------------------------------------------------
+static int ObjectVar_PreFetch(
+    udt_ObjectVar *var)                 // variable to free
+{
+    ub4 i;
+
+    for (i = 0; i < var->allocatedElements; i++) {
+        Py_CLEAR(var->objects[i]);
+        if (var->data[i])
+            OCIObjectFree(var->environment->handle,
+                    var->environment->errorHandle, var->data[i], OCI_DEFAULT);
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // ObjectVar_IsNull()
 //   Returns a boolean indicating if the variable is null or not.
 //-----------------------------------------------------------------------------
@@ -200,27 +232,24 @@ static PyObject *ObjectVar_GetValue(
     udt_ObjectVar *self,                // variable to determine value for
     unsigned pos)                       // array position
 {
-    PyObject *var;
+    PyObject *obj;
 
-    // only allowed to get the value once (for now)
-    if (!self->data[pos]) {
-        PyErr_SetString(g_ProgrammingErrorException,
-                "variable value can only be acquired once");
-        return NULL;
+    // create the object, if needed; for collections, return a list, not the
+    // object itself
+    if (!self->objects[pos]) {
+        if (self->objectType->isCollection)
+            obj = Object_ConvertCollection(self->environment, self->data[pos],
+                    self->objectType);
+        else obj = Object_New(self->objectType, self->data[pos],
+                self->objectIndicator[pos], 1);
+        if (!obj)
+            return NULL;
+        self->objects[pos] = obj;
+        self->data[pos] = NULL;
+        self->objectIndicator[pos] = NULL;
     }
 
-    // for collections, return the list rather than the object
-    if (self->objectType->isCollection)
-        return ExternalObjectVar_ConvertCollection(self->environment,
-                self->data[pos], (PyObject*) self, self->objectType);
-
-    // for objects, return a representation of the object
-    var = ExternalObjectVar_New((PyObject*) self, self->objectType,
-            self->data[pos], self->objectIndicator[pos], 1);
-    if (!var)
-        return NULL;
-    self->data[pos] = NULL;
-    self->objectIndicator[pos] = NULL;
-    return var;
+    Py_INCREF(self->objects[pos]);
+    return self->objects[pos];
 }
 

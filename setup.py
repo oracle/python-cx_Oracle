@@ -364,11 +364,10 @@ extension = Extension(
         sources = ["cx_Oracle.c"],
         depends = ["Buffer.c", "Callback.c", "Connection.c", "Cursor.c",
                 "CursorVar.c", "DateTimeVar.c", "Environment.c", "Error.c",
-                "ExternalLobVar.c", "ExternalObjectVar.c", "IntervalVar.c",
-                "LobVar.c", "LongVar.c", "NumberVar.c", "ObjectType.c",
-                "ObjectVar.c", "SessionPool.c", "StringVar.c",
-                "Subscription.c", "TimestampVar.c", "Transforms.c",
-                "Variable.c"])
+                "ExternalLobVar.c", "IntervalVar.c", "LobVar.c", "LongVar.c",
+                "NumberVar.c", "Object.c", "ObjectType.c", "ObjectVar.c",
+                "SessionPool.c", "StringVar.c", "Subscription.c",
+                "TimestampVar.c", "Transforms.c", "Variable.c"])
 
 # perform the setup
 setup(

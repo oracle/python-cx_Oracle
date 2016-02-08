@@ -357,7 +357,7 @@ static PyObject *Module_Initialize(void)
     MAKE_TYPE_READY(&g_ObjectTypeType);
     MAKE_TYPE_READY(&g_ObjectAttributeType);
     MAKE_TYPE_READY(&g_ExternalLobVarType);
-    MAKE_TYPE_READY(&g_ExternalObjectVarType);
+    MAKE_TYPE_READY(&g_ObjectType);
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
     MAKE_TYPE_READY(&g_SubscriptionType);
     MAKE_TYPE_READY(&g_MessageType);
