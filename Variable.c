@@ -229,25 +229,11 @@ static udt_Variable *Variable_New(
     // perform basic initialization
     Py_INCREF(cursor->connection->environment);
     self->environment = cursor->connection->environment;
-    self->boundCursorHandle = NULL;
-    self->bindHandle = NULL;
-    self->defineHandle = NULL;
-    self->boundName = NULL;
-    self->inConverter = NULL;
-    self->outConverter = NULL;
-    self->boundPos = 0;
     if (numElements < 1)
         self->allocatedElements = 1;
     else self->allocatedElements = numElements;
-    self->actualElements = 0;
-    self->internalFetchNum = 0;
-    self->isArray = 0;
     self->isAllocatedInternally = 1;
     self->type = type;
-    self->indicator = NULL;
-    self->data = NULL;
-    self->actualLength = NULL;
-    self->returnCode = NULL;
 
     // set the maximum length of the variable, ensure that a minimum of
     // 2 bytes is allocated to ensure that the array size check works

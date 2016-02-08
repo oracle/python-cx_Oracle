@@ -814,7 +814,6 @@ static PyObject* Connection_New(
     if (!self)
         return NULL;
     self->commitMode = OCI_DEFAULT;
-    self->environment = NULL;
 
     return (PyObject*) self;
 }

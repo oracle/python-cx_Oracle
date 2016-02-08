@@ -910,8 +910,6 @@ static udt_Subscription *Subscription_New(
     self->operations = operations;
     self->qos = qos;
     self->cqqos = cqqos;
-    self->handle = NULL;
-    self->id = 0;
     if (Subscription_Register(self) < 0) {
         Py_DECREF(self);
         return NULL;

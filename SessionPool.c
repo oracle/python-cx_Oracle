@@ -160,7 +160,6 @@ static PyObject *SessionPool_New(
     newObject = (udt_SessionPool*) type->tp_alloc(type, 0);
     if (!newObject)
         return NULL;
-    newObject->environment = NULL;
 
     return (PyObject*) newObject;
 }

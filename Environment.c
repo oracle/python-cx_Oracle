@@ -72,11 +72,8 @@ static udt_Environment *Environment_New(
     env = (udt_Environment*) g_EnvironmentType.tp_alloc(&g_EnvironmentType, 0);
     if (!env)
         return NULL;
-    env->handle = NULL;
-    env->errorHandle = NULL;
     env->fixedWidth = 1;
     env->maxBytesPerCharacter = 1;
-    env->cloneEnv = NULL;
     cxBuffer_Init(&env->numberToStringFormatBuffer);
     cxBuffer_Init(&env->numberFromStringFormatBuffer);
     cxBuffer_Init(&env->nlsNumericCharactersBuffer);

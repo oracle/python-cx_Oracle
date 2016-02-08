@@ -363,13 +363,6 @@ static udt_ObjectType *ObjectType_New(
         return NULL;
     Py_INCREF(connection->environment);
     self->environment = connection->environment;
-    self->tdo = NULL;
-    self->schema = NULL;
-    self->name = NULL;
-    self->attributes = NULL;
-    self->attributesByName = NULL;
-    self->elementType = NULL;
-    self->isCollection = 0;
     if (ObjectType_Initialize(self, connection, param, nameAttribute) < 0) {
         Py_DECREF(self);
         return NULL;
@@ -553,8 +546,6 @@ static udt_ObjectAttribute *ObjectAttribute_New(
             g_ObjectAttributeType.tp_alloc(&g_ObjectAttributeType, 0);
     if (!self)
         return NULL;
-    self->name = NULL;
-    self->subType = NULL;
     if (ObjectAttribute_Initialize(self, connection, param) < 0) {
         Py_DECREF(self);
         return NULL;
