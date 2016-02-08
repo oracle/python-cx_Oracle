@@ -39,7 +39,7 @@ static PyMemberDef g_ExternalObjectVarMembers[] = {
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ExternalObjectVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.OBJECT",                 // tp_name
+    "cx_Oracle.Object",                 // tp_name
     sizeof(udt_ExternalObjectVar),      // tp_basicsize
     0,                                  // tp_itemsize
     (destructor) ExternalObjectVar_Free,

@@ -41,7 +41,7 @@ static PyMemberDef g_ObjectVarMembers[] = {
 //-----------------------------------------------------------------------------
 static PyTypeObject g_ObjectVarType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.OBJECTVAR",              // tp_name
+    "cx_Oracle.OBJECT",                 // tp_name
     sizeof(udt_ObjectVar),              // tp_basicsize
     0,                                  // tp_itemsize
     0,                                  // tp_dealloc
@@ -68,7 +68,7 @@ static PyTypeObject g_ObjectVarType = {
     0,                                  // tp_iter
     0,                                  // tp_iternext
     0,                                  // tp_methods
-    g_ObjectVarMembers                 // tp_members
+    g_ObjectVarMembers                  // tp_members
 };
 
 
