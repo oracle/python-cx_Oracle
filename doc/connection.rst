@@ -169,6 +169,19 @@ Connection Object
       available in Python 2.x when not built in unicode mode.
 
 
+.. method:: Connection.gettype(name)
+
+   Return a type object (:ref:`objecttype`) given its name. This can then be
+   used to create objects which can be bound to cursors created by this
+   connection.
+
+   .. versionadded:: development
+
+   .. note::
+
+         This method is an extension to the DB API definition.
+
+
 .. attribute:: Connection.inputtypehandler
 
    This read-write attribute specifies a method called for each value that is

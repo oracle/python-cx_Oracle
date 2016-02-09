@@ -64,6 +64,7 @@ static PyObject *Connection_GetMaxBytesPerCharacter(udt_Connection*, void*);
 static PyObject *Connection_ContextManagerEnter(udt_Connection*, PyObject*);
 static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
 static PyObject *Connection_ChangePasswordExternal(udt_Connection*, PyObject*);
+static PyObject *Connection_GetType(udt_Connection*, PyObject*);
 static PyObject *Connection_GetStmtCacheSize(udt_Connection*, void*);
 static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
@@ -112,6 +113,7 @@ static PyMethodDef g_ConnectionMethods[] = {
 #endif
     { "changepassword", (PyCFunction) Connection_ChangePasswordExternal,
             METH_VARARGS },
+    { "gettype", (PyCFunction) Connection_GetType, METH_VARARGS },
     { NULL }
 };
 
@@ -1078,6 +1080,24 @@ static int Connection_SetStmtCacheSize(
             "Connection_SetStmtCacheSize()") < 0)
         return -1;
     return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_GetType()
+//   Return a type object given its name.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetType(
+    udt_Connection *self,               // connection
+    PyObject *args)                     // arguments
+{
+    PyObject *nameObj = NULL;
+
+    // parse the arguments
+    if (!PyArg_ParseTuple(args, "O", &nameObj))
+        return NULL;
+
+    return (PyObject*) ObjectType_NewByName(self, nameObj);
 }
 
 

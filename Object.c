@@ -20,6 +20,7 @@ typedef struct {
 //-----------------------------------------------------------------------------
 static void Object_Free(udt_Object*);
 static PyObject *Object_GetAttr(udt_Object*, PyObject*);
+static int Object_SetAttr(udt_Object*, PyObject*, PyObject*);
 static PyObject *Object_ConvertToPython(udt_Environment*, OCITypeCode, dvoid*,
         dvoid*, udt_ObjectType*);
 
@@ -52,7 +53,7 @@ static PyTypeObject g_ObjectType = {
     0,                                  // tp_call
     0,                                  // tp_str
     (getattrofunc) Object_GetAttr,      // tp_getattro
-    0,                                  // tp_setattro
+    (setattrofunc) Object_SetAttr,      // tp_setattro
     0,                                  // tp_as_buffer
     Py_TPFLAGS_DEFAULT,                 // tp_flags
     0,                                  // tp_doc
@@ -99,9 +100,9 @@ static void Object_Free(
     udt_Object *self)                   // variable to free
 {
     if (self->isIndependent)
-        OCIObjectFree(self->objectType->environment->handle,
-                self->objectType->environment->errorHandle,
-                self->instance, OCI_OBJECTFREE_FORCE);
+        OCIObjectFree(self->objectType->connection->environment->handle,
+                self->objectType->connection->environment->errorHandle,
+                self->instance, OCI_DEFAULT);
     Py_CLEAR(self->objectType);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
@@ -243,21 +244,23 @@ static PyObject *Object_GetAttributeValue(
 {
     dvoid *valueIndicator, *value;
     OCIInd scalarValueIndicator;
+    udt_Connection *connection;
     udt_Buffer buffer;
     sword status;
     OCIType *tdo;
 
     // get the value for the attribute
+    connection = self->objectType->connection;
     if (cxBuffer_FromObject(&buffer, attribute->name,
-            self->objectType->environment->encoding) < 0)
+            connection->environment->encoding) < 0)
         return NULL;
-    status = OCIObjectGetAttr(self->objectType->environment->handle,
-            self->objectType->environment->errorHandle, self->instance,
+    status = OCIObjectGetAttr(connection->environment->handle,
+            connection->environment->errorHandle, self->instance,
             self->indicator, self->objectType->tdo,
             (const OraText**) &buffer.ptr, (ub4*) &buffer.size, 1, 0, 0,
             &scalarValueIndicator, &valueIndicator, &value, &tdo);
     cxBuffer_Clear(&buffer);
-    if (Environment_CheckForError(self->objectType->environment, status,
+    if (Environment_CheckForError(connection->environment, status,
             "Object_GetAttributeValue(): getting value") < 0)
         return NULL;
 
@@ -265,14 +268,111 @@ static PyObject *Object_GetAttributeValue(
     if (!valueIndicator)
         valueIndicator = &scalarValueIndicator;
 
-    return Object_ConvertToPython(self->objectType->environment,
+    return Object_ConvertToPython(connection->environment,
             attribute->typeCode, value, valueIndicator, attribute->subType);
 }
 
 
 //-----------------------------------------------------------------------------
+// Object_SetAttributeValue()
+//   Set an attribute on the object.
+//-----------------------------------------------------------------------------
+static int Object_SetAttributeValue(
+    udt_Object *self,                   // object
+    udt_ObjectAttribute *attribute,     // attribute to set
+    PyObject *value)                    // value to set
+{
+    dvoid *ociValueIndicator, *ociValue;
+    OCIInd ociScalarValueIndicator;
+    udt_Connection *connection;
+    OCINumber numericValue;
+    udt_Buffer buffer;
+    OCIDate dateValue;
+    sword status;
+
+    // initialization
+    ociValue = NULL;
+    ociValueIndicator = NULL;
+    connection = self->objectType->connection;
+
+    // None is treated as null
+    if (value == Py_None) {
+        ociScalarValueIndicator = OCI_IND_NULL;
+
+    // all other values need to be converted
+    } else {
+
+        ociScalarValueIndicator = OCI_IND_NOTNULL;
+        switch (attribute->typeCode) {
+            case OCI_TYPECODE_CHAR:
+            case OCI_TYPECODE_VARCHAR:
+            case OCI_TYPECODE_VARCHAR2:
+                if (cxBuffer_FromObject(&buffer, value,
+                        connection->environment->encoding) < 0)
+                    return -1;
+                status = OCIStringAssignText(connection->environment->handle,
+                        connection->environment->errorHandle, buffer.ptr,
+                        buffer.size,
+                        &connection->environment->tempStringValue);
+                cxBuffer_Clear(&buffer);
+                if (Environment_CheckForError(connection->environment, status,
+                        "Object_SetAttributeValue(): assigning string") < 0)
+                    return -1;
+                ociValue = connection->environment->tempStringValue;
+                break;
+            case OCI_TYPECODE_NUMBER:
+                ociValue = &numericValue;
+                if (PythonNumberToOracleNumber(connection->environment, value,
+                        ociValue) < 0)
+                    return -1;
+                break;
+            case OCI_TYPECODE_DATE:
+                ociValue = &dateValue;
+                if (PythonDateToOracleDate(value, ociValue) < 0)
+                    return -1;
+                break;
+            case OCI_TYPECODE_TIMESTAMP:
+                ociValue = connection->environment->tempTimestampValue;
+                if (PythonDateToOracleTimestamp(connection->environment, value,
+                        ociValue) < 0)
+                    return -1;
+                break;
+            case OCI_TYPECODE_OBJECT:
+                break;
+            case OCI_TYPECODE_NAMEDCOLLECTION:
+                break;
+        };
+
+        if (!ociValue) {
+            PyErr_Format(g_NotSupportedErrorException,
+                    "Object_SetAttributeValue(): unhandled data type %d",
+                    attribute->typeCode);
+            return -1;
+        }
+
+    }
+
+    // set the value for the attribute
+    if (cxBuffer_FromObject(&buffer, attribute->name,
+            connection->environment->encoding) < 0)
+        return -1;
+    status = OCIObjectSetAttr(connection->environment->handle,
+            connection->environment->errorHandle, self->instance,
+            self->indicator, self->objectType->tdo,
+            (const OraText**) &buffer.ptr, (ub4*) &buffer.size, 1, 0, 0,
+            ociScalarValueIndicator, ociValueIndicator, ociValue);
+    cxBuffer_Clear(&buffer);
+    if (Environment_CheckForError(connection->environment, status,
+            "Object_SetAttributeValue(): setting value") < 0)
+        return -1;
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // Object_GetAttr()
-//   Retrieve an attribute on object.
+//   Retrieve an attribute on an object.
 //-----------------------------------------------------------------------------
 static PyObject *Object_GetAttr(
     udt_Object *self,                   // object
@@ -286,5 +386,25 @@ static PyObject *Object_GetAttr(
         return Object_GetAttributeValue(self, attribute);
 
     return PyObject_GenericGetAttr( (PyObject*) self, nameObject);
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_SetAttr()
+//   Set an attribute on an object.
+//-----------------------------------------------------------------------------
+static int Object_SetAttr(
+    udt_Object *self,                   // object
+    PyObject *nameObject,               // name of attribute
+    PyObject *value)                    // value to set
+{
+    udt_ObjectAttribute *attribute;
+
+    attribute = (udt_ObjectAttribute*)
+            PyDict_GetItem(self->objectType->attributesByName, nameObject);
+    if (attribute)
+        return Object_SetAttributeValue(self, attribute, value);
+
+    return PyObject_GenericSetAttr( (PyObject*) self, nameObject, value);
 }
 

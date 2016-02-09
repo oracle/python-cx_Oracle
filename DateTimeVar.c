@@ -55,6 +55,7 @@ static udt_VariableType vt_DateTime = {
     (FinalizeProc) NULL,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PostBindProc) NULL,
     (PreFetchProc) NULL,
     (IsNullProc) NULL,
     (SetValueProc) DateTimeVar_SetValue,
@@ -76,6 +77,7 @@ static udt_VariableType vt_Date = {
     (FinalizeProc) NULL,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PostBindProc) NULL,
     (PreFetchProc) NULL,
     (IsNullProc) NULL,
     (SetValueProc) DateTimeVar_SetValue,
@@ -101,31 +103,7 @@ static int DateTimeVar_SetValue(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
-    ub1 month, day, hour, minute, second;
-    short year;
-
-    if (PyDateTime_Check(value)) {
-        year = (short) PyDateTime_GET_YEAR(value);
-        month = PyDateTime_GET_MONTH(value);
-        day = PyDateTime_GET_DAY(value);
-        hour = PyDateTime_DATE_GET_HOUR(value);
-        minute = PyDateTime_DATE_GET_MINUTE(value);
-        second = PyDateTime_DATE_GET_SECOND(value);
-    } else if (PyDate_Check(value)) {
-        year = (short) PyDateTime_GET_YEAR(value);
-        month = PyDateTime_GET_MONTH(value);
-        day = PyDateTime_GET_DAY(value);
-        hour = minute = second = 0;
-    } else {
-        PyErr_SetString(PyExc_TypeError, "expecting date data");
-        return -1;
-    }
-
-    // store a copy of the value
-    OCIDateSetDate(&var->data[pos], year, month, day);
-    OCIDateSetTime(&var->data[pos], hour, minute, second);
-
-    return 0;
+    return PythonDateToOracleDate(value, &var->data[pos]);
 }
 
 

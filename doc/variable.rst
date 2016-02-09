@@ -73,3 +73,10 @@ Variable Objects
    value is the size in characters. For all others, this is same value as the
    attribute bufferSize.
 
+
+.. attribute:: Variable.type
+
+   This read-only attribute returns the type of the variable for those
+   variables that bind Oracle objects (it is not present for any other type of
+   variable).
+

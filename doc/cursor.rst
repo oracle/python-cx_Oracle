@@ -490,9 +490,7 @@ Cursor Object
    outconverter specify methods used for converting values to/from the
    database. More information can be found in the section on variable objects.
 
-   To create an empty SQL object variable, specify the typename. Additional
-   support for editing the attributes of this object is not yet available but
-   will be forthcoming in a future release.
+   To create an empty SQL object variable, specify the typename.
 
    This method was designed for use with PL/SQL in/out variables where the
    length or type cannot be determined automatically from the Python object

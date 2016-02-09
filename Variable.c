@@ -53,6 +53,7 @@ typedef int (*InitializeProc)(udt_Variable*, udt_Cursor*);
 typedef void (*FinalizeProc)(udt_Variable*);
 typedef int (*PreDefineProc)(udt_Variable*, OCIParam*);
 typedef int (*PostDefineProc)(udt_Variable*);
+typedef int (*PostBindProc)(udt_Variable*);
 typedef int (*PreFetchProc)(udt_Variable*);
 typedef int (*IsNullProc)(udt_Variable*, unsigned);
 typedef int (*SetValueProc)(udt_Variable*, unsigned, PyObject*);
@@ -68,6 +69,7 @@ typedef struct _udt_VariableType {
     FinalizeProc finalizeProc;
     PreDefineProc preDefineProc;
     PostDefineProc postDefineProc;
+    PostBindProc postBindProc;
     PreFetchProc preFetchProc;
     IsNullProc isNullProc;
     SetValueProc setValueProc;
@@ -371,6 +373,7 @@ static int Variable_Check(
             Py_TYPE(object) == &g_BinaryVarType ||
             Py_TYPE(object) == &g_TimestampVarType ||
             Py_TYPE(object) == &g_IntervalVarType ||
+            Py_TYPE(object) == &g_ObjectVarType ||
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
             Py_TYPE(object) == &g_BooleanVarType ||
 #endif
@@ -461,6 +464,8 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_NativeInteger;
     if (type == (PyObject*) &g_ObjectVarType)
         return &vt_Object;
+    if (type == (PyObject*) &g_ObjectType)
+        return &vt_Object;
 
     PyErr_SetString(g_NotSupportedErrorException,
             "Variable_TypeByPythonType(): unhandled data type");
@@ -538,6 +543,8 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_DateTime;
     if (Py_TYPE(value) == g_DecimalType)
         return &vt_NumberAsString;
+    if (Py_TYPE(value) == &g_ObjectType)
+        return &vt_Object;
 
     // handle arrays
     if (PyList_Check(value)) {
@@ -1116,6 +1123,12 @@ static int Variable_InternalBind(
                 var->environment->errorHandle);
         if (Environment_CheckForError(var->environment, status,
                 "Variable_InternalBind(): set max data size") < 0)
+            return -1;
+    }
+
+    // call the procedure to set values after define
+    if (var->type->postBindProc) {
+        if ((*var->type->postBindProc)(var) < 0)
             return -1;
     }
 

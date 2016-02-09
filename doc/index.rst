@@ -21,6 +21,7 @@ Contents:
     session_pool.rst
     subscription.rst
     lob.rst
+    objecttype.rst
     releasenotes.rst
     license.rst
 

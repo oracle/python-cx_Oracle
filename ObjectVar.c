@@ -4,7 +4,6 @@
 //-----------------------------------------------------------------------------
 
 #include "ObjectType.c"
-#include "Object.c"
 
 //-----------------------------------------------------------------------------
 // Object type
@@ -23,9 +22,11 @@ typedef struct {
 //-----------------------------------------------------------------------------
 static int ObjectVar_Initialize(udt_ObjectVar*, udt_Cursor*);
 static void ObjectVar_Finalize(udt_ObjectVar*);
+static int ObjectVar_SetValue(udt_ObjectVar*, unsigned, PyObject*);
 static PyObject *ObjectVar_GetValue(udt_ObjectVar*, unsigned);
 static int ObjectVar_PreDefine(udt_ObjectVar*, OCIParam*);
 static int ObjectVar_PostDefine(udt_ObjectVar*);
+static int ObjectVar_PostBind(udt_ObjectVar*);
 static int ObjectVar_PreFetch(udt_ObjectVar*);
 static int ObjectVar_IsNull(udt_ObjectVar*, unsigned);
 
@@ -82,9 +83,10 @@ static udt_VariableType vt_Object = {
     (FinalizeProc) ObjectVar_Finalize,
     (PreDefineProc) ObjectVar_PreDefine,
     (PostDefineProc) ObjectVar_PostDefine,
+    (PostBindProc) ObjectVar_PostBind,
     (PreFetchProc) ObjectVar_PreFetch,
     (IsNullProc) ObjectVar_IsNull,
-    (SetValueProc) NULL,
+    (SetValueProc) ObjectVar_SetValue,
     (GetValueProc) ObjectVar_GetValue,
     (GetBufferSizeProc) NULL,
     &g_ObjectVarType,                   // Python type
@@ -142,8 +144,9 @@ static void ObjectVar_Finalize(
     ub4 i;
 
     for (i = 0; i < self->allocatedElements; i++) {
-        Py_CLEAR(self->objects[i]);
-        if (self->data[i])
+        if (self->objects[i])
+            Py_CLEAR(self->objects[i]);
+        else if (self->data[i])
             OCIObjectFree(self->environment->handle,
                     self->environment->errorHandle, self->data[i],
                     OCI_DEFAULT);
@@ -191,6 +194,22 @@ static int ObjectVar_PostDefine(
 
 
 //-----------------------------------------------------------------------------
+// ObjectVar_PostBind()
+//   Performs additional steps required for binding objects.
+//-----------------------------------------------------------------------------
+static int ObjectVar_PostBind(
+    udt_ObjectVar *self)                // variable to set up
+{
+    sword status;
+
+    status = OCIBindObject(self->bindHandle, self->environment->errorHandle,
+            self->objectType->tdo, self->data, 0, self->objectIndicator, 0);
+    return Environment_CheckForError(self->environment, status,
+            "ObjectVar_PostBind(): bind object");
+}
+
+
+//-----------------------------------------------------------------------------
 // ObjectVar_PreFetch()
 //   Free objects prior to next fetch.
 //-----------------------------------------------------------------------------
@@ -225,6 +244,47 @@ static int ObjectVar_IsNull(
 
 
 //-----------------------------------------------------------------------------
+// ObjectVar_SetValue()
+//   Set the value of the variable.
+//-----------------------------------------------------------------------------
+static int ObjectVar_SetValue(
+    udt_ObjectVar *self,                // variable to determine value for
+    unsigned pos,                       // array position
+    PyObject *value)                    // value to set
+{
+    udt_Object *object;
+
+    // only cx_Oracle.Object values are permitted and the types must match
+    // if the variable doesn't have a type yet, assign it
+    if (Py_TYPE(value) != &g_ObjectType) {
+        PyErr_SetString(PyExc_TypeError, "expecting cx_Oracle.Object");
+        return -1;
+    }
+    object = (udt_Object*) value;
+    if (!self->objectType) {
+        Py_INCREF(object->objectType);
+        self->objectType = object->objectType;
+    } else if (object->objectType != self->objectType) {
+        PyErr_SetString(PyExc_TypeError,
+                "expecting same type as the variable itself");
+        return -1;
+    }
+
+    // eliminate prior value, if needed
+    if (self->objects[pos])
+        Py_CLEAR(self->objects[pos]);
+    else OCIObjectFree(self->environment->handle,
+            self->environment->errorHandle, self->data[pos], OCI_DEFAULT);
+
+    // set new value
+    Py_INCREF(value);
+    self->objects[pos] = value;
+    self->data[pos] = object->instance;
+    self->objectIndicator[pos] = object->indicator;
+    return 0;
+}
+
+//-----------------------------------------------------------------------------
 // ObjectVar_GetValue()
 //   Returns the value stored at the given array position.
 //-----------------------------------------------------------------------------
@@ -245,8 +305,6 @@ static PyObject *ObjectVar_GetValue(
         if (!obj)
             return NULL;
         self->objects[pos] = obj;
-        self->data[pos] = NULL;
-        self->objectIndicator[pos] = NULL;
     }
 
     Py_INCREF(self->objects[pos]);

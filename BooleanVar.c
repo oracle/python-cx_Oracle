@@ -56,6 +56,7 @@ static udt_VariableType vt_Boolean = {
     (FinalizeProc) NULL,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PostBindProc) NULL,
     (PreFetchProc) NULL,
     (IsNullProc) NULL,
     (SetValueProc) BooleanVar_SetValue,

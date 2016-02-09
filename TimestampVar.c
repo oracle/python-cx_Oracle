@@ -57,6 +57,7 @@ static udt_VariableType vt_Timestamp = {
     (FinalizeProc) TimestampVar_Finalize,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PostBindProc) NULL,
     (PreFetchProc) NULL,
     (IsNullProc) NULL,
     (SetValueProc) TimestampVar_SetValue,
@@ -122,39 +123,8 @@ static int TimestampVar_SetValue(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
-    sword status;
-    uword valid;
-
-    // make sure a timestamp is being bound
-    if (!PyDateTime_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "expecting timestamp data");
-        return -1;
-    }
-
-    // store a copy of the value
-    status = OCIDateTimeConstruct(var->environment->handle,
-            var->environment->errorHandle, var->data[pos],
-            (sb2) PyDateTime_GET_YEAR(value),
-            PyDateTime_GET_MONTH(value),
-            PyDateTime_GET_DAY(value),
-            PyDateTime_DATE_GET_HOUR(value),
-            PyDateTime_DATE_GET_MINUTE(value),
-            PyDateTime_DATE_GET_SECOND(value),
-            PyDateTime_DATE_GET_MICROSECOND(value) * 1000, NULL, 0);
-    if (Environment_CheckForError(var->environment, status,
-            "TimestampVar_SetValue(): create structure") < 0)
-        return -1;
-    status = OCIDateTimeCheck(var->environment->handle,
-            var->environment->errorHandle, var->data[pos], &valid);
-    if (Environment_CheckForError(var->environment, status,
-            "TimestampVar_SetValue()") < 0)
-        return -1;
-    if (valid != 0) {
-        PyErr_SetString(g_DataErrorException, "invalid date");
-        return -1;
-    }
-
-    return 0;
+    return PythonDateToOracleTimestamp(var->environment, value,
+            var->data[pos]);
 }
 
 

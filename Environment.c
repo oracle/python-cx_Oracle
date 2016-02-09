@@ -18,6 +18,8 @@ typedef struct {
     udt_Buffer numberToStringFormatBuffer;
     udt_Buffer numberFromStringFormatBuffer;
     udt_Buffer nlsNumericCharactersBuffer;
+    OCIString *tempStringValue;
+    OCIDateTime *tempTimestampValue;
 } udt_Environment;
 
 //-----------------------------------------------------------------------------
@@ -72,6 +74,7 @@ static udt_Environment *Environment_New(
     env = (udt_Environment*) g_EnvironmentType.tp_alloc(&g_EnvironmentType, 0);
     if (!env)
         return NULL;
+    env->handle = handle;
     env->fixedWidth = 1;
     env->maxBytesPerCharacter = 1;
     cxBuffer_Init(&env->numberToStringFormatBuffer);
@@ -94,7 +97,14 @@ static udt_Environment *Environment_New(
         return NULL;
     }
 
-    env->handle = handle;
+    // create the temp datetime handle (used for converting timestamps in
+    // objects)
+    status = OCIDescriptorAlloc(handle, (dvoid**) &env->tempTimestampValue,
+            OCI_DTYPE_TIMESTAMP, 0, 0);
+    if (Environment_CheckForError(env, status,
+            "Environment_New(): create timestamp descriptor") < 0)
+        return NULL;
+
     return env;
 }
 

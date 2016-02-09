@@ -57,6 +57,7 @@ static udt_VariableType vt_Interval = {
     (FinalizeProc) IntervalVar_Finalize,
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
+    (PostBindProc) NULL,
     (PreFetchProc) NULL,
     (IsNullProc) NULL,
     (SetValueProc) IntervalVar_SetValue,
