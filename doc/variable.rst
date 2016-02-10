@@ -9,16 +9,6 @@ Variable Objects
    The DB API definition does not define this object.
 
 
-.. attribute:: Variable.allocelems
-
-   This read-only attribute returns the number of elements allocated in an
-   array, or the number of scalar items that can be fetched into the variable.
-
-   .. note::
-
-      This attribute is deprecated. Use attribute numElements instead.
-
-
 .. attribute:: Variable.bufferSize
 
    This read-only attribute returns the size of the buffer allocated for each
@@ -43,15 +33,6 @@ Variable Objects
    This read-only attribute returns the number of elements allocated in an
    array, or the number of scalar items that can be fetched into the variable
    or bound to the variable.
-
-
-.. attribute:: Variable.maxlength
-
-   This read-only attribute returns the maximum length of the variable.
-
-   .. note::
-
-      This attribute is deprecated. Use attribute bufferSize instead.
 
 
 .. attribute:: Variable.outconverter

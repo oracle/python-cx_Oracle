@@ -154,7 +154,7 @@ class TestCursor(BaseTestCase):
         self.cursor.execute("select count(*) from TestExecuteMany")
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
-        self.assertEqual(var.maxlength,
+        self.assertEqual(var.bufferSize,
                 100 * self.connection.maxBytesPerCharacter)
 
     def testExecuteManyWithExecption(self):

@@ -109,9 +109,6 @@ static PyMemberDef g_VariableMembers[] = {
             READONLY },
     { "outconverter", T_OBJECT, offsetof(udt_Variable, outConverter), 0 },
     { "size", T_INT, offsetof(udt_Variable, size), READONLY },
-    { "maxlength", T_INT, offsetof(udt_Variable, bufferSize), READONLY },
-    { "allocelems", T_INT, offsetof(udt_Variable, allocatedElements),
-            READONLY },
     { NULL }
 };
 
