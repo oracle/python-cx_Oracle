@@ -29,6 +29,7 @@ static int ObjectVar_PostDefine(udt_ObjectVar*);
 static int ObjectVar_PostBind(udt_ObjectVar*);
 static int ObjectVar_PreFetch(udt_ObjectVar*);
 static int ObjectVar_IsNull(udt_ObjectVar*, unsigned);
+static int ObjectVar_SetType(udt_ObjectVar*, PyObject*);
 
 //-----------------------------------------------------------------------------
 // declaration of members for Oracle objects
@@ -202,6 +203,11 @@ static int ObjectVar_PostBind(
 {
     sword status;
 
+    if (!self->objectType) {
+        PyErr_SetString(g_InterfaceErrorException,
+                "object type not associated with bind variable");
+        return -1;
+    }
     status = OCIBindObject(self->bindHandle, self->environment->errorHandle,
             self->objectType->tdo, self->data, 0, self->objectIndicator, 0);
     return Environment_CheckForError(self->environment, status,
@@ -264,7 +270,7 @@ static int ObjectVar_SetValue(
     if (!self->objectType) {
         Py_INCREF(object->objectType);
         self->objectType = object->objectType;
-    } else if (object->objectType != self->objectType) {
+    } else if (object->objectType->tdo != self->objectType->tdo) {
         PyErr_SetString(PyExc_TypeError,
                 "expecting same type as the variable itself");
         return -1;
@@ -309,5 +315,52 @@ static PyObject *ObjectVar_GetValue(
 
     Py_INCREF(self->objects[pos]);
     return self->objects[pos];
+}
+
+
+//-----------------------------------------------------------------------------
+// ObjectVar_SetType()
+//   Internal method used to set the type when creating an object variable.
+// This will also create the object instances.
+//-----------------------------------------------------------------------------
+static int ObjectVar_SetType(
+    udt_ObjectVar *self,                // variable to initialize the type
+    PyObject *typeNameObj)              // value to set
+{
+    dvoid *instance, *indicator;
+    sword status;
+    ub4 i;
+
+    // get the object type from the name
+    self->objectType = ObjectType_NewByName(self->connection, typeNameObj);
+    if (!self->objectType)
+        return -1;
+
+    // initialize the object instances
+    for (i = 0; i < self->allocatedElements; i++) {
+
+        // create the object instance
+        status = OCIObjectNew(self->connection->environment->handle,
+                self->connection->environment->errorHandle,
+                self->connection->handle, OCI_TYPECODE_OBJECT,
+                self->objectType->tdo, NULL, OCI_DURATION_SESSION, TRUE,
+                &instance);
+        if (Environment_CheckForError(self->connection->environment, status,
+                "ObjectVar_SetType(): create object instance") < 0)
+            return -1;
+        self->data[i] = instance;
+
+        // get the null indicator structure
+        status = OCIObjectGetInd(self->connection->environment->handle,
+                self->connection->environment->errorHandle, instance,
+                &indicator);
+        if (Environment_CheckForError(self->connection->environment, status,
+                "ObjectVar_SetType(): get indicator structure") < 0)
+            return -1;
+        *((OCIInd*) indicator) = OCI_IND_NULL;
+        self->objectIndicator[i] = indicator;
+    }
+
+    return 0;
 }
 

@@ -1,21 +1,76 @@
 """Module for testing object variables."""
 
-import sys
+import cx_Oracle
+import datetime
 
 class TestObjectVar(BaseTestCase):
+
+    def __GetObjectAsTuple(self, obj):
+        attributeValues = []
+        for attribute in obj.type.attributes:
+            value = getattr(obj, attribute.name)
+            if isinstance(value, cx_Oracle.Object):
+                value = self.__GetObjectAsTuple(value)
+            elif isinstance(value, list):
+                subValue = []
+                for v in value:
+                    if isinstance(v, cx_Oracle.Object):
+                        v = self.__GetObjectAsTuple(v)
+                    subValue.append(v)
+                value = subValue
+            attributeValues.append(value)
+        return tuple(attributeValues)
 
     def __TestData(self, expectedIntValue, expectedObjectValue,
             expectedArrayValue):
         intValue, objectValue, arrayValue = self.cursor.fetchone()
         if objectValue is not None:
-            attributeValues = []
-            for attribute in objectValue.type.attributes:
-                value = getattr(objectValue, attribute.name)
-                attributeValues.append(value)
-            objectValue = tuple(attributeValues)
+            objectValue = self.__GetObjectAsTuple(objectValue)
         self.assertEqual(intValue, expectedIntValue)
         self.assertEqual(objectValue, expectedObjectValue)
         self.assertEqual(arrayValue, expectedArrayValue)
+
+    def testBindNullIn(self):
+        "test binding a null value (IN)"
+        var = self.cursor.var(cx_Oracle.OBJECT, typename = "UDT_OBJECT")
+        result = self.cursor.callfunc("pkg_TestBindObject.GetStringRep", str,
+                (var,))
+        self.assertEqual(result, "null")
+
+    def testBindObjectIn(self):
+        "test binding an object (IN)"
+        typeObj = self.connection.gettype("UDT_OBJECT")
+        obj = typeObj.newobject()
+        obj.NUMBERVALUE = 13
+        obj.STRINGVALUE = "Test String"
+        result = self.cursor.callfunc("pkg_TestBindObject.GetStringRep", str,
+                (obj,))
+        self.assertEqual(result,
+                "udt_Object(13, 'Test String', null, null, null, null, null)")
+        obj.NUMBERVALUE = None
+        obj.STRINGVALUE = "Test With Dates"
+        obj.DATEVALUE = datetime.datetime(2016, 2, 10)
+        obj.TIMESTAMPVALUE = datetime.datetime(2016, 2, 10, 14, 13, 50)
+        result = self.cursor.callfunc("pkg_TestBindObject.GetStringRep", str,
+                (obj,))
+        self.assertEqual(result,
+                "udt_Object(null, 'Test With Dates', null, " \
+                "to_date('2016-02-10', 'YYYY-MM-DD'), " \
+                "to_timestamp('2016-02-10 14:13:50', " \
+                        "'YYYY-MM-DD HH24:MI:SS'), " \
+                "null, null)")
+        obj.DATEVALUE = None
+        obj.TIMESTAMPVALUE = None
+        subTypeObj = self.connection.gettype("UDT_SUBOBJECT")
+        subObj = subTypeObj.newobject()
+        subObj.SUBNUMBERVALUE = 15
+        subObj.SUBSTRINGVALUE = "Sub String"
+        obj.SUBOBJECTVALUE = subObj
+        result = self.cursor.callfunc("pkg_TestBindObject.GetStringRep", str,
+                (obj,))
+        self.assertEqual(result,
+                "udt_Object(null, 'Test With Dates', null, null, null, " \
+                "udt_SubObject(15, 'Sub String'), null)")
 
     def testFetchData(self):
         "test fetching objects"
@@ -32,11 +87,28 @@ class TestObjectVar(BaseTestCase):
                   ('ARRAYCOL', cx_Oracle.OBJECT, -1, 2000, 0, 0, 1) ])
         self.__TestData(1, (1, 'First row', 'First     ',
                 cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0),
-                cx_Oracle.Timestamp(2008, 9, 12, 16, 40)), [5, 10, None, 20])
+                cx_Oracle.Timestamp(2008, 9, 12, 16, 40),
+                (11, 'Sub object 1'),
+                [(5, 'first element'), (6, 'second element')]),
+                [5, 10, None, 20])
         self.__TestData(2, None, [3, None, 9, 12, 15])
         self.__TestData(3, (3, 'Third row', 'Third     ',
                 cx_Oracle.Timestamp(2007, 6, 21, 0, 0, 0),
-                cx_Oracle.Timestamp(2007, 12, 13, 7, 30, 45)), None)
+                cx_Oracle.Timestamp(2007, 12, 13, 7, 30, 45),
+                (13, 'Sub object 3'),
+                [(10, 'element #1'), (20, 'element #2'),
+                 (30, 'element #3'), (40, 'element #4')]), None)
+
+    def testGetObjectType(self):
+        "test getting object type"
+        typeObj = self.connection.gettype("UDT_OBJECT")
+        self.assertEqual(typeObj.schema, "CX_ORACLE")
+        self.assertEqual(typeObj.name, "UDT_OBJECT")
+        expectedAttributeNames = ["NUMBERVALUE", "STRINGVALUE",
+                "FIXEDCHARVALUE", "DATEVALUE", "TIMESTAMPVALUE",
+                "SUBOBJECTVALUE", "SUBOBJECTARRAY"]
+        actualAttributeNames = [a.name for a in typeObj.attributes]
+        self.assertEqual(actualAttributeNames, expectedAttributeNames)
 
     def testObjectType(self):
         "test object type data"

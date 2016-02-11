@@ -38,12 +38,23 @@ grant
 to cx_Oracle;
 
 -- create types
+create type cx_Oracle.udt_SubObject as object (
+  SubNumberValue        number,
+  SubStringValue        varchar2(60)
+);
+/
+
+create type cx_Oracle.udt_ObjectArray as varray(10) of cx_Oracle.udt_SubObject;
+/
+
 create type cx_Oracle.udt_Object as object (
   NumberValue           number,
   StringValue           varchar2(60),
   FixedCharValue        char(10),
   DateValue             date,
-  TimestampValue        timestamp
+  TimestampValue        timestamp,
+  SubObjectValue        cx_Oracle.udt_SubObject,
+  SubObjectArray        cx_Oracle.udt_ObjectArray
 );
 /
 
@@ -233,7 +244,11 @@ end;
 insert into cx_Oracle.TestObjects values (1,
     cx_Oracle.udt_Object(1, 'First row', 'First',
         to_date(20070306, 'YYYYMMDD'),
-        to_timestamp('20080912 16:40:00', 'YYYYMMDD HH24:MI:SS')),
+        to_timestamp('20080912 16:40:00', 'YYYYMMDD HH24:MI:SS'),
+        cx_Oracle.udt_SubObject(11, 'Sub object 1'),
+        cx_Oracle.udt_ObjectArray(
+                cx_Oracle.udt_SubObject(5, 'first element'),
+                cx_Oracle.udt_SubObject(6, 'second element'))),
     cx_Oracle.udt_Array(5, 10, null, 20));
 
 insert into cx_Oracle.TestObjects values (2, null,
@@ -242,7 +257,13 @@ insert into cx_Oracle.TestObjects values (2, null,
 insert into cx_Oracle.TestObjects values (3,
     cx_Oracle.udt_Object(3, 'Third row', 'Third',
         to_date(20070621, 'YYYYMMDD'),
-        to_timestamp('20071213 07:30:45', 'YYYYMMDD HH24:MI:SS')), null);
+        to_timestamp('20071213 07:30:45', 'YYYYMMDD HH24:MI:SS'),
+        cx_Oracle.udt_SubObject(13, 'Sub object 3'),
+        cx_Oracle.udt_ObjectArray(
+                cx_Oracle.udt_SubObject(10, 'element #1'),
+                cx_Oracle.udt_SubObject(20, 'element #2'),
+                cx_Oracle.udt_SubObject(30, 'element #3'),
+                cx_Oracle.udt_SubObject(40, 'element #4'))), null);
 
 commit;
 
@@ -592,6 +613,76 @@ create or replace package body cx_Oracle.pkg_TestBooleans as
     ) return boolean is
     begin
         return a_Value < 10;
+    end;
+
+end;
+/
+
+create or replace package cx_Oracle.pkg_TestBindObject as
+
+    function GetStringRep (
+        a_Object        udt_Object
+    ) return varchar2;
+
+end;
+/
+
+create or replace package body cx_Oracle.pkg_TestBindObject as
+
+    function GetStringRep (
+        a_Object        udt_SubObject
+    ) return varchar2 is
+    begin
+        if a_Object is null then
+            return 'null';
+        end if;
+        return 'udt_SubObject(' ||
+                nvl(to_char(a_Object.SubNumberValue), 'null') || ', ' ||
+                case when a_Object.SubStringValue is null then 'null'
+                else '''' || a_Object.SubStringValue || '''' end || ')';
+    end;
+
+    function GetStringRep (
+        a_Array         udt_ObjectArray
+    ) return varchar2 is
+        t_StringRep     varchar2(4000);
+    begin
+        if a_Array is null then
+            return 'null';
+        end if;
+        t_StringRep := 'udt_ObjectArray(';
+        for i in 1..a_Array.count loop
+            if i > 1 then
+                t_StringRep := t_StringRep || ', ';
+            end if;
+            t_StringRep := t_StringRep || GetStringRep(a_Array(i));
+        end loop;
+        return t_StringRep || ')';
+    end;
+
+    function GetStringRep (
+        a_Object        udt_Object
+    ) return varchar2 is
+    begin
+        if a_Object is null then
+            return 'null';
+        end if;
+        return 'udt_Object(' ||
+                nvl(to_char(a_Object.NumberValue), 'null') || ', ' ||
+                case when a_Object.StringValue is null then 'null'
+                else '''' || a_Object.StringValue || '''' end || ', ' ||
+                case when a_Object.FixedCharValue is null then 'null'
+                else '''' || a_Object.FixedCharValue || '''' end || ', ' ||
+                case when a_Object.DateValue is null then 'null'
+                else 'to_date(''' ||
+                        to_char(a_Object.DateValue, 'YYYY-MM-DD') ||
+                        ''', ''YYYY-MM-DD'')' end || ', ' ||
+                case when a_Object.TimestampValue is null then 'null'
+                else 'to_timestamp(''' || to_char(a_Object.TimestampValue,
+                        'YYYY-MM-DD HH24:MI:SS') ||
+                        ''', ''YYYY-MM-DD HH24:MI:SS'')' end || ', ' ||
+                GetStringRep(a_Object.SubObjectValue) || ', ' ||
+                GetStringRep(a_Object.SubObjectArray) || ')';
     end;
 
 end;

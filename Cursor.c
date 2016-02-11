@@ -2333,9 +2333,7 @@ static PyObject *Cursor_Var(
     // define the object type if needed
     if (type == (PyObject*) &g_ObjectVarType) {
         objectVar = (udt_ObjectVar*) var;
-        objectVar->objectType = ObjectType_NewByName(self->connection,
-                typeNameObj);
-        if (!objectVar->objectType) {
+        if (ObjectVar_SetType(objectVar, typeNameObj) < 0) {
             Py_DECREF(var);
             return NULL;
         }

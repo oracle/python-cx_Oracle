@@ -18,8 +18,6 @@ typedef struct {
     udt_Buffer numberToStringFormatBuffer;
     udt_Buffer numberFromStringFormatBuffer;
     udt_Buffer nlsNumericCharactersBuffer;
-    OCIString *tempStringValue;
-    OCIDateTime *tempTimestampValue;
 } udt_Environment;
 
 //-----------------------------------------------------------------------------
@@ -96,14 +94,6 @@ static udt_Environment *Environment_New(
         Py_DECREF(env);
         return NULL;
     }
-
-    // create the temp datetime handle (used for converting timestamps in
-    // objects)
-    status = OCIDescriptorAlloc(handle, (dvoid**) &env->tempTimestampValue,
-            OCI_DTYPE_TIMESTAMP, 0, 0);
-    if (Environment_CheckForError(env, status,
-            "Environment_New(): create timestamp descriptor") < 0)
-        return NULL;
 
     return env;
 }

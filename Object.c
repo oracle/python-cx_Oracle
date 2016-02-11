@@ -24,6 +24,7 @@ static int Object_SetAttr(udt_Object*, PyObject*, PyObject*);
 static PyObject *Object_ConvertToPython(udt_Environment*, OCITypeCode, dvoid*,
         dvoid*, udt_ObjectType*);
 
+
 //-----------------------------------------------------------------------------
 // Declaration of external object variable members.
 //-----------------------------------------------------------------------------
@@ -31,6 +32,7 @@ static PyMemberDef g_ObjectMembers[] = {
     { "type", T_OBJECT, offsetof(udt_Object, objectType), READONLY },
     { NULL }
 };
+
 
 //-----------------------------------------------------------------------------
 // Python type declaration
@@ -66,6 +68,41 @@ static PyTypeObject g_ObjectType = {
     0,                                  // tp_methods
     g_ObjectMembers                     // tp_members
 };
+
+
+//-----------------------------------------------------------------------------
+// Declaration of attribute data union
+//-----------------------------------------------------------------------------
+typedef union {
+    OCINumber numberValue;
+    OCIDate dateValue;
+    OCIDateTime *timestampValue;
+    OCIString *stringValue;
+} udt_AttributeData;
+
+
+//-----------------------------------------------------------------------------
+// AttributeData_Free()
+//   Free any memory that was allocated by the convert from Python calls.
+//-----------------------------------------------------------------------------
+static void AttributeData_Free(
+    udt_Environment *environment,       // environment object
+    udt_AttributeData *data,            // data structure to initialize
+    OCITypeCode typeCode)               // type of Oracle data
+{
+    switch (typeCode) {
+        case OCI_TYPECODE_CHAR:
+        case OCI_TYPECODE_VARCHAR:
+        case OCI_TYPECODE_VARCHAR2:
+            if (data->stringValue)
+                OCIStringResize(environment->handle, environment->errorHandle,
+                        0, &data->stringValue);
+            break;
+        case OCI_TYPECODE_TIMESTAMP:
+            if (data->timestampValue)
+                OCIDescriptorFree(data->timestampValue, OCI_DTYPE_TIMESTAMP);
+    };
+}
 
 
 //-----------------------------------------------------------------------------
@@ -185,6 +222,103 @@ static PyObject *Object_ConvertCollection(
 
 
 //-----------------------------------------------------------------------------
+// Object_ConvertFromPython()
+//   Convert a Python value to an Oracle value.
+//-----------------------------------------------------------------------------
+static int Object_ConvertFromPython(
+    udt_Environment *environment,       // environment to use
+    PyObject *pythonValue,              // Python value to convert
+    OCITypeCode typeCode,               // type of Oracle data
+    udt_AttributeData *oracleValue,     // Oracle value
+    dvoid **ociValue,                   // OCI value
+    OCIInd *ociValueIndicator,          // OCI value indicator
+    dvoid **ociObjectIndicator,         // OCI object indicator
+    udt_ObjectType *subType)            // sub type (for sub objects)
+{
+    udt_Object *objectValue;
+    udt_Buffer buffer;
+    sword status;
+
+    // None is treated as null
+    if (pythonValue == Py_None) {
+        *ociValueIndicator = OCI_IND_NULL;
+
+    // all other values need to be converted
+    } else {
+
+        *ociValueIndicator = OCI_IND_NOTNULL;
+        switch (typeCode) {
+            case OCI_TYPECODE_CHAR:
+            case OCI_TYPECODE_VARCHAR:
+            case OCI_TYPECODE_VARCHAR2:
+                oracleValue->stringValue = NULL;
+                if (cxBuffer_FromObject(&buffer, pythonValue,
+                        environment->encoding) < 0)
+                    return -1;
+                status = OCIStringAssignText(environment->handle,
+                        environment->errorHandle, buffer.ptr,
+                        buffer.size, &oracleValue->stringValue);
+                cxBuffer_Clear(&buffer);
+                if (Environment_CheckForError(environment, status,
+                        "Object_ConvertFromPython(): assigning string") < 0)
+                    return -1;
+                *ociValue = oracleValue->stringValue;
+                break;
+            case OCI_TYPECODE_NUMBER:
+                if (PythonNumberToOracleNumber(environment,
+                        pythonValue, &oracleValue->numberValue) < 0)
+                    return -1;
+                *ociValue = &oracleValue->numberValue;
+                break;
+            case OCI_TYPECODE_DATE:
+                if (PythonDateToOracleDate(pythonValue,
+                        &oracleValue->dateValue) < 0)
+                    return -1;
+                *ociValue = &oracleValue->dateValue;
+                break;
+            case OCI_TYPECODE_TIMESTAMP:
+                oracleValue->timestampValue = NULL;
+                status = OCIDescriptorAlloc(environment->handle,
+                        (dvoid**) &oracleValue->timestampValue,
+                        OCI_DTYPE_TIMESTAMP, 0, 0);
+                if (Environment_CheckForError(environment, status,
+                        "Object_ConvertFromPython(): "
+                        "create timestamp descriptor") < 0)
+                    return -1;
+                if (PythonDateToOracleTimestamp(environment,
+                        pythonValue, oracleValue->timestampValue) < 0)
+                    return -1;
+                *ociValue = oracleValue->timestampValue;
+                break;
+            case OCI_TYPECODE_OBJECT:
+                if (Py_TYPE(pythonValue) != &g_ObjectType) {
+                    PyErr_SetString(PyExc_TypeError,
+                            "expecting cx_Oracle.Object");
+                    return -1;
+                }
+                objectValue = (udt_Object*) pythonValue;
+                if (objectValue->objectType->tdo != subType->tdo) {
+                    PyErr_SetString(PyExc_TypeError,
+                            "expecting an object of the correct type");
+                    return -1;
+                }
+                *ociValue = objectValue->instance;
+                *ociObjectIndicator = objectValue->indicator;
+                break;
+            default:
+                PyErr_Format(g_NotSupportedErrorException,
+                        "Object_ConvertFromPython(): unhandled data type %d",
+                        typeCode);
+                return -1;
+        };
+
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // Object_ConvertToPython()
 //   Convert an Oracle value to a Python value.
 //-----------------------------------------------------------------------------
@@ -282,85 +416,38 @@ static int Object_SetAttributeValue(
     udt_ObjectAttribute *attribute,     // attribute to set
     PyObject *value)                    // value to set
 {
-    dvoid *ociValueIndicator, *ociValue;
-    OCIInd ociScalarValueIndicator;
+    dvoid *ociObjectIndicator, *ociValue;
+    udt_AttributeData attributeData;
+    OCIInd ociValueIndicator;
     udt_Connection *connection;
-    OCINumber numericValue;
     udt_Buffer buffer;
-    OCIDate dateValue;
     sword status;
 
-    // initialization
-    ociValue = NULL;
-    ociValueIndicator = NULL;
+    // convert from Python
+    ociValue = ociObjectIndicator = NULL;
     connection = self->objectType->connection;
-
-    // None is treated as null
-    if (value == Py_None) {
-        ociScalarValueIndicator = OCI_IND_NULL;
-
-    // all other values need to be converted
-    } else {
-
-        ociScalarValueIndicator = OCI_IND_NOTNULL;
-        switch (attribute->typeCode) {
-            case OCI_TYPECODE_CHAR:
-            case OCI_TYPECODE_VARCHAR:
-            case OCI_TYPECODE_VARCHAR2:
-                if (cxBuffer_FromObject(&buffer, value,
-                        connection->environment->encoding) < 0)
-                    return -1;
-                status = OCIStringAssignText(connection->environment->handle,
-                        connection->environment->errorHandle, buffer.ptr,
-                        buffer.size,
-                        &connection->environment->tempStringValue);
-                cxBuffer_Clear(&buffer);
-                if (Environment_CheckForError(connection->environment, status,
-                        "Object_SetAttributeValue(): assigning string") < 0)
-                    return -1;
-                ociValue = connection->environment->tempStringValue;
-                break;
-            case OCI_TYPECODE_NUMBER:
-                ociValue = &numericValue;
-                if (PythonNumberToOracleNumber(connection->environment, value,
-                        ociValue) < 0)
-                    return -1;
-                break;
-            case OCI_TYPECODE_DATE:
-                ociValue = &dateValue;
-                if (PythonDateToOracleDate(value, ociValue) < 0)
-                    return -1;
-                break;
-            case OCI_TYPECODE_TIMESTAMP:
-                ociValue = connection->environment->tempTimestampValue;
-                if (PythonDateToOracleTimestamp(connection->environment, value,
-                        ociValue) < 0)
-                    return -1;
-                break;
-            case OCI_TYPECODE_OBJECT:
-                break;
-            case OCI_TYPECODE_NAMEDCOLLECTION:
-                break;
-        };
-
-        if (!ociValue) {
-            PyErr_Format(g_NotSupportedErrorException,
-                    "Object_SetAttributeValue(): unhandled data type %d",
-                    attribute->typeCode);
-            return -1;
-        }
-
+    if (Object_ConvertFromPython(connection->environment, value,
+            attribute->typeCode, &attributeData, &ociValue, &ociValueIndicator,
+            &ociObjectIndicator, attribute->subType) < 0) {
+        AttributeData_Free(connection->environment, &attributeData,
+                attribute->typeCode);
+        return -1;
     }
 
     // set the value for the attribute
     if (cxBuffer_FromObject(&buffer, attribute->name,
-            connection->environment->encoding) < 0)
+            connection->environment->encoding) < 0) {
+        AttributeData_Free(connection->environment, &attributeData,
+                attribute->typeCode);
         return -1;
+    }
     status = OCIObjectSetAttr(connection->environment->handle,
             connection->environment->errorHandle, self->instance,
             self->indicator, self->objectType->tdo,
             (const OraText**) &buffer.ptr, (ub4*) &buffer.size, 1, 0, 0,
-            ociScalarValueIndicator, ociValueIndicator, ociValue);
+            ociValueIndicator, ociObjectIndicator, ociValue);
+    AttributeData_Free(connection->environment, &attributeData,
+            attribute->typeCode);
     cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(connection->environment, status,
             "Object_SetAttributeValue(): setting value") < 0)

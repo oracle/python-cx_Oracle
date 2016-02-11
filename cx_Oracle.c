@@ -441,6 +441,7 @@ static PyObject *Module_Initialize(void)
     ADD_TYPE_OBJECT("Date", PyDateTimeAPI->DateType)
     ADD_TYPE_OBJECT("SessionPool", &g_SessionPoolType)
     ADD_TYPE_OBJECT("_Error", &g_ErrorType)
+    ADD_TYPE_OBJECT("Object", &g_ObjectType)
 
     // the name "connect" is required by the DB API
     ADD_TYPE_OBJECT("connect", &g_ConnectionType)
