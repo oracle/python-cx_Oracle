@@ -597,6 +597,8 @@ end;
 
 create or replace package cx_Oracle.pkg_TestBooleans as
 
+    type udt_BooleanList is table of boolean index by binary_integer;
+
     function GetStringRep (
         a_Value             boolean
     ) return varchar2;
@@ -604,6 +606,15 @@ create or replace package cx_Oracle.pkg_TestBooleans as
     function IsLessThan10 (
         a_Value             number
     ) return boolean;
+
+    function TestInArrays (
+        a_Value             udt_BooleanList
+    ) return number;
+
+    procedure TestOutArrays (
+        a_NumElements       number,
+        a_Value             out nocopy udt_BooleanList
+    );
 
 end;
 /
@@ -627,6 +638,30 @@ create or replace package body cx_Oracle.pkg_TestBooleans as
     ) return boolean is
     begin
         return a_Value < 10;
+    end;
+
+    function TestInArrays (
+        a_Value             udt_BooleanList
+    ) return number is
+        t_Result            pls_integer;
+    begin
+        t_Result := 0;
+        for i in 1..a_Value.count loop
+            if a_Value(i) then
+                t_Result := t_Result + 1;
+            end if;
+        end loop;
+        return t_Result;
+    end;
+
+    procedure TestOutArrays (
+        a_NumElements       number,
+        a_Value             out nocopy udt_BooleanList
+    ) is
+    begin
+        for i in 1..a_NumElements loop
+            a_Value(i) := (mod(i, 2) = 1);
+        end loop;
     end;
 
 end;

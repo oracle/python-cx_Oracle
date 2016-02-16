@@ -110,6 +110,7 @@ static PyTypeObject g_ObjectType = {
 // Declaration of attribute data union
 //-----------------------------------------------------------------------------
 typedef union {
+    boolean booleanValue;
     OCINumber numberValue;
     OCIDate dateValue;
     OCIDateTime *timestampValue;
@@ -265,6 +266,14 @@ static int Object_ConvertFromPython(
                 *ociValue = objectValue->instance;
                 *ociObjectIndicator = objectValue->indicator;
                 break;
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+            case OCI_TYPECODE_BOOLEAN:
+                if (PythonBooleanToOracleBoolean(pythonValue,
+                        &oracleValue->booleanValue) < 0)
+                    return -1;
+                *ociValue = &oracleValue->booleanValue;
+                break;
+#endif
             default:
                 PyErr_Format(g_NotSupportedErrorException,
                         "Object_ConvertFromPython(): unhandled data type %d",
@@ -319,6 +328,10 @@ static PyObject *Object_ConvertToPython(
             return Object_New(subType, value, indicator, 0);
         case OCI_TYPECODE_NAMEDCOLLECTION:
             return Object_New(subType, * (OCIColl**) value, indicator, 0);
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+        case OCI_TYPECODE_BOOLEAN:
+            return OracleBooleanToPythonBoolean((boolean*) value);
+#endif
     };
 
     return PyErr_Format(g_NotSupportedErrorException,

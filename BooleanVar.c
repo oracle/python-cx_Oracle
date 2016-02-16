@@ -9,7 +9,7 @@
 //-----------------------------------------------------------------------------
 typedef struct {
     Variable_HEAD
-    int *data;
+    boolean *data;
 } udt_BooleanVar;
 
 
@@ -65,7 +65,7 @@ static udt_VariableType vt_Boolean = {
     &g_BooleanVarType,                  // Python type
     SQLT_BOL,                           // Oracle type
     SQLCS_IMPLICIT,                     // charset form
-    sizeof(int),                        // element length
+    sizeof(boolean),                    // element length
     0,                                  // is character data
     0,                                  // is variable length
     1,                                  // can be copied
@@ -81,13 +81,7 @@ static PyObject *BooleanVar_GetValue(
     udt_BooleanVar *var,                // variable to determine value for
     unsigned pos)                       // array position
 {
-    int integerValue;
-    PyObject *value;
-
-    integerValue = var->data[pos];
-    value = (integerValue) ? Py_True : Py_False;
-    Py_INCREF(value);
-    return value;
+    return OracleBooleanToPythonBoolean(&var->data[pos]);
 }
 
 
@@ -100,7 +94,6 @@ static int BooleanVar_SetValue(
     unsigned pos,                       // array position to set
     PyObject *value)                    // value to set
 {
-    var->data[pos] = (value == Py_True);
-    return 0;
+    return PythonBooleanToOracleBoolean(value, &var->data[pos]);
 }
 

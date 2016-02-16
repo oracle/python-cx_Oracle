@@ -6,6 +6,23 @@
 
 static udt_VariableType vt_Date;
 
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+//-----------------------------------------------------------------------------
+// OracleBooleanToPythonBoolean()
+//   Return a Python boolean object given an Oracle boolean.
+//-----------------------------------------------------------------------------
+static PyObject *OracleBooleanToPythonBoolean(
+    boolean *value)                     // value to convert
+{
+    PyObject *pythonValue;
+
+    pythonValue = (*value) ? Py_True : Py_False;
+    Py_INCREF(pythonValue);
+    return pythonValue;
+}
+#endif
+
+
 //-----------------------------------------------------------------------------
 // OracleDateToPythonDate()
 //   Return a Python date object given an Oracle date.
@@ -95,6 +112,21 @@ static PyObject *OracleNumberToPythonFloat(
         return NULL;
     return PyFloat_FromDouble(doubleValue);
 }
+
+
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+//-----------------------------------------------------------------------------
+// PythonBooleanToOracleBoolean()
+//   Transform a Python boolean into an Oracle boolean.
+//-----------------------------------------------------------------------------
+static int PythonBooleanToOracleBoolean(
+    PyObject *pythonValue,              // Python value to convert
+    boolean *oracleValue)               // value to convert
+{
+    *oracleValue = (pythonValue == Py_True);
+    return 0;
+}
+#endif
 
 
 //-----------------------------------------------------------------------------

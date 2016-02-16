@@ -161,10 +161,10 @@ static PyTypeObject g_BaseVarType = {
 };
 
 
+#include "Transforms.c"
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
 #include "BooleanVar.c"
 #endif
-#include "Transforms.c"
 #include "StringVar.c"
 #include "LongVar.c"
 #include "NumberVar.c"

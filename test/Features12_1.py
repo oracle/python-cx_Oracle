@@ -41,6 +41,23 @@ class TestFeatures12_1(BaseTestCase):
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
+    def testBindPLSQLBooleanCollectionIn(self):
+        "test binding a boolean collection (in)"
+        typeObj = self.connection.gettype("PKG_TESTBOOLEANS.UDT_BOOLEANLIST")
+        obj = typeObj.newobject()
+        obj.setelement(1, True)
+        obj.extend([True, False, True, True, False, True])
+        result = self.cursor.callfunc("pkg_TestBooleans.TestInArrays", int,
+                (obj,))
+        self.assertEqual(result, 5)
+
+    def testBindPLSQLBooleanCollectionOut(self):
+        "test binding a boolean collection (out)"
+        typeObj = self.connection.gettype("PKG_TESTBOOLEANS.UDT_BOOLEANLIST")
+        obj = typeObj.newobject()
+        self.cursor.callproc("pkg_TestBooleans.TestOutArrays", (6, obj))
+        self.assertEqual(obj.aslist(), [True, False, True, False, True, False])
+
     def testBindPLSQLDateCollectionIn(self):
         "test binding a PL/SQL date collection (in)"
         typeObj = self.connection.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
