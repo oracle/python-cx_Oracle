@@ -1,5 +1,6 @@
 """Module for testing features introduced in 12.1"""
 
+import datetime
 import sys
 
 if sys.version_info > (3,):
@@ -39,6 +40,123 @@ class TestFeatures12_1(BaseTestCase):
         self.cursor.execute("select count(*) from TestArrayDML")
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
+
+    def testBindPLSQLDateCollectionIn(self):
+        "test binding a PL/SQL date collection (in)"
+        typeObj = self.connection.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
+        obj = typeObj.newobject()
+        obj.setelement(1, datetime.datetime(2016, 2, 5))
+        obj.append(datetime.datetime(2016, 2, 8, 12, 15, 30))
+        obj.append(datetime.datetime(2016, 2, 12, 5, 44, 30))
+        result = self.cursor.callfunc("pkg_TestDateArrays.TestInArrays", int,
+                (2, datetime.datetime(2016, 2, 1), obj))
+        self.assertEqual(result, 24.75)
+
+    def testBindPLSQLDateCollectionInOut(self):
+        "test binding a PL/SQL date collection (in/out)"
+        typeObj = self.connection.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
+        obj = typeObj.newobject()
+        obj.setelement(1, datetime.datetime(2016, 1, 1))
+        obj.append(datetime.datetime(2016, 1, 7))
+        obj.append(datetime.datetime(2016, 1, 13))
+        obj.append(datetime.datetime(2016, 1, 19))
+        self.cursor.callproc("pkg_TestDateArrays.TestInOutArrays", (4, obj))
+        self.assertEqual(obj.aslist(),
+                [datetime.datetime(2016, 1, 8),
+                 datetime.datetime(2016, 1, 14),
+                 datetime.datetime(2016, 1, 20),
+                 datetime.datetime(2016, 1, 26)])
+
+    def testBindPLSQLDateCollectionOut(self):
+        "test binding a PL/SQL date collection (out)"
+        typeObj = self.connection.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
+        obj = typeObj.newobject()
+        self.cursor.callproc("pkg_TestDateArrays.TestOutArrays", (3, obj))
+        self.assertEqual(obj.aslist(),
+                [datetime.datetime(2002, 12, 13, 4, 48),
+                 datetime.datetime(2002, 12, 14, 9, 36),
+                 datetime.datetime(2002, 12, 15, 14, 24)])
+
+    def testBindPLSQLNumberCollectionIn(self):
+        "test binding a PL/SQL number collection (in)"
+        typeObj = self.connection.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
+        obj = typeObj.newobject()
+        obj.setelement(1, 10)
+        obj.extend([20, 30, 40, 50])
+        result = self.cursor.callfunc("pkg_TestNumberArrays.TestInArrays", int,
+                (5, obj))
+        self.assertEqual(result, 155)
+
+    def testBindPLSQLNumberCollectionInOut(self):
+        "test binding a PL/SQL number collection (in/out)"
+        typeObj = self.connection.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
+        obj = typeObj.newobject()
+        obj.setelement(1, 5)
+        obj.extend([8, 3, 2])
+        self.cursor.callproc("pkg_TestNumberArrays.TestInOutArrays", (4, obj))
+        self.assertEqual(obj.aslist(), [50, 80, 30, 20])
+
+    def testBindPLSQLNumberCollectionOut(self):
+        "test binding a PL/SQL number collection (out)"
+        typeObj = self.connection.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
+        obj = typeObj.newobject()
+        self.cursor.callproc("pkg_TestNumberArrays.TestOutArrays", (3, obj))
+        self.assertEqual(obj.aslist(), [100, 200, 300])
+
+    def testBindPLSQLStringCollectionIn(self):
+        "test binding a PL/SQL string collection (in)"
+        typeObj = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
+        obj = typeObj.newobject()
+        obj.setelement(1, "First element")
+        obj.setelement(2, "Second element")
+        obj.setelement(3, "Third element")
+        result = self.cursor.callfunc("pkg_TestStringArrays.TestInArrays", int,
+                (5, obj))
+        self.assertEqual(result, 45)
+
+    def testBindPLSQLStringCollectionInOut(self):
+        "test binding a PL/SQL string collection (in/out)"
+        typeObj = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
+        obj = typeObj.newobject()
+        obj.setelement(1, "The first element")
+        obj.append("The second element")
+        obj.append("The third and final element")
+        self.cursor.callproc("pkg_TestStringArrays.TestInOutArrays", (3, obj))
+        self.assertEqual(obj.aslist(),
+                ['Converted element # 1 originally had length 17',
+                 'Converted element # 2 originally had length 18',
+                 'Converted element # 3 originally had length 27'])
+
+    def testBindPLSQLStringCollectionOut(self):
+        "test binding a PL/SQL string collection (out)"
+        typeObj = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
+        obj = typeObj.newobject()
+        self.cursor.callproc("pkg_TestStringArrays.TestOutArrays", (4, obj))
+        self.assertEqual(obj.aslist(),
+                ['Test out element # 1',
+                 'Test out element # 2',
+                 'Test out element # 3',
+                 'Test out element # 4'])
+
+    def testBindPLSQLStringCollectionOutWithHoles(self):
+        "test binding a PL/SQL string collection (out with holes)"
+        typeObj = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
+        obj = typeObj.newobject()
+        self.cursor.callproc("pkg_TestStringArrays.TestIndexBy", (obj,))
+        self.assertEqual(obj.first(), -1048576)
+        self.assertEqual(obj.last(), 8388608)
+        self.assertEqual(obj.next(-576), 284)
+        self.assertEqual(obj.prev(284), -576)
+        self.assertEqual(obj.size(), 4)
+        self.assertEqual(obj.exists(-576), True)
+        self.assertEqual(obj.exists(-577), False)
+        self.assertEqual(obj.getelement(284), 'Third element')
+        self.assertEqual(obj.aslist(),
+                ["First element", "Second element", "Third element",
+                 "Fourth element"])
+        obj.delete(-576)
+        obj.delete(284)
+        self.assertEqual(obj.aslist(), ["First element", "Fourth element"])
 
     def testExceptionInIteration(self):
         "test executing with arraydmlrowcounts with exception"

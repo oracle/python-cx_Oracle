@@ -26,8 +26,17 @@ static PyObject *Object_ConvertToPython(udt_Environment*, OCITypeCode, dvoid*,
 static PyObject *Object_Append(udt_Object*, PyObject*);
 static PyObject *Object_AsList(udt_Object*, PyObject*);
 static PyObject *Object_Copy(udt_Object*, PyObject*);
+static PyObject *Object_Delete(udt_Object*, PyObject*);
+static PyObject *Object_Exists(udt_Object*, PyObject*);
 static PyObject *Object_Extend(udt_Object*, PyObject*);
+static PyObject *Object_GetElement(udt_Object*, PyObject*);
+static PyObject *Object_GetFirstIndex(udt_Object*, PyObject*);
+static PyObject *Object_GetLastIndex(udt_Object*, PyObject*);
+static PyObject *Object_GetNextIndex(udt_Object*, PyObject*);
+static PyObject *Object_GetPrevIndex(udt_Object*, PyObject*);
 static PyObject *Object_GetSize(udt_Object*, PyObject*);
+static PyObject *Object_SetElement(udt_Object*, PyObject*);
+static PyObject *Object_Trim(udt_Object*, PyObject*);
 
 
 //-----------------------------------------------------------------------------
@@ -37,8 +46,17 @@ static PyMethodDef g_ObjectMethods[] = {
     { "append", (PyCFunction) Object_Append, METH_VARARGS },
     { "aslist", (PyCFunction) Object_AsList, METH_NOARGS },
     { "copy", (PyCFunction) Object_Copy, METH_NOARGS },
+    { "delete", (PyCFunction) Object_Delete, METH_VARARGS },
+    { "exists", (PyCFunction) Object_Exists, METH_VARARGS },
     { "extend", (PyCFunction) Object_Extend, METH_VARARGS },
+    { "first", (PyCFunction) Object_GetFirstIndex, METH_NOARGS },
+    { "getelement", (PyCFunction) Object_GetElement, METH_VARARGS },
+    { "last", (PyCFunction) Object_GetLastIndex, METH_NOARGS },
+    { "next", (PyCFunction) Object_GetNextIndex, METH_VARARGS },
+    { "prev", (PyCFunction) Object_GetPrevIndex, METH_VARARGS },
+    { "setelement", (PyCFunction) Object_SetElement, METH_VARARGS },
     { "size", (PyCFunction) Object_GetSize, METH_NOARGS },
+    { "trim", (PyCFunction) Object_Trim, METH_VARARGS },
     { NULL, NULL }
 };
 
@@ -629,6 +647,60 @@ static PyObject *Object_Copy(
 
 
 //-----------------------------------------------------------------------------
+// Object_Delete()
+//   Delete the element at the specified index in the collection.
+//-----------------------------------------------------------------------------
+static PyObject *Object_Delete(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments
+{
+    udt_Environment *environment;
+    sword status;
+    sb4 index;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCITableDelete(environment->handle, environment->errorHandle,
+            index, self->instance);
+    if (Environment_CheckForError(environment, status, "Object_Delete()") < 0)
+        return NULL;
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_Exists()
+//   Return true or false indicating if an element exists in the collection at
+// the specified index.
+//-----------------------------------------------------------------------------
+static PyObject *Object_Exists(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments
+{
+    udt_Environment *environment;
+    boolean exists;
+    sword status;
+    sb4 index;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCITableExists(environment->handle, environment->errorHandle,
+            self->instance, index, &exists);
+    if (Environment_CheckForError(environment, status, "Object_Exists()") < 0)
+        return NULL;
+    if (exists)
+        Py_RETURN_TRUE;
+    Py_RETURN_FALSE;
+}
+
+
+//-----------------------------------------------------------------------------
 // Object_Extend()
 //   Extend the collection by appending each of the items in the sequence.
 //-----------------------------------------------------------------------------
@@ -663,6 +735,149 @@ static PyObject *Object_Extend(
 
 
 //-----------------------------------------------------------------------------
+// Object_GetElement()
+//   Return the element at the given position in the collection.
+//-----------------------------------------------------------------------------
+static PyObject *Object_GetElement(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments
+{
+    void *elementValue, *elementIndicator;
+    udt_Environment *environment;
+    boolean exists;
+    sb4 position;
+    sword status;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    if (!PyArg_ParseTuple(args, "i", &position))
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCICollGetElem(environment->handle, environment->errorHandle,
+            (OCIColl*) self->instance, (sb4) position, &exists,
+            &elementValue, &elementIndicator);
+    if (Environment_CheckForError(environment, status,
+            "Object_GetItem(): get element") < 0)
+        return NULL;
+    if (!exists) {
+        PyErr_SetString(PyExc_IndexError, "element does not exist");
+        return NULL;
+    }
+    return Object_ConvertToPython(environment,
+            self->objectType->elementTypeCode, elementValue, elementIndicator,
+            (udt_ObjectType*) self->objectType->elementType);
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_GetFirstIndex()
+//   Return the index of the first entry in the collection.
+//-----------------------------------------------------------------------------
+static PyObject *Object_GetFirstIndex(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments (none)
+{
+    udt_Environment *environment;
+    sword status;
+    sb4 index;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCITableFirst(environment->handle, environment->errorHandle,
+            self->instance, &index);
+    if (Environment_CheckForError(environment, status,
+            "Object_GetFirstIndex()") < 0)
+        return NULL;
+    return PyInt_FromLong(index);
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_GetLastIndex()
+//   Return the index of the last entry in the collection.
+//-----------------------------------------------------------------------------
+static PyObject *Object_GetLastIndex(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments (none)
+{
+    udt_Environment *environment;
+    sword status;
+    sb4 index;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCITableLast(environment->handle, environment->errorHandle,
+            self->instance, &index);
+    if (Environment_CheckForError(environment, status,
+            "Object_GetLastIndex()") < 0)
+        return NULL;
+    return PyInt_FromLong(index);
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_GetNextIndex()
+//   Return the index of the next entry in the collection following the index
+// specified. If there is no next entry, None is returned.
+//-----------------------------------------------------------------------------
+static PyObject *Object_GetNextIndex(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments
+{
+    udt_Environment *environment;
+    sb4 index, nextIndex;
+    boolean exists;
+    sword status;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCITableNext(environment->handle, environment->errorHandle,
+            index, self->instance, &nextIndex, &exists);
+    if (Environment_CheckForError(environment, status,
+            "Object_GetNextIndex()") < 0)
+        return NULL;
+    if (exists)
+        return PyInt_FromLong(nextIndex);
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_GetPrevIndex()
+//   Return the index of the previous entry in the collection preceding the
+// index specified. If there is no previous entry, None is returned.
+//-----------------------------------------------------------------------------
+static PyObject *Object_GetPrevIndex(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments
+{
+    udt_Environment *environment;
+    sb4 index, prevIndex;
+    boolean exists;
+    sword status;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    if (!PyArg_ParseTuple(args, "i", &index))
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCITablePrev(environment->handle, environment->errorHandle,
+            index, self->instance, &prevIndex, &exists);
+    if (Environment_CheckForError(environment, status,
+            "Object_GetPrevIndex()") < 0)
+        return NULL;
+    if (exists)
+        return PyInt_FromLong(prevIndex);
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
 // Object_GetSize()
 //   Return the size of a collection. If the object is not a collection, an
 // error is returned.
@@ -683,5 +898,83 @@ static PyObject *Object_GetSize(
     if (Environment_CheckForError(environment, status, "Object_Size()") < 0)
         return NULL;
     return PyInt_FromLong(size);
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_SetElement()
+//   Set the element at the specified location to the given value.
+//-----------------------------------------------------------------------------
+static PyObject *Object_SetElement(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments
+{
+    void *elementValue, *elementIndicator;
+    udt_AttributeData attributeData;
+    udt_Environment *environment;
+    OCIInd tempIndicator;
+    PyObject *value;
+    sb4 position;
+    sword status;
+
+    // make sure we are dealing with a collection
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+
+    // parse arguments
+    if (!PyArg_ParseTuple(args, "iO", &position, &value))
+        return NULL;
+
+    // convert to OCI value
+    elementValue = elementIndicator = NULL;
+    environment = self->objectType->connection->environment;
+    if (Object_ConvertFromPython(environment, value,
+            self->objectType->elementTypeCode, &attributeData, &elementValue,
+            &tempIndicator, &elementIndicator,
+            (udt_ObjectType*) self->objectType->elementType) < 0) {
+        AttributeData_Free(environment, &attributeData,
+                self->objectType->elementTypeCode);
+        return NULL;
+    }
+    if (!elementIndicator)
+        elementIndicator = &tempIndicator;
+    status = OCICollAssignElem(environment->handle, environment->errorHandle,
+            position, elementValue, elementIndicator,
+            (OCIColl*) self->instance);
+    if (Environment_CheckForError(environment, status,
+            "Object_SetItem(): assign element") < 0) {
+        AttributeData_Free(environment, &attributeData,
+                self->objectType->elementTypeCode);
+        return NULL;
+    }
+    AttributeData_Free(environment, &attributeData,
+            self->objectType->elementTypeCode);
+
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_Trim()
+//   Trim a number of elements from the end of the collection.
+//-----------------------------------------------------------------------------
+static PyObject *Object_Trim(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments
+{
+    udt_Environment *environment;
+    sb4 numToTrim;
+    sword status;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    if (!PyArg_ParseTuple(args, "i", &numToTrim))
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCICollTrim(environment->handle, environment->errorHandle,
+            numToTrim, self->instance);
+    if (Environment_CheckForError(environment, status, "Object_Trim()") < 0)
+        return NULL;
+    Py_RETURN_NONE;
 }
 

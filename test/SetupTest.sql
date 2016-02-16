@@ -322,6 +322,10 @@ create or replace package cx_Oracle.pkg_TestStringArrays as
     a_Array             out nocopy udt_StringList
   );
 
+  procedure TestIndexBy (
+    a_Array             out nocopy udt_StringList
+  );
+
 end;
 /
 
@@ -360,6 +364,16 @@ create or replace package body cx_Oracle.pkg_TestStringArrays as
     for i in 1..a_NumElems loop
       a_Array(i) := 'Test out element # ' || to_char(i);
     end loop;
+  end;
+
+  procedure TestIndexBy (
+    a_Array             out nocopy udt_StringList
+  ) is
+  begin
+    a_Array(-1048576) := 'First element';
+    a_Array(-576) := 'Second element';
+    a_Array(284) := 'Third element';
+    a_Array(8388608) := 'Fourth element';
   end;
 
 end;
