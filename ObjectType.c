@@ -14,10 +14,11 @@ typedef struct {
     PyObject *name;
     PyObject *attributes;
     PyObject *attributesByName;
+    OCITypeCode typeCode;
     OCITypeCode collectionTypeCode;
     OCITypeCode elementTypeCode;
     PyObject *elementType;
-    int isCollection;
+    boolean isCollection;
 } udt_ObjectType;
 
 typedef struct {
@@ -26,8 +27,6 @@ typedef struct {
     OCITypeCode typeCode;
     udt_ObjectType *subType;
 } udt_ObjectAttribute;
-
-#include "Object.c"
 
 //-----------------------------------------------------------------------------
 // Declaration of type variable functions.
@@ -40,6 +39,7 @@ static udt_ObjectAttribute *ObjectAttribute_New(udt_Connection*, OCIParam*);
 static void ObjectAttribute_Free(udt_ObjectAttribute*);
 static PyObject *ObjectAttribute_Repr(udt_ObjectAttribute*);
 
+#include "Object.c"
 
 //-----------------------------------------------------------------------------
 // declaration of methods for Python type "ObjectType"
@@ -57,6 +57,10 @@ static PyMemberDef g_ObjectTypeMembers[] = {
     { "schema", T_OBJECT, offsetof(udt_ObjectType, schema), READONLY },
     { "name", T_OBJECT, offsetof(udt_ObjectType, name), READONLY },
     { "attributes", T_OBJECT, offsetof(udt_ObjectType, attributes), READONLY },
+    { "elementType", T_OBJECT, offsetof(udt_ObjectType, elementType),
+            READONLY },
+    { "iscollection", T_BOOL, offsetof(udt_ObjectType, isCollection),
+            READONLY },
     { NULL }
 };
 
@@ -174,7 +178,6 @@ static int ObjectType_Describe(
     OCIParam *topLevelParam, *attributeListParam, *attributeParam;
     udt_ObjectAttribute *attribute;
     OCIParam *collectionParam;
-    OCITypeCode typeCode;
     ub2 numAttributes;
     sword status;
     int i;
@@ -195,14 +198,14 @@ static int ObjectType_Describe(
         return -1;
 
     // determine type of type
-    status = OCIAttrGet(topLevelParam, OCI_DTYPE_PARAM, &typeCode, 0,
+    status = OCIAttrGet(topLevelParam, OCI_DTYPE_PARAM, &self->typeCode, 0,
             OCI_ATTR_TYPECODE, self->connection->environment->errorHandle);
     if (Environment_CheckForError(self->connection->environment, status,
             "ObjectType_Describe(): get type code") < 0)
         return -1;
 
     // if a collection, need to determine the sub type
-    if (typeCode == OCI_TYPECODE_NAMEDCOLLECTION) {
+    if (self->typeCode == OCI_TYPECODE_NAMEDCOLLECTION) {
         self->isCollection = 1;
 
         // determine type of collection
@@ -394,6 +397,9 @@ static udt_ObjectType *ObjectType_NewByName(
     udt_ObjectType *result;
     udt_Buffer buffer;
     OCIParam *param;
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+    OCIType *tdo;
+#endif
     sword status;
 
     // allocate describe handle
@@ -409,6 +415,26 @@ static udt_ObjectType *ObjectType_NewByName(
         OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
         return NULL;
     }
+#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+    status = OCITypeByFullName(connection->environment->handle,
+            connection->environment->errorHandle, connection->handle,
+            buffer.ptr, buffer.size, NULL, 0, OCI_DURATION_SESSION,
+            OCI_TYPEGET_ALL, &tdo);
+    cxBuffer_Clear(&buffer);
+    if (Environment_CheckForError(connection->environment, status,
+            "ObjectType_NewByName(): get type by full name") < 0) {
+        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
+        return NULL;
+    }
+    status = OCIDescribeAny(connection->handle,
+            connection->environment->errorHandle, (dvoid*) tdo, 0,
+            OCI_OTYPE_PTR, 0, OCI_PTYPE_TYPE, describeHandle);
+    if (Environment_CheckForError(connection->environment, status,
+            "ObjectType_NewByName(): describe type") < 0) {
+        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
+        return NULL;
+    }
+#else
     status = OCIDescribeAny(connection->handle,
             connection->environment->errorHandle, (dvoid*) buffer.ptr,
             buffer.size, OCI_OTYPE_NAME, 0, OCI_PTYPE_TYPE, describeHandle);
@@ -418,6 +444,7 @@ static udt_ObjectType *ObjectType_NewByName(
         OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
         return NULL;
     }
+#endif
 
     // get the parameter handle
     status = OCIAttrGet(describeHandle, OCI_HTYPE_DESCRIBE, &param, 0,
@@ -510,7 +537,7 @@ static PyObject *ObjectType_NewObject(
     // create the object instance
     status = OCIObjectNew(self->connection->environment->handle,
             self->connection->environment->errorHandle,
-            self->connection->handle, OCI_TYPECODE_OBJECT, self->tdo, NULL,
+            self->connection->handle, self->typeCode, self->tdo, NULL,
             OCI_DURATION_SESSION, TRUE, &instance);
     if (Environment_CheckForError(self->connection->environment, status,
             "ObjectType_NewObject(): create object instance") < 0)

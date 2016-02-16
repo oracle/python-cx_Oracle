@@ -16,17 +16,35 @@ typedef struct {
 
 
 //-----------------------------------------------------------------------------
-// Declaration of external object variable functions.
+// functions for the Python type "Object"
 //-----------------------------------------------------------------------------
 static void Object_Free(udt_Object*);
 static PyObject *Object_GetAttr(udt_Object*, PyObject*);
 static int Object_SetAttr(udt_Object*, PyObject*, PyObject*);
 static PyObject *Object_ConvertToPython(udt_Environment*, OCITypeCode, dvoid*,
         dvoid*, udt_ObjectType*);
+static PyObject *Object_Append(udt_Object*, PyObject*);
+static PyObject *Object_AsList(udt_Object*, PyObject*);
+static PyObject *Object_Copy(udt_Object*, PyObject*);
+static PyObject *Object_Extend(udt_Object*, PyObject*);
+static PyObject *Object_GetSize(udt_Object*, PyObject*);
 
 
 //-----------------------------------------------------------------------------
-// Declaration of external object variable members.
+// declaration of methods for Python type "Object"
+//-----------------------------------------------------------------------------
+static PyMethodDef g_ObjectMethods[] = {
+    { "append", (PyCFunction) Object_Append, METH_VARARGS },
+    { "aslist", (PyCFunction) Object_AsList, METH_NOARGS },
+    { "copy", (PyCFunction) Object_Copy, METH_NOARGS },
+    { "extend", (PyCFunction) Object_Extend, METH_VARARGS },
+    { "size", (PyCFunction) Object_GetSize, METH_NOARGS },
+    { NULL, NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Declaration of members for Python type "Object".
 //-----------------------------------------------------------------------------
 static PyMemberDef g_ObjectMembers[] = {
     { "type", T_OBJECT, offsetof(udt_Object, objectType), READONLY },
@@ -65,7 +83,7 @@ static PyTypeObject g_ObjectType = {
     0,                                  // tp_weaklistoffset
     0,                                  // tp_iter
     0,                                  // tp_iternext
-    0,                                  // tp_methods
+    g_ObjectMethods,                    // tp_methods
     g_ObjectMembers                     // tp_members
 };
 
@@ -142,82 +160,6 @@ static void Object_Free(
                 self->instance, OCI_DEFAULT);
     Py_CLEAR(self->objectType);
     Py_TYPE(self)->tp_free((PyObject*) self);
-}
-
-
-//-----------------------------------------------------------------------------
-// Object_ConvertCollectionElements()
-//   Convert the collection elements to Python values.
-//-----------------------------------------------------------------------------
-static int Object_ConvertCollectionElements(
-    udt_Environment *environment,       // environment to use
-    OCIIter *iter,                      // iterator
-    PyObject *list,                     // list result
-    udt_ObjectType *objectType)         // collection type information
-{
-    dvoid *elementValue, *elementIndicator;
-    PyObject *elementObject;
-    boolean endOfCollection;
-    sword status;
-
-    while (list) {
-        status = OCIIterNext(environment->handle, environment->errorHandle,
-                iter, &elementValue, &elementIndicator, &endOfCollection);
-        if (Environment_CheckForError(environment, status,
-                "Object_ConvertCollection(): get next") < 0)
-            return -1;
-        if (endOfCollection)
-            break;
-        elementObject = Object_ConvertToPython(environment,
-                objectType->elementTypeCode, elementValue, elementIndicator,
-                (udt_ObjectType*) objectType->elementType);
-        if (!elementObject)
-            return -1;
-        if (PyList_Append(list, elementObject) < 0) {
-            Py_DECREF(elementObject);
-            return -1;
-        }
-        Py_DECREF(elementObject);
-    }
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Object_ConvertCollection()
-//   Convert a collection to a Python list.
-//-----------------------------------------------------------------------------
-static PyObject *Object_ConvertCollection(
-    udt_Environment *environment,       // environment to use
-    OCIColl *collectionValue,           // collection value
-    udt_ObjectType *objectType)         // collection type information
-{
-    PyObject *list;
-    OCIIter *iter;
-    sword status;
-    int result;
-
-    // create the iterator
-    status = OCIIterCreate(environment->handle, environment->errorHandle,
-            collectionValue, &iter);
-    if (Environment_CheckForError(environment, status,
-            "Object_ConvertCollection(): creating iterator") < 0)
-        return NULL;
-
-    // create the result list
-    list = PyList_New(0);
-    if (list) {
-        result = Object_ConvertCollectionElements(environment, iter,
-                list, objectType);
-        if (result < 0) {
-            Py_DECREF(list);
-            list = NULL;
-        }
-    }
-    OCIIterDelete(environment->handle, environment->errorHandle, &iter);
-
-    return list;
 }
 
 
@@ -358,8 +300,7 @@ static PyObject *Object_ConvertToPython(
         case OCI_TYPECODE_OBJECT:
             return Object_New(subType, value, indicator, 0);
         case OCI_TYPECODE_NAMEDCOLLECTION:
-            return Object_ConvertCollection(environment,
-                    * (OCIColl**) value, subType);
+            return Object_New(subType, * (OCIColl**) value, indicator, 0);
     };
 
     return PyErr_Format(g_NotSupportedErrorException,
@@ -493,5 +434,254 @@ static int Object_SetAttr(
         return Object_SetAttributeValue(self, attribute, value);
 
     return PyObject_GenericSetAttr( (PyObject*) self, nameObject, value);
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_CheckIsCollection()
+//   Check if the object is a collection, and if not, raise an exception. This
+// is used by the collection methods below.
+//-----------------------------------------------------------------------------
+static int Object_CheckIsCollection(
+    udt_Object *self)                   // object
+{
+    if (!self->objectType->isCollection) {
+        PyErr_SetString(PyExc_TypeError, "object is not a collection");
+        return -1;
+    }
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_PopulateList()
+//   Convert the collection elements to Python values.
+//-----------------------------------------------------------------------------
+static int Object_PopulateList(
+    udt_Object *self,                   // collection iterating
+    OCIIter *iter,                      // iterator
+    PyObject *list)                     // list result
+{
+    dvoid *elementValue, *elementIndicator;
+    udt_Environment *environment;
+    PyObject *elementObject;
+    boolean endOfCollection;
+    sword status;
+
+    environment = self->objectType->connection->environment;
+    while (list) {
+        status = OCIIterNext(environment->handle, environment->errorHandle,
+                iter, &elementValue, &elementIndicator, &endOfCollection);
+        if (Environment_CheckForError(environment, status,
+                "Object_PopulateList(): get next") < 0)
+            return -1;
+        if (endOfCollection)
+            break;
+        elementObject = Object_ConvertToPython(environment,
+                self->objectType->elementTypeCode, elementValue,
+                elementIndicator,
+                (udt_ObjectType*) self->objectType->elementType);
+        if (!elementObject)
+            return -1;
+        if (PyList_Append(list, elementObject) < 0) {
+            Py_DECREF(elementObject);
+            return -1;
+        }
+        Py_DECREF(elementObject);
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_InternalAppend()
+//   Append an item to the collection.
+//-----------------------------------------------------------------------------
+static int Object_InternalAppend(
+    udt_Object *self,                   // object
+    PyObject *value)                    // value to append
+{
+    void *elementValue, *elementIndicator;
+    udt_AttributeData attributeData;
+    udt_Environment *environment;
+    OCIInd tempIndicator;
+    sword status;
+
+    // convert Python value to OCI value
+    elementValue = elementIndicator = NULL;
+    environment = self->objectType->connection->environment;
+    if (Object_ConvertFromPython(environment, value,
+            self->objectType->elementTypeCode, &attributeData, &elementValue,
+            &tempIndicator, &elementIndicator,
+            (udt_ObjectType*) self->objectType->elementType) < 0) {
+        AttributeData_Free(environment, &attributeData,
+                self->objectType->elementTypeCode);
+        return -1;
+    }
+    if (!elementIndicator)
+        elementIndicator = &tempIndicator;
+
+    // append converted value to collection
+    status = OCICollAppend(environment->handle, environment->errorHandle,
+            elementValue, elementIndicator, (OCIColl*) self->instance);
+    if (Environment_CheckForError(environment, status,
+            "Object_Append()") < 0) {
+        AttributeData_Free(environment, &attributeData,
+                self->objectType->elementTypeCode);
+        return -1;
+    }
+    AttributeData_Free(environment, &attributeData,
+            self->objectType->elementTypeCode);
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_Append()
+//   Append an item to the collection.
+//-----------------------------------------------------------------------------
+static PyObject *Object_Append(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments
+{
+    PyObject *value;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    if (!PyArg_ParseTuple(args, "O", &value))
+        return NULL;
+    if (Object_InternalAppend(self, value) < 0)
+        return NULL;
+
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_AsList()
+//   Returns a collection as a list of elements. If the object is not a
+// collection, an error is returned.
+//-----------------------------------------------------------------------------
+static PyObject *Object_AsList(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments (none)
+{
+    udt_Environment *environment;
+    PyObject *list;
+    OCIIter *iter;
+    sword status;
+
+    // make sure this is a collection
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+
+    // create the iterator
+    environment = self->objectType->connection->environment;
+    status = OCIIterCreate(environment->handle, environment->errorHandle,
+            self->instance, &iter);
+    if (Environment_CheckForError(environment, status,
+            "Object_AsList(): creating iterator") < 0)
+        return NULL;
+
+    // create the result list
+    list = PyList_New(0);
+    if (list) {
+        if (Object_PopulateList(self, iter, list) < 0) {
+            Py_DECREF(list);
+            list = NULL;
+        }
+    }
+    OCIIterDelete(environment->handle, environment->errorHandle, &iter);
+
+    return list;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_Copy()
+//   Return a copy of the object.
+//-----------------------------------------------------------------------------
+static PyObject *Object_Copy(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments (none)
+{
+    udt_Environment *environment;
+    udt_Object *copiedObject;
+    sword status;
+
+    copiedObject = (udt_Object*) ObjectType_NewObject(self->objectType, args);
+    if (!copiedObject)
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCIObjectCopy(environment->handle, environment->errorHandle,
+            self->objectType->connection->handle, self->instance,
+            self->indicator, copiedObject->instance, copiedObject->indicator,
+            self->objectType->tdo, OCI_DURATION_SESSION, OCI_DEFAULT);
+    if (Environment_CheckForError(environment, status, "Object_Copy()") < 0) {
+        Py_DECREF(copiedObject);
+        return NULL;
+    }
+
+    return (PyObject*) copiedObject;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_Extend()
+//   Extend the collection by appending each of the items in the sequence.
+//-----------------------------------------------------------------------------
+static PyObject *Object_Extend(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments
+{
+    PyObject *sequence, *fastSequence, *element;
+    Py_ssize_t size, i;
+
+    // make sure we are dealing with a collection
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+
+    // parse arguments
+    if (!PyArg_ParseTuple(args, "O", &sequence))
+        return NULL;
+    fastSequence = PySequence_Fast(sequence, "expecting sequence");
+    if (!fastSequence)
+        return NULL;
+
+    // append each of the items in the sequence to the collection
+    size = PySequence_Fast_GET_SIZE(fastSequence);
+    for (i = 0; i < size; i++) {
+        element = PySequence_Fast_GET_ITEM(fastSequence, i);
+        if (Object_InternalAppend(self, element) < 0)
+            return NULL;
+    }
+    
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_GetSize()
+//   Return the size of a collection. If the object is not a collection, an
+// error is returned.
+//-----------------------------------------------------------------------------
+static PyObject *Object_GetSize(
+    udt_Object *self,                   // object
+    PyObject *args)                     // arguments (none)
+{
+    udt_Environment *environment;
+    sword status;
+    sb4 size;
+
+    if (Object_CheckIsCollection(self) < 0)
+        return NULL;
+    environment = self->objectType->connection->environment;
+    status = OCICollSize(environment->handle, environment->errorHandle,
+            (const OCIColl*) self->instance, &size);
+    if (Environment_CheckForError(environment, status, "Object_Size()") < 0)
+        return NULL;
+    return PyInt_FromLong(size);
 }
 

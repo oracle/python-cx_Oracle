@@ -303,10 +303,7 @@ static PyObject *ObjectVar_GetValue(
     // create the object, if needed; for collections, return a list, not the
     // object itself
     if (!self->objects[pos]) {
-        if (self->objectType->isCollection)
-            obj = Object_ConvertCollection(self->environment, self->data[pos],
-                    self->objectType);
-        else obj = Object_New(self->objectType, self->data[pos],
+        obj = Object_New(self->objectType, self->data[pos],
                 self->objectIndicator[pos], 1);
         if (!obj)
             return NULL;

@@ -10,14 +10,15 @@ class TestObjectVar(BaseTestCase):
         for attribute in obj.type.attributes:
             value = getattr(obj, attribute.name)
             if isinstance(value, cx_Oracle.Object):
-                value = self.__GetObjectAsTuple(value)
-            elif isinstance(value, list):
-                subValue = []
-                for v in value:
-                    if isinstance(v, cx_Oracle.Object):
-                        v = self.__GetObjectAsTuple(v)
-                    subValue.append(v)
-                value = subValue
+                if not value.type.iscollection:
+                    value = self.__GetObjectAsTuple(value)
+                else:
+                    subValue = []
+                    for v in value.aslist():
+                        if isinstance(v, cx_Oracle.Object):
+                            v = self.__GetObjectAsTuple(v)
+                        subValue.append(v)
+                    value = subValue
             attributeValues.append(value)
         return tuple(attributeValues)
 
@@ -26,6 +27,8 @@ class TestObjectVar(BaseTestCase):
         intValue, objectValue, arrayValue = self.cursor.fetchone()
         if objectValue is not None:
             objectValue = self.__GetObjectAsTuple(objectValue)
+        if arrayValue is not None:
+            arrayValue = arrayValue.aslist()
         self.assertEqual(intValue, expectedIntValue)
         self.assertEqual(objectValue, expectedObjectValue)
         self.assertEqual(arrayValue, expectedArrayValue)
@@ -102,13 +105,17 @@ class TestObjectVar(BaseTestCase):
     def testGetObjectType(self):
         "test getting object type"
         typeObj = self.connection.gettype("UDT_OBJECT")
-        self.assertEqual(typeObj.schema, "CX_ORACLE")
+        self.assertEqual(typeObj.iscollection, False)
+        self.assertEqual(typeObj.schema, self.connection.username.upper())
         self.assertEqual(typeObj.name, "UDT_OBJECT")
         expectedAttributeNames = ["NUMBERVALUE", "STRINGVALUE",
                 "FIXEDCHARVALUE", "DATEVALUE", "TIMESTAMPVALUE",
                 "SUBOBJECTVALUE", "SUBOBJECTARRAY"]
         actualAttributeNames = [a.name for a in typeObj.attributes]
         self.assertEqual(actualAttributeNames, expectedAttributeNames)
+        typeObj = self.connection.gettype("UDT_OBJECTARRAY")
+        self.assertEqual(typeObj.iscollection, True)
+        self.assertEqual(typeObj.attributes, [])
 
     def testObjectType(self):
         "test object type data"
