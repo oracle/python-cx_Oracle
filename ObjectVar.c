@@ -339,7 +339,7 @@ static int ObjectVar_SetType(
         // create the object instance
         status = OCIObjectNew(self->connection->environment->handle,
                 self->connection->environment->errorHandle,
-                self->connection->handle, OCI_TYPECODE_OBJECT,
+                self->connection->handle, self->objectType->typeCode,
                 self->objectType->tdo, NULL, OCI_DURATION_SESSION, TRUE,
                 &instance);
         if (Environment_CheckForError(self->connection->environment, status,
