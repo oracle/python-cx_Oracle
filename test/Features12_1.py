@@ -120,6 +120,40 @@ class TestFeatures12_1(BaseTestCase):
         self.cursor.callproc("pkg_TestNumberArrays.TestOutArrays", (3, obj))
         self.assertEqual(obj.aslist(), [100, 200, 300])
 
+    def testBindPLSQLRecordIn(self):
+        "test binding a PL/SQL record (in)"
+        typeObj = self.connection.gettype("PKG_TESTRECORDS.UDT_RECORD")
+        obj = typeObj.newobject()
+        obj.NUMBERVALUE = 18
+        obj.STRINGVALUE = "A string in a record"
+        obj.DATEVALUE = datetime.datetime(2016, 2, 15)
+        obj.TIMESTAMPVALUE = datetime.datetime(2016, 2, 12, 14, 25, 36)
+        obj.BOOLEANVALUE = False
+        result = self.cursor.callfunc("pkg_TestRecords.GetStringRep", str,
+                (obj,))
+        self.assertEqual(result,
+                "udt_Record(18, 'A string in a record', " \
+                "to_date('2016-02-15', 'YYYY-MM-DD'), " \
+                "to_timestamp('2016-02-12 14:25:36', " \
+                "'YYYY-MM-DD HH24:MI:SS'), false)")
+
+    def testBindPLSQLRecordOut(self):
+        "test binding a PL/SQL record (out)"
+        typeObj = self.connection.gettype("PKG_TESTRECORDS.UDT_RECORD")
+        obj = typeObj.newobject()
+        obj.NUMBERVALUE = 5
+        obj.STRINGVALUE = "Test value"
+        obj.DATEVALUE = datetime.datetime.today()
+        obj.TIMESTAMPVALUE = datetime.datetime.today()
+        obj.BOOLEANVALUE = False
+        self.cursor.callproc("pkg_TestRecords.TestOut", (obj,))
+        self.assertEqual(obj.NUMBERVALUE, 25)
+        self.assertEqual(obj.STRINGVALUE, "String in record")
+        self.assertEqual(obj.DATEVALUE, datetime.datetime(2016, 2, 16))
+        self.assertEqual(obj.TIMESTAMPVALUE,
+                datetime.datetime(2016, 2, 16, 18, 23, 55))
+        self.assertEqual(obj.BOOLEANVALUE, True)
+
     def testBindPLSQLStringCollectionIn(self):
         "test binding a PL/SQL string collection (in)"
         typeObj = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
