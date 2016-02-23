@@ -251,6 +251,7 @@ static int Object_ConvertFromPython(
                     return -1;
                 *ociValue = oracleValue->timestampValue;
                 break;
+            case OCI_TYPECODE_NAMEDCOLLECTION:
             case OCI_TYPECODE_OBJECT:
                 if (Py_TYPE(pythonValue) != &g_ObjectType) {
                     PyErr_SetString(PyExc_TypeError,
