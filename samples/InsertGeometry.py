@@ -9,7 +9,7 @@ from __future__ import print_function
 import cx_Oracle
 
 # create and populate Oracle objects
-connection = cx_Oracle.Connection("cx_Oracle/dev")
+connection = cx_Oracle.Connection("user/pw@tns")
 typeObj = connection.gettype("SDO_GEOMETRY")
 elementInfoTypeObj = connection.gettype("SDO_ELEM_INFO_ARRAY")
 ordinateTypeObj = connection.gettype("SDO_ORDINATE_ARRAY")
