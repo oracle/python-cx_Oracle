@@ -737,5 +737,64 @@ create or replace package body cx_Oracle.pkg_TestBindObject as
 end;
 /
 
+create or replace package cx_Oracle.pkg_TestRecords as
+
+    type udt_Record is record (
+        NumberValue         number,
+        StringValue         varchar2(30),
+        DateValue           date,
+        TimestampValue      timestamp,
+        BooleanValue        boolean
+    );
+
+    function GetStringRep (
+        a_Value             udt_Record
+    ) return varchar2;
+
+    procedure TestOut (
+        a_Value             out nocopy udt_Record
+    );
+
+end;
+/
+
+create or replace package body cx_Oracle.pkg_TestRecords as
+
+    function GetStringRep (
+        a_Value             udt_Record
+    ) return varchar2 is
+    begin
+        return 'udt_Record(' ||
+                nvl(to_char(a_Value.NumberValue), 'null') || ', ' ||
+                case when a_Value.StringValue is null then 'null'
+                else '''' || a_Value.StringValue || '''' end || ', ' ||
+                case when a_Value.DateValue is null then 'null'
+                else 'to_date(''' ||
+                        to_char(a_Value.DateValue, 'YYYY-MM-DD') ||
+                        ''', ''YYYY-MM-DD'')' end || ', ' ||
+                case when a_Value.TimestampValue is null then 'null'
+                else 'to_timestamp(''' || to_char(a_Value.TimestampValue,
+                        'YYYY-MM-DD HH24:MI:SS') ||
+                        ''', ''YYYY-MM-DD HH24:MI:SS'')' end || ', ' ||
+                case when a_Value.BooleanValue is null then 'null'
+                when a_Value.BooleanValue then 'true'
+                else 'false' end || ')';
+    end;
+
+    procedure TestOut (
+        a_Value             out nocopy udt_Record
+    ) is
+    begin
+        a_Value.NumberValue := 25;
+        a_Value.StringValue := 'String in record';
+        a_Value.DateValue := to_date(20160216, 'YYYYMMDD');
+        a_Value.TimestampValue := to_timestamp('20160216 18:23:55',
+                'YYYYMMDD HH24:MI:SS');
+        a_Value.BooleanValue := true;
+    end;
+
+end;
+/
+
 exit
 
