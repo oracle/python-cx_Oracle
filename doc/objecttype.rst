@@ -11,6 +11,12 @@ Object Type Objects
    :data:`~Variable.type` for variables containing Oracle objects.
 
 
+.. method:: ObjectType([sequence])
+
+   The object type may be called directly and serves as an alternative way of
+   calling newobject().
+
+
 .. attribute:: ObjectType.attributes
 
    This read-only attribute returns a list of the attributes that make up the
@@ -28,11 +34,13 @@ Object Type Objects
    This read-only attribute returns the name of the type.
 
 
-.. method:: ObjectType.newobject()
+.. method:: ObjectType.newobject([sequence])
 
    Return a new Oracle object of the given type. This object can then be
    modified by setting its attributes and then bound to a cursor for
-   interaction with Oracle.
+   interaction with Oracle. If the object type refers to a collection, a
+   sequence may be passed and the collection will be initialized with the
+   items in that sequnce.
 
 
 .. attribute:: ObjectType.schema

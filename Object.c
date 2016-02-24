@@ -168,6 +168,49 @@ PyObject *Object_New(
 
 
 //-----------------------------------------------------------------------------
+// Object_Create()
+//   Create a new object in the OCI.
+//-----------------------------------------------------------------------------
+static udt_Object *Object_Create(
+    udt_ObjectType *self)               // type of object to create
+{
+    dvoid *instance;
+    udt_Object *obj;
+    sword status;
+
+    // create the object instance
+    status = OCIObjectNew(self->connection->environment->handle,
+            self->connection->environment->errorHandle,
+            self->connection->handle, self->typeCode, self->tdo, NULL,
+            OCI_DURATION_SESSION, TRUE, &instance);
+    if (Environment_CheckForError(self->connection->environment, status,
+            "Object_Create(): create object instance") < 0)
+        return NULL;
+
+    // create the object
+    obj = (udt_Object*) Object_New(self, instance, NULL, 1);
+    if (!obj) {
+        OCIObjectFree(self->connection->environment->handle,
+                self->connection->environment->errorHandle, instance,
+                OCI_DEFAULT);
+        return NULL;
+    }
+
+    // get the null indicator structure
+    status = OCIObjectGetInd(self->connection->environment->handle,
+            self->connection->environment->errorHandle, instance,
+            &obj->indicator);
+    if (Environment_CheckForError(self->connection->environment, status,
+            "Object_Create(): get indicator structure") < 0) {
+        Py_DECREF(obj);
+        return NULL;
+    }
+
+    return obj;
+}
+
+
+//-----------------------------------------------------------------------------
 // Object_Free()
 //   Free an object.
 //-----------------------------------------------------------------------------
@@ -579,6 +622,36 @@ static int Object_InternalAppend(
 
 
 //-----------------------------------------------------------------------------
+// Object_InternalExtend()
+//   Extend the collection by appending each of the items in the sequence.
+//-----------------------------------------------------------------------------
+static int Object_InternalExtend(
+    udt_Object *self,                   // object
+    PyObject *sequence)                 // sequence to extend collection with
+{
+    PyObject *fastSequence, *element;
+    Py_ssize_t size, i;
+
+    // make sure we are dealing with a collection
+    if (Object_CheckIsCollection(self) < 0)
+        return -1;
+
+    // append each of the items in the sequence to the collection
+    fastSequence = PySequence_Fast(sequence, "expecting sequence");
+    if (!fastSequence)
+        return -1;
+    size = PySequence_Fast_GET_SIZE(fastSequence);
+    for (i = 0; i < size; i++) {
+        element = PySequence_Fast_GET_ITEM(fastSequence, i);
+        if (Object_InternalAppend(self, element) < 0)
+            return -1;
+    }
+    
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // Object_Append()
 //   Append an item to the collection.
 //-----------------------------------------------------------------------------
@@ -651,7 +724,7 @@ static PyObject *Object_Copy(
     udt_Object *copiedObject;
     sword status;
 
-    copiedObject = (udt_Object*) ObjectType_NewObject(self->objectType, args);
+    copiedObject = Object_Create(self->objectType);
     if (!copiedObject)
         return NULL;
     environment = self->objectType->connection->environment;
@@ -730,28 +803,12 @@ static PyObject *Object_Extend(
     udt_Object *self,                   // object
     PyObject *args)                     // arguments
 {
-    PyObject *sequence, *fastSequence, *element;
-    Py_ssize_t size, i;
+    PyObject *sequence;
 
-    // make sure we are dealing with a collection
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
-
-    // parse arguments
     if (!PyArg_ParseTuple(args, "O", &sequence))
         return NULL;
-    fastSequence = PySequence_Fast(sequence, "expecting sequence");
-    if (!fastSequence)
+    if (Object_InternalExtend(self, sequence) < 0)
         return NULL;
-
-    // append each of the items in the sequence to the collection
-    size = PySequence_Fast_GET_SIZE(fastSequence);
-    for (i = 0; i < size; i++) {
-        element = PySequence_Fast_GET_ITEM(fastSequence, i);
-        if (Object_InternalAppend(self, element) < 0)
-            return NULL;
-    }
-    
     Py_RETURN_NONE;
 }
 

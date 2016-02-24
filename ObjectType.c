@@ -34,7 +34,7 @@ typedef struct {
 static udt_ObjectType *ObjectType_New(udt_Connection*, OCIParam*, ub4);
 static void ObjectType_Free(udt_ObjectType*);
 static PyObject *ObjectType_Repr(udt_ObjectType*);
-static PyObject *ObjectType_NewObject(udt_ObjectType*, PyObject*);
+static PyObject *ObjectType_NewObject(udt_ObjectType*, PyObject*, PyObject*);
 static udt_ObjectAttribute *ObjectAttribute_New(udt_Connection*, OCIParam*);
 static void ObjectAttribute_Free(udt_ObjectAttribute*);
 static PyObject *ObjectAttribute_Repr(udt_ObjectAttribute*);
@@ -45,7 +45,8 @@ static PyObject *ObjectAttribute_Repr(udt_ObjectAttribute*);
 // declaration of methods for Python type "ObjectType"
 //-----------------------------------------------------------------------------
 static PyMethodDef g_ObjectTypeMethods[] = {
-    { "newobject", (PyCFunction) ObjectType_NewObject, METH_NOARGS },
+    { "newobject", (PyCFunction) ObjectType_NewObject,
+            METH_VARARGS | METH_KEYWORDS },
     { NULL, NULL }
 };
 
@@ -92,7 +93,7 @@ static PyTypeObject g_ObjectTypeType = {
     0,                                  // tp_as_sequence
     0,                                  // tp_as_mapping
     0,                                  // tp_hash
-    0,                                  // tp_call
+    (ternaryfunc) ObjectType_NewObject, // tp_call
     0,                                  // tp_str
     0,                                  // tp_getattro
     0,                                  // tp_setattro
@@ -529,32 +530,36 @@ static PyObject *ObjectType_Repr(
 //-----------------------------------------------------------------------------
 static PyObject *ObjectType_NewObject(
     udt_ObjectType *self,               // object type to return the string for
-    PyObject *args)                     // arguments (none, ignored)
+    PyObject *args,                     // arguments
+    PyObject *keywordArgs)              // keyword arguments
 {
-    dvoid *instance, *indicator;
-    sword status;
+    static char *keywordList[] = { "value", NULL };
+    PyObject *initialValue;
+    udt_Object *obj;
 
-    // create the object instance
-    status = OCIObjectNew(self->connection->environment->handle,
-            self->connection->environment->errorHandle,
-            self->connection->handle, self->typeCode, self->tdo, NULL,
-            OCI_DURATION_SESSION, TRUE, &instance);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_NewObject(): create object instance") < 0)
+    // parse arguments
+    initialValue = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|O", keywordList,
+            &initialValue))
         return NULL;
 
-    // get the null indicator structure
-    status = OCIObjectGetInd(self->connection->environment->handle,
-            self->connection->environment->errorHandle, instance, &indicator);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_NewObject(): get indicator structure") < 0)
+    // create the object
+    obj = Object_Create(self);
+    if (!obj)
         return NULL;
 
-    return Object_New(self, instance, indicator, 1);
+    // populate collection, if applicable
+    if (initialValue) {
+        if (Object_InternalExtend(obj, initialValue) < 0) {
+            Py_DECREF(obj);
+            return NULL;
+        }
+    }
+
+    return (PyObject*) obj;
 }
 
 
-static PyObject *ObjectType_NewObject(udt_ObjectType*, PyObject*);
 //-----------------------------------------------------------------------------
 // ObjectAttribute_Initialize()
 //   Initialize the new object attribute.

@@ -75,6 +75,20 @@ class TestObjectVar(BaseTestCase):
                 "udt_Object(null, 'Test With Dates', null, null, null, " \
                 "udt_SubObject(15, 'Sub String'), null)")
 
+    def testCopyObject(self):
+        "test copying an object"
+        typeObj = self.connection.gettype("UDT_OBJECT")
+        obj = typeObj()
+        obj.NUMBERVALUE = 5124
+        obj.STRINGVALUE = "A test string"
+        obj.DATEVALUE = datetime.datetime(2016, 2, 24)
+        obj.TIMESTAMPVALUE = datetime.datetime(2016, 2, 24, 13, 39, 10)
+        copiedObj = obj.copy()
+        self.assertEqual(obj.NUMBERVALUE, copiedObj.NUMBERVALUE)
+        self.assertEqual(obj.STRINGVALUE, copiedObj.STRINGVALUE)
+        self.assertEqual(obj.DATEVALUE, copiedObj.DATEVALUE)
+        self.assertEqual(obj.TIMESTAMPVALUE, copiedObj.TIMESTAMPVALUE)
+
     def testFetchData(self):
         "test fetching objects"
         self.cursor.execute("""
