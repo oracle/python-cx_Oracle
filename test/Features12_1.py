@@ -65,8 +65,8 @@ class TestFeatures12_1(BaseTestCase):
         obj.setelement(1, datetime.datetime(2016, 2, 5))
         obj.append(datetime.datetime(2016, 2, 8, 12, 15, 30))
         obj.append(datetime.datetime(2016, 2, 12, 5, 44, 30))
-        result = self.cursor.callfunc("pkg_TestDateArrays.TestInArrays", int,
-                (2, datetime.datetime(2016, 2, 1), obj))
+        result = self.cursor.callfunc("pkg_TestDateArrays.TestInArrays",
+                cx_Oracle.NUMBER, (2, datetime.datetime(2016, 2, 1), obj))
         self.assertEqual(result, 24.75)
 
     def testBindPLSQLDateCollectionInOut(self):
