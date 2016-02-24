@@ -426,7 +426,6 @@ static PyObject *NativeIntVar_GetValue(
     udt_NativeIntVar *var,              // variable to determine value for
     unsigned pos)                       // array position
 {
-//printf("Getting native integer (value %ld)\n", var->data[pos]);
     return PyInt_FromLong(var->data[pos]);
 }
 
@@ -445,7 +444,6 @@ static int NativeIntVar_SetValue(
         return -1;
     }
     var->data[pos] = PyInt_AsLong(value);
-//printf("Setting native integer to value %ld:\n", var->data[pos]);
     if (PyErr_Occurred())
         return -1;
     return 0;
