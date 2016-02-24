@@ -111,6 +111,7 @@ static PyTypeObject g_ObjectType = {
 //-----------------------------------------------------------------------------
 typedef union {
     boolean booleanValue;
+    int integerValue;
     OCINumber numberValue;
     OCIDate dateValue;
     OCIDateTime *timestampValue;
@@ -225,6 +226,12 @@ static int Object_ConvertFromPython(
                     return -1;
                 *ociValue = oracleValue->stringValue;
                 break;
+            case OCI_TYPECODE_INTEGER:
+                oracleValue->integerValue = PyInt_AsLong(pythonValue);
+                if (PyErr_Occurred())
+                    return -1;
+                *ociValue = &oracleValue->integerValue;
+                break;
             case OCI_TYPECODE_NUMBER:
                 if (PythonNumberToOracleNumber(environment,
                         pythonValue, &oracleValue->numberValue) < 0)
@@ -318,6 +325,8 @@ static PyObject *Object_ConvertToPython(
                     * (OCIString**) value);
             return cxString_FromEncodedString( (char*) stringValue,
                     stringSize, environment->encoding);
+        case OCI_TYPECODE_INTEGER:
+            return PyInt_FromLong(* (int*) value);
         case OCI_TYPECODE_NUMBER:
             return OracleNumberToPythonFloat(environment, (OCINumber*) value);
         case OCI_TYPECODE_DATE:
@@ -336,8 +345,7 @@ static PyObject *Object_ConvertToPython(
     };
 
     return PyErr_Format(g_NotSupportedErrorException,
-            "Object_GetAttributeValue(): unhandled data type %d",
-            typeCode);
+            "Object_ConvertToPython(): unhandled data type %d", typeCode);
 }
 
 
