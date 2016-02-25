@@ -120,6 +120,27 @@ typedef union {
 
 
 //-----------------------------------------------------------------------------
+// AttributeData_Initialize()
+//   Initialize any memory required for the convert from Python calls. All
+// fields checked in the free routine should be initialized.
+//-----------------------------------------------------------------------------
+static void AttributeData_Initialize(
+    udt_AttributeData *data,            // data structure to initialize
+    OCITypeCode typeCode)               // type of Oracle data
+{
+    switch (typeCode) {
+        case OCI_TYPECODE_CHAR:
+        case OCI_TYPECODE_VARCHAR:
+        case OCI_TYPECODE_VARCHAR2:
+            data->stringValue = NULL;
+            break;
+        case OCI_TYPECODE_TIMESTAMP:
+            data->timestampValue = NULL;
+    };
+}
+
+
+//-----------------------------------------------------------------------------
 // AttributeData_Free()
 //   Free any memory that was allocated by the convert from Python calls.
 //-----------------------------------------------------------------------------
@@ -256,7 +277,6 @@ static int Object_ConvertFromPython(
             case OCI_TYPECODE_CHAR:
             case OCI_TYPECODE_VARCHAR:
             case OCI_TYPECODE_VARCHAR2:
-                oracleValue->stringValue = NULL;
                 if (cxBuffer_FromObject(&buffer, pythonValue,
                         environment->encoding) < 0)
                     return -1;
@@ -288,7 +308,6 @@ static int Object_ConvertFromPython(
                 *ociValue = &oracleValue->dateValue;
                 break;
             case OCI_TYPECODE_TIMESTAMP:
-                oracleValue->timestampValue = NULL;
                 status = OCIDescriptorAlloc(environment->handle,
                         (dvoid**) &oracleValue->timestampValue,
                         OCI_DTYPE_TIMESTAMP, 0, 0);
@@ -450,6 +469,7 @@ static int Object_SetAttributeValue(
     // convert from Python
     ociValue = ociObjectIndicator = NULL;
     connection = self->objectType->connection;
+    AttributeData_Initialize(&attributeData, attribute->typeCode);
     if (Object_ConvertFromPython(connection->environment, value,
             attribute->typeCode, &attributeData, &ociValue, &ociValueIndicator,
             &ociObjectIndicator, attribute->subType) < 0) {
@@ -594,6 +614,8 @@ static int Object_InternalAppend(
     // convert Python value to OCI value
     elementValue = elementIndicator = NULL;
     environment = self->objectType->connection->environment;
+    AttributeData_Initialize(&attributeData,
+            self->objectType->elementTypeCode);
     if (Object_ConvertFromPython(environment, value,
             self->objectType->elementTypeCode, &attributeData, &elementValue,
             &tempIndicator, &elementIndicator,
@@ -1007,6 +1029,8 @@ static PyObject *Object_SetElement(
     // convert to OCI value
     elementValue = elementIndicator = NULL;
     environment = self->objectType->connection->environment;
+    AttributeData_Initialize(&attributeData,
+            self->objectType->elementTypeCode);
     if (Object_ConvertFromPython(environment, value,
             self->objectType->elementTypeCode, &attributeData, &elementValue,
             &tempIndicator, &elementIndicator,
