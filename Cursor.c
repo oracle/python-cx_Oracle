@@ -1351,6 +1351,7 @@ static int Cursor_CallCalculateSize(
     // assume up to 9 characters for each positional argument
     // this allows up to four digits for the placeholder if the bind variale
     // is a boolean value (prior to Oracle 12.1)
+    numPositionalArgs = 0;
     if (listOfArguments) {
         numPositionalArgs = PySequence_Size(listOfArguments);
         if (numPositionalArgs < 0)
@@ -1361,11 +1362,20 @@ static int Cursor_CallCalculateSize(
     // assume up to 15 characters for each keyword argument
     // this allows up to four digits for the placeholder if the bind variable
     // is a boolean value (prior to Oracle 12.1)
+    numKeywordArgs = 0;
     if (keywordArguments) {
         numKeywordArgs = PyDict_Size(keywordArguments);
         if (numKeywordArgs < 0)
             return -1;
         *size += numKeywordArgs * 15;
+    }
+
+    // the above assume a maximum of 10,000 arguments; check and raise an
+    // error if the number of arguments exceeds this value; more than this
+    // number would probably be unusable in any case!
+    if (numPositionalArgs + numKeywordArgs > 10000) {
+        PyErr_SetString(g_InterfaceErrorException, "too many arguments");
+        return -1;
     }
 
     return 0;
