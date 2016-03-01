@@ -249,6 +249,167 @@ Global
       This attribute is an extension to the DB API definition.
 
 
+Advanced Queuing: Common
+------------------------
+
+.. note::
+
+   These constants are extensions to the DB API definition.
+
+
+.. data:: MSG_BUFFERED
+
+   This constant is used to specify that enqueue/dequeue operations should
+   enqueue or dequeue buffered messages.
+
+
+.. data:: MSG_EXPIRED
+
+   This constant is used to specify that the message has been moved to the
+   exception queue.
+
+
+.. data:: MSG_NO_DELAY
+
+   This constant is used to specify that the message is available for
+   immediate dequeuing.
+
+
+.. data:: MSG_NO_EXPIRATION
+
+   This constant is used to specify that the message never expires.
+
+
+.. data:: MSG_PERSISTENT
+
+   This constant is used to specify that enqueue/dequeue operations should
+   enqueue or dequeue persistent messages (the default).
+
+
+.. data:: MSG_PROCESSED
+
+   This constant is used to specify that the message has been processed and
+   is retained.
+
+
+.. data:: MSG_READY
+
+   This constant is used to specify that the message is ready to be processed.
+
+
+.. data:: MSG_WAITING
+
+   This constant is used to specify that the message delay has not yet been
+   reached.
+
+
+Advanced Queuing: Dequeue
+-------------------------
+
+.. note::
+
+   These constants are extensions to the DB API definition.
+
+
+.. data:: DEQ_BROWSE
+
+   This constant is used to specify that dequeue should read the message
+   without acquiring any lock on the message (eqivalent to a select statement).
+
+
+.. data:: DEQ_FIRST_MSG
+
+   This constant is used to specify that dequeue should retrieve the first
+   available message that matches the search criteria. This resets the position
+   to the beginning of the queue.
+
+
+.. data:: DEQ_IMMEDIATE
+
+   This constant is used to specify that dequeue should perform its work as
+   part of an independent transaction.
+
+
+.. data:: DEQ_LOCKED
+
+   This constant is used to specify that dequeue should read and obtain a
+   write lock on the message for the duration of the transaction (equivalent to
+   a select for update statement).
+
+
+.. data:: DEQ_NEXT_MSG
+
+   This constant is used to specify that dequeue should retrieve the next
+   available message that matches the search criteria. If the previous message
+   belongs to a message group, AQ retrieves the next available message that
+   matches the search criteria and belongs to the message group. This is the
+   default.
+
+
+.. data:: DEQ_NEXT_TRANSACTION
+
+   This constant is used to specify that dequeue should skip the remainder of
+   the transaction group and retrieve the first message of the next transaction
+   group. This option can only be used if message grouping is enabled for the
+   current queue.
+
+
+.. data:: DEQ_NO_WAIT
+
+   This constant is used to specify that dequeue not wait for messages to be
+   available for dequeuing.
+
+
+.. data:: DEQ_ON_COMMIT
+
+   This constant is used to specify that dequeue should be part of the current
+   transaction (the default).
+
+
+.. data:: DEQ_REMOVE
+
+   This constant is used to specify that dequeue should read the message and
+   update or delete it (the default mode).
+
+
+.. data:: DEQ_REMOVE_NODATA
+
+   This constant is used to specify that dequeue should confirm receipt of the
+   message but not deliver the actual message content.
+
+
+.. data:: DEQ_WAIT_FOREVER
+
+   This constant is used to specify that dequeue should wait forever for
+   messages to be available for dequeuing (the default wait mode).
+
+
+.. data:: MSG_PERSISTENT_OR_BUFFERED
+
+   This constant is used to specify that dequeue should dequeue either
+   persistent or buffered messages.
+
+
+Advanced Queuing: Enqueue
+-------------------------
+
+.. note::
+
+   These constants are extensions to the DB API definition.
+
+
+.. data:: ENQ_IMMEDIATE
+
+   This constant is used to specify that enqueue should perform its work as
+   part of an independent transaction.
+
+
+.. data:: ENQ_ON_COMMIT
+
+   This constant is used to specify that enqueue should be part of the current
+   transaction (the default).
+
+
 Database Callbacks
 ------------------
 

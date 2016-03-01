@@ -22,6 +22,7 @@ Contents:
     subscription.rst
     lob.rst
     objecttype.rst
+    aq.rst
     releasenotes.rst
     license.rst
 

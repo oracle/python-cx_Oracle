@@ -64,54 +64,17 @@ book2 = booksType.newobject()
 book2.TITLE = "Harry Potter and the Philosopher's Stone"
 book2.AUTHORS = "Rowling, J.K."
 book2.PRICE = decimal.Decimal("7.99")
+options = connection.enqoptions()
+messageProperties = connection.msgproperties()
 for book in (book1, book2):
     print("Enqueuing book", book.TITLE)
-    cursor.execute("""
-            declare
-                t_MessageId             raw(16);
-                t_Options               dbms_aq.enqueue_options_t;
-                t_MessageProperties     dbms_aq.message_properties_t;
-            begin
-                dbms_aq.enqueue(
-                        queue_name => :queueName,
-                        enqueue_options => t_Options,
-                        message_properties => t_MessageProperties,
-                        payload => :book,
-                        msgid => t_MessageId);
-            end;""",
-            queueName = QUEUE_NAME,
-            book = book)
+    connection.enq(QUEUE_NAME, options, messageProperties, book)
 connection.commit()
 
 # dequeue the messages
-var = cursor.var(cx_Oracle.OBJECT, typename = BOOK_TYPE_NAME)
-while True:
-    cursor.execute("""
-            declare
-                t_MessageId             raw(16);
-                t_Options               dbms_aq.dequeue_options_t;
-                t_MessageProperties     dbms_aq.message_properties_t;
-                no_messages             exception;
-                pragma exception_init(no_messages, -25228);
-            begin
-                t_Options.navigation := dbms_aq.FIRST_MESSAGE;
-                t_Options.wait := dbms_aq.NO_WAIT;
-                begin
-                    dbms_aq.dequeue(
-                            queue_name => :queueName,
-                            dequeue_options => t_Options,
-                            message_properties => t_MessageProperties,
-                            payload => :book,
-                            msgid => t_MessageId);
-                exception
-                when no_messages then
-                    :book := null;
-                end;
-            end;""",
-            queueName = QUEUE_NAME,
-            book = var)
-    book = var.getvalue()
-    if book is None:
-        break
+options = connection.deqoptions()
+options.navigation = cx_Oracle.DEQ_FIRST_MSG
+options.wait = cx_Oracle.DEQ_NO_WAIT
+while connection.deq(QUEUE_NAME, options, messageProperties, book):
     print("Dequeued book", book.TITLE)
 

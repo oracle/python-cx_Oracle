@@ -358,6 +358,9 @@ static PyObject *Module_Initialize(void)
     MAKE_TYPE_READY(&g_ObjectAttributeType);
     MAKE_TYPE_READY(&g_ExternalLobVarType);
     MAKE_TYPE_READY(&g_ObjectType);
+    MAKE_TYPE_READY(&g_EnqOptionsType);
+    MAKE_TYPE_READY(&g_DeqOptionsType);
+    MAKE_TYPE_READY(&g_MessagePropertiesType);
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
     MAKE_TYPE_READY(&g_SubscriptionType);
     MAKE_TYPE_READY(&g_MessageType);
@@ -442,6 +445,10 @@ static PyObject *Module_Initialize(void)
     ADD_TYPE_OBJECT("SessionPool", &g_SessionPoolType)
     ADD_TYPE_OBJECT("_Error", &g_ErrorType)
     ADD_TYPE_OBJECT("Object", &g_ObjectType)
+    ADD_TYPE_OBJECT("ObjectType", &g_ObjectTypeType)
+    ADD_TYPE_OBJECT("EnqOptions", &g_EnqOptionsType)
+    ADD_TYPE_OBJECT("DeqOptions", &g_DeqOptionsType)
+    ADD_TYPE_OBJECT("MessageProperties", &g_MessagePropertiesType)
 
     // the name "connect" is required by the DB API
     ADD_TYPE_OBJECT("connect", &g_ConnectionType)
@@ -555,6 +562,30 @@ static PyObject *Module_Initialize(void)
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 2)
     ADD_OCI_CONSTANT(SUBSCR_QOS_HAREG)
 #endif
+
+    // add constants for advanced queueing
+    ADD_OCI_CONSTANT(DEQ_BROWSE)
+    ADD_OCI_CONSTANT(DEQ_FIRST_MSG)
+    ADD_OCI_CONSTANT(DEQ_IMMEDIATE)
+    ADD_OCI_CONSTANT(DEQ_LOCKED)
+    ADD_OCI_CONSTANT(DEQ_NEXT_MSG)
+    ADD_OCI_CONSTANT(DEQ_NEXT_TRANSACTION)
+    ADD_OCI_CONSTANT(DEQ_NO_WAIT)
+    ADD_OCI_CONSTANT(DEQ_ON_COMMIT)
+    ADD_OCI_CONSTANT(DEQ_REMOVE)
+    ADD_OCI_CONSTANT(DEQ_REMOVE_NODATA)
+    ADD_OCI_CONSTANT(DEQ_WAIT_FOREVER)
+    ADD_OCI_CONSTANT(ENQ_IMMEDIATE)
+    ADD_OCI_CONSTANT(ENQ_ON_COMMIT)
+    ADD_OCI_CONSTANT(MSG_NO_DELAY)
+    ADD_OCI_CONSTANT(MSG_NO_EXPIRATION)
+    ADD_OCI_CONSTANT(MSG_PERSISTENT)
+    ADD_OCI_CONSTANT(MSG_BUFFERED)
+    ADD_OCI_CONSTANT(MSG_EXPIRED)
+    ADD_OCI_CONSTANT(MSG_PERSISTENT_OR_BUFFERED)
+    ADD_OCI_CONSTANT(MSG_READY)
+    ADD_OCI_CONSTANT(MSG_PROCESSED)
+    ADD_OCI_CONSTANT(MSG_WAITING)
 
     return module;
 }

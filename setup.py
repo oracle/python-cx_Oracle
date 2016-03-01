@@ -362,7 +362,7 @@ extension = Extension(
         extra_compile_args = extraCompileArgs,
         extra_link_args = extraLinkArgs,
         sources = ["cx_Oracle.c"],
-        depends = ["Buffer.c", "Callback.c", "Connection.c", "Cursor.c",
+        depends = ["AQ.c", "Buffer.c", "Callback.c", "Connection.c", "Cursor.c",
                 "CursorVar.c", "DateTimeVar.c", "Environment.c", "Error.c",
                 "ExternalLobVar.c", "IntervalVar.c", "LobVar.c", "LongVar.c",
                 "NumberVar.c", "Object.c", "ObjectType.c", "ObjectVar.c",

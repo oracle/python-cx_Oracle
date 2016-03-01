@@ -135,6 +135,33 @@ Connection Object
    Return a new Cursor object (:ref:`cursorobj`) using the connection.
 
 
+.. method:: Connection.deq(name, options, msgproperties, payload)
+
+   Returns a message id after successfully dequeuing a message. The options
+   object can be created using :meth:`~Connection.deqoptions()` and the
+   msgproperties object can be created using
+   :meth:`~Connection.msgproperties()`. The payload must be an object created
+   using :meth:`~ObjectType.newobject()`.
+
+   .. versionadded:: development
+
+   .. note::
+
+         This method is an extension to the DB API definition.
+
+
+.. method:: Connection.deqoptions()
+
+   Returns an object specifying the options to use when dequeuing messages.
+   See :ref:`deqoptions` for more information.
+
+   .. versionadded:: development
+
+   .. note::
+
+         This method is an extension to the DB API definition.
+
+
 .. attribute:: Connection.dsn
 
    This read-only attribute returns the TNS entry of the database to which a
@@ -167,6 +194,33 @@ Connection Object
 
       This attribute is an extension to the DB API definition and is only
       available in Python 2.x when not built in unicode mode.
+
+
+.. method:: Connection.enq(name, options, msgproperties, payload)
+
+   Returns a message id after successfully enqueuing a message. The options
+   object can be created using :meth:`~Connection.enqoptions()` and the
+   msgproperties object can be created using
+   :meth:`~Connection.msgproperties()`. The payload must be an object created
+   using :meth:`~ObjectType.newobject()`.
+
+   .. versionadded:: development
+
+   .. note::
+
+         This method is an extension to the DB API definition.
+
+
+.. method:: Connection.enqoptions()
+
+   Returns an object specifying the options to use when enqueuing messages.
+   See :ref:`enqoptions` for more information.
+
+   .. versionadded:: development
+
+   .. note::
+
+         This method is an extension to the DB API definition.
 
 
 .. method:: Connection.gettype(name)
@@ -231,6 +285,18 @@ Connection Object
    .. note:
 
       This attribute is an extension to the DB API definition.
+
+
+.. method:: Connection.msgproperties()
+
+   Returns an object specifying the properties of messages used in advanced
+   queuing. See :ref:`msgproperties` for more information.
+
+   .. versionadded:: development
+
+   .. note::
+
+         This method is an extension to the DB API definition.
 
 
 .. attribute:: Connection.nencoding

@@ -66,6 +66,11 @@ static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
 static PyObject *Connection_ChangePasswordExternal(udt_Connection*, PyObject*);
 static PyObject *Connection_GetType(udt_Connection*, PyObject*);
 static PyObject *Connection_GetStmtCacheSize(udt_Connection*, void*);
+static PyObject *Connection_NewEnqueueOptions(udt_Connection*, PyObject*);
+static PyObject *Connection_NewDequeueOptions(udt_Connection*, PyObject*);
+static PyObject *Connection_NewMessageProperties(udt_Connection*, PyObject*);
+static PyObject *Connection_Dequeue(udt_Connection*, PyObject*, PyObject*);
+static PyObject *Connection_Enqueue(udt_Connection*, PyObject*, PyObject*);
 static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
 static PyObject *Connection_GetOCIAttr(udt_Connection*, ub4*);
@@ -114,6 +119,12 @@ static PyMethodDef g_ConnectionMethods[] = {
     { "changepassword", (PyCFunction) Connection_ChangePasswordExternal,
             METH_VARARGS },
     { "gettype", (PyCFunction) Connection_GetType, METH_VARARGS },
+    { "deqoptions", (PyCFunction) Connection_NewDequeueOptions, METH_NOARGS },
+    { "enqoptions", (PyCFunction) Connection_NewEnqueueOptions, METH_NOARGS },
+    { "msgproperties", (PyCFunction) Connection_NewMessageProperties,
+            METH_NOARGS },
+    { "deq", (PyCFunction) Connection_Dequeue, METH_VARARGS | METH_KEYWORDS },
+    { "enq", (PyCFunction) Connection_Enqueue, METH_VARARGS | METH_KEYWORDS },
     { NULL }
 };
 
@@ -798,6 +809,7 @@ static int Connection_Connect(
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
 #include "Subscription.c"
 #endif
+#include "AQ.c"
 
 
 //-----------------------------------------------------------------------------
@@ -1554,6 +1566,155 @@ static PyObject *Connection_Cancel(
 
     Py_INCREF(Py_None);
     return Py_None;
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_NewEnqueueOptions()
+//   Creates a new enqueue options object and returns it.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_NewEnqueueOptions(
+    udt_Connection *self,               // connection
+    PyObject *args)                     // none
+{
+    return (PyObject*) EnqOptions_New(self->environment);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_NewDequeueOptions()
+//   Creates a new dequeue options object and returns it.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_NewDequeueOptions(
+    udt_Connection *self,               // connection
+    PyObject *args)                     // none
+{
+    return (PyObject*) DeqOptions_New(self->environment);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_NewMessageProperties()
+//   Creates a new message properties object and returns it.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_NewMessageProperties(
+    udt_Connection *self,               // connection
+    PyObject *args)                     // none
+{
+    return (PyObject*) MessageProperties_New(self->environment);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_Dequeue()
+//   Dequeues a message using Advanced Queuing capabilities. The message ID is
+// returned if a message is available or None if no message is available.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_Dequeue(
+    udt_Connection *self,               // connection
+    PyObject* args,                     // arguments
+    PyObject* keywordArgs)              // keyword arguments
+{
+    static char *keywordList[] = { "name", "options", "msgproperties",
+            "payload", NULL };
+    PyObject *nameObj, *excType, *excValue, *traceback;
+    udt_MessageProperties *propertiesObj;
+    udt_DeqOptions *optionsObj;
+    udt_Object *payloadObj;
+    udt_Buffer nameBuffer;
+    char *messageIdValue;
+    OCIRaw *messageId;
+    ub4 messageIdSize;
+    udt_Error *error;
+    sword status;
+
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!O!O!", keywordList,
+            &nameObj, &g_DeqOptionsType, &optionsObj, &g_MessagePropertiesType,
+            &propertiesObj, &g_ObjectType, &payloadObj))
+        return NULL;
+    if (cxBuffer_FromObject(&nameBuffer, nameObj,
+            self->environment->encoding) < 0)
+        return NULL;
+
+    // enqueue payload
+    messageId = NULL;
+    status = OCIAQDeq(self->handle, self->environment->errorHandle,
+            (oratext*) nameBuffer.ptr, optionsObj->handle,
+            propertiesObj->handle, payloadObj->objectType->tdo,
+            &payloadObj->instance, &payloadObj->indicator, &messageId,
+            OCI_DEFAULT);
+    cxBuffer_Clear(&nameBuffer);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_Dequeue()") < 0) {
+        PyErr_Fetch(&excType, &excValue, &traceback);
+        if (excValue) {
+            error = (udt_Error*) excValue;
+            if (error->code == 25228) {
+                Py_XDECREF(excType);
+                Py_XDECREF(excValue);
+                Py_XDECREF(traceback);
+                Py_RETURN_NONE;
+            }
+        }
+        PyErr_Restore(excType, excValue, traceback);
+        return NULL;
+    }
+
+    // determine the message id
+    messageIdValue = (char*) OCIRawPtr(self->environment->handle, messageId);
+    messageIdSize = OCIRawSize(self->environment->handle, messageId);
+    return PyBytes_FromStringAndSize(messageIdValue, messageIdSize);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_Enqueue()
+//   Enqueues a message using Advanced Queuing capabilities. The message ID is
+// returned.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_Enqueue(
+    udt_Connection *self,               // connection
+    PyObject* args,                     // arguments
+    PyObject* keywordArgs)              // keyword arguments
+{
+    static char *keywordList[] = { "name", "options", "msgproperties",
+            "payload", NULL };
+    udt_MessageProperties *propertiesObj;
+    udt_EnqOptions *optionsObj;
+    udt_Object *payloadObj;
+    udt_Buffer nameBuffer;
+    char *messageIdValue;
+    PyObject *nameObj;
+    OCIRaw *messageId;
+    ub4 messageIdSize;
+    sword status;
+
+    // parse arguments
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!O!O!", keywordList,
+            &nameObj, &g_EnqOptionsType, &optionsObj, &g_MessagePropertiesType,
+            &propertiesObj, &g_ObjectType, &payloadObj))
+        return NULL;
+    if (cxBuffer_FromObject(&nameBuffer, nameObj,
+            self->environment->encoding) < 0)
+        return NULL;
+
+    // enqueue payload
+    messageId = NULL;
+    status = OCIAQEnq(self->handle, self->environment->errorHandle,
+            (oratext*) nameBuffer.ptr, optionsObj->handle,
+            propertiesObj->handle, payloadObj->objectType->tdo,
+            &payloadObj->instance, &payloadObj->indicator, &messageId,
+            OCI_DEFAULT);
+    cxBuffer_Clear(&nameBuffer);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_Enqueue()") < 0)
+        return NULL;
+
+    // determine the message id
+    messageIdValue = (char*) OCIRawPtr(self->environment->handle, messageId);
+    messageIdSize = OCIRawSize(self->environment->handle, messageId);
+    return PyBytes_FromStringAndSize(messageIdValue, messageIdSize);
 }
 
 
