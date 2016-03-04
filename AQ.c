@@ -559,7 +559,8 @@ static int DeqOptions_SetOCIAttr(
             if (Environment_CheckForError(self->environment, status,
                     "DeqOptions_SetOCIAttr(): assign raw value") < 0)
                 return -1;
-            ociValue = (dvoid*) rawValue;
+            ociValue = (dvoid*) &rawValue;
+            valueLength = OCIRawSize(self->environment->handle, rawValue);
             break;
     };
     status = OCIAttrSet(self->handle, OCI_DTYPE_AQDEQ_OPTIONS,
@@ -743,7 +744,8 @@ static int MessageProperties_SetOCIAttr(
             if (Environment_CheckForError(self->environment, status,
                     "MessageProperties_SetOCIAttr(): assign raw value") < 0)
                 return -1;
-            ociValue = (dvoid*) rawValue;
+            ociValue = (dvoid*) &rawValue;
+            valueLength = OCIRawSize(self->environment->handle, rawValue);
             break;
     };
     status = OCIAttrSet(self->handle, OCI_DTYPE_AQMSG_PROPERTIES,
