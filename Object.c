@@ -259,14 +259,14 @@ static PyObject *Object_Repr(
 
     if (GetModuleAndName(Py_TYPE(self), &module, &name) < 0)
         return NULL;
-    format = cxString_FromAscii("<%s.%s %s.%s>");
+    format = cxString_FromAscii("<%s.%s %s.%s at %#x>");
     if (!format) {
         Py_DECREF(module);
         Py_DECREF(name);
         return NULL;
     }
-    formatArgs = PyTuple_Pack(4, module, name, self->objectType->schema,
-            self->objectType->name);
+    formatArgs = Py_BuildValue("(OOOOl)", module, name,
+            self->objectType->schema, self->objectType->name, self);
     Py_DECREF(module);
     Py_DECREF(name);
     if (!formatArgs) {
