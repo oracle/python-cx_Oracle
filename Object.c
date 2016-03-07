@@ -290,11 +290,6 @@ static int Object_ConvertFromPython(
                 *ociValue = oracleValue->stringValue;
                 break;
             case OCI_TYPECODE_INTEGER:
-                oracleValue->integerValue = PyInt_AsLong(pythonValue);
-                if (PyErr_Occurred())
-                    return -1;
-                *ociValue = &oracleValue->integerValue;
-                break;
             case OCI_TYPECODE_NUMBER:
                 if (PythonNumberToOracleNumber(environment,
                         pythonValue, &oracleValue->numberValue) < 0)
@@ -388,7 +383,8 @@ static PyObject *Object_ConvertToPython(
             return cxString_FromEncodedString( (char*) stringValue,
                     stringSize, environment->encoding);
         case OCI_TYPECODE_INTEGER:
-            return PyInt_FromLong(* (int*) value);
+            return OracleNumberToPythonInteger(environment,
+                    (OCINumber*) value);
         case OCI_TYPECODE_NUMBER:
             return OracleNumberToPythonFloat(environment, (OCINumber*) value);
         case OCI_TYPECODE_DATE:

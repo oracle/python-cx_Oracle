@@ -96,7 +96,7 @@ static PyObject *OracleTimestampToPythonDate(
 
 //-----------------------------------------------------------------------------
 // OracleNumberToPythonFloat()
-//   Return a Python date object given an Oracle date.
+//   Return a Python float given an Oracle number.
 //-----------------------------------------------------------------------------
 static PyObject *OracleNumberToPythonFloat(
     udt_Environment *environment,       // environment
@@ -111,6 +111,26 @@ static PyObject *OracleNumberToPythonFloat(
             "OracleNumberToPythonFloat()") < 0)
         return NULL;
     return PyFloat_FromDouble(doubleValue);
+}
+
+
+//-----------------------------------------------------------------------------
+// OracleNumberToPythonInteger()
+//   Return a Python integer given an Oracle number.
+//-----------------------------------------------------------------------------
+static PyObject *OracleNumberToPythonInteger(
+    udt_Environment *environment,       // environment
+    OCINumber* value)                   // value to convert
+{
+    long integerValue;
+    sword status;
+
+    status = OCINumberToInt(environment->errorHandle, value,
+            sizeof(long), OCI_NUMBER_SIGNED, (dvoid*) &integerValue);
+    if (Environment_CheckForError(environment, status,
+            "OracleNumberToPythonInteger()") < 0)
+        return NULL;
+    return PyInt_FromLong(integerValue);
 }
 
 
