@@ -20,6 +20,7 @@ typedef struct {
 //-----------------------------------------------------------------------------
 static void Object_Free(udt_Object*);
 static PyObject *Object_GetAttr(udt_Object*, PyObject*);
+static PyObject *Object_Repr(udt_Object*);
 static int Object_SetAttr(udt_Object*, PyObject*, PyObject*);
 static PyObject *Object_ConvertToPython(udt_Environment*, OCITypeCode, dvoid*,
         dvoid*, udt_ObjectType*);
@@ -83,7 +84,7 @@ static PyTypeObject g_ObjectType = {
     0,                                  // tp_getattr
     0,                                  // tp_setattr
     0,                                  // tp_compare
-    0,                                  // tp_repr
+    (reprfunc) Object_Repr,             // tp_repr
     0,                                  // tp_as_number
     0,                                  // tp_as_sequence
     0,                                  // tp_as_mapping
@@ -244,6 +245,38 @@ static void Object_Free(
                 self->instance, OCI_DEFAULT);
     Py_CLEAR(self->objectType);
     Py_TYPE(self)->tp_free((PyObject*) self);
+}
+
+
+//-----------------------------------------------------------------------------
+// Object_Repr()
+//   Return a string representation of the object.
+//-----------------------------------------------------------------------------
+static PyObject *Object_Repr(
+    udt_Object *self)                   // object type to return the string for
+{
+    PyObject *module, *name, *result, *format, *formatArgs;
+
+    if (GetModuleAndName(Py_TYPE(self), &module, &name) < 0)
+        return NULL;
+    format = cxString_FromAscii("<%s.%s %s.%s>");
+    if (!format) {
+        Py_DECREF(module);
+        Py_DECREF(name);
+        return NULL;
+    }
+    formatArgs = PyTuple_Pack(4, module, name, self->objectType->schema,
+            self->objectType->name);
+    Py_DECREF(module);
+    Py_DECREF(name);
+    if (!formatArgs) {
+        Py_DECREF(format);
+        return NULL;
+    }
+    result = cxString_Format(format, formatArgs);
+    Py_DECREF(format);
+    Py_DECREF(formatArgs);
+    return result;
 }
 
 
