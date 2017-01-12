@@ -1596,8 +1596,10 @@ static PyObject *Cursor_CallFunc(
         return NULL;
 
     // call the function
-    if (Cursor_Call(self, var, name, listOfArguments, keywordArguments) < 0)
+    if (Cursor_Call(self, var, name, listOfArguments, keywordArguments) < 0) {
+        Py_DECREF(var);
         return NULL;
+    }
 
     // determine the results
     results = Variable_GetValue(var, 0);
