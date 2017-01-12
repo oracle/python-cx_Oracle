@@ -1,7 +1,8 @@
 /*-----------------------------------------------------------------------------
  * SetupTest.sql
  *   Creates a user named "cx_Oracle" and populates its schema with the tables
- * and packages necessary for performing the test suite.
+ * and packages necessary for performing the test suite. It also creates a user
+ * named "CX_ORACLE_PROXY" for testing proxying.
  *---------------------------------------------------------------------------*/
 
 whenever sqlerror exit failure
@@ -68,7 +69,7 @@ create table cx_Oracle.TestNumbers (
   FloatCol              float not null,
   UnconstrainedCol      number not null,
   NullableCol           number(38)
-) tablespace users;
+);
 
 create table cx_Oracle.TestStrings (
   IntCol                number(9) not null,
@@ -76,60 +77,58 @@ create table cx_Oracle.TestStrings (
   RawCol                raw(30) not null,
   FixedCharCol          char(40) not null,
   NullableCol           varchar2(50)
-) tablespace users;
+);
 
 create table cx_Oracle.TestUnicodes (
   IntCol                number(9) not null,
   UnicodeCol            nvarchar2(20) not null,
   FixedUnicodeCol       nchar(40) not null,
   NullableCol           nvarchar2(50)
-) tablespace users;
+);
 
 create table cx_Oracle.TestDates (
   IntCol                number(9) not null,
   DateCol               date not null,
   NullableCol           date
-) tablespace users;
+);
 
 create table cx_Oracle.TestCLOBs (
   IntCol                number(9) not null,
   CLOBCol               clob not null
-) tablespace users;
+);
 
 create table cx_Oracle.TestNCLOBs (
   IntCol                number(9) not null,
   NCLOBCol              nclob not null
-) tablespace users;
+);
 
 create table cx_Oracle.TestBLOBs (
   IntCol                number(9) not null,
   BLOBCol               blob not null
-) tablespace users;
+);
 
 create table cx_Oracle.TestLongs (
   IntCol                number(9) not null,
   LongCol               long not null
-) tablespace users;
+);
 
 create table cx_Oracle.TestLongRaws (
   IntCol                number(9) not null,
   LongRawCol            long raw not null
-) tablespace users;
+);
 
 create table cx_Oracle.TestTempTable (
   IntCol                number(9) not null,
   StringCol             varchar2(100),
   constraint TestTempTable_pk primary key (IntCol)
-      using index tablespace users
-) tablespace users;
+);
 
 create table cx_Oracle.TestArrayDML (
   IntCol                number(9) not null,
   StringCol             varchar2(100),
   IntCol2               number(3),
   constraint TestArrayDML_pk primary key (IntCol)
-      using index tablespace users
-) tablespace users;
+);
 
 create table cx_Oracle.TestObjects (
   IntCol                number(9) not null,
@@ -141,13 +140,13 @@ create table cx_Oracle.TestTimestamps (
   IntCol                number(9) not null,
   TimestampCol          timestamp not null,
   NullableCol           timestamp
-) tablespace users;
+);
 
 create table cx_Oracle.TestIntervals (
   IntCol                number(9) not null,
   IntervalCol           interval day to second not null,
   NullableCol           interval day to second
-) tablespace users;
+);
 
 -- populate tables
 begin
