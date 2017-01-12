@@ -76,13 +76,13 @@ class TestConnection(TestCase):
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
         cursor = connection.cursor()
-        cursor.execute(u"truncate table TestExecuteMany")
+        cursor.execute(u"truncate table TestTempTable")
         otherConnection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
         otherCursor = otherConnection.cursor()
-        otherCursor.execute(u"insert into TestExecuteMany (IntCol) values (1)")
+        otherCursor.execute(u"insert into TestTempTable (IntCol) values (1)")
         otherConnection.close()
-        cursor.execute(u"select count(*) from TestExecuteMany")
+        cursor.execute(u"select count(*) from TestTempTable")
         count, = cursor.fetchone()
         self.assertEqual(count, 0)
 
@@ -91,14 +91,14 @@ class TestConnection(TestCase):
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
         cursor = connection.cursor()
-        cursor.execute(u"truncate table TestExecuteMany")
+        cursor.execute(u"truncate table TestTempTable")
         otherConnection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
         otherCursor = otherConnection.cursor()
-        otherCursor.execute(u"insert into TestExecuteMany (IntCol) values (1)")
+        otherCursor.execute(u"insert into TestTempTable (IntCol) values (1)")
         del otherCursor
         del otherConnection
-        cursor.execute(u"select count(*) from TestExecuteMany")
+        cursor.execute(u"select count(*) from TestTempTable")
         count, = cursor.fetchone()
         self.assertEqual(count, 0)
 

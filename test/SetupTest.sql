@@ -116,10 +116,10 @@ create table cx_Oracle.TestLongRaws (
   LongRawCol            long raw not null
 ) tablespace users;
 
-create table cx_Oracle.TestExecuteMany (
+create table cx_Oracle.TestTempTable (
   IntCol                number(9) not null,
   StringCol             varchar2(100),
-  constraint TestExecuteMany_pk primary key (IntCol)
+  constraint TestTempTable_pk primary key (IntCol)
       using index tablespace users
 ) tablespace users;
 

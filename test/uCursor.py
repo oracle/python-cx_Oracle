@@ -76,59 +76,59 @@ class TestCursor(BaseTestCase):
 
     def testExecuteManyByName(self):
         """test executing a statement multiple times (named args)"""
-        self.cursor.execute(u"truncate table TestExecuteMany")
+        self.cursor.execute(u"truncate table TestTempTable")
         rows = [ { u"value" : n } for n in range(250) ]
         self.cursor.arraysize = 100
-        statement = u"insert into TestExecuteMany (IntCol) values (:value)"
+        statement = u"insert into TestTempTable (IntCol) values (:value)"
         self.cursor.executemany(statement, rows)
         self.connection.commit()
-        self.cursor.execute(u"select count(*) from TestExecuteMany")
+        self.cursor.execute(u"select count(*) from TestTempTable")
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
     def testExecuteManyByPosition(self):
         """test executing a statement multiple times (positional args)"""
-        self.cursor.execute(u"truncate table TestExecuteMany")
+        self.cursor.execute(u"truncate table TestTempTable")
         rows = [ [n] for n in range(230) ]
         self.cursor.arraysize = 100
-        statement = u"insert into TestExecuteMany (IntCol) values (:1)"
+        statement = u"insert into TestTempTable (IntCol) values (:1)"
         self.cursor.executemany(statement, rows)
         self.connection.commit()
-        self.cursor.execute(u"select count(*) from TestExecuteMany")
+        self.cursor.execute(u"select count(*) from TestTempTable")
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
     def testExecuteManyWithPrepare(self):
         """test executing a statement multiple times (with prepare)"""
-        self.cursor.execute(u"truncate table TestExecuteMany")
+        self.cursor.execute(u"truncate table TestTempTable")
         rows = [ [n] for n in range(225) ]
         self.cursor.arraysize = 100
-        statement = u"insert into TestExecuteMany (IntCol) values (:1)"
+        statement = u"insert into TestTempTable (IntCol) values (:1)"
         self.cursor.prepare(statement)
         self.cursor.executemany(None, rows)
         self.connection.commit()
-        self.cursor.execute(u"select count(*) from TestExecuteMany")
+        self.cursor.execute(u"select count(*) from TestTempTable")
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
     def testExecuteManyWithRebind(self):
         """test executing a statement multiple times (with rebind)"""
-        self.cursor.execute(u"truncate table TestExecuteMany")
+        self.cursor.execute(u"truncate table TestTempTable")
         rows = [ [n] for n in range(235) ]
         self.cursor.arraysize = 100
-        statement = u"insert into TestExecuteMany (IntCol) values (:1)"
+        statement = u"insert into TestTempTable (IntCol) values (:1)"
         self.cursor.executemany(statement, rows[:50])
         self.cursor.executemany(statement, rows[50:])
         self.connection.commit()
-        self.cursor.execute(u"select count(*) from TestExecuteMany")
+        self.cursor.execute(u"select count(*) from TestTempTable")
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
     def testExecuteManyWithExecption(self):
         """test executing a statement multiple times (with exception)"""
-        self.cursor.execute(u"truncate table TestExecuteMany")
+        self.cursor.execute(u"truncate table TestTempTable")
         rows = [ { u"value" : n } for n in (1, 2, 3, 2, 5) ]
-        statement = u"insert into TestExecuteMany (IntCol) values (:value)"
+        statement = u"insert into TestTempTable (IntCol) values (:value)"
         self.assertRaises(cx_Oracle.DatabaseError, self.cursor.executemany,
                 statement, rows)
         self.assertEqual(self.cursor.rowcount, 3)
@@ -168,7 +168,7 @@ class TestCursor(BaseTestCase):
 
     def testIteratorsInterrupted(self):
         """test iterators (with intermediate execute)"""
-        self.cursor.execute(u"truncate table TestExecuteMany")
+        self.cursor.execute(u"truncate table TestTempTable")
         self.cursor.execute(u"""
                 select IntCol
                 from TestNumbers
@@ -176,7 +176,7 @@ class TestCursor(BaseTestCase):
                 order by IntCol""")
         testIter = iter(self.cursor)
         value, = testIter.next()
-        self.cursor.execute(u"insert into TestExecuteMany (IntCol) values (1)")
+        self.cursor.execute(u"insert into TestTempTable (IntCol) values (1)")
         self.assertRaises(cx_Oracle.InterfaceError, testIter.next) 
 
     def testBindNames(self):
