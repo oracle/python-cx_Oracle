@@ -106,7 +106,7 @@ Cursor Object
    if any operation is attempted with the cursor.
 
 
-.. method:: Cursor.connection
+.. attribute:: Cursor.connection
 
    This read-only attribute returns a reference to the connection object on
    which the cursor was created.
