@@ -225,10 +225,13 @@ static int ObjectVar_PreFetch(
     ub4 i;
 
     for (i = 0; i < var->allocatedElements; i++) {
-        Py_CLEAR(var->objects[i]);
-        if (var->data[i])
+        if (var->objects[i])
+            Py_CLEAR(var->objects[i]);
+        else if (var->data[i])
             OCIObjectFree(var->environment->handle,
                     var->environment->errorHandle, var->data[i], OCI_DEFAULT);
+        var->data[i] = NULL;
+        var->objectIndicator[i] = NULL;
     }
 
     return 0;
