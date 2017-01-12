@@ -899,7 +899,7 @@ static int Connection_Init(
     // parse arguments
     pool = NULL;
     handle = NULL;
-    connectMode = OCI_DEFAULT;
+    connectMode = OCI_STMT_CACHE;
     threadedObj = twophaseObj = eventsObj = newPasswordObj = NULL;
     usernameObj = passwordObj = dsnObj = cclassObj = editionObj = NULL;
     moduleObj = actionObj = clientinfoObj = NULL;
