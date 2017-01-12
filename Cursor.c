@@ -1878,7 +1878,6 @@ static int Cursor_InternalFetch(
     udt_Cursor *self,                   // cursor to fetch from
     int numRows)                        // number of rows to fetch
 {
-    ub4 currentPosition;
     udt_Variable *var;
     sword status;
     int i;
@@ -1912,15 +1911,7 @@ static int Cursor_InternalFetch(
             "Cursor_InternalFetch(): get rows fetched") < 0)
         return -1;
 
-    // determine the current position in the cursor
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &currentPosition, 0,
-            OCI_ATTR_CURRENT_POSITION, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_InternalFetch(): get current position") < 0)
-        return -1;
-
-    // reset buffer row index and row count
-    self->rowCount = currentPosition - self->bufferRowCount;
+    // reset buffer row index
     self->bufferRowIndex = 0;
 
     return 0;
