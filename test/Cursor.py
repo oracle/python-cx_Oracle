@@ -381,6 +381,44 @@ class TestCursor(BaseTestCase):
         self.assertEqual(row[0], 3.75)
         self.assertEqual(cursor.rowcount, 3)
 
+    def testScrollNoRows(self):
+        """test scrolling when there are no rows"""
+        self.cursor.execute("truncate table TestTempTable")
+        cursor = self.connection.cursor(scrollable = True)
+        cursor.execute("select * from TestTempTable")
+        cursor.scroll(mode = "last")
+        self.assertEqual(cursor.fetchall(), [])
+        cursor.scroll(mode = "first")
+        self.assertEqual(cursor.fetchall(), [])
+        self.assertRaises(IndexError, cursor.scroll, 1, mode = "absolute")
+
+    def testScrollDifferingArrayAndFetchSizes(self):
+        """test scrolling with differing array sizes and fetch array sizes"""
+        self.cursor.execute("truncate table TestTempTable")
+        for i in range(30):
+            self.cursor.execute("insert into TestTempTable values (:1, null)",
+                    (i + 1,))
+        for arraySize in range(1, 6):
+            cursor = self.connection.cursor(scrollable = True)
+            cursor.arraysize = arraySize
+            cursor.execute("select IntCol from TestTempTable order by IntCol")
+            for numRows in range(1, arraySize + 1):
+                cursor.scroll(15, "absolute")
+                rows = cursor.fetchmany(numRows)
+                self.assertEqual(rows[0][0], 15)
+                self.assertEqual(cursor.rowcount, 15 + numRows - 1)
+                cursor.scroll(9)
+                rows = cursor.fetchmany(numRows)
+                numRowsFetched = len(rows)
+                self.assertEqual(rows[0][0], 15 + numRows + 8)
+                self.assertEqual(cursor.rowcount,
+                        15 + numRows + numRowsFetched + 7)
+                cursor.scroll(-12)
+                rows = cursor.fetchmany(numRows)
+                self.assertEqual(rows[0][0], 15 + numRows + numRowsFetched - 5)
+                self.assertEqual(cursor.rowcount,
+                        15 + numRows + numRowsFetched + numRows - 6)
+
     def testSetInputSizesMultipleMethod(self):
         """test setting input sizes with both positional and keyword args"""
         self.assertRaises(cx_Oracle.InterfaceError,
