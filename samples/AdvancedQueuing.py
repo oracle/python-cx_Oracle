@@ -6,7 +6,7 @@
 
 from __future__ import print_function
 
-CONNECT_STRING = "user/pw@tns"
+CONNECT_STRING = "cx_Oracle/dev@localhost/orcl"
 BOOK_TYPE_NAME = "UDT_BOOK"
 QUEUE_NAME = "BOOKS"
 QUEUE_TABLE_NAME = "BOOK_QUEUE"

@@ -6,6 +6,21 @@
 # feature is only available in Oracle Database 12.1. It follows loosely the
 # OCI sample provided by Oracle in its documentation about OCI and Transaction
 # Guard.
+#
+# Run the following as SYSDBA to set up Transaction Guard
+#
+#     grant execute on dbms_app_cont to cx_Oracle;
+#
+#     declare
+#         t_Params dbms_service.svc_parameter_array;
+#     begin
+#         t_Params('COMMIT_OUTCOME') := 'true';
+#         t_Params('RETENTION_TIMEOUT') := 604800;
+#         dbms_service.create_service('orcl-tg', 'orcl-tg', t_Params);
+#         dbms_service.start_service('orcl-tg');
+#     end;
+#     /
+#
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
@@ -19,7 +34,7 @@ SESSION_MAX = 9
 SESSION_INCR = 2
 USER_NAME = "cx_Oracle"
 PASSWORD = "dev"
-DATABASE = "t12-tg"
+DATABASE = "localhost/orcl-tg"
 
 # for Python 2.7 we need raw_input
 try:
@@ -33,12 +48,11 @@ pool = cx_Oracle.SessionPool(USER_NAME, PASSWORD, DATABASE, SESSION_MIN,
 connection = pool.acquire()
 cursor = connection.cursor()
 cursor.execute("""
-        delete from TestExecuteMany
+        delete from TestTempTable
         where IntCol = 1""")
 cursor.execute("""
-        insert into TestExecuteMany
+        insert into TestTempTable
         values (1, null)""")
-connection.commit()
 input("Please kill %s session now. Press ENTER when complete." % USER_NAME)
 try:
     connection.commit() # this should fail

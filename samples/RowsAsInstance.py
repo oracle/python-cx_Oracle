@@ -16,12 +16,19 @@ class Test(object):
         self.b = b
         self.c = c
 
-connection = cx_Oracle.Connection("user/pw@tns")
+connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
 cursor = connection.cursor()
 
-# change this to True if you want to create the table, or create it using
-# SQL*Plus instead; populate it with the data of your choice
-if False:
+# change this to False if you want to create the table yourself using SQL*Plus
+# and then populate it with the data of your choice
+if True:
+    cursor.execute("""
+            select count(*)
+            from user_tables
+            where table_name = 'TESTINSTANCES'""")
+    count, = cursor.fetchone()
+    if count:
+        cursor.execute("drop table TestInstances")
     cursor.execute("""
             create table TestInstances (
               a varchar2(60) not null,

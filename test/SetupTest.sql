@@ -1,6 +1,6 @@
 /*-----------------------------------------------------------------------------
  * SetupTest.sql
- *   Creates a user named "cx_Oracle" and populates its schema with the tables
+ *   Creates a user named "CX_ORACLE" and populates its schema with the tables
  * and packages necessary for performing the test suite. It also creates a user
  * named "CX_ORACLE_PROXY" for testing proxying.
  *---------------------------------------------------------------------------*/
@@ -35,8 +35,12 @@ grant
   create session,
   create table,
   create procedure,
-  create type
+  create type,
+  select any dictionary,
+  change notification
 to cx_Oracle;
+
+grant execute on dbms_aqadm to cx_Oracle;
 
 -- create types
 create type cx_Oracle.udt_SubObject as object (
@@ -60,6 +64,14 @@ create type cx_Oracle.udt_Object as object (
 /
 
 create type cx_Oracle.udt_Array as varray(10) of number;
+/
+
+create or replace type cx_Oracle.udt_Building as object (
+    BuildingId number(9),
+    NumFloors number(3),
+    Description varchar2(60),
+    DateBuilt date
+);
 /
 
 -- create tables
@@ -107,6 +119,11 @@ create table cx_Oracle.TestBLOBs (
   BLOBCol               blob not null
 );
 
+create table cx_Oracle.TestXML (
+  IntCol                number(9) not null,
+  XMLCol                xmltype not null
+);
+
 create table cx_Oracle.TestLongs (
   IntCol                number(9) not null,
   LongCol               long not null
@@ -119,7 +136,7 @@ create table cx_Oracle.TestLongRaws (
 
 create table cx_Oracle.TestTempTable (
   IntCol                number(9) not null,
-  StringCol             varchar2(100),
+  StringCol             varchar2(400),
   constraint TestTempTable_pk primary key (IntCol)
 );
 
@@ -146,6 +163,11 @@ create table cx_Oracle.TestIntervals (
   IntCol                number(9) not null,
   IntervalCol           interval day to second not null,
   NullableCol           interval day to second
+);
+
+create table cx_Oracle.TestBuildings (
+    BuildingId number(9) not null,
+    BuildingObj cx_Oracle.udt_Building not null
 );
 
 -- populate tables
@@ -210,6 +232,15 @@ begin
     values (i, to_date(20021209, 'YYYYMMDD') + i + i * .1,
         decode(mod(i, 2), 0, null,
         to_date(20021209, 'YYYYMMDD') + i + i + i * .15));
+  end loop;
+end;
+/
+
+begin
+  for i in 1..100 loop
+    insert into cx_Oracle.TestXML
+    values (i, '<?xml version="1.0"?><records>' ||
+        dbms_random.string('x', 1024) || '</records>');
   end loop;
 end;
 /
@@ -746,6 +777,8 @@ create or replace package cx_Oracle.pkg_TestRecords as
         BooleanValue        boolean
     );
 
+    type udt_RecordArray is table of udt_Record index by binary_integer;
+
     function GetStringRep (
         a_Value             udt_Record
     ) return varchar2;
@@ -753,6 +786,10 @@ create or replace package cx_Oracle.pkg_TestRecords as
     procedure TestOut (
         a_Value             out nocopy udt_Record
     );
+
+    function TestInArrays (
+        a_Value             udt_RecordArray
+    ) return varchar2;
 
 end;
 /
@@ -790,6 +827,20 @@ create or replace package body cx_Oracle.pkg_TestRecords as
         a_Value.TimestampValue := to_timestamp('20160216 18:23:55',
                 'YYYYMMDD HH24:MI:SS');
         a_Value.BooleanValue := true;
+    end;
+
+    function TestInArrays (
+        a_Value             udt_RecordArray
+    ) return varchar2 is
+        t_Result            varchar2(4000);
+    begin
+        for i in 0..a_Value.count - 1 loop
+            if t_Result is not null then
+                t_Result := t_Result || '; ';
+            end if;
+            t_Result := t_Result || GetStringRep(a_Value(i));
+        end loop;
+        return t_Result;
     end;
 
 end;

@@ -16,7 +16,7 @@ def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
     if defaultType == cx_Oracle.BLOB:
         return cursor.var(cx_Oracle.LONG_BINARY, 100004, cursor.arraysize)
 
-connection = cx_Oracle.Connection("user/pw@tns")
+connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
 connection.outputtypehandler = OutputTypeHandler
 cursor = connection.cursor()
 print("CLOBS returned as longs")

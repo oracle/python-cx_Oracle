@@ -3,12 +3,13 @@
 #   This script demonstrates using database change notification in Python, a
 # feature that is available in Oracle 10g Release 2. Once this script is
 # running, use another session to insert, update or delete rows from the table
-# cx_Oracle.TestExecuteMany and you will see the notification of that change.
+# cx_Oracle.TestTempTable and you will see the notification of that change.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
 
 import cx_Oracle
+import threading
 import time
 
 def callback(message):
@@ -26,7 +27,8 @@ def callback(message):
                 print("-" * 60)
         print("=" * 60)
 
-connection = cx_Oracle.Connection("user/pw@tns", events = True)
+connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl",
+        events = True)
 sub = connection.subscribe(callback = callback, timeout = 1800, rowids = True)
 print("Subscription:", sub)
 print("--> Connection:", sub.connection)
@@ -36,7 +38,7 @@ print("--> Protocol:", sub.protocol)
 print("--> Timeout:", sub.timeout)
 print("--> Operations:", sub.operations)
 print("--> Rowids?:", sub.rowids)
-sub.registerquery("select * from TestExecuteMany")
+sub.registerquery("select * from TestTempTable")
 
 while True:
     print("Waiting for notifications....")
