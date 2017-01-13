@@ -177,6 +177,59 @@ static int Environment_SetBuffer(
 
 
 //-----------------------------------------------------------------------------
+// Environment_LookupCharSet()
+//   Look up an Oracle character set given the name. This can be either the
+// Oracle character set name or the IANA encoding name. A pointer to an
+// environment handle is passed and an environment created if needed in
+// order to perform the lookup.
+//-----------------------------------------------------------------------------
+static int Environment_LookupCharSet(
+    const char *name,                   // IANA or Oracle character set name
+    OCIEnv **envHandle,                 // environment handle (IN/OUT)
+    ub2 *charsetId)                     // Oracle character set id (OUT)
+{
+    char oraCharsetName[OCI_NLS_MAXBUFSZ];
+    sword status;
+
+    // if IANA name is null, use the charset 0 which tells Oracle to make use
+    // of the NLS_LANG and NLS_NCHAR environment variables
+    if (!name) {
+        *charsetId = 0;
+        return 0;
+    }
+
+    // create environment, if needed
+    if (!*envHandle) {
+        status = OCIEnvCreate(envHandle, OCI_DEFAULT, NULL, NULL, NULL, NULL,
+                0, NULL);
+        if (status != OCI_SUCCESS) {
+            PyErr_SetString(g_InterfaceErrorException,
+                    "Unable to acquire Oracle environment handle");
+            return -1;
+        }
+    }
+
+    // check for the Oracle character set name first
+    // if that fails, lookup using the IANA character set name
+    *charsetId = OCINlsCharSetNameToId(*envHandle, (oratext*) name);
+    if (!*charsetId) {
+        status = OCINlsNameMap(*envHandle, (oratext*) oraCharsetName,
+                sizeof(oraCharsetName), (oratext*) name,
+                OCI_NLS_CS_IANA_TO_ORA);
+        if (status == OCI_ERROR) {
+            PyErr_SetString(g_InterfaceErrorException,
+                    "Invalid character set name");
+            return -1;
+        }
+        *charsetId = OCINlsCharSetNameToId(*envHandle,
+                (oratext*) oraCharsetName);
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // Environment_NewFromScratch()
 //   Create a new environment object from scratch.
 //-----------------------------------------------------------------------------
@@ -186,6 +239,7 @@ static udt_Environment *Environment_NewFromScratch(
     char *encoding,                     // override value for encoding
     char *nencoding)                    // override value for nencoding
 {
+    ub2 charsetId, ncharsetId;
     udt_Environment *env;
     OCIEnv *handle;
     sword status;
@@ -198,9 +252,23 @@ static udt_Environment *Environment_NewFromScratch(
     if (events)
         mode |= OCI_EVENTS;
 
+    // perform lookup of character sets to use
+    // keep track of any environment that needs to be created in order to
+    // perform this lookup
+    handle = NULL;
+    status = Environment_LookupCharSet(encoding, &handle, &charsetId);
+    if (status == 0)
+        status = Environment_LookupCharSet(nencoding, &handle, &ncharsetId);
+    if (handle) {
+        OCIHandleFree(handle, OCI_HTYPE_ENV);
+        handle = NULL;
+    }
+    if (status < 0)
+        return NULL;
+
     // create the new environment handle
-    status = OCIEnvNlsCreate(&handle, mode, NULL, NULL, NULL, NULL, 0, NULL, 0,
-            0);
+    status = OCIEnvNlsCreate(&handle, mode, NULL, NULL, NULL, NULL, 0, NULL,
+            charsetId, ncharsetId);
     if (!handle ||
             (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO)) {
         PyErr_SetString(g_InterfaceErrorException,
