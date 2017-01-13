@@ -196,12 +196,12 @@ static PyObject* MakeDSN(
         return NULL;
     if (sidObj) {
         connectDataObj = sidObj;
-        format = cxString_FromAscii("(DESCRIPTION=(ADDRESS_LIST=(ADDRESS="
-                "(PROTOCOL=TCP)(HOST=%s)(PORT=%s)))(CONNECT_DATA=(SID=%s)))");
+        format = cxString_FromAscii("(DESCRIPTION=(ADDRESS="
+                "(PROTOCOL=TCP)(HOST=%s)(PORT=%s))(CONNECT_DATA=(SID=%s)))");
     } else {
         connectDataObj = serviceNameObj;
-        format = cxString_FromAscii("(DESCRIPTION=(ADDRESS_LIST=(ADDRESS="
-                "(PROTOCOL=TCP)(HOST=%s)(PORT=%s)))(CONNECT_DATA="
+        format = cxString_FromAscii("(DESCRIPTION=(ADDRESS="
+                "(PROTOCOL=TCP)(HOST=%s)(PORT=%s))(CONNECT_DATA="
                 "(SERVICE_NAME=%s)))");
     }
     if (!format)
