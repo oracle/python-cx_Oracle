@@ -179,6 +179,7 @@ static int SessionPool_Init(
     int threaded, events, homogeneous, externalAuth;
     udt_Buffer username, password, dsn;
     PyTypeObject *connectionType;
+    char *encoding, *nencoding;
     PyObject *externalAuthObj;
     unsigned poolNameLength;
     const char *poolName;
@@ -189,21 +190,22 @@ static int SessionPool_Init(
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "min", "max",
             "increment", "connectiontype", "threaded", "getmode", "events",
-            "homogeneous", "externalauth", NULL };
+            "homogeneous", "externalauth", "encoding", "nencoding", NULL };
 
     // parse arguments and keywords
     homogeneous = 1;
     externalAuthObj = NULL;
+    encoding = nencoding = NULL;
     threaded = events = externalAuth = 0;
     threadedObj = eventsObj = homogeneousObj = passwordObj = NULL;
     connectionType = &g_ConnectionType;
     getMode = OCI_SPOOL_ATTRVAL_NOWAIT;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O!O!iii|OObOOO",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O!O!iii|OObOOOss",
             keywordList, cxString_Type, &self->username,
             cxString_Type, &passwordObj, cxString_Type, &self->dsn,
             &minSessions, &maxSessions, &sessionIncrement, &connectionType,
             &threadedObj, &getMode, &eventsObj, &homogeneousObj,
-            &externalAuthObj))
+            &externalAuthObj, &encoding, &nencoding))
         return -1;
     if (!PyType_Check(connectionType)) {
         PyErr_SetString(g_ProgrammingErrorException,
@@ -249,8 +251,8 @@ static int SessionPool_Init(
     self->externalAuth = externalAuth;
 
     // set up the environment
-    self->environment = Environment_NewFromScratch(threaded, events, NULL,
-            NULL);
+    self->environment = Environment_NewFromScratch(threaded, events, encoding,
+            nencoding);
     if (!self->environment)
         return -1;
 

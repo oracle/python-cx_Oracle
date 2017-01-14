@@ -126,7 +126,7 @@ Module Interface
       This method is an extension to the DB API definition.
 
 
-.. function:: SessionPool(user, password, database, min, max, increment, [connectiontype, threaded, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True, externalauth=True])
+.. function:: SessionPool(user, password, database, min, max, increment, [connectiontype, threaded, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True, externalauth=True, encoding=None, nencoding=None])
 
    Create a session pool (see Oracle documentation for more information) and
    return a session pool object (:ref:`sesspool`). This allows for very fast
@@ -139,6 +139,12 @@ Module Interface
    OCI_THREADED to wrap accesses to connections with a mutex. Doing so in
    single threaded applications imposes a performance penalty of about 10-15%
    which is why the default is False.
+
+   The encoding argument is expected to be a string if specified and sets the
+   encoding to use for regular database strings.
+
+   The nencoding argument is expected to be a string if specified and sets the
+   national encoding to use for national character set database strings.
 
    .. note::
 
