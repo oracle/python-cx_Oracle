@@ -21,7 +21,8 @@ class TestConnection(TestCase):
 
     def testPool(self):
         """test that the pool is created and has the right attributes"""
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3)
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING)
         self.assertEqual(pool.username, USERNAME, "user name differs")
         self.assertEqual(pool.tnsentry, TNSENTRY, "tnsentry differs")
         self.assertEqual(pool.max, 8, "max differs")
@@ -45,13 +46,15 @@ class TestConnection(TestCase):
 
     def testProxyAuth(self):
         """test that proxy authentication is possible"""
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3)
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING)
         self.assertEqual(pool.homogeneous, 1,
                 "homogeneous should be 1 by default")
         self.assertRaises(cx_Oracle.ProgrammingError, pool.acquire,
                 user = "proxyuser")
         pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
-                homogeneous = False)
+                homogeneous = False, encoding = ENCODING,
+                nencoding = NENCODING)
         self.assertEqual(pool.homogeneous, 0,
                 "homogeneous should be 0 after setting it in the constructor")
         user = "%s_proxy" % USERNAME
@@ -63,12 +66,14 @@ class TestConnection(TestCase):
 
     def testRollbackOnDel(self):
         "connection rolls back before being destroyed"
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3)
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING)
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
         cursor.execute("insert into TestTempTable (IntCol) values (1)")
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3)
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING)
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("select count(*) from TestTempTable")
@@ -77,13 +82,15 @@ class TestConnection(TestCase):
 
     def testRollbackOnRelease(self):
         "connection rolls back before released back to the pool"
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3)
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING)
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
         cursor.execute("insert into TestTempTable (IntCol) values (1)")
         pool.release(connection)
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3)
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING)
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("select count(*) from TestTempTable")
@@ -93,7 +100,7 @@ class TestConnection(TestCase):
     def testThreading(self):
         """test session pool to database with multiple threads"""
         self.pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 5, 20,
-                2, threaded = True)
+                2, threaded = True, encoding = ENCODING, nencoding = NENCODING)
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__ConnectAndDrop)
@@ -105,7 +112,7 @@ class TestConnection(TestCase):
     def testThreadingWithErrors(self):
         """test session pool to database with multiple threads (with errors)"""
         self.pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 5, 20,
-                2, threaded = True)
+                2, threaded = True, encoding = ENCODING, nencoding = NENCODING)
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__ConnectAndGenerateError)

@@ -214,14 +214,13 @@ class TestCursor(BaseTestCase):
             value, = testIter.next()
         self.cursor.execute("insert into TestTempTable (IntCol) values (1)")
         if sys.version_info[0] >= 3:
-            self.assertRaises(cx_Oracle.InterfaceError, next, testIter) 
+            self.assertRaises(cx_Oracle.InterfaceError, next, testIter)
         else:
-            self.assertRaises(cx_Oracle.InterfaceError, testIter.next) 
+            self.assertRaises(cx_Oracle.InterfaceError, testIter.next)
 
     def testBindNames(self):
         """test that bindnames() works correctly."""
-        self.assertRaises(cx_Oracle.ProgrammingError,
-                self.cursor.bindnames)
+        self.assertRaises(cx_Oracle.ProgrammingError, self.cursor.bindnames)
         self.cursor.prepare("begin null; end;")
         self.assertEqual(self.cursor.bindnames(), [])
         self.cursor.prepare("begin :retval := :inval + 5; end;")

@@ -53,8 +53,8 @@ class TestConnection(TestCase):
 
     def testMakeDSN(self):
         "test making a data source name from host, port and sid"
-        formatString = u"(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=" \
-                u"(PROTOCOL=TCP)(HOST=%s)(PORT=%d)))(CONNECT_DATA=(SID=%s)))"
+        formatString = u"(DESCRIPTION=(ADDRESS=" \
+                u"(PROTOCOL=TCP)(HOST=%s)(PORT=%d))(CONNECT_DATA=(SID=%s)))"
         args = (u"hostname", 1521, u"TEST")
         result = cx_Oracle.makedsn(*args)
         self.assertEqual(result, formatString % args)

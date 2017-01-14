@@ -62,7 +62,8 @@ class BaseTestCase(unittest.TestCase):
         import cx_Oracle
         import TestEnv
         self.connection = cx_Oracle.connect(TestEnv.USERNAME,
-                TestEnv.PASSWORD, TestEnv.TNSENTRY)
+                TestEnv.PASSWORD, TestEnv.TNSENTRY,
+                encoding = TestEnv.ENCODING, nencoding = TestEnv.NENCODING)
         self.cursor = self.connection.cursor()
         self.cursor.arraysize = TestEnv.ARRAY_SIZE
 
@@ -84,6 +85,8 @@ for name in moduleNames:
     setattr(module, "USERNAME", TestEnv.USERNAME)
     setattr(module, "PASSWORD", TestEnv.PASSWORD)
     setattr(module, "TNSENTRY", TestEnv.TNSENTRY)
+    setattr(module, "ENCODING", TestEnv.ENCODING)
+    setattr(module, "NENCODING", TestEnv.NENCODING)
     setattr(module, "ARRAY_SIZE", TestEnv.ARRAY_SIZE)
     setattr(module, "TestCase", unittest.TestCase)
     setattr(module, "BaseTestCase", BaseTestCase)
