@@ -21,7 +21,7 @@ static int LobVar_PreFetch(udt_LobVar*);
 static void LobVar_Finalize(udt_LobVar*);
 static PyObject *LobVar_GetValue(udt_LobVar*, unsigned);
 static int LobVar_SetValue(udt_LobVar*, unsigned, PyObject*);
-static int LobVar_Write(udt_LobVar*, unsigned, PyObject*, oraub8, oraub8*);
+static int LobVar_Write(udt_LobVar*, unsigned, PyObject*, oraub8);
 
 //-----------------------------------------------------------------------------
 // Python type declarations
@@ -318,49 +318,44 @@ static int LobVar_Write(
     udt_LobVar *var,                    // variable to perform write against
     unsigned position,                  // position to perform write against
     PyObject *dataObj,                  // data object to write into LOB
-    oraub8 offset,                      // offset into variable
-    oraub8 *amount)                     // amount to write
+    oraub8 offset)                      // offset into variable
 {
+    oraub8 lengthInBytes, lengthInChars = 0;
+    const char *encoding;
     udt_Buffer buffer;
+    ub2 charsetId;
     sword status;
 
     // verify the data type
     if (var->type == &vt_BFILE) {
         PyErr_SetString(PyExc_TypeError, "BFILEs are read only");
         return -1;
-    } else if (var->type == &vt_BLOB) {
-        if (cxBuffer_FromObject(&buffer, dataObj,
-                var->environment->encoding) < 0)
-            return -1;
-        *amount = buffer.size;
-#if PY_MAJOR_VERSION < 3
-    } else if (var->type == &vt_NCLOB) {
-        if (cxBuffer_FromObject(&buffer, dataObj,
-                var->environment->nencoding) < 0)
-            return -1;
-        *amount = buffer.size;
-#endif
-    } else {
-        if (cxBuffer_FromObject(&buffer, dataObj,
-                var->environment->encoding) < 0)
-            return -1;
-        if (var->environment->fixedWidth
-                && var->environment->maxBytesPerCharacter > 1)
-            *amount = buffer.size / var->environment->maxBytesPerCharacter;
-        else *amount = buffer.size;
     }
 
+    // determine the buffer to write
+    if (var->type->charsetForm == SQLCS_NCHAR) {
+        charsetId = var->environment->ncharsetId;
+        encoding = var->environment->nencoding;
+    } else {
+        charsetId = var->environment->charsetId;
+        encoding = var->environment->encoding;
+    }
+    if (cxBuffer_FromObject(&buffer, dataObj, encoding) < 0)
+        return -1;
+    lengthInBytes = buffer.size;
+
     // nothing to do if no data to write
-    if (*amount == 0) {
+    if (lengthInBytes == 0) {
         cxBuffer_Clear(&buffer);
         return 0;
     }
 
+    // write the data with the correct character set
     Py_BEGIN_ALLOW_THREADS
     status = OCILobWrite2(var->connection->handle,
-            var->environment->errorHandle, var->data[position], amount, 0,
-            offset, (void*) buffer.ptr, buffer.size, OCI_ONE_PIECE, NULL, NULL,
-            0, var->type->charsetForm);
+            var->environment->errorHandle, var->data[position], &lengthInBytes,
+            &lengthInChars, offset, (void*) buffer.ptr, buffer.size,
+            OCI_ONE_PIECE, NULL, NULL, charsetId, var->type->charsetForm);
     Py_END_ALLOW_THREADS
     cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(var->environment, status,
@@ -393,7 +388,6 @@ static int LobVar_SetValue(
     PyObject *value)                    // value to set
 {
     boolean isTemporary;
-    oraub8 amount;
     sword status;
     ub1 lobType;
 
@@ -428,6 +422,6 @@ static int LobVar_SetValue(
         return -1;
 
     // set the current value
-    return LobVar_Write(var, position, value, 1, &amount);
+    return LobVar_Write(var, position, value, 1);
 }
 

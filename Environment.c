@@ -11,9 +11,11 @@ typedef struct {
     OCIEnv *handle;
     OCIError *errorHandle;
     int maxBytesPerCharacter;
-    int fixedWidth;
+    int nmaxBytesPerCharacter;
     char *encoding;
     char *nencoding;
+    ub2 charsetId;
+    ub2 ncharsetId;
     PyObject *cloneEnv;
     udt_Buffer numberToStringFormatBuffer;
     udt_Buffer numberFromStringFormatBuffer;
@@ -73,8 +75,8 @@ static udt_Environment *Environment_New(
     if (!env)
         return NULL;
     env->handle = handle;
-    env->fixedWidth = 1;
     env->maxBytesPerCharacter = 1;
+    env->nmaxBytesPerCharacter = 4;
     cxBuffer_Init(&env->numberToStringFormatBuffer);
     cxBuffer_Init(&env->numberFromStringFormatBuffer);
     cxBuffer_Init(&env->nlsNumericCharactersBuffer);
@@ -107,11 +109,18 @@ static int Environment_GetCharacterSetName(
     udt_Environment *self,              // environment object
     ub2 attribute,                      // attribute to fetch
     const char *overrideValue,          // override value, if specified
-    char **result)                      // place to store result
+    char **result,                      // place to store result
+    ub2 *charsetId)                     // character set ID (OUT)
 {
     char charsetName[OCI_NLS_MAXBUFSZ], ianaCharsetName[OCI_NLS_MAXBUFSZ];
-    ub2 charsetId;
     sword status;
+
+    // get character set id
+    status = OCIAttrGet(self->handle, OCI_HTYPE_ENV, charsetId, NULL,
+            attribute, self->errorHandle);
+    if (Environment_CheckForError(self, status,
+            "Environment_GetCharacterSetName(): get charset id") < 0)
+        return -1;
 
     // if override value specified, use it
     if (overrideValue) {
@@ -122,16 +131,9 @@ static int Environment_GetCharacterSetName(
         return 0;
     }
 
-    // get character set id
-    status = OCIAttrGet(self->handle, OCI_HTYPE_ENV, &charsetId, NULL,
-            attribute, self->errorHandle);
-    if (Environment_CheckForError(self, status,
-            "Environment_GetCharacterSetName(): get charset id") < 0)
-        return -1;
-
     // get character set name
     status = OCINlsCharSetIdToName(self->handle, (text*) charsetName,
-            OCI_NLS_MAXBUFSZ, charsetId);
+            OCI_NLS_MAXBUFSZ, *charsetId);
     if (Environment_CheckForError(self, status,
             "Environment_GetCharacterSetName(): get Oracle charset name") < 0)
         return -1;
@@ -292,22 +294,19 @@ static udt_Environment *Environment_NewFromScratch(
         return NULL;
     }
 
-    // acquire whether character set is fixed width
-    status = OCINlsNumericInfoGet(env->handle, env->errorHandle,
-            &env->fixedWidth, OCI_NLS_CHARSET_FIXEDWIDTH);
-    if (Environment_CheckForError(env, status,
-            "Environment_New(): determine if charset fixed width") < 0) {
-        Py_DECREF(env);
-        return NULL;
-    }
-
     // determine encodings to use for Unicode values
     if (Environment_GetCharacterSetName(env, OCI_ATTR_ENV_CHARSET_ID,
-            encoding, &env->encoding) < 0)
+            encoding, &env->encoding, &env->charsetId) < 0)
         return NULL;
     if (Environment_GetCharacterSetName(env, OCI_ATTR_ENV_NCHARSET_ID,
-            nencoding, &env->nencoding) < 0)
+            nencoding, &env->nencoding, &env->ncharsetId) < 0)
         return NULL;
+
+    // max bytes per character for NCHAR can be assigned only if it matches the
+    // character set used for CHAR data; OCI does not provide a way of
+    // determining it otherwise
+    if (env->ncharsetId == env->charsetId)
+        env->nmaxBytesPerCharacter = env->maxBytesPerCharacter;
 
     // fill buffers for number formats
     if (Environment_SetBuffer(&env->numberToStringFormatBuffer, "TM9",
@@ -339,11 +338,12 @@ static udt_Environment *Environment_Clone(
     if (!env)
         return NULL;
     env->maxBytesPerCharacter = cloneEnv->maxBytesPerCharacter;
-    env->fixedWidth = cloneEnv->fixedWidth;
     Py_INCREF(cloneEnv);
     env->cloneEnv = (PyObject*) cloneEnv;
     env->encoding = cloneEnv->encoding;
     env->nencoding = cloneEnv->nencoding;
+    env->charsetId = cloneEnv->charsetId;
+    env->ncharsetId = cloneEnv->ncharsetId;
     cxBuffer_Copy(&env->numberToStringFormatBuffer,
             &cloneEnv->numberToStringFormatBuffer);
     cxBuffer_Copy(&env->numberFromStringFormatBuffer,

@@ -169,17 +169,13 @@ static int ExternalLobVar_InternalRead(
     oraub8 *length,                     // length of data (IN/OUT)
     oraub8 offset)                      // offset
 {
-    oraub8 lengthInBytes, lengthInChars;
+    oraub8 lengthInBytes = 0, lengthInChars = 0;
     ub2 charsetId;
     sword status;
 
-    if (var->lobVar->type == &vt_NCLOB || var->lobVar->type == &vt_CLOB) {
-        lengthInBytes = 0;
+    if (var->lobVar->type == &vt_NCLOB || var->lobVar->type == &vt_CLOB)
         lengthInChars = *length;
-    } else {
-        lengthInChars = 0;
-        lengthInBytes = *length;
-    }
+    else lengthInBytes = *length;
 
     if (var->lobVar->isFile) {
         Py_BEGIN_ALLOW_THREADS
@@ -193,9 +189,9 @@ static int ExternalLobVar_InternalRead(
     }
 
     Py_BEGIN_ALLOW_THREADS
-    if (var->lobVar->type == &vt_NCLOB)
-        charsetId = OCI_UTF16ID;
-    else charsetId = 0;
+    charsetId = (var->lobVar->type->charsetForm == SQLCS_NCHAR) ?
+            var->lobVar->environment->ncharsetId :
+            var->lobVar->environment->charsetId;
     status = OCILobRead2(var->lobVar->connection->handle,
             var->lobVar->environment->errorHandle, var->lobVar->data[var->pos],
             &lengthInBytes, &lengthInChars, offset, buffer, bufferSize,
@@ -275,10 +271,11 @@ static PyObject *ExternalLobVar_Value(
         else amount = 1;
     }
     length = amount;
+
     if (var->lobVar->type == &vt_CLOB)
         bufferSize = amount * var->lobVar->environment->maxBytesPerCharacter;
     else if (var->lobVar->type == &vt_NCLOB)
-        bufferSize = amount * 2;
+        bufferSize = amount * var->lobVar->environment->nmaxBytesPerCharacter;
     else bufferSize = amount;
 
     // create a string for retrieving the value
@@ -296,7 +293,8 @@ static PyObject *ExternalLobVar_Value(
         result = cxString_FromEncodedString(buffer, length,
                 var->lobVar->environment->encoding);
     } else if (var->lobVar->type == &vt_NCLOB) {
-        result = PyUnicode_DecodeUTF16(buffer, length, NULL, NULL);
+        result = PyUnicode_Decode(buffer, length,
+                var->lobVar->environment->encoding, NULL);
     } else {
         result = PyBytes_FromStringAndSize(buffer, length);
     }
@@ -413,7 +411,7 @@ static PyObject *ExternalLobVar_Str(
 
 //-----------------------------------------------------------------------------
 // ExternalLobVar_Write()
-//   Write a value to the LOB variable; return the number of bytes written.
+//   Write a value to the LOB at the specified offset.
 //-----------------------------------------------------------------------------
 static PyObject *ExternalLobVar_Write(
     udt_ExternalLobVar *var,            // variable to perform write against
@@ -421,8 +419,8 @@ static PyObject *ExternalLobVar_Write(
     PyObject *keywordArgs)              // keyword arguments
 {
     static char *keywordList[] = { "data", "offset", NULL };
-    oraub8 amount, offset;
     PyObject *dataObj;
+    oraub8 offset;
 
     // buffer is expected, offset is optional
     offset = 1;
@@ -433,11 +431,10 @@ static PyObject *ExternalLobVar_Write(
     // perform the write, if possible
     if (ExternalLobVar_Verify(var) < 0)
         return NULL;
-    if (LobVar_Write(var->lobVar, var->pos, dataObj, offset, &amount) < 0)
+    if (LobVar_Write(var->lobVar, var->pos, dataObj, offset) < 0)
         return NULL;
 
-    // return the result
-    return PyLong_FromUnsignedLong(amount);
+    Py_RETURN_NONE;
 }
 
 
