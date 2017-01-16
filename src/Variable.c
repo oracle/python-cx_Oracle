@@ -509,7 +509,7 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_Integer;
 #else
     if (PyBytes_Check(value)) {
-        *size = PyBytes_GET_SIZE(value);
+        *size = (ub4) PyBytes_GET_SIZE(value);
         return &vt_Binary;
     }
 #endif

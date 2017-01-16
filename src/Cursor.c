@@ -1446,7 +1446,7 @@ static int Cursor_CallBuildStatement(
         for (i = 0; i < numPositionalArgs; i++) {
             if (i > 0)
                 *ptr++ = ',';
-            ptr += sprintf(ptr, ":%ld", argNum++);
+            ptr += sprintf(ptr, ":%ld", (long) argNum++);
 #if ORACLE_VERSION_HEX < ORACLE_VERSION(12, 1)
             if (PyBool_Check(PySequence_Fast_GET_ITEM(positionalArgs, i)))
                 ptr += sprintf(ptr, " = 1");
@@ -1469,7 +1469,7 @@ static int Cursor_CallBuildStatement(
             }
             if ((argNum > 1 && !returnValue) || (argNum > 2 && returnValue))
                 *ptr++ = ',';
-            ptr += sprintf(ptr, "%%s => :%ld", argNum++);
+            ptr += sprintf(ptr, "%%s => :%ld", (long) argNum++);
 #if ORACLE_VERSION_HEX < ORACLE_VERSION(12, 1)
             if (PyBool_Check(value))
                 ptr += sprintf(ptr, " = 1");
