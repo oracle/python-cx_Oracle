@@ -491,7 +491,7 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_String;
     }
     if (cxString_Check(value)) {
-        *size = cxString_GetSize(value);
+        *size = (ub4) cxString_GetSize(value);
         if (*size > 32768)
             return &vt_LongString;
         return &vt_String;
@@ -500,7 +500,7 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_Boolean;
 #if PY_MAJOR_VERSION < 3
     if (PyUnicode_Check(value)) {
-        *size = PyUnicode_GET_SIZE(value);
+        *size = (ub4) PyUnicode_GET_SIZE(value);
         if (*size > 32768)
             return &vt_LongNationalCharString;
         return &vt_NationalCharString;
@@ -521,7 +521,7 @@ static udt_VariableType *Variable_TypeByValue(
         udt_Buffer temp;
         if (cxBuffer_FromObject(&temp, value, NULL) < 0)
             return NULL;
-        *size = temp.size;
+        *size = (ub4) temp.size;
         cxBuffer_Clear(&temp);
         return &vt_Binary;
     }
@@ -554,7 +554,7 @@ static udt_VariableType *Variable_TypeByValue(
         varType = Variable_TypeByValue(elementValue, size, numElements);
         if (!varType)
             return NULL;
-        *numElements = PyList_GET_SIZE(value);
+        *numElements = (ub4) PyList_GET_SIZE(value);
         *size = varType->size;
         return varType;
     }
@@ -1066,14 +1066,14 @@ static int Variable_InternalBind(
         if (var->isArray) {
             status = OCIBINDBYNAME(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, (text*) buffer.ptr,
-                    buffer.size, var->data, var->bufferSize,
+                    (sb4) buffer.size, var->data, var->bufferSize,
                     var->type->oracleType, var->indicator, var->actualLength,
                     var->returnCode, var->allocatedElements,
                     &var->actualElements, OCI_DEFAULT);
         } else {
             status = OCIBINDBYNAME(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, (text*) buffer.ptr,
-                    buffer.size, var->data, var->bufferSize,
+                    (sb4) buffer.size, var->data, var->bufferSize,
                     var->type->oracleType, var->indicator, var->actualLength,
                     var->returnCode, 0, 0, OCI_DEFAULT);
         }
@@ -1082,14 +1082,15 @@ static int Variable_InternalBind(
         if (var->isArray) {
             status = OCIBINDBYPOS(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, var->boundPos, var->data,
-                    var->bufferSize, var->type->oracleType, var->indicator,
-                    var->actualLength, var->returnCode, var->allocatedElements,
-                    &var->actualElements, OCI_DEFAULT);
+                    (sb4) var->bufferSize, var->type->oracleType,
+                    var->indicator, var->actualLength, var->returnCode,
+                    var->allocatedElements, &var->actualElements, OCI_DEFAULT);
         } else {
             status = OCIBINDBYPOS(var->boundCursorHandle, &var->bindHandle,
                     var->environment->errorHandle, var->boundPos, var->data,
-                    var->bufferSize, var->type->oracleType, var->indicator,
-                    var->actualLength, var->returnCode, 0, 0, OCI_DEFAULT);
+                    (sb4) var->bufferSize, var->type->oracleType,
+                    var->indicator, var->actualLength, var->returnCode, 0, 0,
+                    OCI_DEFAULT);
         }
     }
     if (Environment_CheckForError(var->environment, status,
@@ -1336,7 +1337,7 @@ static int Variable_SetArrayValue(
     }
 
     // ensure we haven't exceeded the number of allocated elements
-    numElements = PyList_GET_SIZE(value);
+    numElements = (unsigned) PyList_GET_SIZE(value);
     if (numElements > var->allocatedElements) {
         PyErr_SetString(PyExc_IndexError,
                 "Variable_SetArrayValue: array size exceeded");

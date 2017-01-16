@@ -362,8 +362,8 @@ static PyObject *NumberVar_GetValue(
         status = OCINumberToText(var->environment->errorHandle,
                 &var->data[pos],
                 (text*) var->environment->numberToStringFormatBuffer.ptr,
-                var->environment->numberToStringFormatBuffer.size, NULL, 0,
-                &stringLength, (unsigned char*) stringValue);
+                (ub4) var->environment->numberToStringFormatBuffer.size, NULL,
+                0, &stringLength, (unsigned char*) stringValue);
         if (Environment_CheckForError(var->environment, status,
                 "NumberVar_GetValue(): as string") < 0)
             return NULL;

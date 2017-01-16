@@ -281,7 +281,7 @@ static int Connection_GetConnection(
         if (buffer.size > 0) {
             externalAuth = 0;
             status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
-                    (text*) buffer.ptr, buffer.size, OCI_ATTR_USERNAME,
+                    (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_USERNAME,
                     environment->errorHandle);
             if (Environment_CheckForError(environment, status,
                     "Connection_GetConnection(): set user name") < 0) {
@@ -298,7 +298,7 @@ static int Connection_GetConnection(
         if (buffer.size > 0) {
             externalAuth = 0;
             status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
-                    (text*) buffer.ptr, buffer.size, OCI_ATTR_PASSWORD,
+                    (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_PASSWORD,
                     environment->errorHandle);
             if (Environment_CheckForError(environment, status,
                     "Connection_GetConnection(): set password") < 0) {
@@ -314,8 +314,8 @@ static int Connection_GetConnection(
             return -1;
         if (buffer.size > 0) {
             status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
-                    (text*) buffer.ptr, buffer.size, OCI_ATTR_CONNECTION_CLASS,
-                    environment->errorHandle);
+                    (text*) buffer.ptr, (ub4) buffer.size,
+                    OCI_ATTR_CONNECTION_CLASS, environment->errorHandle);
             if (Environment_CheckForError(environment, status,
                     "Connection_GetConnection(): set connection class") < 0) {
                 cxBuffer_Clear(&buffer);
@@ -345,8 +345,8 @@ static int Connection_GetConnection(
         return -1;
     Py_BEGIN_ALLOW_THREADS
     status = OCISessionGet(environment->handle, environment->errorHandle,
-            &self->handle, authInfo, (text*) buffer.ptr, buffer.size, NULL, 0,
-            NULL, NULL, &found, mode);
+            &self->handle, authInfo, (text*) buffer.ptr, (ub4) buffer.size,
+            NULL, 0, NULL, NULL, &found, mode);
     Py_END_ALLOW_THREADS
     cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(environment, status,
@@ -446,7 +446,7 @@ static int Connection_SetOCIAttr(
     if (cxBuffer_FromObject(&buffer, value, self->environment->encoding))
         return -1;
     status = OCIAttrSet(sessionHandle, OCI_HTYPE_SESSION, (text*) buffer.ptr,
-            buffer.size, *attribute, self->environment->errorHandle);
+            (ub4) buffer.size, *attribute, self->environment->errorHandle);
     cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->environment, status,
             "Connection_SetOCIAttr(): set value") < 0)
@@ -537,9 +537,9 @@ static int Connection_ChangePassword(
     // begin the session
     Py_BEGIN_ALLOW_THREADS
     status = OCIPasswordChange(self->handle, self->environment->errorHandle,
-            (text*) usernameBuffer.ptr, usernameBuffer.size,
-            (text*) oldPasswordBuffer.ptr, oldPasswordBuffer.size,
-            (text*) newPasswordBuffer.ptr, newPasswordBuffer.size,
+            (text*) usernameBuffer.ptr, (ub4) usernameBuffer.size,
+            (text*) oldPasswordBuffer.ptr, (ub4) oldPasswordBuffer.size,
+            (text*) newPasswordBuffer.ptr, (ub4) newPasswordBuffer.size,
             OCI_AUTH);
     Py_END_ALLOW_THREADS
     cxBuffer_Clear(&usernameBuffer);
@@ -608,8 +608,8 @@ static int Connection_Connect(
         return -1;
     Py_BEGIN_ALLOW_THREADS
     status = OCIServerAttach(self->serverHandle,
-            self->environment->errorHandle, (text*) buffer.ptr, buffer.size,
-            OCI_DEFAULT);
+            self->environment->errorHandle, (text*) buffer.ptr,
+            (ub4) buffer.size, OCI_DEFAULT);
     Py_END_ALLOW_THREADS
     cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->environment, status,
@@ -661,7 +661,7 @@ static int Connection_Connect(
     if (buffer.size > 0) {
         credentialType = OCI_CRED_RDBMS;
         status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, buffer.size, OCI_ATTR_USERNAME,
+                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_USERNAME,
                 self->environment->errorHandle);
         if (Environment_CheckForError(self->environment, status,
                 "Connection_Connect(): set user name") < 0) {
@@ -678,7 +678,7 @@ static int Connection_Connect(
     if (buffer.size > 0) {
         credentialType = OCI_CRED_RDBMS;
         status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, buffer.size, OCI_ATTR_PASSWORD,
+                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_PASSWORD,
                 self->environment->errorHandle);
         if (Environment_CheckForError(self->environment, status,
                 "Connection_Connect(): set password") < 0) {
@@ -690,8 +690,8 @@ static int Connection_Connect(
 
     // set driver name
     status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-            (text*) DRIVER_NAME, strlen(DRIVER_NAME), OCI_ATTR_DRIVER_NAME,
-            self->environment->errorHandle);
+            (text*) DRIVER_NAME, (ub4) strlen(DRIVER_NAME),
+            OCI_ATTR_DRIVER_NAME, self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
             "Connection_Connect(): set driver name") < 0)
         return -1;
@@ -709,7 +709,7 @@ static int Connection_Connect(
                 self->environment->encoding))
             return -1;
         status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, buffer.size, OCI_ATTR_MODULE,
+                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_MODULE,
                 self->environment->errorHandle);
         cxBuffer_Clear(&buffer);
         if (Environment_CheckForError(self->environment, status,
@@ -722,7 +722,7 @@ static int Connection_Connect(
                 self->environment->encoding))
             return -1;
         status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, buffer.size, OCI_ATTR_ACTION,
+                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_ACTION,
                 self->environment->errorHandle);
         cxBuffer_Clear(&buffer);
         if (Environment_CheckForError(self->environment, status,
@@ -735,7 +735,7 @@ static int Connection_Connect(
                 self->environment->encoding))
             return -1;
         status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, buffer.size, OCI_ATTR_CLIENT_INFO,
+                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_CLIENT_INFO,
                 self->environment->errorHandle);
         cxBuffer_Clear(&buffer);
         if (Environment_CheckForError(self->environment, status,
@@ -748,7 +748,7 @@ static int Connection_Connect(
                 self->environment->encoding))
             return -1;
         status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, buffer.size, OCI_ATTR_EDITION,
+                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_EDITION,
                 self->environment->errorHandle);
         cxBuffer_Clear(&buffer);
         if (Environment_CheckForError(self->environment, status,

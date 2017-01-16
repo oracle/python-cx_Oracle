@@ -356,7 +356,8 @@ static int StringVar_SetValue(
 
     // ensure that the buffer is large enough
     if (buffer.size > var->bufferSize) {
-        if (Variable_Resize( (udt_Variable*) var, buffer.numCharacters) < 0) {
+        if (Variable_Resize( (udt_Variable*) var,
+                (unsigned) buffer.numCharacters) < 0) {
             cxBuffer_Clear(&buffer);
             return -1;
         }

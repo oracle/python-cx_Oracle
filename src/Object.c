@@ -315,7 +315,7 @@ static int Object_ConvertFromPython(
                     return -1;
                 status = OCIStringAssignText(environment->handle,
                         environment->errorHandle, buffer.ptr,
-                        buffer.size, &oracleValue->stringValue);
+                        (ub4) buffer.size, &oracleValue->stringValue);
                 cxBuffer_Clear(&buffer);
                 if (Environment_CheckForError(environment, status,
                         "Object_ConvertFromPython(): assigning string") < 0)

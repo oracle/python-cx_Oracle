@@ -185,7 +185,8 @@ static int LongVar_SetValue(
 
     // verify there is enough space to store the value
     if (buffer.numCharacters > var->size) {
-        if (Variable_Resize((udt_Variable*) var, buffer.numCharacters) < 0) {
+        if (Variable_Resize((udt_Variable*) var,
+                (unsigned) buffer.numCharacters) < 0) {
             cxBuffer_Clear(&buffer);
             return -1;
         }

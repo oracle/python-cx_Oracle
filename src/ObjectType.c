@@ -419,7 +419,7 @@ static udt_ObjectType *ObjectType_NewByName(
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
     status = OCITypeByFullName(connection->environment->handle,
             connection->environment->errorHandle, connection->handle,
-            buffer.ptr, buffer.size, NULL, 0, OCI_DURATION_SESSION,
+            buffer.ptr, (ub4) buffer.size, NULL, 0, OCI_DURATION_SESSION,
             OCI_TYPEGET_ALL, &tdo);
     cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(connection->environment, status,

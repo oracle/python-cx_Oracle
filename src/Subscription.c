@@ -998,8 +998,8 @@ static PyObject *Subscription_RegisterQuery(
         return NULL;
     }
     status = OCIStmtPrepare(cursor->handle, env->errorHandle,
-            (text*) statementBuffer.ptr, statementBuffer.size, OCI_NTV_SYNTAX,
-            OCI_DEFAULT);
+            (text*) statementBuffer.ptr, (ub4) statementBuffer.size,
+            OCI_NTV_SYNTAX, OCI_DEFAULT);
     cxBuffer_Clear(&statementBuffer);
     if (Environment_CheckForError(env, status,
             "Subscription_RegisterQuery(): prepare statement") < 0) {
@@ -1064,7 +1064,7 @@ static PyObject *Subscription_RegisterQuery(
     Py_DECREF(cursor);
 
     if (self->cqqos & OCI_SUBSCR_CQ_QOS_QUERY)
-        return PyInt_FromLong(queryid);
+        return PyInt_FromLong( (long) queryid);
 
     Py_INCREF(Py_None);
     return Py_None;

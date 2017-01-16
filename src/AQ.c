@@ -394,7 +394,7 @@ static int EnqOptions_SetOCIAttr(
                     self->environment->encoding) < 0)
                 return -1;
             ociValue = (dvoid*) buffer.ptr;
-            valueLength = buffer.size;
+            valueLength = (ub4) buffer.size;
             break;
     };
     status = OCIAttrSet(self->handle, OCI_DTYPE_AQENQ_OPTIONS,
@@ -547,7 +547,7 @@ static int DeqOptions_SetOCIAttr(
                     self->environment->encoding) < 0)
                 return -1;
             ociValue = (dvoid*) buffer.ptr;
-            valueLength = buffer.size;
+            valueLength = (ub4) buffer.size;
             break;
         case OCI_ATTR_DEQ_MSGID:
             if (PyBytes_AsStringAndSize(value, &rawValuePtr,
@@ -732,7 +732,7 @@ static int MessageProperties_SetOCIAttr(
                     self->environment->encoding) < 0)
                 return -1;
             ociValue = (dvoid*) buffer.ptr;
-            valueLength = buffer.size;
+            valueLength = (ub4) buffer.size;
             break;
         case OCI_ATTR_DEQ_MSGID:
             if (PyBytes_AsStringAndSize(value, &rawValuePtr,

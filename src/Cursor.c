@@ -239,7 +239,7 @@ static int Cursor_FreeHandle(
                 return (raiseException) ? -1 : 0;
             status = OCIStmtRelease(self->handle,
                     self->environment->errorHandle, (text*) buffer.ptr,
-                    buffer.size, OCI_DEFAULT);
+                    (ub4) buffer.size, OCI_DEFAULT);
             cxBuffer_Clear(&buffer);
             if (raiseException && Environment_CheckForError(
                     self->environment, status, "Cursor_FreeHandle()") < 0)
@@ -997,10 +997,9 @@ static int Cursor_SetBindVariables(
     unsigned arrayPos,                  // array position to set
     int deferTypeAssignment)            // defer type assignment if null?
 {
-    int i, origBoundByPos, origNumParams, boundByPos, numParams;
+    Py_ssize_t i, origBoundByPos, origNumParams, boundByPos, numParams, pos;
     PyObject *key, *value, *origVar;
     udt_Variable *newVar;
-    Py_ssize_t pos;
 
     // make sure positional and named binds are not being intermixed
     numParams = 0;
@@ -1139,7 +1138,7 @@ static PyObject *Cursor_CreateRow(
     udt_Cursor *self)                   // cursor object
 {
     PyObject *tuple, *item, *result;
-    int numItems, pos;
+    Py_ssize_t numItems, pos;
     udt_Variable *var;
 
     // create a new tuple
@@ -1228,8 +1227,8 @@ static int Cursor_InternalPrepare(
     Py_BEGIN_ALLOW_THREADS
     status = OCIStmtPrepare2(self->connection->handle, &self->handle,
             self->environment->errorHandle, (text*) statementBuffer.ptr,
-            statementBuffer.size, (text*) tagBuffer.ptr, tagBuffer.size,
-            OCI_NTV_SYNTAX, OCI_DEFAULT);
+            (ub4) statementBuffer.size, (text*) tagBuffer.ptr,
+            (ub4) tagBuffer.size, OCI_NTV_SYNTAX, OCI_DEFAULT);
     Py_END_ALLOW_THREADS
     cxBuffer_Clear(&statementBuffer);
     cxBuffer_Clear(&tagBuffer);
@@ -1339,9 +1338,9 @@ static int Cursor_CallCalculateSize(
     udt_Variable *returnValue,          // return value variable (optional)
     PyObject *listOfArguments,          // list of positional arguments
     PyObject *keywordArguments,         // dictionary of keyword arguments
-    int *size)                          // statement size (OUT)
+    Py_ssize_t *size)                   // statement size (OUT)
 {
-    int numPositionalArgs, numKeywordArgs;
+    Py_ssize_t numPositionalArgs, numKeywordArgs;
 
     // set base size without any arguments
     *size = 17;
@@ -1399,8 +1398,7 @@ static int Cursor_CallBuildStatement(
     PyObject **bindVariables)           // variables to bind (OUT)
 {
     PyObject *key, *value, *format, *formatArgs, *positionalArgs, *temp;
-    int i, argNum, numPositionalArgs;
-    Py_ssize_t pos;
+    Py_ssize_t i, argNum, numPositionalArgs, pos;
     char *ptr;
 
     // initialize the bind variables to the list of positional arguments
@@ -1448,7 +1446,7 @@ static int Cursor_CallBuildStatement(
         for (i = 0; i < numPositionalArgs; i++) {
             if (i > 0)
                 *ptr++ = ',';
-            ptr += sprintf(ptr, ":%d", argNum++);
+            ptr += sprintf(ptr, ":%ld", argNum++);
 #if ORACLE_VERSION_HEX < ORACLE_VERSION(12, 1)
             if (PyBool_Check(PySequence_Fast_GET_ITEM(positionalArgs, i)))
                 ptr += sprintf(ptr, " = 1");
@@ -1471,7 +1469,7 @@ static int Cursor_CallBuildStatement(
             }
             if ((argNum > 1 && !returnValue) || (argNum > 2 && returnValue))
                 *ptr++ = ',';
-            ptr += sprintf(ptr, "%%s => :%d", argNum++);
+            ptr += sprintf(ptr, "%%s => :%ld", argNum++);
 #if ORACLE_VERSION_HEX < ORACLE_VERSION(12, 1)
             if (PyBool_Check(value))
                 ptr += sprintf(ptr, " = 1");
@@ -1514,7 +1512,7 @@ static int Cursor_Call(
     PyObject *keywordArguments)         // keyword arguments
 {
     PyObject *bindVariables, *statementObj, *results;
-    int statementSize;
+    Py_ssize_t statementSize;
     char *statement;
 
     // verify that the arguments are passed correctly
@@ -1622,7 +1620,7 @@ static PyObject *Cursor_CallProc(
     static char *keywordList[] = { "name", "parameters", "keywordParameters",
             NULL };
     PyObject *listOfArguments, *keywordArguments, *results, *var, *temp, *name;
-    int numArgs, i;
+    Py_ssize_t numArgs, i;
 
     // parse arguments
     listOfArguments = keywordArguments = NULL;
@@ -1743,9 +1741,10 @@ static PyObject *Cursor_ExecuteMany(
 {
     static char *keywordList[] = { "statement", "parameters", "batcherrors",
             "arraydmlrowcounts", NULL };
-    int i, numRows, arrayDMLRowCountsEnabled = 0, batchErrorsEnabled = 0;
+    int arrayDMLRowCountsEnabled = 0, batchErrorsEnabled = 0;
     PyObject *arguments, *listOfArguments, *statement;
     ub4 additionalMode = 0;
+    unsigned i, numRows;
 
     // expect statement text (optional) plus list of sequences/mappings
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!|ii", keywordList,
@@ -1777,7 +1776,7 @@ static PyObject *Cursor_ExecuteMany(
     }
 
     // perform binds
-    numRows = PyList_GET_SIZE(listOfArguments);
+    numRows = (unsigned) PyList_GET_SIZE(listOfArguments);
     for (i = 0; i < numRows; i++) {
         arguments = PyList_GET_ITEM(listOfArguments, i);
         if (!PyDict_Check(arguments) && !PySequence_Check(arguments)) {
@@ -2106,7 +2105,7 @@ static PyObject *Cursor_Scroll(
     ub8 desiredRow;
     sword status;
     char *mode;
-    int value;
+    sb4 value;
 
     // parse arguments
     value = 0;
@@ -2119,7 +2118,8 @@ static PyObject *Cursor_Scroll(
     if (!mode || strcmp(mode, "relative") == 0) {
         fetchMode = OCI_FETCH_RELATIVE;
         desiredRow = self->rowCount + value;
-        value = desiredRow - (self->bufferMinRow + self->bufferRowCount - 1);
+        value = (sb4) (desiredRow -
+                (self->bufferMinRow + self->bufferRowCount - 1));
     } else if (strcmp(mode, "absolute") == 0) {
         fetchMode = OCI_FETCH_ABSOLUTE;
         desiredRow = value;
@@ -2142,7 +2142,7 @@ static PyObject *Cursor_Scroll(
     // determine if a fetch is actually required; "last" is always fetched
     if (fetchMode != OCI_FETCH_LAST && desiredRow >= self->bufferMinRow &&
             desiredRow < self->bufferMinRow + self->bufferRowCount) {
-        self->bufferRowIndex = desiredRow - self->bufferMinRow;
+        self->bufferRowIndex = (ub4) (desiredRow - self->bufferMinRow);
         self->rowCount = desiredRow - 1;
         Py_RETURN_NONE;
     }
@@ -2205,10 +2205,9 @@ static PyObject *Cursor_SetInputSizes(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
-    int numPositionalArgs;
+    Py_ssize_t numPositionalArgs, i;
     PyObject *key, *value;
     udt_Variable *var;
-    Py_ssize_t i;
 
     // only expect keyword arguments or positional arguments, not both
     numPositionalArgs = PyTuple_Size(args);
@@ -2352,9 +2351,9 @@ static PyObject *Cursor_ArrayVar(
     udt_Cursor *self,                   // cursor to fetch from
     PyObject *args)                     // arguments
 {
+    Py_ssize_t size, numElements;
     udt_VariableType *varType;
     PyObject *type, *value;
-    int size, numElements;
     udt_Variable *var;
 
     // parse arguments
@@ -2383,7 +2382,7 @@ static PyObject *Cursor_ArrayVar(
     }
 
     // create the variable
-    var = Variable_New(self, numElements, varType, size);
+    var = Variable_New(self, (unsigned) numElements, varType, (ub4) size);
     if (!var)
         return NULL;
     if (Variable_MakeArray(var) < 0) {
@@ -2598,7 +2597,8 @@ static PyObject* Cursor_GetArrayDMLRowCounts(
     if (!result)
         return NULL;
     for (i = 0; i < rowCountArraySize; i++) {
-        element = PyLong_FromUnsignedLong(arrayDMLRowCount[i]);
+        element = PyLong_FromUnsignedLong(
+                (unsigned long) arrayDMLRowCount[i]);
         if (!element) {
             Py_DECREF(result);
             return NULL;

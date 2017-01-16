@@ -287,9 +287,9 @@ static int SessionPool_Init(
     status = OCISessionPoolCreate(self->environment->handle,
             self->environment->errorHandle, self->handle,
             (OraText**) &poolName, &poolNameLength, (OraText*) dsn.ptr,
-            dsn.size, minSessions, maxSessions, sessionIncrement,
-            (OraText*) username.ptr, username.size, (OraText*) password.ptr,
-            password.size, poolMode);
+            (ub4) dsn.size, minSessions, maxSessions, sessionIncrement,
+            (OraText*) username.ptr, (ub4) username.size,
+            (OraText*) password.ptr, (ub4) password.size, poolMode);
     Py_END_ALLOW_THREADS
     cxBuffer_Clear(&username);
     cxBuffer_Clear(&password);

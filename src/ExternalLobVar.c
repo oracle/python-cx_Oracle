@@ -317,7 +317,7 @@ static PyObject *ExternalLobVar_Size(
         return NULL;
     if (ExternalLobVar_InternalSize(var, &length) < 0)
         return NULL;
-    return PyLong_FromUnsignedLong(length);
+    return PyLong_FromUnsignedLong( (unsigned long) length);
 }
 
 

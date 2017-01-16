@@ -265,9 +265,9 @@ static int PythonLongToOracleNumber(
     if (cxBuffer_FromObject(&textBuffer, textValue, environment->encoding) < 0)
         return -1;
     status = OCINumberFromText(environment->errorHandle,
-            (text*) textBuffer.ptr, textBuffer.size,
+            (text*) textBuffer.ptr, (ub4) textBuffer.size,
             (text*) environment->numberFromStringFormatBuffer.ptr,
-            environment->numberFromStringFormatBuffer.size, NULL, 0,
+            (ub4) environment->numberFromStringFormatBuffer.size, NULL, 0,
             oracleValue);
     cxBuffer_Clear(&textBuffer);
     Py_DECREF(textValue);
@@ -285,7 +285,7 @@ static int GetFormatAndTextFromPythonDecimal(
     PyObject **textObj,                 // text string for conversion
     PyObject **formatObj)               // format for conversion
 {
-    long numDigits, scale, i, sign, length, digit;
+    Py_ssize_t numDigits, scale, i, sign, length, digit;
     char *textValue, *format, *textPtr, *formatPtr;
     PyObject *digits;
 
@@ -300,7 +300,7 @@ static int GetFormatAndTextFromPythonDecimal(
     numDigits = PyTuple_GET_SIZE(digits);
 
     // allocate memory for the string and format to use in conversion
-    length = numDigits + abs(scale) + 3;
+    length = numDigits + abs( (long) scale) + 3;
     textValue = textPtr = PyMem_Malloc(length);
     if (!textValue) {
         PyErr_NoMemory();
@@ -394,9 +394,10 @@ static int PythonDecimalToOracleNumber(
         return -1;
     }
     status = OCINumberFromText(environment->errorHandle,
-            (text*) textBuffer.ptr, textBuffer.size, (text*) formatBuffer.ptr,
-            formatBuffer.size, environment->nlsNumericCharactersBuffer.ptr,
-            environment->nlsNumericCharactersBuffer.size, oracleValue);
+            (text*) textBuffer.ptr, (ub4) textBuffer.size,
+            (text*) formatBuffer.ptr, (ub4) formatBuffer.size,
+            environment->nlsNumericCharactersBuffer.ptr,
+            (ub4) environment->nlsNumericCharactersBuffer.size, oracleValue);
     cxBuffer_Clear(&textBuffer);
     cxBuffer_Clear(&formatBuffer);
     Py_DECREF(textValue);
