@@ -44,14 +44,12 @@ typedef struct {
     ub4 operation;
 } udt_MessageRow;
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
 typedef struct {
     PyObject_HEAD
     ub8 id;
     ub4 operation;
     PyObject *tables;
 } udt_MessageQuery;
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -63,9 +61,7 @@ static PyObject *Subscription_RegisterQuery(udt_Subscription*, PyObject*);
 static void Message_Free(udt_Message*);
 static void MessageTable_Free(udt_MessageTable*);
 static void MessageRow_Free(udt_MessageRow*);
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
 static void MessageQuery_Free(udt_MessageQuery*);
-#endif
 
 //-----------------------------------------------------------------------------
 // declaration of members for Python types
@@ -109,14 +105,12 @@ static PyMemberDef g_MessageRowTypeMembers[] = {
     { NULL }
 };
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
 static PyMemberDef g_MessageQueryTypeMembers[] = {
     { "id", T_INT, offsetof(udt_MessageQuery, id), READONLY },
     { "operation", T_INT, offsetof(udt_MessageQuery, operation), READONLY },
     { "tables", T_OBJECT, offsetof(udt_MessageQuery, tables), READONLY },
     { NULL }
 };
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -310,7 +304,6 @@ static PyTypeObject g_MessageRowType = {
 };
 
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
 static PyTypeObject g_MessageQueryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.MessageQuery",           // tp_name
@@ -354,7 +347,6 @@ static PyTypeObject g_MessageQueryType = {
     0,                                  // tp_is_gc
     0                                   // tp_bases
 };
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -467,7 +459,6 @@ static int MessageTable_Initialize(
 }
 
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
 //-----------------------------------------------------------------------------
 // MessageQuery_Initialize()
 //   Initialize a new message query with the information from the descriptor.
@@ -540,7 +531,6 @@ static int MessageQuery_Initialize(
 
     return 0;
 }
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -553,19 +543,14 @@ static int Message_Initialize(
     udt_Subscription *subscription,     // associated subscription for message
     dvoid *descriptor)                  // descriptor to get information from
 {
-    dvoid **tableDescriptor, *indicator;
+    dvoid **tableDescriptor, *indicator, **queryDescriptor;
+    OCIColl *tables, *queries;
+    sb4 numTables, numQueries;
     udt_MessageTable *table;
-    ub4 dbnameLength, i;
-    OCIColl *tables;
-    boolean exists;
-    sb4 numTables;
-    char *dbname;
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
-    dvoid **queryDescriptor;
     udt_MessageQuery *query;
-    OCIColl *queries;
-    sb4 numQueries;
-#endif
+    ub4 dbnameLength, i;
+    boolean exists;
+    char *dbname;
     sword status;
 
     // assign reference to associated subscription
@@ -631,7 +616,6 @@ static int Message_Initialize(
         }
     }
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     if (self->type == OCI_EVENT_QUERYCHANGE) {
         // determine query collection
         status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &queries, NULL,
@@ -672,7 +656,6 @@ static int Message_Initialize(
                 return -1;
         }
     }
-#endif
 
     return 0;
 }
@@ -827,7 +810,6 @@ static int Subscription_Register(
                 "Subscription_Register(): set qos flags") < 0)
         return -1;
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     // set subscription change notification QOS flags
     status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
             (dvoid*) &self->cqqos, sizeof(ub4), OCI_ATTR_SUBSCR_CQ_QOSFLAGS,
@@ -835,7 +817,6 @@ static int Subscription_Register(
     if (Environment_CheckForError(env, status,
                 "Subscription_Register(): set cq qos flags") < 0)
         return -1;
-#endif
 
     // set whether or not rowids are desired
     status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
@@ -862,7 +843,6 @@ static int Subscription_Register(
                 "Subscription_Register(): register") < 0)
         return -1;
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     // get the registration id
     status = OCIAttrGet(self->handle, OCI_HTYPE_SUBSCRIPTION, &self->id,
               NULL, OCI_ATTR_SUBSCR_CQ_REGID, env->errorHandle);
@@ -870,7 +850,6 @@ static int Subscription_Register(
                 "Subscription_Register(): get registration id") < 0) {
         return -1;
     }
-#endif
 
     return 0;
 }
@@ -985,10 +964,8 @@ static PyObject *Subscription_RegisterQuery(
     udt_Buffer statementBuffer;
     udt_Environment *env;
     udt_Cursor *cursor;
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
-    ub8 queryid;
-#endif
     sword status;
+    ub8 queryid;
 
     // parse arguments
     executeArgs = NULL;
@@ -1074,7 +1051,6 @@ static PyObject *Subscription_RegisterQuery(
         return NULL;
     }
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     if (self->cqqos & OCI_SUBSCR_CQ_QOS_QUERY) {
         // get the query id
         status = OCIAttrGet(cursor->handle, OCI_HTYPE_STMT, &queryid, NULL,
@@ -1085,14 +1061,11 @@ static PyObject *Subscription_RegisterQuery(
             return NULL;
         }
     }
-#endif
 
     Py_DECREF(cursor);
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     if (self->cqqos & OCI_SUBSCR_CQ_QOS_QUERY)
         return PyInt_FromLong(queryid);
-#endif
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -1139,7 +1112,6 @@ static void MessageRow_Free(
 }
 
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
 //-----------------------------------------------------------------------------
 // MessageQuery_Free()
 //   Free the memory associated with a query in a message.
@@ -1150,5 +1122,4 @@ static void MessageQuery_Free(
     Py_CLEAR(self->tables);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
-#endif
 

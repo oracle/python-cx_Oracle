@@ -32,14 +32,8 @@ static ub4 gc_ClientIdentifierAttribute = OCI_ATTR_CLIENT_IDENTIFIER;
 static ub4 gc_ModuleAttribute = OCI_ATTR_MODULE;
 static ub4 gc_ActionAttribute = OCI_ATTR_ACTION;
 static ub4 gc_ClientInfoAttribute = OCI_ATTR_CLIENT_INFO;
-
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
 static ub4 gc_CurrentSchemaAttribute = OCI_ATTR_CURRENT_SCHEMA;
-#endif
-
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 2)
 static ub4 gc_EditionAttribute = OCI_ATTR_EDITION;
-#endif
 
 //-----------------------------------------------------------------------------
 // functions for the Python type "Connection"
@@ -72,18 +66,12 @@ static PyObject *Connection_NewMessageProperties(udt_Connection*, PyObject*);
 static PyObject *Connection_Dequeue(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Enqueue(udt_Connection*, PyObject*, PyObject*);
 static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
 static PyObject *Connection_GetOCIAttr(udt_Connection*, ub4*);
-#endif
 static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
-#if !defined(AIX5) || ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
 static PyObject *Connection_Ping(udt_Connection*, PyObject*);
-#endif
 static PyObject *Connection_Shutdown(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Startup(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Subscribe(udt_Connection*, PyObject*, PyObject*);
-#endif
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
 static PyObject *Connection_GetLTXID(udt_Connection*, void*);
 #endif
@@ -105,17 +93,13 @@ static PyMethodDef g_ConnectionMethods[] = {
     { "unregister", (PyCFunction) Connection_UnregisterCallback, METH_VARARGS },
     { "__enter__", (PyCFunction) Connection_ContextManagerEnter, METH_NOARGS },
     { "__exit__", (PyCFunction) Connection_ContextManagerExit, METH_VARARGS },
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
-#if !defined(AIX5) || ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     { "ping", (PyCFunction) Connection_Ping, METH_NOARGS },
-#endif
     { "shutdown", (PyCFunction) Connection_Shutdown,
             METH_VARARGS | METH_KEYWORDS},
     { "startup", (PyCFunction) Connection_Startup,
             METH_VARARGS | METH_KEYWORDS},
     { "subscribe", (PyCFunction) Connection_Subscribe,
             METH_VARARGS | METH_KEYWORDS},
-#endif
     { "changepassword", (PyCFunction) Connection_ChangePasswordExternal,
             METH_VARARGS },
     { "gettype", (PyCFunction) Connection_GetType, METH_VARARGS },
@@ -162,13 +146,9 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
             &gc_ClientInfoAttribute },
     { "client_identifier", 0, (setter) Connection_SetOCIAttr, 0,
             &gc_ClientIdentifierAttribute },
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
     { "current_schema", (getter) Connection_GetOCIAttr,
             (setter) Connection_SetOCIAttr, 0, &gc_CurrentSchemaAttribute },
-#endif
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 2)
     { "edition", (getter) Connection_GetOCIAttr, 0, 0, &gc_EditionAttribute },
-#endif
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
     { "ltxid", (getter) Connection_GetLTXID, 0, 0, 0 },
 #endif
@@ -328,7 +308,6 @@ static int Connection_GetConnection(
         }
         cxBuffer_Clear(&buffer);
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
         // set the connection class, if applicable
         if (cxBuffer_FromObject(&buffer, cclassObj,
                 self->environment->encoding) < 0)
@@ -354,7 +333,6 @@ static int Connection_GetConnection(
                     "Connection_GetConnection(): set purity") < 0)
                 return -1;
         }
-#endif
     }
 
     // external auth requested (no username/password or specified via pool)
@@ -396,7 +374,6 @@ static int Connection_GetConnection(
 }
 
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
 //-----------------------------------------------------------------------------
 // Connection_GetOCIAttr()
 //   Get the value of the OCI attribute.
@@ -438,7 +415,6 @@ static PyObject *Connection_GetOCIAttr(
     return cxString_FromEncodedString(buffer.ptr, buffer.size,
             self->environment->encoding);
 }
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -712,15 +688,13 @@ static int Connection_Connect(
     }
     cxBuffer_Clear(&buffer);
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11,1)
+    // set driver name
     status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
             (text*) DRIVER_NAME, strlen(DRIVER_NAME), OCI_ATTR_DRIVER_NAME,
             self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
             "Connection_Connect(): set driver name") < 0)
         return -1;
-
-#endif
 
     // set the session handle on the service context handle
     status = OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX,
@@ -769,7 +743,6 @@ static int Connection_Connect(
             return -1;
     }
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 2)
     if (editionObj) {
         if (cxBuffer_FromObject(&buffer, editionObj,
                 self->environment->encoding))
@@ -782,7 +755,6 @@ static int Connection_Connect(
                 "Connection_Connect(): set edition") < 0)
             return -1;
     }
-#endif
 
     // if a new password has been specified, change it which will also
     // establish the session
@@ -806,9 +778,7 @@ static int Connection_Connect(
 
 #include "Cursor.c"
 #include "Callback.c"
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
 #include "Subscription.c"
-#endif
 #include "AQ.c"
 
 
@@ -905,9 +875,7 @@ static int Connection_Init(
     moduleObj = actionObj = clientinfoObj = NULL;
     threaded = twophase = events = purity = 0;
     encoding = nencoding = NULL;
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
     purity = OCI_ATTR_PURITY_DEFAULT;
-#endif
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
             "|OOOiiO!OOOOiOssOOOO", keywordList, &usernameObj, &passwordObj,
             &dsnObj, &connectMode, &handle, &g_SessionPoolType, &pool,
@@ -1842,8 +1810,6 @@ static PyObject *Connection_ContextManagerExit(
 }
 
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(10, 2)
-#if !defined(AIX5) || ORACLE_VERSION_HEX >= ORACLE_VERSION(11, 1)
 //-----------------------------------------------------------------------------
 // Connection_Ping()
 //   Makes a round trip call to the server to confirm that the connection and
@@ -1865,7 +1831,6 @@ static PyObject *Connection_Ping(
     Py_INCREF(Py_None);
     return Py_None;
 }
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -1992,5 +1957,4 @@ static PyObject *Connection_Subscribe(
     return (PyObject*) Subscription_New(self, namespace, protocol, port,
             callback, timeout, operations, qos, cqqos, rowids);
 }
-#endif
 
