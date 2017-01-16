@@ -438,7 +438,8 @@ static udt_ObjectType *ObjectType_NewByName(
 #else
     status = OCIDescribeAny(connection->handle,
             connection->environment->errorHandle, (dvoid*) buffer.ptr,
-            buffer.size, OCI_OTYPE_NAME, 0, OCI_PTYPE_TYPE, describeHandle);
+            (ub4) buffer.size, OCI_OTYPE_NAME, 0, OCI_PTYPE_TYPE,
+            describeHandle);
     cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(connection->environment, status,
             "ObjectType_NewByName(): describe type") < 0) {
