@@ -394,12 +394,12 @@ static int MessageTable_Initialize(
     dvoid *descriptor)                  // descriptor to get information from
 {
     dvoid **rowDescriptor, *indicator;
-    ub4 nameLength, i;
     udt_MessageRow *row;
+    ub4 nameLength;
     boolean exists;
+    sb4 numRows, i;
     OCIColl *rows;
     sword status;
-    sb4 numRows;
     char *name;
 
     // determine operation
@@ -470,10 +470,9 @@ static int MessageQuery_Initialize(
 {
     dvoid **tableDescriptor, *indicator;
     udt_MessageTable *table;
-    ub4 i;
+    sb4 numTables, i;
     OCIColl *tables;
     boolean exists;
-    sb4 numTables;
     sword status;
 
     // determine query id
@@ -544,11 +543,11 @@ static int Message_Initialize(
     dvoid *descriptor)                  // descriptor to get information from
 {
     dvoid **tableDescriptor, *indicator, **queryDescriptor;
+    sb4 numTables, numQueries, i;
     OCIColl *tables, *queries;
-    sb4 numTables, numQueries;
     udt_MessageTable *table;
     udt_MessageQuery *query;
-    ub4 dbnameLength, i;
+    ub4 dbnameLength;
     boolean exists;
     char *dbname;
     sword status;
