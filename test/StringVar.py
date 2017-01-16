@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Module for testing string variables."""
 
 class TestStringVar(BaseTestCase):

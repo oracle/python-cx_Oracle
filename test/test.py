@@ -91,7 +91,10 @@ for name in moduleNames:
     setattr(module, "TestCase", unittest.TestCase)
     setattr(module, "BaseTestCase", BaseTestCase)
     setattr(module, "cx_Oracle", cx_Oracle)
-    exec(open(fileName).read(), module.__dict__)
+    if sys.version_info[0] >= 3:
+        exec(open(fileName, encoding = "UTF-8").read(), module.__dict__)
+    else:
+        execfile(fileName, module.__dict__)
     tests = loader.loadTestsFromModule(module)
     result = runner.run(tests)
     if not result.wasSuccessful():
