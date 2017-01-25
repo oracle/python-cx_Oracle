@@ -685,10 +685,10 @@ static PyObject *Cursor_ItemDescriptionHelper(
     unsigned pos,                       // position in description
     OCIParam *param)                    // parameter to use for description
 {
-    ub2 internalSize, charSize;
     udt_VariableType *varType;
+    ub2 bytesSize, charSize;
     int displaySize, index;
-    PyObject *tuple, *type;
+    PyObject *tuple;
     ub4 nameLength;
     sb2 precision;
     sword status;
@@ -702,18 +702,28 @@ static PyObject *Cursor_ItemDescriptionHelper(
         return NULL;
 
     // acquire internal size of item
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &internalSize, 0,
-            OCI_ATTR_DATA_SIZE, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_ItemDescription(): internal size") < 0)
-        return NULL;
+    bytesSize = 0;
+    if (varType->isVariableLength && varType->canBeInArray) {
+        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &bytesSize, 0,
+                OCI_ATTR_DATA_SIZE, self->environment->errorHandle);
+        if (Environment_CheckForError(self->environment, status,
+                "Cursor_ItemDescription(): internal size") < 0)
+            return NULL;
+    }
 
     // acquire character size of item
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &charSize, 0,
-            OCI_ATTR_CHAR_SIZE, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_ItemDescription(): character size") < 0)
-        return NULL;
+    charSize = 0;
+    if (varType->isVariableLength && varType->canBeInArray &&
+            varType->isCharacterData) {
+        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &charSize, 0,
+                OCI_ATTR_CHAR_SIZE, self->environment->errorHandle);
+        if (Environment_CheckForError(self->environment, status,
+                "Cursor_ItemDescription(): character size") < 0)
+            return NULL;
+        if (varType->charsetForm == SQLCS_IMPLICIT)
+            bytesSize = charSize * self->environment->maxBytesPerCharacter;
+        else bytesSize = charSize * self->environment->nmaxBytesPerCharacter;
+    }
 
     // aquire name of item
     status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &name,
@@ -722,21 +732,21 @@ static PyObject *Cursor_ItemDescriptionHelper(
             "Cursor_ItemDescription(): name") < 0)
         return NULL;
 
-    // lookup precision and scale
+    // lookup scale
     scale = 0;
+    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &scale, 0,
+            OCI_ATTR_SCALE, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_ItemDescription(): scale") < 0)
+        return NULL;
+
+    // lookup precision
     precision = 0;
-    if (varType->pythonType == &g_NumberVarType) {
-        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &scale, 0,
-                OCI_ATTR_SCALE, self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Cursor_ItemDescription(): scale") < 0)
-            return NULL;
-        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &precision, 0,
-                OCI_ATTR_PRECISION, self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Cursor_ItemDescription(): precision") < 0)
-            return NULL;
-    }
+    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &precision, 0,
+            OCI_ATTR_PRECISION, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Cursor_ItemDescription(): precision") < 0)
+        return NULL;
 
     // lookup whether null is permitted for the attribute
     status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &nullOk, 0,
@@ -746,28 +756,28 @@ static PyObject *Cursor_ItemDescriptionHelper(
         return NULL;
 
     // set display size based on data type
-    type = (PyObject*) varType->pythonType;
-    if (type == (PyObject*) &g_StringVarType)
-        displaySize = charSize;
-    else if (type == (PyObject*) &g_NCharVarType)
-        displaySize = charSize;
-    else if (type == (PyObject*) &g_BinaryVarType)
-        displaySize = internalSize;
-    else if (type == (PyObject*) &g_FixedCharVarType)
-        displaySize = charSize;
-    else if (type == (PyObject*) &g_FixedNCharVarType)
-        displaySize = charSize;
-    else if (type == (PyObject*) &g_NumberVarType) {
-        if (precision) {
-            displaySize = precision + 1;
-            if (scale > 0)
-                displaySize += scale + 1;
-        }
-        else displaySize = 127;
-    } else if (type == (PyObject*) &g_DateTimeVarType) {
-        displaySize = 23;
-    } else {
-        displaySize = -1;
+    switch (varType->oracleType) {
+        case SQLT_CHR:
+        case SQLT_AFC:
+            displaySize = charSize;
+            break;
+        case SQLT_BIN:
+            displaySize = bytesSize;
+            break;
+        case SQLT_VNU:
+            if (precision) {
+                displaySize = precision + 1;
+                if (scale > 0)
+                    displaySize += scale + 1;
+            }
+            else displaySize = 127;
+            break;
+        case SQLT_ODT:
+        case SQLT_TIMESTAMP:
+            displaySize = 23;
+            break;
+        default:
+            displaySize = 0;
     }
 
     // create the tuple and populate it
@@ -778,12 +788,29 @@ static PyObject *Cursor_ItemDescriptionHelper(
     // set each of the items in the tuple
     PyTuple_SET_ITEM(tuple, 0, cxString_FromEncodedString(name, nameLength,
             self->connection->environment->encoding));
-    Py_INCREF(type);
-    PyTuple_SET_ITEM(tuple, 1, type);
-    PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(displaySize));
-    PyTuple_SET_ITEM(tuple, 3, PyInt_FromLong(internalSize));
-    PyTuple_SET_ITEM(tuple, 4, PyInt_FromLong(precision));
-    PyTuple_SET_ITEM(tuple, 5, PyInt_FromLong(scale));
+    Py_INCREF(varType->pythonType);
+    PyTuple_SET_ITEM(tuple, 1, (PyObject*) varType->pythonType);
+    if (displaySize)
+        PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(displaySize));
+    else {
+        Py_INCREF(Py_None);
+        PyTuple_SET_ITEM(tuple, 2, Py_None);
+    }
+    if (bytesSize)
+        PyTuple_SET_ITEM(tuple, 3, PyInt_FromLong(bytesSize));
+    else {
+        Py_INCREF(Py_None);
+        PyTuple_SET_ITEM(tuple, 3, Py_None);
+    }
+    if (precision || scale) {
+        PyTuple_SET_ITEM(tuple, 4, PyInt_FromLong(precision));
+        PyTuple_SET_ITEM(tuple, 5, PyInt_FromLong(scale));
+    } else {
+        Py_INCREF(Py_None);
+        PyTuple_SET_ITEM(tuple, 4, Py_None);
+        Py_INCREF(Py_None);
+        PyTuple_SET_ITEM(tuple, 5, Py_None);
+    }
     PyTuple_SET_ITEM(tuple, 6, PyInt_FromLong(nullOk != 0));
 
     // make sure the tuple is ok

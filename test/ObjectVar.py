@@ -99,9 +99,9 @@ class TestObjectVar(BaseTestCase):
                 from TestObjects
                 order by IntCol""")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('OBJECTCOL', cx_Oracle.OBJECT, -1, 2000, 0, 0, 1),
-                  ('ARRAYCOL', cx_Oracle.OBJECT, -1, 2000, 0, 0, 1) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('OBJECTCOL', cx_Oracle.OBJECT, None, None, None, None, 1),
+                  ('ARRAYCOL', cx_Oracle.OBJECT, None, None, None, None, 1) ])
         self.__TestData(1, (1, 'First row', 'First     ',
                 cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0),
                 cx_Oracle.Timestamp(2008, 9, 12, 16, 40),

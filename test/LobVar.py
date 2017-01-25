@@ -108,8 +108,8 @@ class TestLobVar(BaseTestCase):
         "test cursor description is accurate for BLOBs"
         self.cursor.execute("select * from TestBLOBs")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('BLOBCOL', cx_Oracle.BLOB, -1, 4000, 0, 0, 0) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('BLOBCOL', cx_Oracle.BLOB, None, None, None, None, 0) ])
 
     def testBLOBsDirect(self):
         "test binding and fetching BLOB data (directly)"
@@ -127,8 +127,8 @@ class TestLobVar(BaseTestCase):
         "test cursor description is accurate for CLOBs"
         self.cursor.execute("select * from TestCLOBs")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('CLOBCOL', cx_Oracle.CLOB, -1, 4000, 0, 0, 0) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('CLOBCOL', cx_Oracle.CLOB, None, None, None, None, 0) ])
 
     def testCLOBsDirect(self):
         "test binding and fetching CLOB data (directly)"
@@ -153,8 +153,8 @@ class TestLobVar(BaseTestCase):
         "test cursor description is accurate for NCLOBs"
         self.cursor.execute("select * from TestNCLOBs")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('NCLOBCOL', cx_Oracle.NCLOB, -1, 4000, 0, 0, 0) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('NCLOBCOL', cx_Oracle.NCLOB, None, None, None, None, 0) ])
 
     def testNCLOBsDirect(self):
         "test binding and fetching NCLOB data (directly)"

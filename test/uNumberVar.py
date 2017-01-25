@@ -222,11 +222,12 @@ class TestNumberVar(BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute(u"select * from TestNumbers")
         self.assertEqual(self.cursor.description,
-                [ (u'INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  (u'NUMBERCOL', cx_Oracle.NUMBER, 13, 22, 9, 2, 0),
-                  (u'FLOATCOL', cx_Oracle.NUMBER, 127, 22, 126, -127, 0),
-                  (u'UNCONSTRAINEDCOL', cx_Oracle.NUMBER, 127, 22, 0, -127, 0),
-                  (u'NULLABLECOL', cx_Oracle.NUMBER, 39, 22, 38, 0, 1) ])
+                [ (u'INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  (u'NUMBERCOL', cx_Oracle.NUMBER, 13, None, 9, 2, 0),
+                  (u'FLOATCOL', cx_Oracle.NUMBER, 127, None, 126, -127, 0),
+                  (u'UNCONSTRAINEDCOL', cx_Oracle.NUMBER, 127, None, 0, -127,
+                        0),
+                  (u'NULLABLECOL', cx_Oracle.NUMBER, 39, None, 38, 0, 1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"

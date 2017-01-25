@@ -98,9 +98,9 @@ class TestTimestampVar(BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute(u"select * from TestTimestamps")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('TIMESTAMPCOL', cx_Oracle.TIMESTAMP, -1, 11, 0, 0, 0),
-                  ('NULLABLECOL', cx_Oracle.TIMESTAMP, -1, 11, 0, 0, 1) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('TIMESTAMPCOL', cx_Oracle.TIMESTAMP, 23, None, 0, 6, 0),
+                  ('NULLABLECOL', cx_Oracle.TIMESTAMP, 23, None, 0, 6, 1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"

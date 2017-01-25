@@ -190,10 +190,11 @@ class TestNCharVar(BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestUnicodes")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('UNICODECOL', cx_Oracle.NCHAR, 20, 40, 0, 0, 0),
-                  ('FIXEDUNICODECOL', cx_Oracle.FIXED_NCHAR, 40, 80, 0, 0, 0),
-                  ('NULLABLECOL', cx_Oracle.NCHAR, 50, 100, 0, 0, 1) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('UNICODECOL', cx_Oracle.NCHAR, 20, 80, None, None, 0),
+                  ('FIXEDUNICODECOL', cx_Oracle.FIXED_NCHAR, 40, 160, None,
+                        None, 0),
+                  ('NULLABLECOL', cx_Oracle.NCHAR, 50, 200, None, None, 1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"

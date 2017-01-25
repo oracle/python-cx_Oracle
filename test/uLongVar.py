@@ -54,15 +54,17 @@ class TestLongVar(BaseTestCase):
         "test cursor description is accurate for longs"
         self.cursor.execute(u"select * from TestLongs")
         self.assertEqual(self.cursor.description,
-                [ (u'INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  (u'LONGCOL', cx_Oracle.LONG_STRING, -1, 0, 0, 0, 0) ])
+                [ (u'INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  (u'LONGCOL', cx_Oracle.LONG_STRING, None, None, None, None,
+                        0) ])
 
     def testLongRawCursorDescription(self):
         "test cursor description is accurate for long raws"
         self.cursor.execute(u"select * from TestLongRaws")
         self.assertEqual(self.cursor.description,
-                [ (u'INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  (u'LONGRAWCOL', cx_Oracle.LONG_BINARY, -1, 0, 0, 0, 0) ])
+                [ (u'INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  (u'LONGRAWCOL', cx_Oracle.LONG_BINARY, None, None, None,
+                        None, 0) ])
 
     def testSetOutputSizesAll(self):
         "test setoutputsizes is valid (all)"

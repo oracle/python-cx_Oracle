@@ -196,9 +196,10 @@ class TestDateTimeVar(BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestDates")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('DATECOL', cx_Oracle.DATETIME, 23, 7, 0, 0, 0),
-                  ('NULLABLECOL', cx_Oracle.DATETIME, 23, 7, 0, 0, 1) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('DATECOL', cx_Oracle.DATETIME, 23, None, None, None, 0),
+                  ('NULLABLECOL', cx_Oracle.DATETIME, 23, None, None, None,
+                        1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"

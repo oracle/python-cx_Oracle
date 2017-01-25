@@ -1,6 +1,5 @@
 """Module for testing cursor variables."""
 
-import struct
 import sys
 
 class TestCursorVar(BaseTestCase):
@@ -15,7 +14,7 @@ class TestCursorVar(BaseTestCase):
                 end;""",
                 cursor = cursor)
         self.assertEqual(cursor.description,
-                [ ('STRINGVALUE', cx_Oracle.FIXED_CHAR, 1, 1, 0, 0, 1) ])
+                [ ('STRINGVALUE', cx_Oracle.FIXED_CHAR, 1, 4, None, None, 1) ])
         self.assertEqual(cursor.fetchall(), [('X',)])
 
     def testBindCursorInPackage(self):
@@ -24,8 +23,8 @@ class TestCursorVar(BaseTestCase):
         self.assertEqual(cursor.description, None)
         self.cursor.callproc("pkg_TestOutCursors.TestOutCursor", (2, cursor))
         self.assertEqual(cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('STRINGCOL', cx_Oracle.STRING, 20, 20, 0, 0, 0) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('STRINGCOL', cx_Oracle.STRING, 20, 80, None, None, 0) ])
         self.assertEqual(cursor.fetchall(),
                 [ (1, 'String 1'), (2, 'String 2') ])
 
@@ -37,10 +36,10 @@ class TestCursorVar(BaseTestCase):
                   cursor(select IntCol + 1 from dual) CursorValue
                 from TestNumbers
                 order by IntCol""")
-        size = struct.calcsize('P')
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('CURSORVALUE', cx_Oracle.CURSOR, -1, size, 0, 0, 1) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('CURSORVALUE', cx_Oracle.CURSOR, None, None, None, None,
+                        1) ])
         for i in range(1, 11):
             number, cursor = self.cursor.fetchone()
             self.assertEqual(number, i)

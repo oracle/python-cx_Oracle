@@ -101,9 +101,9 @@ class TestIntervalVar(BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestIntervals")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, 22, 9, 0, 0),
-                  ('INTERVALCOL', cx_Oracle.INTERVAL, -1, 11, 0, 0, 0),
-                  ('NULLABLECOL', cx_Oracle.INTERVAL, -1, 11, 0, 0, 1) ])
+                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('INTERVALCOL', cx_Oracle.INTERVAL, None, None, 2, 6, 0),
+                  ('NULLABLECOL', cx_Oracle.INTERVAL, None, None, 2, 6, 1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"
