@@ -8,8 +8,8 @@ Release notes
 Version 5.2.next
 ----------------
 
-Version 5.2.1
--------------
+Version 5.2.1 (January 2016)
+----------------------------
 
 1) Added support for Python 3.5.
 2) Removed password attribute from connection and session pool objects in order
@@ -25,8 +25,8 @@ Version 5.2.1
    procedures (available in Oracle 12.1).
 
 
-Version 5.2
------------
+Version 5.2 (June 2015)
+-----------------------
 
 1)  Added support for strings up to 32k characters (new in Oracle 12c).
 2)  Added support for getting array DML row counts (new in Oracle 12c).
@@ -53,8 +53,8 @@ Version 5.2
     (`Issue #7 <https://bitbucket.org/anthony_tuininga/cx_oracle/issue/7/timedeltas-going-in-have-their>`_)
 
 
-Version 5.1.3
--------------
+Version 5.1.3 (May 2014)
+------------------------
 
 1)  Added support for Oracle 12c.
 2)  Added support for Python 3.4.
@@ -74,8 +74,8 @@ Version 5.1.3
 9)  Class name of cursors changed to real name cx_Oracle.Cursor.
 
 
-Version 5.1.2
--------------
+Version 5.1.2 (July 2012)
+-------------------------
 
 1)  Added support for LONG_UNICODE which is a type used to handle long unicode
     strings. These are not explicitly supported in Oracle but can be used to
@@ -88,8 +88,8 @@ Version 5.1.2
     requested by Rodney Barnett.
 
 
-Version 5.1.1
--------------
+Version 5.1.1 (October 2011)
+----------------------------
 
 1)  Simplify management of threads for callbacks performed by database change
     notification and eliminate a crash that occurred under high load in
@@ -110,8 +110,8 @@ Version 5.1.1
 8)  Removed redundant code in setup.py for calculating the library path.
 
 
-Version 5.1
------------
+Version 5.1 (March 2011)
+------------------------
 
 1)  Remove support for UNICODE mode and permit Unicode to be passed through in
     everywhere a string may be passed in. This means that strings will be
@@ -134,8 +134,8 @@ Version 5.1
     Thanks to Uwe Hoffmann for the initial patch.
 
 
-Version 5.0.4
--------------
+Version 5.0.4 (July 2010)
+-------------------------
 
 1)  Added support for Python 2.7.
 2)  Added support for new parameter (port) for subscription() call which allows
@@ -145,8 +145,8 @@ Version 5.0.4
 4)  Fixed a few error messages.
 
 
-Version 5.0.3
--------------
+Version 5.0.3 (February 2010)
+-----------------------------
 
 1)  Added support for 64-bit Windows.
 2)  Added support for Python 3.1 and dropped support for Python 3.0.
@@ -174,8 +174,8 @@ Version 5.0.3
     for the solution to this problem.
 
 
-Version 5.0.2
--------------
+Version 5.0.2 (May 2009)
+------------------------
 
 1)  Fix creation of temporary NCLOB values and the writing of NCLOB values in
     non Unicode mode.
@@ -190,8 +190,8 @@ Version 5.0.2
 7)  Fixed a few documentation issues.
 
 
-Version 5.0.1
--------------
+Version 5.0.1 (February 2009)
+-----------------------------
 
 1)  Added support for database change notification available in Oracle 10g
     Release 2 and higher.
@@ -209,8 +209,8 @@ Version 5.0.1
     3.0.1.
 
 
-Version 5.0
------------
+Version 5.0 (December 2008)
+---------------------------
 
 1)  Added support for Python 3.0 with much help from Amaury Forgeot d'Arc.
 2)  Removed support for Python 2.3 and Oracle 8i.
@@ -245,8 +245,8 @@ Version 5.0
 Older releases
 ##############
 
-Version 4.4.1
--------------
+Version 4.4.1 (October 2008)
+----------------------------
 
 1)  Make the bind variables and fetch variables accessible although they need
     to be treated carefully since they are used internally; support added for
@@ -280,8 +280,8 @@ Version 4.4.1
 13) Added additional link arguments for Cygwin as requested by Rob Gillen.
 
 
-Version 4.4
------------
+Version 4.4 (June 2008)
+-----------------------
 
 1)  Fix setup.py to handle the Oracle instant client and Oracle XE on both
     Linux and Windows as pointed out by many. Thanks also to the many people
@@ -323,8 +323,8 @@ Version 4.4
     not 10.1.
 
 
-Version 4.3.3
--------------
+Version 4.3.3 (October 2007)
+----------------------------
 
 1)  Added method ping() on connections which can be used to test whether or not
     a connection is still active (available in Oracle 10g R2).
@@ -353,8 +353,8 @@ Version 4.3.3
 11) Remove unnecessary dependency on win32api to build module on Windows.
 
 
-Version 4.3.2
--------------
+Version 4.3.2 (August 2007)
+---------------------------
 
 1)  Added methods open(), close(), isopen() and getchunksize() in order to
     improve performance of reading/writing LOB values in chunks.
@@ -368,7 +368,7 @@ Version 4.3.2
     problem and pointing the way to a solution.
 4)  Added attribute cursor.rowfactory which allows a method to be called for
     each row that is returned; this is about 20% faster than calling the method
-    in Python using the idiom [method(*r) for r in cursor].
+    in Python using the idiom [method(\*r) for r in cursor].
 5)  Attempt to locate an Oracle installation by looking at the PATH if the
     environment variable ORACLE_HOME is not set; this is of primary use on
     Windows where this variable should not normally be set.
@@ -381,8 +381,8 @@ Version 4.3.2
 8)  When copying the value of a variable, copy the return code as well.
 
 
-Version 4.3.1
--------------
+Version 4.3.1 (April 2007)
+--------------------------
 
 1)  Ensure that if the client buffer size exceeds 4000 bytes that the server
     buffer size does not as strings may only contain 4000 bytes; this allows
@@ -397,8 +397,8 @@ Version 4.3.1
     for noticing this discrepancy.
 
 
-Version 4.3
------------
+Version 4.3 (March 2007)
+------------------------
 
 1)  Added preliminary support for fetching Oracle objects (SQL types) as
     requested by Kristof Beyls (who kindly provided an initial patch).
@@ -426,8 +426,8 @@ Version 4.3
     the connection is closed solves the problem.
 
 
-Version 4.2.1
--------------
+Version 4.2.1 (September 2006)
+------------------------------
 
 1)  Added additional type (NCLOB) to handle CLOBs that use the national
     character set as requested by Chris Dunscombe.
@@ -439,8 +439,8 @@ Version 4.2.1
 5)  Fixed binding of decimal objects with absolute values less than 0.1.
 
 
-Version 4.2
------------
+Version 4.2 (July 2006)
+-----------------------
 
 1)  Added support for parsing an Oracle statement as requested by Patrick
     Blackwill.
@@ -479,14 +479,14 @@ Version 4.2
 18) Fixed typo in error message.
 
 
-Version 4.1.2
--------------
+Version 4.1.2 (December 2005)
+-----------------------------
 
 1)  Restore support of Oracle 9i features when using the Oracle 10g client.
 
 
-Version 4.1.1
--------------
+Version 4.1.1 (December 2005)
+-----------------------------
 
 1)  Add support for dropping a connection from a session pool.
 2)  Add support for write only attributes "module", "action" and "clientinfo"
@@ -513,8 +513,8 @@ Version 4.1.1
     information.
 
 
-Version 4.1
------------
+Version 4.1 (January 2005)
+--------------------------
 
 1)  Fixed bug where subclasses of Cursor do not pass the connection in the
     constructor causing a segfault.
@@ -539,8 +539,8 @@ Version 4.1
     character sets.
 
 
-Version 4.1 beta 1
-------------------
+Version 4.1 beta 1 (September 2004)
+-----------------------------------
 
 1)  Added support for Python 2.4. In Python 2.4, the datetime module is used
     for both binding and fetching of date and timestamp data. In Python 2.3,
@@ -585,8 +585,8 @@ Version 4.1 beta 1
 18) Added support for binary_float and binary_double columns in Oracle 10g.
 
 
-Version 4.0.1
--------------
+Version 4.0.1 (February 2004)
+-----------------------------
 
 1)  Fixed bugs on 64-bit platforms that caused segmentation faults and bus
     errors in session pooling and determining the bind variables associated
@@ -613,8 +613,8 @@ Version 4.0.1
     and its solution.
 
 
-Version 4.0
------------
+Version 4.0 (December 2003)
+---------------------------
 
 1)  Added support for subclassing connections, cursors and session pools. The
     changes involved made it necessary to drop support for Python 2.1 and
@@ -655,8 +655,8 @@ Version 4.0
     Connection(handle=) if needed.
 
 
-Version 3.1
------------
+Version 3.1 (August 2003)
+-------------------------
 
 1)  Added support for connecting with SYSDBA and SYSOPER access which is
     needed for connecting as sys in Oracle 9i.
@@ -689,8 +689,8 @@ Version 3.1
     it does imply a performance penalty when used.
 
 
-Version 3.0a
-------------
+Version 3.0a (June 2003)
+------------------------
 
 1)  Fixed bug where zero length PL/SQL arrays were being mishandled
 2)  Fixed support for the data type "float" in Oracle; added one to the
@@ -706,8 +706,8 @@ Version 3.0a
     as well as within the packages that are distributed
 
 
-Version 3.0
------------
+Version 3.0 (March 2003)
+------------------------
 
 1)  Removed support for connection to Oracle7 databases; it is entirely
     possible that it will still work but I no longer have any way of testing
@@ -751,8 +751,8 @@ Version 3.0
     core Python library
 
 
-Version 2.5a
-------------
+Version 2.5a (August 2002)
+--------------------------
 
 1)  Fix problem with Oracle 9i and retrieving strings; it seems that Oracle 9i
     uses the correct method for dynamic callback but Oracle 8i will not work
@@ -760,8 +760,8 @@ Version 2.5a
     Oracle 9i feature; thanks to Paul Denize for discovering this problem
 
 
-Version 2.5
------------
+Version 2.5 (July 2002)
+-----------------------
 
 1)  Added flag OPT_NoOracle7 which, if set, assumes that connections are being
     made to Oracle8 or higher databases; this allows for eliminating the
@@ -812,8 +812,8 @@ Version 2.5
     on Cygwin
 
 
-Version 2.4
------------
+Version 2.4 (January 2002)
+--------------------------
 
 1)  String variables can now be made any length (previously restricted to the
     64K limit imposed by Oracle for default binding); use the type
@@ -835,8 +835,8 @@ Version 2.4
 7)  Now support building RPMs for Linux.
 
 
-Version 2.3
------------
+Version 2.3 (October 2001)
+--------------------------
 
 1)  Incremental performance enhancements (dealing with reusing cursors and
     bind handles)
@@ -848,8 +848,8 @@ Version 2.3
     non-zero scale.
 
 
-Version 2.2
------------
+Version 2.2 (July 2001)
+-----------------------
 
 1)  Upgraded thread safety to level 1 (according to the Python DB API 2.0) as
     an internal project required the ability to share the module between
