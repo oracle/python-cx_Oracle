@@ -9,10 +9,10 @@ Cursor Object
 
    This read-write attribute specifies the number of rows to fetch at a time
    internally and is the default number of rows to fetch with the
-   :meth:`~Cursor.fetchmany()` call.  It defaults to 50 meaning to fetch 50
+   :meth:`~Cursor.fetchmany()` call.  It defaults to 100 meaning to fetch 100
    rows at a time. Note that this attribute can drastically affect the
    performance of a query since it directly affects the number of network round
-   trips that need to be performed. This is the reason for setting it to 50
+   trips that need to be performed. This is the reason for setting it to 100
    instead of the 1 that the DB API recommends.
 
 

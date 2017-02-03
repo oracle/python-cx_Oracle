@@ -52,6 +52,7 @@ Version 5.3 (TBD)
 24) Dropped support for callbacks on OCI functions.
 25) Removed deprecated types UNICODE, FIXED_UNICODE and LONG_UNICODE (use
     NCHAR, FIXED_NCHAR and LONG_NCHAR instead).
+26) Increased default array size to 100 (from 50) to match other drivers.
 
 
 Version 5.2.1 (January 2016)
