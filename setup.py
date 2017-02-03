@@ -342,7 +342,7 @@ if distutils.command.bdist_wininst is not None:
 classifiers = [
         "Development Status :: 6 - Mature",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: Python Software Foundation License",
+        "License :: OSI Approved :: BSD License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: C",
@@ -388,6 +388,6 @@ setup(
         url = "http://cx-oracle.sourceforge.net",
         ext_modules = [extension],
         keywords = "Oracle",
-        license = "Python Software Foundation License",
+        license = "BSD License",
         classifiers = classifiers)
 
