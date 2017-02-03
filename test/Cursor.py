@@ -254,7 +254,8 @@ class TestCursor(BaseTestCase):
                 select NumberCol
                 from TestNumbers
                 order by IntCol""")
-        self.assertRaises(IndexError, cursor.scroll, 12, "absolute")
+        self.assertRaises(cx_Oracle.DatabaseError, cursor.scroll, 12,
+                "absolute")
 
     def testScrollAbsoluteInBuffer(self):
         """test scrolling absolute (when in buffers)"""
@@ -335,7 +336,7 @@ class TestCursor(BaseTestCase):
                 select NumberCol
                 from TestNumbers
                 order by IntCol""")
-        self.assertRaises(IndexError, cursor.scroll, 15)
+        self.assertRaises(cx_Oracle.DatabaseError, cursor.scroll, 15)
 
     def testScrollRelativeExceptionBefore(self):
         """test scrolling relative yields an exception (before result set)"""
@@ -345,7 +346,7 @@ class TestCursor(BaseTestCase):
                 select NumberCol
                 from TestNumbers
                 order by IntCol""")
-        self.assertRaises(IndexError, cursor.scroll, -5)
+        self.assertRaises(cx_Oracle.DatabaseError, cursor.scroll, -5)
 
     def testScrollRelativeInBuffer(self):
         """test scrolling relative (when in buffers)"""
@@ -389,7 +390,8 @@ class TestCursor(BaseTestCase):
         self.assertEqual(cursor.fetchall(), [])
         cursor.scroll(mode = "first")
         self.assertEqual(cursor.fetchall(), [])
-        self.assertRaises(IndexError, cursor.scroll, 1, mode = "absolute")
+        self.assertRaises(cx_Oracle.DatabaseError, cursor.scroll, 1,
+                mode = "absolute")
 
     def testScrollDifferingArrayAndFetchSizes(self):
         """test scrolling with differing array sizes and fetch array sizes"""

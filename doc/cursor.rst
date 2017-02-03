@@ -418,8 +418,8 @@ Cursor Object
    positioned at the first row and if set to "last", the cursor is set to the
    last row in the result set.
 
-   An IndexError is raised if the mode is "relative" or "absolute" and the
-   scroll operation would position the cursor outside of the result set.
+   An error is raised if the mode is "relative" or "absolute" and the scroll
+   operation would position the cursor outside of the result set.
 
    .. versionadded:: development
 

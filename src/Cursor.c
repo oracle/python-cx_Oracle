@@ -2197,7 +2197,7 @@ static PyObject *Cursor_Scroll(
     // handle the case when no rows have been retrieved
     if (self->bufferRowCount == 0) {
         if (fetchMode != OCI_FETCH_FIRST && fetchMode != OCI_FETCH_LAST) {
-            PyErr_SetString(PyExc_IndexError,
+            PyErr_SetString(g_DatabaseErrorException,
                     "requested scroll operation would leave result set");
             return NULL;
         }
