@@ -814,13 +814,6 @@ Types
       This type is an extension to the DB API definition.
 
 
-.. data:: FIXED_UNICODE
-
-   .. note::
-
-      Deprecated. Please use FIXED_NCHAR instead.
-
-
 .. data:: INTERVAL
 
    This type object is used to describe columns in a database that are of type
@@ -871,13 +864,6 @@ Types
    .. note::
 
       This type is an extension to the DB API definition.
-
-
-.. data:: LONG_UNICODE
-
-   .. note::
-
-      Deprecated. Please use LONG_NCHAR instead.
 
 
 .. data:: NATIVE_FLOAT
@@ -955,13 +941,6 @@ Types
    .. note::
 
       This attribute is an extension to the DB API definition.
-
-
-.. data:: UNICODE
-
-   .. note::
-
-      Deprecated. Please use NCHAR instead.
 
 
 .. _exceptions:

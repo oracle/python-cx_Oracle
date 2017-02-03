@@ -50,6 +50,8 @@ Version 5.3 (TBD)
 23) Added support for pickling/unpickling error objects
     (`Issue #23 <https://bitbucket.org/anthony_tuininga/cx_oracle/issues/23>`_)
 24) Dropped support for callbacks on OCI functions.
+25) Removed deprecated types UNICODE, FIXED_UNICODE and LONG_UNICODE (use
+    NCHAR, FIXED_NCHAR and LONG_NCHAR instead).
 
 
 Version 5.2.1 (January 2016)
