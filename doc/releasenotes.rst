@@ -5,8 +5,51 @@ Release notes
 ############
 
 
-Version 5.2.next
-----------------
+Version 5.next
+--------------
+
+
+Version 5.3 (TBD)
+-----------------
+
+1)  Added support for Python 3.6.
+2)  Dropped support for Python versions earlier than 2.6.
+3)  Dropped support for Oracle clients earlier than 11.2.
+4)  Added support for fetching implicit results (available in Oracle 12.1).
+5)  Added support for Transaction Guard (available in Oracle 12.1).
+6)  Added support for setting the maximum lifetime of pool connections
+    (available in Oracle 12.1).
+7)  Added support for large row counts (larger than 2 ** 32, available in
+    Oracle 12.1)
+8)  Added support for advanced queuing.
+9)  Added support for scrollable cursors.
+10) Added support for edition based redefinition.
+11) Added support for creating, modifying and binding user defined types and
+    collections.
+12) Added support for creating, modifying and binding PL/SQL records and
+    collections (available in Oracle 12.1).
+13) Added support for binding native integers.
+14) Enabled statement caching.
+15) Removed deprecated variable attributes maxlength and allocelems.
+16) Corrected support for setting the encoding and nencoding parameters when
+    creating a connection and added support for setting these when creating a
+    session pool. These can now be used instead of setting the environment
+    variables NLS_LANG and NLS_NCHAR.
+17) Use None instead of 0 for items in the cursor.description attribute that do
+    not have any validity.
+18) Changed driver name to match informal driver name standard used by Oracle
+    for other drivers.
+19) Add check for maximum of 10,000 arguments when calling a stored procedure
+    or function in order to prevent a possible improper memory access from
+    taking place.
+20) Removed -mno-cygwin compile flag since it is no longer used in newer
+    versions of the gcc compiler for Cygwin.
+21) Simplified test suite by combining Python 2 and 3 scripts into one script
+    and separated out 12.1 features into a single script.
+22) Updated samples to use code that works on both Python 2 and 3
+23) Added support for pickling/unpickling error objects
+    (`Issue #23 <https://bitbucket.org/anthony_tuininga/cx_oracle/issues/23>`_)
+
 
 Version 5.2.1 (January 2016)
 ----------------------------
