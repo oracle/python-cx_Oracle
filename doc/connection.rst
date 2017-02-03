@@ -345,24 +345,6 @@ Connection Object
          This method is an extension to the DB API definition.
 
 
-.. method:: Connection.register(code, when, function)
-
-   Register the function as an OCI callback. The code is one of the function
-   codes defined in the Oracle documentation of which the most common ones are
-   defined as constants in this module. The when parameter is one of
-   :data:`UCBTYPE_ENTRY`, :data:`UCBTYPE_EXIT` or :data:`UCBTYPE_REPLACE`. The
-   function is a Python function which will accept the parameters that the OCI
-   function accepts, modified as needed to return Python objects that are of
-   some use. Note that this is a highly experimental method and can cause
-   cx_Oracle to crash if not used properly. In particular, the OCI does not
-   provide sizing information to the callback so attempts to access a variable
-   beyond the allocated size will crash cx_Oracle.  Use with caution.
-
-   .. note::
-
-      This method is an extension to the DB API definition.
-
-
 .. method:: Connection.rollback()
 
    Rollback any pending transactions.
@@ -460,18 +442,6 @@ Connection Object
    .. note::
 
       This attribute is an extension to the DB API definition.
-
-
-.. method:: Connection.unregister(code, when)
-
-   Unregister the function as an OCI callback. The code is one of the function
-   codes defined in the Oracle documentation of which the most common ones are
-   defined as constants in this module. The when parameter is one of
-   :data:`UCBTYPE_ENTRY`, :data:`UCBTYPE_EXIT` or :data:`UCBTYPE_REPLACE`.
-
-   .. note::
-
-      This method is an extension to the DB API definition.
 
 
 .. attribute:: Connection.username

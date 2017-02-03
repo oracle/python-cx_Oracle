@@ -49,8 +49,6 @@ static PyObject *Connection_Prepare(udt_Connection*, PyObject*);
 static PyObject *Connection_Rollback(udt_Connection*, PyObject*);
 static PyObject *Connection_NewCursor(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Cancel(udt_Connection*, PyObject*);
-static PyObject *Connection_RegisterCallback(udt_Connection*, PyObject*);
-static PyObject *Connection_UnregisterCallback(udt_Connection*, PyObject*);
 static PyObject *Connection_GetVersion(udt_Connection*, void*);
 static PyObject *Connection_GetEncoding(udt_Connection*, void*);
 static PyObject *Connection_GetNationalEncoding(udt_Connection*, void*);
@@ -89,8 +87,6 @@ static PyMethodDef g_ConnectionMethods[] = {
     { "prepare", (PyCFunction) Connection_Prepare, METH_NOARGS },
     { "close", (PyCFunction) Connection_Close, METH_NOARGS },
     { "cancel", (PyCFunction) Connection_Cancel, METH_NOARGS },
-    { "register", (PyCFunction) Connection_RegisterCallback, METH_VARARGS },
-    { "unregister", (PyCFunction) Connection_UnregisterCallback, METH_VARARGS },
     { "__enter__", (PyCFunction) Connection_ContextManagerEnter, METH_NOARGS },
     { "__exit__", (PyCFunction) Connection_ContextManagerExit, METH_VARARGS },
     { "ping", (PyCFunction) Connection_Ping, METH_NOARGS },
@@ -777,7 +773,6 @@ static int Connection_Connect(
 
 
 #include "Cursor.c"
-#include "Callback.c"
 #include "Subscription.c"
 #include "AQ.c"
 
@@ -1683,89 +1678,6 @@ static PyObject *Connection_Enqueue(
     messageIdValue = (char*) OCIRawPtr(self->environment->handle, messageId);
     messageIdSize = OCIRawSize(self->environment->handle, messageId);
     return PyBytes_FromStringAndSize(messageIdValue, messageIdSize);
-}
-
-
-//-----------------------------------------------------------------------------
-// Connection_RegisterCallback()
-//   Register a callback for the OCI function.
-//-----------------------------------------------------------------------------
-static PyObject *Connection_RegisterCallback(
-    udt_Connection *self,               // connection to register callback on
-    PyObject *args)                     // arguments
-{
-    PyObject *callback, *tuple;
-    int functionCode, when;
-    sword status;
-
-    // parse the arguments
-    if (!PyArg_ParseTuple(args, "iiO", &functionCode, &when, &callback))
-        return NULL;
-
-    // create a tuple for passing through to the callback handler
-    tuple = Py_BuildValue("OO", self, callback);
-    if (!tuple)
-        return NULL;
-
-    // make sure we are actually connected
-    if (Connection_IsConnected(self) < 0)
-        return NULL;
-
-    // register the callback with the OCI
-    status = OCIUserCallbackRegister(self->environment->handle, OCI_HTYPE_ENV,
-            self->environment->errorHandle, (OCIUserCallback) Callback_Handler,
-            tuple, functionCode, when, NULL);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_RegisterCallback()") < 0)
-        return NULL;
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-//-----------------------------------------------------------------------------
-// Connection_UnregisterCallback()
-//   Unregister a callback for the OCI function, if one has been registered.
-// No error is raised if a callback has not been registered.
-//-----------------------------------------------------------------------------
-static PyObject *Connection_UnregisterCallback(
-    udt_Connection *self,               // connection to unregister callback on
-    PyObject *args)                     // arguments
-{
-    OCIUserCallback callback;
-    int functionCode, when;
-    PyObject *tuple;
-    sword status;
-
-    // parse the arguments
-    if (!PyArg_ParseTuple(args, "ii", &functionCode, &when))
-        return NULL;
-
-    // make sure we are actually connected
-    if (Connection_IsConnected(self) < 0)
-        return NULL;
-
-    // find out if a callback has been registered
-    status = OCIUserCallbackGet(self->environment->handle, OCI_HTYPE_ENV,
-            self->environment->errorHandle, functionCode, when, &callback,
-            (dvoid**) &tuple, NULL);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_UnregisterCallback(): get") < 0)
-        return NULL;
-
-    // if a callback was registered, clear it
-    if (callback) {
-        Py_DECREF(tuple);
-        status = OCIUserCallbackRegister(self->environment->handle,
-                OCI_HTYPE_ENV, self->environment->errorHandle, NULL,
-                NULL, functionCode, when, NULL);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_UnregisterCallback(): clear") < 0)
-            return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
 }
 
 

@@ -49,6 +49,7 @@ Version 5.3 (TBD)
 22) Updated samples to use code that works on both Python 2 and 3
 23) Added support for pickling/unpickling error objects
     (`Issue #23 <https://bitbucket.org/anthony_tuininga/cx_oracle/issues/23>`_)
+24) Dropped support for callbacks on OCI functions.
 
 
 Version 5.2.1 (January 2016)
