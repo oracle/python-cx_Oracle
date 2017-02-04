@@ -53,6 +53,10 @@ Version 5.3 (TBD)
 25) Removed deprecated types UNICODE, FIXED_UNICODE and LONG_UNICODE (use
     NCHAR, FIXED_NCHAR and LONG_NCHAR instead).
 26) Increased default array size to 100 (from 50) to match other drivers.
+27) Added support for setting the internal_name and external_name on the
+    connection directly. The use of the twophase argument is now deprecated.
+    Applications should set the internal_name and external_name attributes
+    directly to a value appropriate to the application.
 
 
 Version 5.2.1 (January 2016)

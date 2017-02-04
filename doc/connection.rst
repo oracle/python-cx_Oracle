@@ -223,6 +223,18 @@ Connection Object
          This method is an extension to the DB API definition.
 
 
+.. attribute:: Connection.external_name
+
+   This read-write attribute specifies the external name that is used by the
+   connection when logging distributed transactions.
+
+   .. versionadded:: development
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
 .. method:: Connection.gettype(name)
 
    Return a type object (:ref:`objecttype`) given its name. This can then be
@@ -244,6 +256,18 @@ Connection Object
    value is expected to be a variable object or None in which case a default
    variable object will be created. If this attribute is None, the default
    behavior will take place for all values bound to statements.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
+.. attribute:: Connection.internal_name
+
+   This read-write attribute specifies the internal name that is used by the
+   connection when logging distributed transactions.
+
+   .. versionadded:: development
 
    .. note::
 

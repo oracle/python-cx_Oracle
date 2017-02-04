@@ -54,9 +54,11 @@ Module Interface
    default is False.
   
    The twophase argument is expected to be a boolean expression which
-   indicates whether or not the attributes should be set on the connection
-   object to allow for two phase commit. The default for this value is also
-   False because of bugs in Oracle prior to Oracle 10g.
+   indicates whether or not the external_name and internal_name attributes
+   should be set on the connection object to allow for two phase commit. The
+   default for this value is False. Use of this argument is deprecated and will
+   be removed in a future release of cx_Oracle. Instead, the application should
+   set these attributes itself to an appropriate value for the application.
 
    The events argument is expected to be a boolean expression which indicates
    whether or not to initialize Oracle in events mode (only available in Oracle

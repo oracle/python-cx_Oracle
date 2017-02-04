@@ -34,6 +34,8 @@ static ub4 gc_ActionAttribute = OCI_ATTR_ACTION;
 static ub4 gc_ClientInfoAttribute = OCI_ATTR_CLIENT_INFO;
 static ub4 gc_CurrentSchemaAttribute = OCI_ATTR_CURRENT_SCHEMA;
 static ub4 gc_EditionAttribute = OCI_ATTR_EDITION;
+static ub4 gc_InternalNameAttribute = OCI_ATTR_INTERNAL_NAME;
+static ub4 gc_ExternalNameAttribute = OCI_ATTR_EXTERNAL_NAME;
 
 //-----------------------------------------------------------------------------
 // functions for the Python type "Connection"
@@ -145,6 +147,10 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
     { "current_schema", (getter) Connection_GetOCIAttr,
             (setter) Connection_SetOCIAttr, 0, &gc_CurrentSchemaAttribute },
     { "edition", (getter) Connection_GetOCIAttr, 0, 0, &gc_EditionAttribute },
+    { "external_name", (getter) Connection_GetOCIAttr,
+            (setter) Connection_SetOCIAttr, 0, &gc_ExternalNameAttribute },
+    { "internal_name", (getter) Connection_GetOCIAttr,
+            (setter) Connection_SetOCIAttr, 0, &gc_InternalNameAttribute },
 #if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
     { "ltxid", (getter) Connection_GetLTXID, 0, 0, 0 },
 #endif
@@ -378,8 +384,9 @@ static PyObject *Connection_GetOCIAttr(
     udt_Connection *self,               // connection to set
     ub4 *attribute)                     // OCI attribute type
 {
-    OCISession *sessionHandle;
+    ub4 ociHandleType;
     udt_Buffer buffer;
+    void *ociHandle;
     ub4 bufferSize;
     sword status;
 
@@ -387,18 +394,31 @@ static PyObject *Connection_GetOCIAttr(
     if (Connection_IsConnected(self) < 0)
         return NULL;
 
-    // acquire the session handle
-    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
-            (dvoid**) &sessionHandle, 0, OCI_ATTR_SESSION,
-            self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_GetOCIAttr(): determine session handle") < 0)
-        return NULL;
+    // get the handle and type on which to set the attribute
+    switch (*attribute) {
+        case OCI_ATTR_INTERNAL_NAME:
+        case OCI_ATTR_EXTERNAL_NAME:
+            status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
+                    (dvoid**) &ociHandle, 0, OCI_ATTR_SERVER,
+                    self->environment->errorHandle);
+            if (Environment_CheckForError(self->environment, status,
+                    "Connection_GetOCIAttr(): determine server handle") < 0)
+                return NULL;
+            ociHandleType = OCI_HTYPE_SERVER;
+            break;
+        default:
+            status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
+                    (dvoid**) &ociHandle, 0, OCI_ATTR_SESSION,
+                    self->environment->errorHandle);
+            if (Environment_CheckForError(self->environment, status,
+                    "Connection_GetOCIAttr(): determine session handle") < 0)
+                return NULL;
+            ociHandleType = OCI_HTYPE_SESSION;
+    }
 
     // get the value from the OCI
-    status = OCIAttrGet(sessionHandle, OCI_HTYPE_SESSION,
-            (text**) &buffer.ptr, &bufferSize, *attribute,
-            self->environment->errorHandle);
+    status = OCIAttrGet(ociHandle, ociHandleType, (text**) &buffer.ptr,
+            &bufferSize, *attribute, self->environment->errorHandle);
     if (Environment_CheckForError(self->environment, status,
             "Connection_GetOCIAttr()") < 0)
         return NULL;
@@ -422,26 +442,41 @@ static int Connection_SetOCIAttr(
     PyObject *value,                    // value to set
     ub4 *attribute)                     // OCI attribute type
 {
-    OCISession *sessionHandle;
+    ub4 ociHandleType;
     udt_Buffer buffer;
+    void *ociHandle;
     sword status;
 
     // make sure connection is connected
     if (Connection_IsConnected(self) < 0)
         return -1;
 
-    // acquire the session handle
-    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
-            (dvoid**) &sessionHandle, 0, OCI_ATTR_SESSION,
-            self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_SetOCIAttr(): determine session handle") < 0)
-        return -1;
+    // get the handle and type on which to set the attribute
+    switch (*attribute) {
+        case OCI_ATTR_INTERNAL_NAME:
+        case OCI_ATTR_EXTERNAL_NAME:
+            status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
+                    (dvoid**) &ociHandle, 0, OCI_ATTR_SERVER,
+                    self->environment->errorHandle);
+            if (Environment_CheckForError(self->environment, status,
+                    "Connection_SetOCIAttr(): determine server handle") < 0)
+                return -1;
+            ociHandleType = OCI_HTYPE_SERVER;
+            break;
+        default:
+            status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
+                    (dvoid**) &ociHandle, 0, OCI_ATTR_SESSION,
+                    self->environment->errorHandle);
+            if (Environment_CheckForError(self->environment, status,
+                    "Connection_SetOCIAttr(): determine session handle") < 0)
+                return -1;
+            ociHandleType = OCI_HTYPE_SESSION;
+    }
 
     // set the value in the OCI
     if (cxBuffer_FromObject(&buffer, value, self->environment->encoding))
         return -1;
-    status = OCIAttrSet(sessionHandle, OCI_HTYPE_SESSION, (text*) buffer.ptr,
+    status = OCIAttrSet(ociHandle, ociHandleType, (text*) buffer.ptr,
             (ub4) buffer.size, *attribute, self->environment->errorHandle);
     cxBuffer_Clear(&buffer);
     if (Environment_CheckForError(self->environment, status,
