@@ -57,6 +57,9 @@ Version 5.3 (TBD)
     connection directly. The use of the twophase argument is now deprecated.
     Applications should set the internal_name and external_name attributes
     directly to a value appropriate to the application.
+28) Added support for using application context during the creation of a
+    connection. This should be used in preference to the module, action and
+    clientinfo arguments which are now deprecated.
 
 
 Version 5.2.1 (January 2016)

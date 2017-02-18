@@ -608,6 +608,109 @@ static PyObject *Connection_ChangePasswordExternal(
 
 
 //-----------------------------------------------------------------------------
+// Connection_ProcessAppContext()
+//   Process application context during the establishing of a session. This is
+// intended to replace setting module, action and clientinfo (which was never
+// intended to be supported anyway!) and is more flexible in any case.
+//-----------------------------------------------------------------------------
+static int Connection_ProcessAppContext(
+    udt_Connection *self,               // connection
+    PyObject *appContextObj)            // app context value
+{
+    void *listHandle, *entryHandle;
+    PyObject *entryObj;
+    udt_Buffer buffer;
+    ub4 numEntries, i;
+    sword status;
+
+    // validate context is a list with at least one entry in it
+    if (!appContextObj)
+        return 0;
+    if (!PyList_Check(appContextObj)) {
+        PyErr_SetString(PyExc_TypeError,
+                "appcontext should be a list of 3-tuples");
+        return -1;
+    }
+    numEntries = (ub4) PyList_GET_SIZE(appContextObj);
+    if (numEntries == 0)
+        return 0;
+
+    // set the number of application context entries
+    status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
+            (void*) &numEntries, sizeof(ub4),
+            OCI_ATTR_APPCTX_SIZE, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_ProcessAppContext(): set app context size") < 0)
+        return -1;
+
+    // get the application context list handle
+    status = OCIAttrGet(self->sessionHandle, OCI_HTYPE_SESSION, &listHandle, 0,
+            OCI_ATTR_APPCTX_LIST, self->environment->errorHandle);
+    if (Environment_CheckForError(self->environment, status,
+            "Connection_ProcessAppContext(): get list handle") < 0)
+        return -1;
+
+    // set each application context entry
+    for (i = 0; i < numEntries; i++) {
+
+        // get entry
+        entryObj = PyList_GET_ITEM(appContextObj, i);
+        if (!PyTuple_Check(entryObj) || PyTuple_GET_SIZE(entryObj) != 3) {
+            PyErr_SetString(PyExc_TypeError,
+                    "appcontext should be a list of 3-tuples");
+            return -1;
+        }
+
+        // retrieve the context element descriptor
+        status = OCIParamGet(listHandle, OCI_DTYPE_PARAM,
+                self->environment->errorHandle, &entryHandle, i + 1);
+        if (Environment_CheckForError(self->environment, status,
+                "Connection_ProcessAppContext(): get entry handle") < 0)
+            return -1;
+
+        // set the namespace name
+        if (cxBuffer_FromObject(&buffer, PyTuple_GET_ITEM(entryObj, 0),
+                self->environment->encoding) < 0)
+            return -1;
+        status = OCIAttrSet(entryHandle, OCI_DTYPE_PARAM,
+                (void*) buffer.ptr, buffer.size, OCI_ATTR_APPCTX_NAME,
+                self->environment->errorHandle);
+        cxBuffer_Clear(&buffer);
+        if (Environment_CheckForError(self->environment, status,
+                "Connection_ProcessAppContext(): set namespace name") < 0)
+            return -1;
+
+        // set the name
+        if (cxBuffer_FromObject(&buffer, PyTuple_GET_ITEM(entryObj, 1),
+                self->environment->encoding) < 0)
+            return -1;
+        status = OCIAttrSet(entryHandle, OCI_DTYPE_PARAM,
+                (void*) buffer.ptr, buffer.size, OCI_ATTR_APPCTX_ATTR,
+                self->environment->errorHandle);
+        cxBuffer_Clear(&buffer);
+        if (Environment_CheckForError(self->environment, status,
+                "Connection_ProcessAppContext(): set name") < 0)
+            return -1;
+
+        // set the value
+        if (cxBuffer_FromObject(&buffer, PyTuple_GET_ITEM(entryObj, 2),
+                self->environment->encoding) < 0)
+            return -1;
+        status = OCIAttrSet(entryHandle, OCI_DTYPE_PARAM,
+                (void*) buffer.ptr, buffer.size, OCI_ATTR_APPCTX_VALUE,
+                self->environment->errorHandle);
+        cxBuffer_Clear(&buffer);
+        if (Environment_CheckForError(self->environment, status,
+                "Connection_ProcessAppContext(): set value") < 0)
+            return -1;
+
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // Connection_Connect()
 //   Create a new connection object by connecting to the database.
 //-----------------------------------------------------------------------------
@@ -620,7 +723,8 @@ static int Connection_Connect(
     PyObject *moduleObj,                // session "module" value
     PyObject *actionObj,                // session "action" value
     PyObject *clientinfoObj,            // session "clientinfo" value
-    PyObject *editionObj)               // session "edition" value
+    PyObject *editionObj,               // session "edition" value
+    PyObject *appContextObj)            // app context value
 {
     ub4 credentialType = OCI_CRED_EXT;
     udt_Buffer buffer;
@@ -735,6 +839,7 @@ static int Connection_Connect(
             "Connection_Connect(): set session handle") < 0)
         return -1;
 
+    // set module (deprecated)
     if (moduleObj) {
         if (cxBuffer_FromObject(&buffer, moduleObj,
                 self->environment->encoding))
@@ -748,6 +853,7 @@ static int Connection_Connect(
             return -1;
     }
 
+    // set action (deprecated)
     if (actionObj) {
         if (cxBuffer_FromObject(&buffer, actionObj,
                 self->environment->encoding))
@@ -761,6 +867,7 @@ static int Connection_Connect(
             return -1;
     }
 
+    // set client info (deprecated)
     if (clientinfoObj) {
         if (cxBuffer_FromObject(&buffer, clientinfoObj,
                 self->environment->encoding))
@@ -774,6 +881,7 @@ static int Connection_Connect(
             return -1;
     }
 
+    // set edition
     if (editionObj) {
         if (cxBuffer_FromObject(&buffer, editionObj,
                 self->environment->encoding))
@@ -786,6 +894,10 @@ static int Connection_Connect(
                 "Connection_Connect(): set edition") < 0)
             return -1;
     }
+
+    // set application context, if applicable
+    if (appContextObj && Connection_ProcessAppContext(self, appContextObj) < 0)
+        return -1;
 
     // if a new password has been specified, change it which will also
     // establish the session
@@ -883,7 +995,7 @@ static int Connection_Init(
 {
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj, *editionObj;
     PyObject *threadedObj, *twophaseObj, *eventsObj, *newPasswordObj;
-    PyObject *moduleObj, *actionObj, *clientinfoObj;
+    PyObject *moduleObj, *actionObj, *clientinfoObj, *appContextObj;
     int threaded, twophase, events;
     char *encoding, *nencoding;
     ub4 connectMode, purity;
@@ -894,7 +1006,7 @@ static int Connection_Init(
     static char *keywordList[] = { "user", "password", "dsn", "mode",
             "handle", "pool", "threaded", "twophase", "events", "cclass",
             "purity", "newpassword", "encoding", "nencoding", "module",
-            "action", "clientinfo", "edition", NULL };
+            "action", "clientinfo", "edition", "appcontext", NULL };
 
     // parse arguments
     pool = NULL;
@@ -902,16 +1014,16 @@ static int Connection_Init(
     connectMode = OCI_STMT_CACHE;
     threadedObj = twophaseObj = eventsObj = newPasswordObj = NULL;
     usernameObj = passwordObj = dsnObj = cclassObj = editionObj = NULL;
-    moduleObj = actionObj = clientinfoObj = NULL;
+    moduleObj = actionObj = clientinfoObj = appContextObj = NULL;
     threaded = twophase = events = purity = 0;
     encoding = nencoding = NULL;
     purity = OCI_ATTR_PURITY_DEFAULT;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOiiO!OOOOiOssOOOO", keywordList, &usernameObj, &passwordObj,
+            "|OOOiiO!OOOOiOssOOOOO", keywordList, &usernameObj, &passwordObj,
             &dsnObj, &connectMode, &handle, &g_SessionPoolType, &pool,
             &threadedObj, &twophaseObj, &eventsObj, &cclassObj, &purity,
             &newPasswordObj, &encoding, &nencoding, &moduleObj, &actionObj,
-            &clientinfoObj, &editionObj))
+            &clientinfoObj, &editionObj, &appContextObj))
         return -1;
     if (threadedObj) {
         threaded = PyObject_IsTrue(threadedObj);
@@ -957,7 +1069,7 @@ static int Connection_Init(
                 purity);
     return Connection_Connect(self, connectMode, twophase, passwordObj,
             newPasswordObj, moduleObj, actionObj, clientinfoObj,
-            editionObj);
+            editionObj, appContextObj);
 }
 
 

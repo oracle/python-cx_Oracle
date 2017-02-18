@@ -23,8 +23,8 @@ Module Interface
       available in Oracle 10g Release 2 and higher.
 
 
-.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition])
-              connect([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition])
+.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition, appcontext])
+              connect([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition, appcontext])
 
    Constructor for creating a connection to the database. Return a Connection
    object (:ref:`connobj`). All arguments are optional and can be specified as
@@ -84,13 +84,23 @@ Module Interface
    The nencoding argument is expected to be a string if specified and sets the
    national encoding to use for national character set database strings.
 
-   The module, action and clientinfo arguments are expected to be strings if
-   specified and sets the module, action and client_info attributes on the
-   connection respectively.
+   The module, action and clientinfo arguments are expected to be strings, if
+   specified, and sets the module, action and client_info attributes on the
+   connection respectively. These arguments are deprecated and will be removed
+   in a future version of cx_Oracle since Oracle does not support their use
+   during the establishing of a connection. Instead, application context (see
+   below) should be used.
 
    The edition argument is expected to be a string if specified and sets the
    edition to use for the session. It is only relevant if both the client and
    the server are at least Oracle Database 11.2.
+
+   The appcontext argument is expected to be a list of 3-tuples, if specified,
+   and sets the application context for the connection. Application context
+   is available in the database by using the sys_context() PL/SQL method and
+   can be used within a logon trigger as well as any other PL/SQL procedures.
+   Each entry in the list is expected to contain three strings: the namespace,
+   the name and the value.
 
 
 .. function:: Cursor(connection)
