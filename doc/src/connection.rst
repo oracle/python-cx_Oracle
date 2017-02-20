@@ -143,7 +143,7 @@ Connection Object
    :meth:`~Connection.msgproperties()`. The payload must be an object created
    using :meth:`~ObjectType.newobject()`.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -155,7 +155,7 @@ Connection Object
    Returns an object specifying the options to use when dequeuing messages.
    See :ref:`deqoptions` for more information.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -178,7 +178,7 @@ Connection Object
    Oracle Database 11.2 (both client and server must be at this level or higher
    for this to work).
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -204,7 +204,7 @@ Connection Object
    :meth:`~Connection.msgproperties()`. The payload must be an object created
    using :meth:`~ObjectType.newobject()`.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -216,7 +216,7 @@ Connection Object
    Returns an object specifying the options to use when enqueuing messages.
    See :ref:`enqoptions` for more information.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -228,7 +228,7 @@ Connection Object
    This read-write attribute specifies the external name that is used by the
    connection when logging distributed transactions.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -241,7 +241,7 @@ Connection Object
    used to create objects which can be bound to cursors created by this
    connection.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -267,7 +267,7 @@ Connection Object
    This read-write attribute specifies the internal name that is used by the
    connection when logging distributed transactions.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -281,7 +281,7 @@ Connection Object
    ensuring that transactions are not duplicated. See the Oracle documentation
    and the provided sample for more information.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note:
 
@@ -316,7 +316,7 @@ Connection Object
    Returns an object specifying the properties of messages used in advanced
    queuing. See :ref:`msgproperties` for more information.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 

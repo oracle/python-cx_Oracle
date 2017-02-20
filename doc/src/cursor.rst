@@ -285,7 +285,7 @@ Cursor Object
    automatically by the parent cursor when it is closed. Closing the parent
    cursor will invalidate the cursors returned by this method.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -421,7 +421,7 @@ Cursor Object
    An error is raised if the mode is "relative" or "absolute" and the scroll
    operation would position the cursor outside of the result set.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -437,7 +437,7 @@ Cursor Object
    attribute is checked and the corresponding mode set in Oracle when calling
    the method :meth:`~Cursor.execute()`.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 

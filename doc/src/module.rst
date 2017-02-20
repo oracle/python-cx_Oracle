@@ -882,7 +882,7 @@ Types
    support, rather than the standard number support, which improves
    performance.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
    .. note::
 
@@ -1048,7 +1048,7 @@ Exception handling
    is False in all cases unless Oracle Database 12.1 is being used on both the
    server and the client.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
 
 This allows you to use the exceptions for example in the following way:

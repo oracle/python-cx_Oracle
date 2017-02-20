@@ -59,7 +59,7 @@ SessionPool Object
    terminated if either the idle timeout happens or the max lifetime setting
    is exceeded. This attribute is only available in Oracle Database 12.1.
 
-   .. versionadded:: development
+   .. versionadded:: 5.3
 
 
 .. attribute:: SessionPool.min
