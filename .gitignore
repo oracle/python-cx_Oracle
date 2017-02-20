@@ -1,5 +1,6 @@
 *.pyc
 build/
 dist/
+doc/.build
 cx_Oracle.egg-info/
 MANIFEST
