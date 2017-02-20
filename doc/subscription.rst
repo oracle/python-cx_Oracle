@@ -6,8 +6,7 @@ Subscription Object
 
 .. note::
 
-   This object is an extension the DB API and is only available in Oracle 10g
-   Release 2 and higher.
+   This object is an extension the DB API.
 
 
 .. attribute:: Subscription.callback
@@ -24,15 +23,16 @@ Subscription Object
 
 .. attribute:: Subscription.cqqos
 
-   This read-only attribute returns the cqqos used to register the
-   subscription when it was created.
+   This read-only attribute returns the quality of service flags used to
+   register the subscription when it was created. This attribute is deprecated
+   and will be removed in a future version of cx_Oracle. Use the qos attribute
+   instead.
 
 
 .. attribute:: Subscription.id
 
    This read-only attribute returns the registration ID returned by the
-   database when this subscription was created. Support for this attribute
-   requires Oracle 11g or higher.
+   database when the subscription was created.
 
 
 .. attribute:: Subscription.namespace
@@ -62,8 +62,8 @@ Subscription Object
 
 .. attribute:: Subscription.qos
 
-   This read-only attribute returns the qos used to register the
-   subscription when it was created.
+   This read-only attribute returns the quality of service flags used to
+   register the subscription when it was created.
 
 
 .. method:: Subscription.registerquery(statement, [args])
@@ -71,29 +71,27 @@ Subscription Object
    Register the query for subsequent notification when tables referenced by the
    query are changed. This behaves similarly to cursor.execute() but only
    queries are permitted and the arguments must be a sequence or dictionary.
-   If the cqqos parameter included the flag cx_Oracle.SUBSCR_CQ_QOS_QUERY when
-   the subscription was created then the queryid for the registeredquery is
-   returned.
-
-
-.. note::
-
-   Query result set change notification is only available in Oracle 11g and
-   higher.
+   If the qos parameter included the flag cx_Oracle.SUBSCR_QOS_QUERY when
+   the subscription was created, then the ID for the registered query is
+   returned; otherwise, None is returned.
 
 
 .. attribute:: Subscription.rowids
 
    This read-only attribute returns True or False specifying if rowids will be
-   included in notifications sent using this subscription.
+   included in notifications sent using this subscription. This attribute is
+   deprecated and will be removed in a future version of cx_Oracle. Use the
+   qos attribute instead (masked with the constant SUBSCR_QOS_ROWIDS).
 
 
 .. attribute:: Subscription.timeout
 
-   This read-only attribute returns the timeout (in seconds) used to register
-   the subscription when it was created. A timeout value of 0 indicates that
-   there is no timeout.
+   This read-only attribute returns the timeout (in seconds) that was specified
+   when the subscription was created. A value of 0 indicates that there is no
+   timeout.
 
+
+.. _msgobjects:
 
 Message Objects
 ===============
@@ -197,12 +195,6 @@ Message Query Objects
    notification is received and is found in the queries attribute of message
    objects.
    
-
-.. note::
-
-   Query result set change notification is only available in Oracle 11g and
-   higher.
-
 
 .. attribute:: MessageQuery.id
 

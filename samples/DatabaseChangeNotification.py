@@ -29,7 +29,8 @@ def callback(message):
 
 connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl",
         events = True)
-sub = connection.subscribe(callback = callback, timeout = 1800, rowids = True)
+sub = connection.subscribe(callback = callback, timeout = 1800,
+        qos = cx_Oracle.SUBSCR_QOS_ROWIDS)
 print("Subscription:", sub)
 print("--> Connection:", sub.connection)
 print("--> Callback:", sub.callback)
@@ -37,7 +38,7 @@ print("--> Namespace:", sub.namespace)
 print("--> Protocol:", sub.protocol)
 print("--> Timeout:", sub.timeout)
 print("--> Operations:", sub.operations)
-print("--> Rowids?:", sub.rowids)
+print("--> Rowids?:", bool(sub.qos & cx_Oracle.SUBSCR_QOS_ROWIDS))
 sub.registerquery("select * from TestTempTable")
 
 while True:

@@ -740,6 +740,7 @@ static int Subscription_Register(
     udt_Subscription *self)             // subscription to register
 {
     udt_Environment *env;
+    ub4 qosFlags;
     sword status;
 
     // create the subscription handle
@@ -802,28 +803,45 @@ static int Subscription_Register(
     }
 
     // set suscription QOS
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-            (dvoid*) &self->qos, sizeof(ub4), OCI_ATTR_SUBSCR_QOSFLAGS,
-            env->errorHandle);
-    if (Environment_CheckForError(env, status,
-                "Subscription_Register(): set qos flags") < 0)
-        return -1;
+    qosFlags = 0;
+    if (self->qos & CX_SUBSCR_QOS_RELIABLE)
+        qosFlags |= OCI_SUBSCR_QOS_RELIABLE;
+    if (self->qos & CX_SUBSCR_QOS_DEREG_NFY)
+        qosFlags |= OCI_SUBSCR_QOS_PURGE_ON_NTFN;
+    if (qosFlags) {
+        status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
+                (dvoid*) &qosFlags, sizeof(ub4), OCI_ATTR_SUBSCR_QOSFLAGS,
+                env->errorHandle);
+        if (Environment_CheckForError(env, status,
+                    "Subscription_Register(): set qos flags") < 0)
+            return -1;
+    }
 
     // set subscription change notification QOS flags
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-            (dvoid*) &self->cqqos, sizeof(ub4), OCI_ATTR_SUBSCR_CQ_QOSFLAGS,
-            env->errorHandle);
-    if (Environment_CheckForError(env, status,
-                "Subscription_Register(): set cq qos flags") < 0)
-        return -1;
+    qosFlags = 0;
+    if (self->qos & CX_SUBSCR_QOS_QUERY)
+        qosFlags |= OCI_SUBSCR_CQ_QOS_QUERY;
+    if (self->qos & CX_SUBSCR_QOS_BEST_EFFORT)
+        qosFlags |= OCI_SUBSCR_CQ_QOS_BEST_EFFORT;
+    if (qosFlags) {
+        status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
+                (dvoid*) &qosFlags, sizeof(ub4), OCI_ATTR_SUBSCR_CQ_QOSFLAGS,
+                env->errorHandle);
+        if (Environment_CheckForError(env, status,
+                    "Subscription_Register(): set cq qos flags") < 0)
+            return -1;
+    }
 
     // set whether or not rowids are desired
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-            (dvoid*) &self->rowids, sizeof(ub4), OCI_ATTR_CHNF_ROWIDS,
-            env->errorHandle);
-    if (Environment_CheckForError(env, status,
-                "Subscription_Register(): set rowids") < 0)
-        return -1;
+    if (self->qos & CX_SUBSCR_QOS_ROWIDS) {
+        self->rowids = 1;
+        status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
+                (dvoid*) &self->rowids, sizeof(ub4), OCI_ATTR_CHNF_ROWIDS,
+                env->errorHandle);
+        if (Environment_CheckForError(env, status,
+                    "Subscription_Register(): set rowids") < 0)
+            return -1;
+    }
 
     // set which operations are desired
     status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
@@ -886,7 +904,11 @@ static udt_Subscription *Subscription_New(
     self->timeout = timeout;
     self->rowids = rowids;
     self->operations = operations;
-    self->qos = qos;
+    self->qos = qos | cqqos;
+    if (rowids)
+        self->qos |= CX_SUBSCR_QOS_ROWIDS;
+    else if (qos & CX_SUBSCR_QOS_ROWIDS)
+        self->rowids = 1;
     self->cqqos = cqqos;
     if (Subscription_Register(self) < 0) {
         Py_DECREF(self);

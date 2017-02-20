@@ -60,6 +60,23 @@ Version 5.3 (TBD)
 28) Added support for using application context during the creation of a
     connection. This should be used in preference to the module, action and
     clientinfo arguments which are now deprecated.
+29) Reworked database change notification and continuous query notification to
+    more closely align with the PL/SQL implementation and prepare for sending
+    notifications for AQ messages. The following changes were made:
+
+    - added constant :data:`~cx_Oracle.SUBSCR_QOS_BEST_EFFORT` to replace
+      deprecated constant SUBSCR_CQ_QOS_BEST_EFFORT
+    - added constant :data:`~cx_Oracle.SUBSCR_QOS_QUERY` to replace
+      deprecated constant SUBSCR_CQ_QOS_QUERY
+    - added constant :data:`~cx_Oracle.SUBSCR_QOS_DEREG_NFY` to replace
+      deprecated constant SUBSCR_QOS_PURGE_ON_NTFN
+    - added constant :data:`~cx_Oracle.SUBSCR_QOS_ROWIDS` to replace argument
+      rowids for method :meth:`Connection.subscribe()`
+    - deprecated argument cqqos for method :meth:`Connection.subscribe()`. The
+      qos argument should be used instead.
+    - dropped constants SUBSCR_CQ_QOS_CLQRYCACHE, SUBSCR_QOS_HAREG,
+      SUBSCR_QOS_MULTICBK, SUBSCR_QOS_PAYLOAD, SUBSCR_QOS_REPLICATE, and
+      SUBSCR_QOS_SECURE since they were never actually used
 
 
 Version 5.2.1 (January 2016)

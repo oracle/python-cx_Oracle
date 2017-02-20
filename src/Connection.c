@@ -1999,9 +1999,9 @@ static PyObject *Connection_Subscribe(
     namespace = OCI_SUBSCR_NAMESPACE_DBCHANGE;
     protocol = OCI_SUBSCR_PROTO_OCI;
     operations = OCI_OPCODE_ALLOPS;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiOiii", keywordList,
-            &namespace, &protocol, &callback, &timeout, &operations,
-            &rowidsObj, &port, &qos, &cqqos))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiOiii",
+            keywordList, &namespace, &protocol, &callback, &timeout,
+            &operations, &rowidsObj, &port, &qos, &cqqos))
         return NULL;
 
     // set the value for rowids

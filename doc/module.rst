@@ -529,14 +529,19 @@ Database Change Notification
    of a message.
 
 
+.. data:: SUBSCR_CQ_QOS_BEST_EFFORT
+
+   This constant is deprecated and will be removed in a future version of
+   cx_Oracle. Use :data:`cx_Oracle.SUBSCR_QOS_BEST_EFFORT` instead.
+
+
 .. data:: SUBSCR_CQ_QOS_QUERY
 
-   This constant can be used when creating a subscription and specifies that
-   notifications should only be sent if the result set of the registered query
-   changes. By default no false positive notifictions will be generated.
+   This constant is deprecated and will be removed in a future version of
+   cx_Oracle. Use :data:`cx_Oracle.SUBSCR_QOS_QUERY` instead.
 
 
-.. data:: SUBSCR_CQ_QOS_BEST_EFFORT
+.. data:: SUBSCR_QOS_BEST_EFFORT
 
    This constant can be used when creating a subscription and specifies that
    best effort filtering for query result set changes is acceptable. False
@@ -544,10 +549,37 @@ Database Change Notification
    caching applications.
 
 
-.. data:: SUBSCR_CQ_QOS_CLQRYCACHE
+.. data:: SUBSCR_QOS_DEREG_NFY
 
-   This constant is a future possible value for the cqqos argument when
-   creating a subscription. It specifies that client query caching be enabled.
+   This constant can be used when creating a subscription and specifies that
+   the subscription should be automatically unregistered after the first
+   notification has been received.
+
+
+.. data:: SUBSCR_QOS_PURGE_ON_NTFN
+
+   This constant is deprecated and will be removed in a future version of
+   cx_Oracle. Use :data:`cx_Oracle.SUBSCR_QOS_DEREG_NFY` instead.
+
+
+.. data:: SUBSCR_QOS_QUERY
+
+   This constant can be used when creating a subscription and specifies that
+   notifications should only be sent if the result set of the registered query
+   changes. By default no false positive notifictions will be generated.
+
+
+.. data:: SUBSCR_QOS_RELIABLE
+
+   This constant is a future possible value for the qos argument when
+   creating a subscription. It specifies that notifications should not be lost
+   in the event of database failure.
+
+
+.. data:: SUBSCR_QOS_ROWIDS
+
+   This constant can be used when creating a subscription and specifies that
+   rowids should be included in the message objects that are sent.
 
 
 .. data:: SUBSCR_NAMESPACE_DBCHANGE
@@ -582,50 +614,6 @@ Database Change Notification
    creating a subscription. It specifies that the database procedure will be
    invoked when a message is generated.
 
-
-.. data:: SUBSCR_QOS_HAREG
-
-   This constant is a future possible value for the qos argument when
-   creating a subscription.
-
-
-.. data:: SUBSCR_QOS_MULTICBK
-
-   This constant is a future possible value for the qos argument when
-   creating a subscription.
-   
-
-.. data:: SUBSCR_QOS_PAYLOAD
-
-   This constant is a future possible value for the qos argument when
-   creating a subscription. It specifies that a payload be delivered with the
-   message.
-
-
-.. data:: SUBSCR_QOS_PURGE_ON_NTFN
-
-   This constant can be used when creating a subscription and specifies that
-   the subscription should be automatically unregistered after the first
-   notification.
-
-
-.. data:: SUBSCR_QOS_RELIABLE
-
-   This constant is a future possible value for the qos argument when
-   creating a subscription. It specifies that notifications should not be lost
-   in the event of database failure.
-
-
-.. data:: SUBSCR_QOS_REPLICATE
-
-   This constant is a future possible value for the qos argument when
-   creating a subscription.
-
-
-.. data:: SUBSCR_QOS_SECURE
-
-   This constant is a future possible value for the qos argument when
-   creating a subscription.
 
 
 Database Resident Connection Pooling
