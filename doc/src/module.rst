@@ -531,14 +531,23 @@ Database Change Notification
 
 .. data:: SUBSCR_CQ_QOS_BEST_EFFORT
 
-   This constant is deprecated and will be removed in a future version of
-   cx_Oracle. Use :data:`cx_Oracle.SUBSCR_QOS_BEST_EFFORT` instead.
+   This constant can be used when creating a subscription and specifies that
+   best effort filtering for query result set changes is acceptable. False
+   positive notifications may be received. This behaviour may be suitable for
+   caching applications.
+
+   .. deprecated:: 5.3
+      Use :data:`~cx_Oracle.SUBSCR_QOS_BEST_EFFORT` instead.
 
 
 .. data:: SUBSCR_CQ_QOS_QUERY
 
-   This constant is deprecated and will be removed in a future version of
-   cx_Oracle. Use :data:`cx_Oracle.SUBSCR_QOS_QUERY` instead.
+   This constant can be used when creating a subscription and specifies that
+   notifications should only be sent if the result set of the registered query
+   changes. By default no false positive notifictions will be generated.
+
+   .. deprecated:: 5.3
+      Use :data:`~cx_Oracle.SUBSCR_QOS_QUERY` instead.
 
 
 .. data:: SUBSCR_QOS_BEST_EFFORT
@@ -558,8 +567,12 @@ Database Change Notification
 
 .. data:: SUBSCR_QOS_PURGE_ON_NTFN
 
-   This constant is deprecated and will be removed in a future version of
-   cx_Oracle. Use :data:`cx_Oracle.SUBSCR_QOS_DEREG_NFY` instead.
+   This constant can be used when creating a subscription and specifies that
+   the subscription should be automatically unregistered after the first
+   notification has been received.
+
+   .. deprecated:: 5.3
+      Use :data:`~cx_Oracle.SUBSCR_QOS_DEREG_NFY` instead.
 
 
 .. data:: SUBSCR_QOS_QUERY
@@ -850,6 +863,8 @@ Types
    NCHAR columns.  There is no direct support for this in Oracle but long
    NCHAR strings are bound this way in order to avoid the "unimplemented or
    unreasonable conversion requested" error.
+
+   .. deprecated:: 5.3
 
    .. note::
 
