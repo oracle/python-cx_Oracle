@@ -34,9 +34,9 @@ Connection Object
 
 .. attribute:: Connection.action
 
-   This write-only attribute sets the action column in the v$session table and
-   is only available in Oracle 10g. It is a string attribute and cannot be set
-   to None -- use the empty string instead.
+   This write-only attribute sets the action column in the v$session table. It
+   is a string attribute and cannot be set to None -- use the empty string
+   instead.
 
    .. note::
 
@@ -46,14 +46,15 @@ Connection Object
 .. attribute:: Connection.autocommit
 
    This read-write attribute determines whether autocommit mode is on or off.
+   When autocommit mode is on, all statements are committed as soon as they
+   have completed executing.
 
    .. note::
 
       This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.begin()
-              Connection.begin([formatId, transactionId, branchId])
+.. method:: Connection.begin([formatId, transactionId, branchId])
 
    Explicitly begin a new transaction. Without parameters, this explicitly
    begins a local transaction; otherwise, this explicitly begins a distributed
@@ -61,9 +62,8 @@ Connection Object
    for more details.
 
    Note that in order to make use of global (distributed) transactions, the
-   twophase argument to the Connection constructor must be a true value. See
-   the comments on the Connection constructor for more information
-   (:ref:`module`).
+   :attr:`~Connection.internal_name` and :attr:`~Connection.external_name`
+   attributes must be set.
 
    .. note::
 
@@ -100,8 +100,8 @@ Connection Object
 
 .. attribute:: Connection.clientinfo
 
-   This write-only attribute sets the client_info column in the v$session table
-   and is only available in Oracle 10g.
+   This write-only attribute sets the client_info column in the v$session
+   table.
 
    .. note::
 
@@ -132,7 +132,7 @@ Connection Object
 
 .. method:: Connection.cursor()
 
-   Return a new Cursor object (:ref:`cursorobj`) using the connection.
+   Return a new :ref:`cursor object <cursorobj>` using the connection.
 
 
 .. method:: Connection.deq(name, options, msgproperties, payload)
@@ -141,7 +141,7 @@ Connection Object
    object can be created using :meth:`~Connection.deqoptions()` and the
    msgproperties object can be created using
    :meth:`~Connection.msgproperties()`. The payload must be an object created
-   using :meth:`~ObjectType.newobject()`.
+   using :meth:`ObjectType.newobject()`.
 
    .. versionadded:: 5.3
 
@@ -188,12 +188,11 @@ Connection Object
 .. attribute:: Connection.encoding
 
    This read-only attribute returns the IANA character set name of the
-   character set in use by the Oracle client.
+   character set in use by the Oracle client for regular strings.
 
    .. note::
 
-      This attribute is an extension to the DB API definition and is only
-      available in Python 2.x when not built in unicode mode.
+      This attribute is an extension to the DB API definition.
 
 
 .. method:: Connection.enq(name, options, msgproperties, payload)
@@ -202,7 +201,7 @@ Connection Object
    object can be created using :meth:`~Connection.enqoptions()` and the
    msgproperties object can be created using
    :meth:`~Connection.msgproperties()`. The payload must be an object created
-   using :meth:`~ObjectType.newobject()`.
+   using :meth:`ObjectType.newobject()`.
 
    .. versionadded:: 5.3
 
@@ -237,7 +236,7 @@ Connection Object
 
 .. method:: Connection.gettype(name)
 
-   Return a type object (:ref:`objecttype`) given its name. This can then be
+   Return a :ref:`type object <objecttype>` given its name. This can then be
    used to create objects which can be bound to cursors created by this
    connection.
 
@@ -302,9 +301,9 @@ Connection Object
 
 .. attribute:: Connection.module
 
-   This write-only attribute sets the module column in the v$session table and
-   is only available in Oracle 10g. The maximum length for this string is 48
-   and if you exceed this length you will get ORA-24960.
+   This write-only attribute sets the module column in the v$session table. The
+   maximum length for this string is 48 and if you exceed this length you will
+   get ORA-24960.
 
    .. note:
 
@@ -330,18 +329,18 @@ Connection Object
 
    .. note::
 
-      This attribute is an extension to the DB API definition and is only
-      available in Python 2.x when not built in unicode mode.
+      This attribute is an extension to the DB API definition.
 
 
 .. attribute:: Connection.outputtypehandler
 
-   This read-write attribute specifies a method called for each value that is
-   to be fetched from any cursor associated with this connection. The method
-   signature is handler(cursor, name, defaultType, length, precision, scale)
-   and the return value is expected to be a variable object or None in which
-   case a default variable object will be created. If this attribute is None,
-   the default behavior will take place for all values fetched from cursors.
+   This read-write attribute specifies a method called for each column that is
+   going to be fetched from any cursor associated with this connection. The
+   method signature is handler(cursor, name, defaultType, length, precision,
+   scale) and the return value is expected to be a variable object or None in
+   which case a default variable object will be created. If this attribute is
+   None, the default behavior will take place for all columns fetched from
+   cursors.
 
    .. note::
 
@@ -354,8 +353,7 @@ Connection Object
 
    .. note::
 
-         This method is an extension to the DB API definition and is only
-         available in Oracle 10g R2 and higher.
+         This method is an extension to the DB API definition.
 
 
 .. method:: Connection.prepare()
@@ -376,33 +374,49 @@ Connection Object
 
 .. method:: Connection.shutdown([mode])
 
-   Shutdown the database. In order to do this the connection must connected as
-   :data:`SYSDBA` or :data:`SYSOPER`. First shutdown using one of the
-   DBSHUTDOWN constants defined in the constants (:ref:`constants`) section.
-   Next issue the SQL statements required to close the database ("alter
-   database close normal") and dismount the database ("alter database
-   dismount") followed by a second call to this method with the
-   :data:`DBSHUTDOWN_FINAL` mode.
+   Shutdown the database. In order to do this the connection must be connected
+   as :data:`~cx_Oracle.SYSDBA` or :data:`~cx_Oracle.SYSOPER`. Two calls must
+   be made unless the mode specified is :data:`~cx_Oracle.DBSHUTDOWN_ABORT`. An
+   example is shown below:
+
+   ::
+
+        import cx_Oracle
+
+        connection = cx_Oracle.Connection(mode = cx_Oracle.SYSDBA)
+        connection.shutdown(mode = cx_Oracle.DBSHUTDOWN_IMMEDIATE)
+        cursor = connection.cursor()
+        cursor.execute("alter database close normal")
+        cursor.execute("alter database dismount")
+        connection.shutdown(mode = cx_Oracle.DBSHUTDOWN_FINAL)
 
    .. note::
 
-      This method is an extension to the DB API definition and is only
-      available in Oracle 10g R2 and higher.
+      This method is an extension to the DB API definition.
 
 
 .. method:: Connection.startup(force=False, restrict=False)
 
    Startup the database. This is equivalent to the SQL\*Plus command "startup
-   nomount". The connection must be connected as :data:`SYSDBA` or
-   :data:`SYSOPER` with the :data:`PRELIM_AUTH` option specified for this to
-   work. Once this method has completed, connect again without the
-   :data:`PRELIM_AUTH` option and issue the statements required to mount
-   ("alter database mount") and open ("alter database open") the database.
+   nomount". The connection must be connected as :data:`~cx_Oracle.SYSDBA` or
+   :data:`~cx_Oracle.SYSOPER` with the :data:`~cx_Oracle.PRELIM_AUTH` option
+   specified for this to work. An example is shown below:
+
+   ::
+
+        import cx_Oracle
+
+        connection = cx_Oracle.Connection(
+                mode = cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
+        connection.startup()
+        connection = cx_Oracle.connect(mode = cx_Oracle.SYSDBA)
+        cursor = connection.cursor()
+        cursor.execute("alter database mount")
+        cursor.execute("alter database open")
 
    .. note::
 
-      This method is an extension to the DB API definition and is only
-      available in Oracle 10g R2 and higher.
+      This method is an extension to the DB API definition.
 
 
 .. attribute:: Connection.stmtcachesize
@@ -418,12 +432,12 @@ Connection Object
 
 .. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, rowids=False, port=0, qos=0, cqqos=0)
 
-   Return a new Subscription object (:ref:`subscrobj`) using the connection.
+   Return a new :ref:`subscription object <subscrobj>` using the connection.
    Currently the namespace and protocol arguments cannot have any other
    meaningful values.
 
    The callback is expected to be a callable that accepts a single argument.
-   A message object (:ref:`msgobjects`) is passed to this callback whenever a
+   A :ref:`message object <msgobjects>` is passed to this callback whenever a
    notification is received.
 
    The timeout value specifies that the subscription expires after the given
@@ -437,7 +451,7 @@ Connection Object
    The rowids flag specifies whether the rowids of affected rows should be
    included in the messages that are sent. This argument is deprecated and
    will be removed in a future version of cx_Oracle. Use the value
-   :data:`cx_Oracle.SUBSCR_QOS_ROWIDS` for the qos argument instead.
+   :data:`~cx_Oracle.SUBSCR_QOS_ROWIDS` for the qos argument instead.
 
    The port specifies the listening port for callback notifications from the
    database server. If not specified, an unused port will be selected by the

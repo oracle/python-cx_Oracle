@@ -77,6 +77,8 @@ Version 5.3 (TBD)
     - dropped constants SUBSCR_CQ_QOS_CLQRYCACHE, SUBSCR_QOS_HAREG,
       SUBSCR_QOS_MULTICBK, SUBSCR_QOS_PAYLOAD, SUBSCR_QOS_REPLICATE, and
       SUBSCR_QOS_SECURE since they were never actually used
+30) Deprecated use of the numbersAsStrings attribute on cursors. An output type
+    handler should be used instead.
 
 
 Version 5.2.1 (January 2016)

@@ -24,9 +24,10 @@ Subscription Object
 .. attribute:: Subscription.cqqos
 
    This read-only attribute returns the quality of service flags used to
-   register the subscription when it was created. This attribute is deprecated
-   and will be removed in a future version of cx_Oracle. Use the qos attribute
-   instead.
+   register the subscription when it was created.
+
+   .. deprecated:: 5.3
+      Use the qos attribute instead.
 
 
 .. attribute:: Subscription.id
@@ -79,9 +80,11 @@ Subscription Object
 .. attribute:: Subscription.rowids
 
    This read-only attribute returns True or False specifying if rowids will be
-   included in notifications sent using this subscription. This attribute is
-   deprecated and will be removed in a future version of cx_Oracle. Use the
-   qos attribute instead (masked with the constant SUBSCR_QOS_ROWIDS).
+   included in notifications sent using this subscription.
+
+   .. deprecated:: 5.3
+      Use :data:`~cx_Oracle.SUBSCR_QOS_ROWIDS` masked with the qos attribute
+      instead.
 
 
 .. attribute:: Subscription.timeout
@@ -111,9 +114,9 @@ Message Objects
 .. attribute:: Message.queries
 
    This read-only attribute returns a list of message query objects that give
-   information about query result sets  changed for this notification. This
-   attribute will be None if the cqqos parameter did not include the flag
-   cx_Oracle.SUBSCR_CQ_QOS_QUERY when the subscription was created.
+   information about query result sets changed for this notification. This
+   attribute will be None if the qos parameter did not include the flag
+   :data:`~cx_Oracle.SUBSCR_QOS_QUERY` when the subscription was created.
 
 
 .. attribute:: Message.subscription
@@ -126,15 +129,14 @@ Message Objects
 
    This read-only attribute returns a list of message table objects that give
    information about the tables changed for this notification. This
-   attribute will be None if the cqqos parameter included the flag
-   cx_Oracle.SUBSCR_CQ_QOS_QUERY when the subscription was created.
+   attribute will be None if the qos parameter included the flag
+   :data:`~cx_Oracle.SUBSCR_QOS_QUERY` when the subscription was created.
 
 
 .. attribute:: Message.type
 
    This read-only attribute returns the type of message that has been sent.
-   See the constants section on database change notification for additional
-   information.
+   See the constants section on event types for additional information.
 
 
 Message Table Objects
@@ -162,7 +164,8 @@ Message Table Objects
 
    This read-only attribute returns a list of message row objects that give
    information about the rows changed on the table. This value is only filled
-   in if the rowids argument to the Connection.subscribe() method is True.
+   in if the qos parameter to the :meth:`Connection.subscribe()` method
+   included the flag :data:`~cx_Oracle.SUBSCR_QOS_ROWIDS`.
 
 
 Message Row Objects
@@ -207,7 +210,7 @@ Message Query Objects
 
    This read-only attribute returns the operation that took place on the query
    result set that was changed. Valid values for this attribute are
-   cx_Oracle.EVENT_DEREG and cx_Oracle.EVENT_QUERYCHANGE.
+   :data:`~cx_Oracle.EVENT_DEREG` and :data:`~cx_Oracle.EVENT_QUERYCHANGE`.
 
 
 .. attribute:: MessageQuery.tables

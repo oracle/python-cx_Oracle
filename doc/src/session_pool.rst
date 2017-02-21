@@ -6,13 +6,13 @@ SessionPool Object
 
 .. note::
 
-   This object is an extension the DB API.
+   This object is an extension to the DB API.
 
 
 .. method:: SessionPool.acquire()
 
-   Acquire a connection from the session pool and return a connection object
-   (:ref:`connobj`).
+   Acquire a connection from the session pool and return a
+   :ref:`connection object <connobj>`.
 
 
 .. attribute:: SessionPool.busy

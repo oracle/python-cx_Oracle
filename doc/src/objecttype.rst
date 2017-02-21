@@ -7,14 +7,14 @@ Object Type Objects
 .. note::
 
    This object is an extension to the DB API. It is returned by the
-   :meth:`~Connection.gettype()` call and is available as the
-   :data:`~Variable.type` for variables containing Oracle objects.
+   :meth:`Connection.gettype()` call and is available as the
+   :data:`Variable.type` for variables containing Oracle objects.
 
 
 .. method:: ObjectType([sequence])
 
    The object type may be called directly and serves as an alternative way of
-   calling newobject().
+   calling :meth:`~ObjectType.newobject()`.
 
 
 .. attribute:: ObjectType.attributes
@@ -40,7 +40,7 @@ Object Type Objects
    modified by setting its attributes and then bound to a cursor for
    interaction with Oracle. If the object type refers to a collection, a
    sequence may be passed and the collection will be initialized with the
-   items in that sequnce.
+   items in that sequence.
 
 
 .. attribute:: ObjectType.schema
@@ -54,8 +54,9 @@ Object Objects
 .. note::
 
    This object is an extension to the DB API. It is returned by the
-   :meth:`~ObjectType.newobject()` call and can be bound to variables of
-   type cx_Oracle.OBJECT. Attributes can be retrieved and set directly.
+   :meth:`ObjectType.newobject()` call and can be bound to variables of
+   type :data:`~cx_Oracle.OBJECT`. Attributes can be retrieved and set
+   directly.
 
 .. method:: Object.append(element)
 
@@ -92,26 +93,26 @@ Object Objects
 .. method:: Object.extend(sequence)
 
    Append all of the elements in the sequence to the collection. This is
-   the equivalent of performing append() for each element found in the
-   sequence.
+   the equivalent of performing :meth:`~Object.append()` for each element found
+   in the sequence.
 
 
 .. method:: Object.first()
 
    Return the index of the first element in the collection. If the collection
-   is empty, an error is raised.
+   is empty, an exception is raised.
 
 
 .. method:: Object.getelement(index)
 
    Return the element at the specified index of the collection. If no element
-   exists at that index, IndexError is raised.
+   exists at that index, an exception is raised.
 
 
 .. method:: Object.last()
 
    Return the index of the last element in the collection. If the collection
-   is empty, an error is raised.
+   is empty, an exception is raised.
 
 
 .. method:: Object.next(index)

@@ -7,7 +7,7 @@ to the Python database API specification. This module is currently built
 against Oracle 11.2 and 12.1 and works for both Python 2.x and 3.x.
 
 **cx_Oracle** is distributed under an open-source :ref:`license <license>`
-(the PSF license).
+(the BSD license).
 
 Contents:
 

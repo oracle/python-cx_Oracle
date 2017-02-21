@@ -19,16 +19,15 @@ Module Interface
 
    .. note::
 
-      This method is an extension to the DB API definition and is only
-      available in Oracle 10g Release 2 and higher.
+      This method is an extension to the DB API definition.
 
 
 .. function:: Connection([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition, appcontext])
               connect([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition, appcontext])
 
-   Constructor for creating a connection to the database. Return a Connection
-   object (:ref:`connobj`). All arguments are optional and can be specified as
-   keyword parameters.
+   Constructor for creating a connection to the database. Return a
+   :ref:`connection object <connobj>`. All arguments are optional and can be
+   specified as keyword parameters.
   
    The dsn (data source name) is the TNS entry (from the Oracle names server or
    tnsnames.ora file) or is a string like the one returned from makedsn(). If
@@ -36,22 +35,21 @@ Module Interface
    the format ``user/password@dsn``, the same format accepted by Oracle
    applications such as SQL\*Plus.
   
-   If the mode is specified, it must be one of :data:`SYSDBA`, :data:`SYSASM` or
-   :data:`SYSOPER` which are defined at the module level; otherwise it defaults
-   to the normal mode of connecting.
+   If the mode is specified, it must be one of :data:`~cx_Oracle.SYSDBA`,
+   :data:`~cx_Oracle.SYSASM` or :data:`~cx_Oracle.SYSOPER` which are defined at
+   the module level; otherwise, it defaults to the normal mode of connecting.
   
    If the handle is specified, it must be of type OCISvcCtx\* and is only of
    use when embedding Python in an application (like PowerBuilder) which has
    already made the connection.
   
-   The pool argument is expected to be a session pool object (:ref:`sesspool`)
+   The pool argument is expected to be a :ref:`session pool object <sesspool>`
    and the use of this argument is the equivalent of calling pool.acquire().
   
    The threaded argument is expected to be a boolean expression which
-   indicates whether or not Oracle should use the mode OCI_THREADED to wrap
-   accesses to connections with a mutex. Doing so in single threaded
-   applications imposes a performance penalty of about 10-15% which is why the
-   default is False.
+   indicates whether or not Oracle should wrap accesses to connections with a
+   mutex. Doing so in single threaded applications imposes a performance
+   penalty of about 10-15% which is why the default is False.
   
    The twophase argument is expected to be a boolean expression which
    indicates whether or not the external_name and internal_name attributes
@@ -61,19 +59,14 @@ Module Interface
    set these attributes itself to an appropriate value for the application.
 
    The events argument is expected to be a boolean expression which indicates
-   whether or not to initialize Oracle in events mode (only available in Oracle
-   11g and higher).
+   whether or not to initialize Oracle in events mode.
 
    The cclass argument is expected to be a string and defines the connection
-   class for database resident connection pooling (DRCP) in Oracle 11g and
-   higher.
+   class for database resident connection pooling (DRCP).
 
-   The purity argument is expected to be one of :data:`ATTR_PURITY_NEW` (the
-   session must be new without any prior session state),
-   :data:`ATTR_PURITY_SELF` (the session may have been used before) or
-   :data:`ATTR_PURITY_DEFAULT` (the default behavior which is defined by Oracle
-   in its documentation). This argument is only relevant in Oracle 11g and
-   higher.
+   The purity argument is expected to be one of
+   :data:`~cx_Oracle.ATTR_PURITY_NEW`, :data:`~cx_Oracle.ATTR_PURITY_SELF`, or
+   :data:`~cx_Oracle.ATTR_PURITY_DEFAULT`.
 
    The newpassword argument is expected to be a string if specified and sets
    the password for the logon during the connection process.
@@ -85,10 +78,10 @@ Module Interface
    national encoding to use for national character set database strings.
 
    The module, action and clientinfo arguments are expected to be strings, if
-   specified, and sets the module, action and client_info attributes on the
+   specified, and set the module, action and client_info attributes on the
    connection respectively. These arguments are deprecated and will be removed
    in a future version of cx_Oracle since Oracle does not support their use
-   during the establishing of a connection. Instead, application context (see
+   during the creation of a connection. Instead, application context (see
    below) should be used.
 
    The edition argument is expected to be a string if specified and sets the
@@ -105,8 +98,8 @@ Module Interface
 
 .. function:: Cursor(connection)
 
-   Constructor for creating a cursor.  Return a new Cursor object
-   (:ref:`cursorobj`) using the connection.
+   Constructor for creating a cursor.  Return a new 
+   :ref:`cursor object <cursorobj>` using the connection.
 
    .. note::
 
@@ -127,11 +120,12 @@ Module Interface
 
 .. function:: makedsn(host, port, sid, [service_name])
 
-   Return a string suitable for use as the dsn for the connect() method. This
-   string is identical to the strings that are defined by the Oracle names
-   server or defined in the tnsnames.ora file. If you wish to use the service
-   name instead of the sid, do not include a value for the parameter sid and
-   use the keyword parameter service_name instead.
+   Return a string suitable for use as the dsn argument for
+   :meth:`~cx_Oracle.connect()`. This string is identical to the strings that
+   are defined by the Oracle names server or defined in the tnsnames.ora file.
+   If you wish to use the service name instead of the sid, do not include a
+   value for the parameter sid and use the keyword parameter service_name
+   instead.
 
    .. note::
 
@@ -140,17 +134,16 @@ Module Interface
 
 .. function:: SessionPool(user, password, database, min, max, increment, [connectiontype, threaded, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True, externalauth=True, encoding=None, nencoding=None])
 
-   Create a session pool (see Oracle documentation for more information) and
-   return a session pool object (:ref:`sesspool`). This allows for very fast
-   connections to the database and is of primary use in a server where the same
-   connection is being made multiple times in rapid succession (a web server,
-   for example). If the connection type is specified, all calls to acquire()
-   will create connection objects of that type, rather than the base type
-   defined at the module level. The threaded attribute is expected to be a
-   boolean expression which indicates whether or not Oracle should use the mode
-   OCI_THREADED to wrap accesses to connections with a mutex. Doing so in
-   single threaded applications imposes a performance penalty of about 10-15%
-   which is why the default is False.
+   Create and return a :ref:`session pool object <sesspool>`. This
+   allows for very fast connections to the database and is of primary use in a
+   server where the same connection is being made multiple times in rapid
+   succession (a web server, for example). If the connection type is specified,
+   all calls to acquire() will create connection objects of that type, rather
+   than the base type defined at the module level. The threaded attribute is
+   expected to be a boolean expression which indicates whether Oracle should
+   wrap accesses to connections with a mutex. Doing so in single threaded
+   applications imposes a performance penalty of about 10-15% which is why the
+   default is False.
 
    The encoding argument is expected to be a string if specified and sets the
    encoding to use for regular database strings.
@@ -193,8 +186,8 @@ Module Interface
 Constants
 =========
 
-Global
-------
+General
+-------
 
 .. data:: apilevel
 
@@ -216,34 +209,6 @@ Global
    the interface. Currently 'named' as in 'where name = :name'.
 
 
-.. data:: SYSDBA
-
-   Value to be passed to the connect() method which indicates that SYSDBA
-   access is to be acquired. See the Oracle documentation for more details.
-
-   .. note::
-
-      This constant is an extension to the DB API definition.
-
-.. data:: SYSASM
-
-   Value to be passed to the connect() method which indicates that SYSASM
-   access is to be acquired. See the Oracle documentation for more details.
-
-   .. note::
-
-      This constant is an extension to the DB API definition.
-
-.. data:: SYSOPER
-
-   Value to be passed to the connect() method which indicates that SYSOPER
-   access is to be acquired. See the Oracle documentation for more details.
-
-   .. note::
-
-      This constant is an extension to the DB API definition.
-
-
 .. data:: threadsafety
 
    Integer constant stating the level of thread safety that the interface
@@ -254,11 +219,11 @@ Global
 
    Note that in order to make use of multiple threads in a program which
    intends to connect and disconnect in different threads, the threaded
-   argument to the Connection constructor must be a true value. See the
-   comments on the Connection constructor for more information (:ref:`module`).
+   argument to :meth:`connect()` or :meth:`SessionPool()` must be true.
 
 
 .. data:: version
+.. data:: __version__
 
    String constant stating the version of the module. Currently '|release|'.
 
@@ -267,12 +232,19 @@ Global
       This attribute is an extension to the DB API definition.
 
 
-Advanced Queuing: Common
-------------------------
+Advanced Queuing: Delivery Modes
+--------------------------------
 
-.. note::
-
-   These constants are extensions to the DB API definition.
+These constants are extensions to the DB API definition. They are possible
+values for the :attr:`~DeqOptions.deliverymode` attribute of the
+:ref:`dequeue options object <deqoptions>` passed as the options argument to
+the :meth:`Connection.deq()` method as well as the
+:attr:`~EnqOptions.deliverymode` attribute of the
+:ref:`enqueue options object <enqoptions>` passed as the options argument to
+the :meth:`Connection.enq()` method. They are also possible values for the
+:attr:`~MessageProperties.deliverymode` attribute of the
+:ref:`message properties object <msgproperties>` passed as the msgproperties
+argument to the :meth:`Connection.deq()` and :meth:`Connection.enq()` methods.
 
 
 .. data:: MSG_BUFFERED
@@ -281,52 +253,25 @@ Advanced Queuing: Common
    enqueue or dequeue buffered messages.
 
 
-.. data:: MSG_EXPIRED
-
-   This constant is used to specify that the message has been moved to the
-   exception queue.
-
-
-.. data:: MSG_NO_DELAY
-
-   This constant is used to specify that the message is available for
-   immediate dequeuing.
-
-
-.. data:: MSG_NO_EXPIRATION
-
-   This constant is used to specify that the message never expires.
-
-
 .. data:: MSG_PERSISTENT
 
    This constant is used to specify that enqueue/dequeue operations should
-   enqueue or dequeue persistent messages (the default).
+   enqueue or dequeue persistent messages. This is the default value.
 
 
-.. data:: MSG_PROCESSED
+.. data:: MSG_PERSISTENT_OR_BUFFERED
 
-   This constant is used to specify that the message has been processed and
-   is retained.
-
-
-.. data:: MSG_READY
-
-   This constant is used to specify that the message is ready to be processed.
+   This constant is used to specify that dequeue operations should dequeue
+   either persistent or buffered messages.
 
 
-.. data:: MSG_WAITING
+Advanced Queuing: Dequeue Modes
+-------------------------------
 
-   This constant is used to specify that the message delay has not yet been
-   reached.
-
-
-Advanced Queuing: Dequeue
--------------------------
-
-.. note::
-
-   These constants are extensions to the DB API definition.
+These constants are extensions to the DB API definition. They are possible
+values for the :attr:`~DeqOptions.mode` attribute of the
+:ref:`dequeue options object <deqoptions>`. This object is the options argument
+for the :meth:`Connection.deq()` method.
 
 
 .. data:: DEQ_BROWSE
@@ -335,24 +280,39 @@ Advanced Queuing: Dequeue
    without acquiring any lock on the message (eqivalent to a select statement).
 
 
-.. data:: DEQ_FIRST_MSG
-
-   This constant is used to specify that dequeue should retrieve the first
-   available message that matches the search criteria. This resets the position
-   to the beginning of the queue.
-
-
-.. data:: DEQ_IMMEDIATE
-
-   This constant is used to specify that dequeue should perform its work as
-   part of an independent transaction.
-
-
 .. data:: DEQ_LOCKED
 
    This constant is used to specify that dequeue should read and obtain a
    write lock on the message for the duration of the transaction (equivalent to
    a select for update statement).
+
+
+.. data:: DEQ_REMOVE
+
+   This constant is used to specify that dequeue should read the message and
+   update or delete it. This is the default value.
+
+
+.. data:: DEQ_REMOVE_NODATA
+
+   This constant is used to specify that dequeue should confirm receipt of the
+   message but not deliver the actual message content.
+
+
+Advanced Queuing: Dequeue Navigation Modes
+------------------------------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the :attr:`~DeqOptions.navigation` attribute of the
+:ref:`dequeue options object <deqoptions>`. This object is the options argument
+for the :meth:`Connection.deq()` method.
+
+
+.. data:: DEQ_FIRST_MSG
+
+   This constant is used to specify that dequeue should retrieve the first
+   available message that matches the search criteria. This resets the position
+   to the beginning of the queue.
 
 
 .. data:: DEQ_NEXT_MSG
@@ -372,48 +332,55 @@ Advanced Queuing: Dequeue
    current queue.
 
 
+Advanced Queuing: Dequeue Visibility Modes
+------------------------------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the :attr:`~DeqOptions.visibility` attribute of the
+:ref:`dequeue options object <deqoptions>`. This object is the options argument
+for the :meth:`Connection.deq()` method.
+
+
+.. data:: DEQ_IMMEDIATE
+
+   This constant is used to specify that dequeue should perform its work as
+   part of an independent transaction.
+
+
+.. data:: DEQ_ON_COMMIT
+
+   This constant is used to specify that dequeue should be part of the current
+   transaction. This is the default value.
+
+
+Advanced Queuing: Dequeue Wait Modes
+------------------------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the :attr:`~DeqOptions.wait` attribute of the
+:ref:`dequeue options object <deqoptions>`. This object is the options argument
+for the :meth:`Connection.deq()` method.
+
+
 .. data:: DEQ_NO_WAIT
 
    This constant is used to specify that dequeue not wait for messages to be
    available for dequeuing.
 
 
-.. data:: DEQ_ON_COMMIT
-
-   This constant is used to specify that dequeue should be part of the current
-   transaction (the default).
-
-
-.. data:: DEQ_REMOVE
-
-   This constant is used to specify that dequeue should read the message and
-   update or delete it (the default mode).
-
-
-.. data:: DEQ_REMOVE_NODATA
-
-   This constant is used to specify that dequeue should confirm receipt of the
-   message but not deliver the actual message content.
-
-
 .. data:: DEQ_WAIT_FOREVER
 
    This constant is used to specify that dequeue should wait forever for
-   messages to be available for dequeuing (the default wait mode).
+   messages to be available for dequeuing. This is the default value.
 
 
-.. data:: MSG_PERSISTENT_OR_BUFFERED
+Advanced Queuing: Enqueue Visibility Modes
+------------------------------------------
 
-   This constant is used to specify that dequeue should dequeue either
-   persistent or buffered messages.
-
-
-Advanced Queuing: Enqueue
--------------------------
-
-.. note::
-
-   These constants are extensions to the DB API definition.
+These constants are extensions to the DB API definition. They are possible
+values for the :attr:`~EnqOptions.visibility` attribute of the
+:ref:`enqueue options object <enqoptions>`. This object is the options argument
+for the :meth:`Connection.enq()` method.
 
 
 .. data:: ENQ_IMMEDIATE
@@ -425,116 +392,358 @@ Advanced Queuing: Enqueue
 .. data:: ENQ_ON_COMMIT
 
    This constant is used to specify that enqueue should be part of the current
-   transaction (the default).
+   transaction. This is the default value.
 
 
-Database Change Notification
-----------------------------
+Advanced Queuing: Message States
+--------------------------------
 
-.. note::
+These constants are extensions to the DB API definition. They are possible
+values for the :attr:`~MessageProperties.state` attribute of the
+:ref:`message properties object <msgproperties>`. This object is the
+msgproperties argument for the :meth:`Connection.deq()` and
+:meth:`Connection.enq()` methods.
 
-   These constants are extensions to the DB API definition.
+
+.. data:: MSG_EXPIRED
+
+   This constant is used to specify that the message has been moved to the
+   exception queue.
+
+
+.. data:: MSG_PROCESSED
+
+   This constant is used to specify that the message has been processed and
+   has been retained.
+
+
+.. data:: MSG_READY
+
+   This constant is used to specify that the message is ready to be processed.
+
+
+.. data:: MSG_WAITING
+
+   This constant is used to specify that the message delay has not yet been
+   reached.
+
+
+Advanced Queuing: Other
+-----------------------
+
+These constants are extensions to the DB API definition. They are special
+constants used in advanced queuing.
+
+
+.. data:: MSG_NO_DELAY
+
+   This constant is a possible value for the :attr:`~MessageProperties.delay`
+   attribute of the :ref:`message properties object <msgproperties>` passed
+   as the msgproperties parameter to the :meth:`Connection.deq()` and
+   :meth:`Connection.enq()` methods. It specifies that no delay should be
+   imposed and the message should be immediately available for dequeuing. This
+   is also the default value.
+
+
+.. data:: MSG_NO_EXPIRATION
+
+   This constant is a possible value for the
+   :attr:`~MessageProperties.expiration` attribute of the
+   :ref:`message properties object <msgproperties>` passed as the msgproperties
+   parameter to the :meth:`Connection.deq()` and :meth:`Connection.enq()`
+   methods. It specifies that the message never expires. This is also the
+   default value.
+
+
+Connection Authorization Modes
+------------------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the mode parameter of the :meth:`connect()` method.
+
+
+.. data:: PRELIM_AUTH
+
+   This constant is used to specify that preliminary authentication is to be
+   used. This is needed for performing database startup and shutdown.
+
+
+.. data:: SYSASM
+
+   This constant is used to specify that SYSASM access is to be acquired.
+
+
+.. data:: SYSDBA
+
+   This constant is used to specify that SYSDBA access is to be acquired.
+
+
+.. data:: SYSOPER
+
+   This constant is used to specify that SYSOPER access is to be acquired.
+
+
+Database Shutdown Modes
+-----------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the mode parameter of the :meth:`Connection.shutdown()` method.
+
+
+.. data:: DBSHUTDOWN_ABORT
+
+   This constant is used to specify that the caller should not wait for current
+   processing to complete or for users to disconnect from the database. This
+   should only be used in unusual circumstances since database recovery may be
+   necessary upon next startup.
+
+
+.. data:: DBSHUTDOWN_FINAL
+
+   This constant is used to specify that the instance can be truly halted. This
+   should only be done after the database has been shutdown with one of the
+   other modes (except abort) and the database has been closed and dismounted
+   using the appropriate SQL commands.
+
+
+.. data:: DBSHUTDOWN_IMMEDIATE
+
+   This constant is used to specify that all uncommitted transactions should be
+   rolled back and any connected users should be disconnected.
+
+
+.. data:: DBSHUTDOWN_TRANSACTIONAL
+
+   This constant is used to specify that further connections to the database
+   should be prohibited and no new transactions should be allowed. It then
+   waits for all active transactions to complete.
+
+
+.. data:: DBSHUTDOWN_TRANSACTIONAL_LOCAL
+
+   This constant is used to specify that further connections to the database
+   should be prohibited and no new transactions should be allowed. It then
+   waits for only local active transactions to complete.
+
+
+Event Types
+-----------
+
+These constants are extensions to the DB API definition. They are possible
+values for the :attr:`Message.type` attribute of the messages that are sent
+for subscriptions created by the :meth:`Connection.subscribe()` method.
 
 
 .. data:: EVENT_DEREG
 
-   This constant is a possible value for the type of a message and indicates
-   that the subscription object has been deregistered.
+   This constant is used to specify that the subscription has been
+   deregistered and no further notifications will be sent.
 
 
 .. data:: EVENT_NONE
 
-   This constant is a possible value for the type of a message and provides no
-   additional information about the event.
+   This constant is used to specify no information is available about the
+   event.
 
 
 .. data:: EVENT_OBJCHANGE
 
-   This constant is a possible value for the type of a message and indicates
-   that an object change of some sort has taken place.
+   This constant is used to specify that a database change has taken place on a
+   table registered with the :meth:`Subscription.registerquery()` method.
 
 
 .. data:: EVENT_QUERYCHANGE
 
-   This constant is a possible value for the type of a message and indicates
-   that the result set of a registered query has changed.
+   This constant is used to specify that the result set of a query registered
+   with the :meth:`Subscription.registerquery()` method has been changed.
 
 
 .. data:: EVENT_SHUTDOWN
 
-   This constant is a possible value for the type of a message and indicates
-   that the instance is in the process of being shut down.
+   This constant is used to specify that the instance is in the process of
+   being shut down.
 
 
 .. data:: EVENT_SHUTDOWN_ANY
 
-   This constant is a possible value for the type of a message and indicates
-   that any instance (when running RAC) is in the process of being shut down.
+   This constant is used to specify that any instance (when running RAC) is in
+   the process of being shut down.
 
 
 .. data:: EVENT_STARTUP
 
-   This constant is a possible value for the type of a message and indicates
-   that the instance is in the process of being started up.
+   This constant is used to specify that the instance is in the process of
+   being started up.
+
+
+Operation Codes
+---------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the operations argument for the :meth:`Connection.subscribe()`
+method. One or more of these values can be OR'ed together. These values are
+also used by the :attr:`MessageTable.operation` or
+:attr:`MessageQuery.operation` attributes of the messages that are sent.
 
 
 .. data:: OPCODE_ALLOPS
 
-   This constant is the default value when creating a subscription and
-   specifies that messages are to be sent for all operations.
+   This constant is used to specify that messages should be sent for all
+   operations.
 
 
 .. data:: OPCODE_ALLROWS
 
-   This constant is a possible value for the operation attribute of one of the
-   table objects that are part of a message. It specifies that the table has
-   been completely invalidated.
+   This constant is used to specify that the table or query has been completely
+   invalidated.
 
 
 .. data:: OPCODE_ALTER
 
-   This constant is a possible value for the operation attribute of one of the
-   table objects that are part of a message. It specifies that the table has
-   been altered in some fashion using DDL.
+   This constant is used to specify that messages should be sent when a
+   registered table has been altered in some fashion by DDL, or that the
+   message identifies a table that has been altered.
 
 
 .. data:: OPCODE_DELETE
 
-   This constant can be used when creating a subscription and specifies that
-   messages are to be sent only when data is deleted. It is also a possible
-   value for the operation attribute of one of the table objects that are part
-   of a message.
+   This constant is used to specify that messages should be sent when data is
+   deleted, or that the message identifies a row that has been deleted.
 
 
 .. data:: OPCODE_DROP
 
-   This constant is a possible value for the operation attribute of one of the
-   table objects that are part of a message. It specifies that the table has
-   been dropped.
+   This constant is used to specify that messages should be sent when a
+   registered table has been dropped, or that the message identifies a table
+   that has been dropped.
 
 
 .. data:: OPCODE_INSERT
 
-   This constant can be used when creating a subscription and specifies that
-   messages are to be sent only when data is inserted. It is also a possible
-   value for the operation attribute of one of the table objects that are part
-   of a message.
+   This constant is used to specify that messages should be sent when data is
+   inserted, or that the message identifies a row that has been inserted.
 
 
 .. data:: OPCODE_UPDATE
 
-   This constant can be used when creating a subscription and specifies that
-   messages are to be sent only when data is updated. It is also a possible
-   value for the operation attribute of one of the table objects that are part
-   of a message.
+   This constant is used to specify that messages should be sent when data is
+   updated, or that the message identifies a row that has been updated.
 
+
+Session Pool Get Modes
+----------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the getmode parameter of the :meth:`SessionPool()` method.
+
+
+.. data:: SPOOL_ATTRVAL_FORCEGET
+
+   This constant is used to specify that a new connection will be returned if
+   there are no free sessions available in the pool.
+
+
+.. data:: SPOOL_ATTRVAL_NOWAIT
+
+   This constant is used to specify that an exception should be raised if there
+   are no free sessions available in the pool. This is the default value.
+
+
+.. data:: SPOOL_ATTRVAL_WAIT
+
+   This constant is used to specify that the caller should wait until a session
+   is available if there are no free sessions available in the pool.
+
+
+
+Session Pool Purity
+-------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the purity parameter of the :meth:`connect()` method, which is used
+in database resident connection pooling (DRCP).
+
+
+.. data:: ATTR_PURITY_DEFAULT
+
+   This constant is used to specify that the purity of the session is the
+   default value identified by Oracle (see Oracle's documentation for more
+   information). This is the default value.
+
+
+.. data:: ATTR_PURITY_NEW
+
+   This constant is used to specify that the session acquired from the pool
+   should be new and not have any prior session state.
+
+
+.. data:: ATTR_PURITY_SELF
+
+   This constant is used to specify that the session acquired from the pool
+   need not be new and may have prior session state.
+
+
+Subscription Namespaces
+-----------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the namespace parameter of the :meth:`Connection.subscribe()`
+method.
+
+
+.. data:: SUBSCR_NAMESPACE_DBCHANGE
+
+   This constant is used to specify that database change notification or query
+   change notification messages are to be sent. This is the default value and
+   currently the only value that is supported.
+
+
+Subscription Protocols
+----------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the protocol parameter of the :meth:`Connection.subscribe()` method.
+
+
+.. data:: SUBSCR_PROTO_HTTP
+
+   This constant is used to specify that notifications will be sent to an
+   HTTP URL when a message is generated. This value is currently not supported.
+
+
+.. data:: SUBSCR_PROTO_MAIL
+
+   This constant is used to specify that notifications will be sent to an
+   e-mail address when a message is generated. This value is currently not
+   supported.
+
+
+.. data:: SUBSCR_PROTO_OCI
+
+   This constant is used to specify that notifications will be sent to the
+   callback routine identified when the subscription was created. It is the
+   default value and the only value currently supported.
+
+
+.. data:: SUBSCR_PROTO_SERVER
+
+   This constant is used to specify that notifications will be sent to a
+   PL/SQL procedure when a message is generated. This value is currently not
+   supported.
+
+
+Subscription Quality of Service
+-------------------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the qos parameter of the :meth:`Connection.subscribe()` method. One
+or more of these values can be OR'ed together.
 
 .. data:: SUBSCR_CQ_QOS_BEST_EFFORT
 
-   This constant can be used when creating a subscription and specifies that
-   best effort filtering for query result set changes is acceptable. False
-   positive notifications may be received. This behaviour may be suitable for
-   caching applications.
+   This constant is used to specify that best effort filtering for query result
+   set changes is acceptable. False positive notifications may be received.
+   This behaviour may be suitable for caching applications.
 
    .. deprecated:: 5.3
       Use :data:`~cx_Oracle.SUBSCR_QOS_BEST_EFFORT` instead.
@@ -542,9 +751,9 @@ Database Change Notification
 
 .. data:: SUBSCR_CQ_QOS_QUERY
 
-   This constant can be used when creating a subscription and specifies that
-   notifications should only be sent if the result set of the registered query
-   changes. By default no false positive notifictions will be generated.
+   This constant is used to specify that notifications should be sent if the
+   result set of the registered query changes. By default no false positive
+   notifications will be generated.
 
    .. deprecated:: 5.3
       Use :data:`~cx_Oracle.SUBSCR_QOS_QUERY` instead.
@@ -552,24 +761,21 @@ Database Change Notification
 
 .. data:: SUBSCR_QOS_BEST_EFFORT
 
-   This constant can be used when creating a subscription and specifies that
-   best effort filtering for query result set changes is acceptable. False
-   positive notifications may be received. This behaviour may be suitable for
-   caching applications.
+   This constant is used to specify that best effort filtering for query result
+   set changes is acceptable. False positive notifications may be received.
+   This behaviour may be suitable for caching applications.
 
 
 .. data:: SUBSCR_QOS_DEREG_NFY
 
-   This constant can be used when creating a subscription and specifies that
-   the subscription should be automatically unregistered after the first
-   notification has been received.
+   This constant is used to specify that the subscription should be
+   automatically unregistered after the first notification is received.
 
 
 .. data:: SUBSCR_QOS_PURGE_ON_NTFN
 
-   This constant can be used when creating a subscription and specifies that
-   the subscription should be automatically unregistered after the first
-   notification has been received.
+   This constant is used to specify that the subscription should be
+   automatically unregistered after the first notification is received.
 
    .. deprecated:: 5.3
       Use :data:`~cx_Oracle.SUBSCR_QOS_DEREG_NFY` instead.
@@ -577,167 +783,21 @@ Database Change Notification
 
 .. data:: SUBSCR_QOS_QUERY
 
-   This constant can be used when creating a subscription and specifies that
-   notifications should only be sent if the result set of the registered query
-   changes. By default no false positive notifictions will be generated.
+   This constant is used to specify that notifications should be sent if the
+   result set of the registered query changes. By default no false positive
+   notifications will be generated.
 
 
 .. data:: SUBSCR_QOS_RELIABLE
 
-   This constant is a future possible value for the qos argument when
-   creating a subscription. It specifies that notifications should not be lost
-   in the event of database failure.
+   This constant is used to specify that notifications should not be lost in
+   the event of database failure.
 
 
 .. data:: SUBSCR_QOS_ROWIDS
 
-   This constant can be used when creating a subscription and specifies that
-   rowids should be included in the message objects that are sent.
-
-
-.. data:: SUBSCR_NAMESPACE_DBCHANGE
-
-   This constant is the default (and currently only) value for the namespace
-   argument when creating a subscription.
-
-
-.. data:: SUBSCR_PROTO_HTTP
-
-   This constant is a future possible value for the protocol argument when
-   creating a subscription. It specifies that notification will be sent to the
-   HTTP URL when a message is generated.
-
-
-.. data:: SUBSCR_PROTO_MAIL
-
-   This constant is a future possible value for the protocol argument when
-   creating a subscription. It specifies that an e-mail message should be sent
-   to the target when a message is generated.
-
-
-.. data:: SUBSCR_PROTO_OCI
-
-   This constant is the default (and currently only valid) value for the
-   protocol argument when creating a subscription.
-
-
-.. data:: SUBSCR_PROTO_SERVER
-
-   This constant is a future possible value for the protocol argument when
-   creating a subscription. It specifies that the database procedure will be
-   invoked when a message is generated.
-
-
-
-Database Resident Connection Pooling
-------------------------------------
-
-.. note::
-
-   These constants are extensions to the DB API definition.
-
-
-.. data:: ATTR_PURITY_DEFAULT
-
-   This constant is used when using database resident connection pooling (DRCP)
-   and specifies that the purity of the session is the default value used by
-   Oracle (see Oracle's documentation for more information).
-
-
-.. data:: ATTR_PURITY_NEW
-
-   This constant is used when using database resident connection pooling (DRCP)
-   and specifies that the session acquired from the pool should be new and not
-   have any prior session state.
-
-
-.. data:: ATTR_PURITY_SELF
-
-   This constant is used when using database resident connection pooling (DRCP)
-   and specifies that the session acquired from the pool need not be new and
-   may have prior session state.
-
-
-Database Startup/Shutdown
--------------------------
-
-.. note::
-
-   These constants are extensions to the DB API definition.
-
-
-.. data:: PRELIM_AUTH
-
-   This constant is used to define the preliminary authentication mode required
-   for performing database startup and shutdown.
-
-
-.. data:: DBSHUTDOWN_ABORT
-
-   This constant is used in database shutdown to indicate that the program
-   should not wait for current calls to complete or for users to disconnect
-   from the database. Use only in unusual circumstances since database recovery
-   may be necessary upon next startup.
-
-
-.. data:: DBSHUTDOWN_FINAL
-
-   This constant is used in database shutdown to indicate that the instance can
-   be truly halted. This should only be done after the database has been shut
-   down in one of the other modes (except abort) and the database has been
-   closed and dismounted using the appropriate SQL commands. See the method
-   :meth:`~Connection.shutdown()` in the section on connections
-   (:ref:`connobj`).
-
-
-.. data:: DBSHUTDOWN_IMMEDIATE
-
-   This constant is used in database shutdown to indicate that all uncommitted
-   transactions should be rolled back and any connected users should be
-   disconnected.
-
-
-.. data:: DBSHUTDOWN_TRANSACTIONAL
-
-   This constant is used in database shutdown to indicate that further
-   connections should be prohibited and no new transactions should be allowed.
-   It then waits for active transactions to complete.
-
-
-.. data:: DBSHUTDOWN_TRANSACTIONAL_LOCAL
-
-   This constant is used in database shutdown to indicate that further
-   connections should be prohibited and no new transactions should be allowed.
-   It then waits for only local active transactions to complete.
-
-
-Session Pooling
----------------
-
-.. note::
-
-   These constants are extensions to the DB API definition.
-
-
-.. data:: SPOOL_ATTRVAL_FORCEGET
-
-   This constant is used to define the "get" mode on session pools and
-   indicates that a new connection will be returned if there are no free
-   sessions available in the pool.
-
-
-.. data:: SPOOL_ATTRVAL_NOWAIT
-
-   This constant is used to define the "get" mode on session pools and
-   indicates that an exception is raised if there are no free sessions
-   available in the pool.
-
-
-.. data:: SPOOL_ATTRVAL_WAIT
-
-   This constant is used to define the "get" mode on session pools and
-   indicates that the acquisition of a connection waits until a session is
-   freed if there are no free sessions available in the pool.
+   This constant is used to specify that the rowids of the inserted, updated or
+   deleted rows should be included in the message objects that are sent.
 
 
 Types
@@ -745,8 +805,8 @@ Types
 
 .. data:: BINARY
 
-   This type object is used to describe columns in a database that are binary
-   (in Oracle this is RAW columns).
+   This type object is used to describe columns in a database that contain
+   binary data. In Oracle this is RAW columns.
 
 
 .. data:: BFILE
@@ -776,7 +836,7 @@ Types
    .. note::
 
       This type is an extension to the DB API definition. It is only available
-      in Oracle 12.1 and higher and within PL/SQL. It cannot be used in
+      in Oracle 12.1 and higher and only within PL/SQL. It cannot be used in
       columns.
 
 
@@ -807,9 +867,9 @@ Types
 .. data:: FIXED_CHAR
 
    This type object is used to describe columns in a database that are fixed
-   length strings (in Oracle this is CHAR columns); these behave differently in
-   Oracle than varchar2 so they are differentiated here even though the DB API
-   does not differentiate them.
+   length strings (in Oracle these is CHAR columns); these behave differently
+   in Oracle than varchar2 so they are differentiated here even though the DB
+   API does not differentiate them.
 
    .. note::
 
@@ -1070,16 +1130,17 @@ This allows you to use the exceptions for example in the following way:
 
 ::
 
-    import sys
+    from __future__ import print_function
+
     import cx_Oracle
 
-    connection = cx_Oracle.Connection("user/pw@tns")
+    connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
     cursor = connection.cursor()
 
     try:
         cursor.execute("select 1 / 0 from dual")
-    except cx_Oracle.DatabaseError, exc:
+    except cx_Oracle.DatabaseError as exc:
         error, = exc.args
-        print >> sys.stderr, "Oracle-Error-Code:", error.code
-        print >> sys.stderr, "Oracle-Error-Message:", error.message
+        print("Oracle-Error-Code:", error.code)
+        print("Oracle-Error-Message:", error.message)
 
