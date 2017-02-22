@@ -15,28 +15,32 @@ Version 5.3 (TBD)
 1)  Added support for Python 3.6.
 2)  Dropped support for Python versions earlier than 2.6.
 3)  Dropped support for Oracle clients earlier than 11.2.
-4)  Added support for fetching implicit results (available in Oracle 12.1).
-5)  Added support for Transaction Guard (available in Oracle 12.1).
-6)  Added support for setting the maximum lifetime of pool connections
-    (available in Oracle 12.1).
+4)  Added support for
+    :meth:`fetching implicit results<Cursor.getimplicitresults()>`
+    (available in Oracle 12.1)
+5)  Added support for :attr:`Transaction Guard <Connection.ltxid>` (available
+    in Oracle 12.1).
+6)  Added support for setting the
+    :attr:`maximum lifetime <SessionPool.max_lifetime_session>` of pool
+    connections (available in Oracle 12.1).
 7)  Added support for large row counts (larger than 2 ** 32, available in
     Oracle 12.1)
-8)  Added support for advanced queuing.
-9)  Added support for scrollable cursors.
-10) Added support for edition based redefinition.
-11) Added support for creating, modifying and binding user defined types and
-    collections.
+8)  Added support for :meth:`advanced queuing <Connection.deq()>`.
+9)  Added support for :meth:`scrollable cursors <Cursor.scroll()>`.
+10) Added support for :attr:`edition based redefinition <Connection.edition>`.
+11) Added support for :meth:`creating <ObjectType.newobject()>`, modifying and
+    binding user defined types and collections.
 12) Added support for creating, modifying and binding PL/SQL records and
     collections (available in Oracle 12.1).
-13) Added support for binding native integers.
+13) Added support for binding :data:`native integers <cx_Oracle.NATIVE_INT>`.
 14) Enabled statement caching.
 15) Removed deprecated variable attributes maxlength and allocelems.
 16) Corrected support for setting the encoding and nencoding parameters when
-    creating a connection and added support for setting these when creating a
-    session pool. These can now be used instead of setting the environment
-    variables NLS_LANG and NLS_NCHAR.
-17) Use None instead of 0 for items in the cursor.description attribute that do
-    not have any validity.
+    :meth:`creating a connection <cx_Oracle.Connection>` and added support for
+    setting these when creating a session pool. These can now be used instead
+    of setting the environment variables NLS_LANG and NLS_NCHAR.
+17) Use None instead of 0 for items in the :attr:`Cursor.description` attribute
+    that do not have any validity.
 18) Changed driver name to match informal driver name standard used by Oracle
     for other drivers.
 19) Add check for maximum of 10,000 arguments when calling a stored procedure
@@ -53,13 +57,15 @@ Version 5.3 (TBD)
 25) Removed deprecated types UNICODE, FIXED_UNICODE and LONG_UNICODE (use
     NCHAR, FIXED_NCHAR and LONG_NCHAR instead).
 26) Increased default array size to 100 (from 50) to match other drivers.
-27) Added support for setting the internal_name and external_name on the
-    connection directly. The use of the twophase argument is now deprecated.
-    Applications should set the internal_name and external_name attributes
-    directly to a value appropriate to the application.
-28) Added support for using application context during the creation of a
-    connection. This should be used in preference to the module, action and
-    clientinfo arguments which are now deprecated.
+27) Added support for setting the :attr:`~Connection.internal_name` and
+    :attr:`~Connection.external_name` on the connection directly. The use of
+    the twophase argument is now deprecated.  Applications should set the
+    internal_name and external_name attributes directly to a value appropriate
+    to the application.
+28) Added support for using application context when
+    :meth:`creating a connection <cx_Oracle.Connection>`. This should be used
+    in preference to the module, action and clientinfo arguments which are now
+    deprecated.
 29) Reworked database change notification and continuous query notification to
     more closely align with the PL/SQL implementation and prepare for sending
     notifications for AQ messages. The following changes were made:
