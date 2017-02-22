@@ -7,7 +7,7 @@ oracle.com in order to successfully compile. Note, however, that if using RPMs
 you do not need to do anything as cx_Oracle will compile out of the box without
 any changes to the configuration of the machine.
 
-http://www.oracle.com/technology/software/tech/oci/instantclient/index.html
+http://www.oracle.com/technetwork/database/features/instant-client/index.html
 
 Each compressed tarball needs to be extracted to the exact same location.
 Uncompress and untar each file from the same location in order to achieve this
@@ -46,8 +46,8 @@ of libclntsh.so.
 Continue to step: Building and Compilation.
 
 
-OS X Build Hints
-----------------
+macOS Build Hints
+-----------------
 (Tested on Leopard 10.5.x)
 The procedures for OS X are almost idential to Linux except for the package
 names and a few environmental caveats. For OS X it is necessary to download
@@ -86,10 +86,7 @@ Continue to step: Building and Compilation.
 Building and Compilation
 ------------------------
 Use the provided setup.py to build and install the module which makes use of 
-the distutils module. Note that on Windows, I have used mingw32 
-(http://www.mingw.org) and the module will not build with MSVC without 
-modification. The commands required to build and install the module are as 
-follows:
+the distutils module.
 
     python setup.py build
     python setup.py install
@@ -103,8 +100,8 @@ cx_Oracle there should be a line containing only '>>>' which indicates the
 library successfully loaded.
 
     $ python
-    Python 2.5.2 (r252:60911, Oct 25 2008, 19:37:28)
-    [GCC 4.1.2 (Gentoo 4.1.2 p1.1)] on linux2
+    Python 3.6.0 (default, Jan  4 2017, 09:50:35)
+    [GCC 6.3.1 20161221 (Red Hat 6.3.1-1)] on linux
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import cx_Oracle
     >>>

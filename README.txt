@@ -1,5 +1,6 @@
 Open Source Python/Oracle Utility - cx_Oracle
 ---------------------------------------------
+
 cx_Oracle is a Python extension module that allows access to Oracle and 
 conforms to the Python database API 2.0 specifications with a number of
 additions. The time data type is not supported by Oracle and is therefore not
@@ -29,8 +30,8 @@ Place the file cx_Oracle.pyd or cx_Oracle.so anywhere on your Python path.
 
 Source Install
 --------------
-This module has been built with Oracle 10g, 11g and 12c on Linux and Windows.
-Others have reported success with other platforms such as Mac OS X.
+This module has been built with Oracle 11g and 12c on Linux, Windows and macOS.
+Others have reported success with other platforms.
 
 For simplified installation use pip
 
@@ -46,6 +47,8 @@ See BUILD.txt for additional information.
 
 Usage Example
 -------------
+
+from __future__ import print_function
 
 import cx_Oracle
 
@@ -63,7 +66,7 @@ cursor.execute("""
         arg_2 = 5,
         arg_3 = 15)
 for column_1, column_2, column_3 in cursor:
-    print "Values:", column_1, column_2, column_3
+    print("Values:", column_1, column_2, column_3)
 
 
 For more examples, please see the test suite in the test directory and the
@@ -73,5 +76,5 @@ cx_PyOracleLib (http://cx-pyoraclelib.sourceforge.net) projects.
 
 For further information see
 
-http://cx_oracle.readthedocs.org
+http://cx-oracle.readthedocs.io
 
