@@ -9,8 +9,8 @@ Version 5.next
 --------------
 
 
-Version 5.3 (TBD)
------------------
+Version 5.3 (March 2017)
+------------------------
 
 1)  Added support for Python 3.6.
 2)  Dropped support for Python versions earlier than 2.6.
