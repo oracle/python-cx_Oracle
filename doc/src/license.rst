@@ -8,12 +8,12 @@ License
 
 .. centered:: **LICENSE AGREEMENT FOR CX_ORACLE**
 
-Copyright |copy| 2016-2017, Oracle and/or its affiliates. All rights reserved.
+Copyright |copy| 2016, 2017, Oracle and/or its affiliates. All rights reserved.
 
-Copyright |copy| 2007-2015, Anthony Tuininga. All rights reserved.
+Portions Copyright |copy| 2007-2015, Anthony Tuininga. All rights reserved.
 
-Copyright |copy| 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta,
-Canada. All rights reserved.
+Portions Copyright |copy| 2001-2007, Computronix (Canada) Ltd., Edmonton,
+Alberta, Canada. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:

@@ -45,7 +45,7 @@ dataFiles = None
 if sys.platform in ("win32", "cygwin"):
     baseName = "cx_Oracle-doc"
     dataFiles = [ (baseName,
-            [ "BUILD.txt", "README.txt"]) ]
+            [ "BUILD.txt", "LICENSE.txt", "README.txt"]) ]
     for dir in ("samples", "test"):
         files = []
         fullDirName = "%s/%s" % (baseName, dir)
@@ -59,7 +59,7 @@ if sys.platform in ("win32", "cygwin"):
         dataFiles.append((fullDirName, files))
 
 # define the list of files to be included as documentation for bdist_rpm
-docFiles = "README.txt BUILD.txt samples test"
+docFiles = "README.txt LICENSE.txt BUILD.txt samples test"
 
 # method for checking a potential Oracle home
 def CheckOracleHome(directoryToCheck):

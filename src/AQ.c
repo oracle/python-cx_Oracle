@@ -1,4 +1,13 @@
 //-----------------------------------------------------------------------------
+// Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+//
+// Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
+//
+// Portions Copyright 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta,
+// Canada. All rights reserved.
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AQ.c
 //   Implements the enqueue and dequeue options and message properties objects
 // used in Advanced Queuing.
