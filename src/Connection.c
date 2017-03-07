@@ -17,34 +17,17 @@
 //-----------------------------------------------------------------------------
 typedef struct {
     PyObject_HEAD
-    OCISvcCtx *handle;
-    OCIServer *serverHandle;
-    OCISession *sessionHandle;
-    udt_Environment *environment;
+    dpiConn *handle;
     udt_SessionPool *sessionPool;
     PyObject *inputTypeHandler;
     PyObject *outputTypeHandler;
     PyObject *username;
     PyObject *dsn;
     PyObject *version;
-    ub4 commitMode;
+    dpiEncodingInfo encodingInfo;
     int autocommit;
-    int release;
-    int attached;
 } udt_Connection;
 
-
-//-----------------------------------------------------------------------------
-// constants for the OCI attributes
-//-----------------------------------------------------------------------------
-static ub4 gc_ClientIdentifierAttribute = OCI_ATTR_CLIENT_IDENTIFIER;
-static ub4 gc_ModuleAttribute = OCI_ATTR_MODULE;
-static ub4 gc_ActionAttribute = OCI_ATTR_ACTION;
-static ub4 gc_ClientInfoAttribute = OCI_ATTR_CLIENT_INFO;
-static ub4 gc_CurrentSchemaAttribute = OCI_ATTR_CURRENT_SCHEMA;
-static ub4 gc_EditionAttribute = OCI_ATTR_EDITION;
-static ub4 gc_InternalNameAttribute = OCI_ATTR_INTERNAL_NAME;
-static ub4 gc_ExternalNameAttribute = OCI_ATTR_EXTERNAL_NAME;
 
 //-----------------------------------------------------------------------------
 // functions for the Python type "Connection"
@@ -66,7 +49,7 @@ static PyObject *Connection_GetNationalEncoding(udt_Connection*, void*);
 static PyObject *Connection_GetMaxBytesPerCharacter(udt_Connection*, void*);
 static PyObject *Connection_ContextManagerEnter(udt_Connection*, PyObject*);
 static PyObject *Connection_ContextManagerExit(udt_Connection*, PyObject*);
-static PyObject *Connection_ChangePasswordExternal(udt_Connection*, PyObject*);
+static PyObject *Connection_ChangePassword(udt_Connection*, PyObject*);
 static PyObject *Connection_GetType(udt_Connection*, PyObject*);
 static PyObject *Connection_GetStmtCacheSize(udt_Connection*, void*);
 static PyObject *Connection_NewEnqueueOptions(udt_Connection*, PyObject*);
@@ -74,16 +57,25 @@ static PyObject *Connection_NewDequeueOptions(udt_Connection*, PyObject*);
 static PyObject *Connection_NewMessageProperties(udt_Connection*, PyObject*);
 static PyObject *Connection_Dequeue(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Enqueue(udt_Connection*, PyObject*, PyObject*);
-static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
-static PyObject *Connection_GetOCIAttr(udt_Connection*, ub4*);
-static int Connection_SetOCIAttr(udt_Connection*, PyObject*, ub4*);
 static PyObject *Connection_Ping(udt_Connection*, PyObject*);
 static PyObject *Connection_Shutdown(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Startup(udt_Connection*, PyObject*, PyObject*);
 static PyObject *Connection_Subscribe(udt_Connection*, PyObject*, PyObject*);
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
 static PyObject *Connection_GetLTXID(udt_Connection*, void*);
-#endif
+static PyObject *Connection_GetHandle(udt_Connection*, void*);
+static PyObject *Connection_GetCurrentSchema(udt_Connection*, void*);
+static PyObject *Connection_GetEdition(udt_Connection*, void*);
+static PyObject *Connection_GetExternalName(udt_Connection*, void*);
+static PyObject *Connection_GetInternalName(udt_Connection*, void*);
+static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
+static int Connection_SetAction(udt_Connection*, PyObject*, void*);
+static int Connection_SetClientIdentifier(udt_Connection*, PyObject*, void*);
+static int Connection_SetClientInfo(udt_Connection*, PyObject*, void*);
+static int Connection_SetCurrentSchema(udt_Connection*, PyObject*, void*);
+static int Connection_SetDbOp(udt_Connection*, PyObject*, void*);
+static int Connection_SetExternalName(udt_Connection*, PyObject*, void*);
+static int Connection_SetInternalName(udt_Connection*, PyObject*, void*);
+static int Connection_SetModule(udt_Connection*, PyObject*, void*);
 
 
 //-----------------------------------------------------------------------------
@@ -107,7 +99,7 @@ static PyMethodDef g_ConnectionMethods[] = {
             METH_VARARGS | METH_KEYWORDS},
     { "subscribe", (PyCFunction) Connection_Subscribe,
             METH_VARARGS | METH_KEYWORDS},
-    { "changepassword", (PyCFunction) Connection_ChangePasswordExternal,
+    { "changepassword", (PyCFunction) Connection_ChangePassword,
             METH_VARARGS },
     { "gettype", (PyCFunction) Connection_GetType, METH_VARARGS },
     { "deqoptions", (PyCFunction) Connection_NewDequeueOptions, METH_NOARGS },
@@ -147,22 +139,20 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
             0, 0, 0 },
     { "stmtcachesize", (getter) Connection_GetStmtCacheSize,
             (setter) Connection_SetStmtCacheSize, 0, 0 },
-    { "module", 0, (setter) Connection_SetOCIAttr, 0, &gc_ModuleAttribute },
-    { "action", 0, (setter) Connection_SetOCIAttr, 0, &gc_ActionAttribute },
-    { "clientinfo", 0, (setter) Connection_SetOCIAttr, 0,
-            &gc_ClientInfoAttribute },
-    { "client_identifier", 0, (setter) Connection_SetOCIAttr, 0,
-            &gc_ClientIdentifierAttribute },
-    { "current_schema", (getter) Connection_GetOCIAttr,
-            (setter) Connection_SetOCIAttr, 0, &gc_CurrentSchemaAttribute },
-    { "edition", (getter) Connection_GetOCIAttr, 0, 0, &gc_EditionAttribute },
-    { "external_name", (getter) Connection_GetOCIAttr,
-            (setter) Connection_SetOCIAttr, 0, &gc_ExternalNameAttribute },
-    { "internal_name", (getter) Connection_GetOCIAttr,
-            (setter) Connection_SetOCIAttr, 0, &gc_InternalNameAttribute },
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
+    { "module", 0, (setter) Connection_SetModule, 0, 0 },
+    { "action", 0, (setter) Connection_SetAction, 0, 0 },
+    { "clientinfo", 0, (setter) Connection_SetClientInfo, 0, 0 },
+    { "client_identifier", 0, (setter) Connection_SetClientIdentifier, 0, 0 },
+    { "current_schema", (getter) Connection_GetCurrentSchema,
+            (setter) Connection_SetCurrentSchema, 0, 0 },
+    { "external_name", (getter) Connection_GetExternalName,
+            (setter) Connection_SetExternalName, 0, 0 },
+    { "internal_name", (getter) Connection_GetInternalName,
+            (setter) Connection_SetInternalName, 0, 0 },
+    { "dbop", 0, (setter) Connection_SetDbOp, 0, 0 },
+    { "edition", (getter) Connection_GetEdition, 0, 0, 0 },
     { "ltxid", (getter) Connection_GetLTXID, 0, 0, 0 },
-#endif
+    { "handle", (getter) Connection_GetHandle, 0, 0, 0 },
     { NULL }
 };
 
@@ -217,12 +207,169 @@ static PyTypeObject g_ConnectionType = {
 
 
 //-----------------------------------------------------------------------------
+// structure used to help in establishing a connection
+//-----------------------------------------------------------------------------
+typedef struct {
+    udt_Buffer userNameBuffer;
+    udt_Buffer passwordBuffer;
+    udt_Buffer newPasswordBuffer;
+    udt_Buffer dsnBuffer;
+    udt_Buffer connectionClassBuffer;
+    udt_Buffer editionBuffer;
+    udt_Buffer tagBuffer;
+    uint32_t numAppContext;
+    dpiAppContext *appContext;
+    udt_Buffer *ctxNamespaceBuffers;
+    udt_Buffer *ctxNameBuffers;
+    udt_Buffer *ctxValueBuffers;
+} udt_ConnectionParams;
+
+
+//-----------------------------------------------------------------------------
+// ConnectionParams_Initialize()
+//   Initialize the parameters to default values.
+//-----------------------------------------------------------------------------
+static void ConnectionParams_Initialize(udt_ConnectionParams *params)
+{
+    cxBuffer_Init(&params->userNameBuffer);
+    cxBuffer_Init(&params->passwordBuffer);
+    cxBuffer_Init(&params->newPasswordBuffer);
+    cxBuffer_Init(&params->dsnBuffer);
+    cxBuffer_Init(&params->connectionClassBuffer);
+    cxBuffer_Init(&params->editionBuffer);
+    cxBuffer_Init(&params->tagBuffer);
+    params->numAppContext = 0;
+    params->appContext = NULL;
+    params->ctxNamespaceBuffers = NULL;
+    params->ctxNameBuffers = NULL;
+    params->ctxValueBuffers = NULL;
+}
+
+
+//-----------------------------------------------------------------------------
+// ConnectionParams_ProcessContext()
+//   Process context for the connection parameters. This validates that the
+// context passed in is a list of 3-tuples (namespace, name, value) and
+// populates the parametrs with buffers for each of these.
+//-----------------------------------------------------------------------------
+static int ConnectionParams_ProcessContext(udt_ConnectionParams *params,
+        PyObject *context, const char *encoding)
+{
+    uint32_t numEntries, i;
+    dpiAppContext *entry;
+    PyObject *entryObj;
+    size_t memorySize;
+
+    // validate context is a list with at least one entry in it
+    if (!context)
+        return 0;
+    if (!PyList_Check(context)) {
+        PyErr_SetString(PyExc_TypeError,
+                "appcontext should be a list of 3-tuples");
+        return -1;
+    }
+    numEntries = PyList_GET_SIZE(context);
+    if (numEntries == 0)
+        return 0;
+
+    // allocate memory for the buffers used to communicate with DPI
+    params->appContext = PyMem_Malloc(numEntries * sizeof(dpiAppContext));
+    memorySize = numEntries * sizeof(udt_Buffer);
+    params->ctxNamespaceBuffers = PyMem_Malloc(memorySize);
+    params->ctxNameBuffers = PyMem_Malloc(memorySize);
+    params->ctxValueBuffers = PyMem_Malloc(memorySize);
+    if (!params->appContext || !params->ctxNamespaceBuffers ||
+            !params->ctxNameBuffers || !params->ctxValueBuffers) {
+        PyErr_NoMemory();
+        return -1;
+    }
+
+    // initialize buffers
+    for (i = 0; i < numEntries; i++) {
+        cxBuffer_Init(&params->ctxNamespaceBuffers[i]);
+        cxBuffer_Init(&params->ctxNameBuffers[i]);
+        cxBuffer_Init(&params->ctxValueBuffers[i]);
+    }
+    params->numAppContext = numEntries;
+
+    // process each entry
+    for (i = 0; i < numEntries; i++) {
+        entryObj = PyList_GET_ITEM(context, i);
+        if (!PyTuple_Check(entryObj) || PyTuple_GET_SIZE(entryObj) != 3) {
+            PyErr_SetString(PyExc_TypeError,
+                    "appcontext should be a list of 3-tuples");
+            return -1;
+        }
+        if (cxBuffer_FromObject(&params->ctxNamespaceBuffers[i],
+                PyTuple_GET_ITEM(entryObj, 0), encoding) < 0)
+            return -1;
+        if (cxBuffer_FromObject(&params->ctxNameBuffers[i],
+                PyTuple_GET_ITEM(entryObj, 1), encoding) < 0)
+            return -1;
+        if (cxBuffer_FromObject(&params->ctxValueBuffers[i],
+                PyTuple_GET_ITEM(entryObj, 2), encoding) < 0)
+            return -1;
+        entry = &params->appContext[i];
+        entry->namespaceName = params->ctxNamespaceBuffers[i].ptr;
+        entry->namespaceNameLength = params->ctxNamespaceBuffers[i].size;
+        entry->name = params->ctxNameBuffers[i].ptr;
+        entry->nameLength = params->ctxNameBuffers[i].size;
+        entry->value = params->ctxValueBuffers[i].ptr;
+        entry->valueLength = params->ctxValueBuffers[i].size;
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// ConnectionParams_Finalize()
+//   Finalize the parameters, freeing any resources that were allocated. The
+// return value is a convenience to the caller.
+//-----------------------------------------------------------------------------
+static int ConnectionParams_Finalize(udt_ConnectionParams *params)
+{
+    uint32_t i;
+
+    cxBuffer_Clear(&params->userNameBuffer);
+    cxBuffer_Clear(&params->passwordBuffer);
+    cxBuffer_Clear(&params->newPasswordBuffer);
+    cxBuffer_Clear(&params->dsnBuffer);
+    cxBuffer_Clear(&params->connectionClassBuffer);
+    cxBuffer_Clear(&params->editionBuffer);
+    cxBuffer_Clear(&params->tagBuffer);
+    for (i = 0; i < params->numAppContext; i++) {
+        cxBuffer_Clear(&params->ctxNamespaceBuffers[i]);
+        cxBuffer_Clear(&params->ctxNameBuffers[i]);
+        cxBuffer_Clear(&params->ctxValueBuffers[i]);
+    }
+    params->numAppContext = 0;
+    if (params->appContext) {
+        PyMem_Free(params->appContext);
+        params->appContext = NULL;
+    }
+    if (params->ctxNamespaceBuffers) {
+        PyMem_Free(params->ctxNamespaceBuffers);
+        params->ctxNamespaceBuffers = NULL;
+    }
+    if (params->ctxNameBuffers) {
+        PyMem_Free(params->ctxNameBuffers);
+        params->ctxNameBuffers = NULL;
+    }
+    if (params->ctxValueBuffers) {
+        PyMem_Free(params->ctxValueBuffers);
+        params->ctxValueBuffers = NULL;
+    }
+    return -1;
+}
+
+
+//-----------------------------------------------------------------------------
 // Connection_IsConnected()
 //   Determines if the connection object is connected to the database. If not,
 // a Python exception is raised.
 //-----------------------------------------------------------------------------
-static int Connection_IsConnected(
-    udt_Connection *self)               // connection to check
+static int Connection_IsConnected(udt_Connection *self)
 {
     if (!self->handle) {
         PyErr_SetString(g_InterfaceErrorException, "not connected");
@@ -233,316 +380,46 @@ static int Connection_IsConnected(
 
 
 //-----------------------------------------------------------------------------
-// Connection_GetConnection()
-//   Get a connection using the OCISessionGet() interface rather than using
-// the low level interface for connecting.
+// Connection_GetAttrText()
+//   Get the value of the attribute returned from the given function. The value
+// is assumed to be a text value.
 //-----------------------------------------------------------------------------
-static int Connection_GetConnection(
-    udt_Connection *self,               // connection
-    udt_SessionPool *pool,              // pool to acquire connection from
-    PyObject *passwordObj,              // password
-    PyObject *cclassObj,                // connection class (DRCP)
-    ub4 purity)                         // purity (DRCP)
+static PyObject *Connection_GetAttrText(udt_Connection *self,
+        int (*func)(dpiConn *conn, const char **value, uint32_t *valueLength))
 {
-    udt_Environment *environment;
-    int externalAuth, proxyAuth;
-    udt_Buffer buffer;
-    OCIAuthInfo *authInfo;
-    PyObject *dbNameObj;
-    boolean found;
-    sword status;
-    ub4 mode;
+    uint32_t valueLength;
+    const char *value;
 
-    // set things up for the call to acquire a session
-    authInfo = NULL;
-    externalAuth = proxyAuth = 0;
-    if (pool) {
-        environment = pool->environment;
-        dbNameObj = pool->name;
-        mode = OCI_SESSGET_SPOOL;
-        externalAuth = pool->externalAuth;
-        if (!pool->homogeneous && pool->username && self->username) {
-            proxyAuth = PyObject_RichCompareBool(self->username,
-                    pool->username, Py_NE);
-            if (proxyAuth < 0)
-                return -1;
-            mode = mode | OCI_SESSGET_CREDPROXY;
-        }
-    } else {
-        environment = self->environment;
-        dbNameObj = self->dsn;
-        mode = OCI_SESSGET_STMTCACHE;
-    }
-
-    // set up authorization handle, if needed
-    if (!pool || cclassObj || proxyAuth) {
-
-        // create authorization handle
-        status = OCIHandleAlloc(environment->handle, (dvoid*) &authInfo,
-                OCI_HTYPE_AUTHINFO, 0, NULL);
-        if (Environment_CheckForError(environment, status,
-                "Connection_GetConnection(): allocate handle") < 0)
-            return -1;
-
-        // set the user name, if applicable
-        externalAuth = 1;
-        if (cxBuffer_FromObject(&buffer, self->username,
-                self->environment->encoding) < 0)
-            return -1;
-        if (buffer.size > 0) {
-            externalAuth = 0;
-            status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
-                    (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_USERNAME,
-                    environment->errorHandle);
-            if (Environment_CheckForError(environment, status,
-                    "Connection_GetConnection(): set user name") < 0) {
-                cxBuffer_Clear(&buffer);
-                return -1;
-            }
-        }
-        cxBuffer_Clear(&buffer);
-
-        // set the password, if applicable
-        if (cxBuffer_FromObject(&buffer, passwordObj,
-                self->environment->encoding) < 0)
-            return -1;
-        if (buffer.size > 0) {
-            externalAuth = 0;
-            status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
-                    (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_PASSWORD,
-                    environment->errorHandle);
-            if (Environment_CheckForError(environment, status,
-                    "Connection_GetConnection(): set password") < 0) {
-                cxBuffer_Clear(&buffer);
-                return -1;
-            }
-        }
-        cxBuffer_Clear(&buffer);
-
-        // set the connection class, if applicable
-        if (cxBuffer_FromObject(&buffer, cclassObj,
-                self->environment->encoding) < 0)
-            return -1;
-        if (buffer.size > 0) {
-            status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO,
-                    (text*) buffer.ptr, (ub4) buffer.size,
-                    OCI_ATTR_CONNECTION_CLASS, environment->errorHandle);
-            if (Environment_CheckForError(environment, status,
-                    "Connection_GetConnection(): set connection class") < 0) {
-                cxBuffer_Clear(&buffer);
-                return -1;
-            }
-        }
-        cxBuffer_Clear(&buffer);
-
-        // set the purity, if applicable
-        if (purity != OCI_ATTR_PURITY_DEFAULT) {
-            status = OCIAttrSet(authInfo, OCI_HTYPE_AUTHINFO, &purity,
-                    sizeof(purity), OCI_ATTR_PURITY,
-                    environment->errorHandle);
-            if (Environment_CheckForError(environment, status,
-                    "Connection_GetConnection(): set purity") < 0)
-                return -1;
-        }
-    }
-
-    // external auth requested (no username/password or specified via pool)
-    if (externalAuth)
-        mode |= OCI_SESSGET_CREDEXT;
-
-    // acquire the new session
-    if (cxBuffer_FromObject(&buffer, dbNameObj,
-            self->environment->encoding) < 0)
-        return -1;
-    Py_BEGIN_ALLOW_THREADS
-    status = OCISessionGet(environment->handle, environment->errorHandle,
-            &self->handle, authInfo, (text*) buffer.ptr, (ub4) buffer.size,
-            NULL, 0, NULL, NULL, &found, mode);
-    Py_END_ALLOW_THREADS
-    cxBuffer_Clear(&buffer);
-    if (Environment_CheckForError(environment, status,
-            "Connection_GetConnection(): get connection") < 0)
-        return -1;
-
-    // eliminate the authorization handle immediately, if applicable
-    if (authInfo)
-        OCIHandleFree(authInfo, OCI_HTYPE_AUTHINFO);
-
-    // copy members in the case where a pool is being used
-    if (pool) {
-        if (!proxyAuth) {
-            Py_INCREF(pool->username);
-            self->username = pool->username;
-        }
-        Py_INCREF(pool->dsn);
-        self->dsn = pool->dsn;
-        Py_INCREF(pool);
-        self->sessionPool = pool;
-    }
-
-    self->release = 1;
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Connection_GetOCIAttr()
-//   Get the value of the OCI attribute.
-//-----------------------------------------------------------------------------
-static PyObject *Connection_GetOCIAttr(
-    udt_Connection *self,               // connection to set
-    ub4 *attribute)                     // OCI attribute type
-{
-    ub4 ociHandleType;
-    udt_Buffer buffer;
-    void *ociHandle;
-    ub4 bufferSize;
-    sword status;
-
-    // make sure connection is connected
     if (Connection_IsConnected(self) < 0)
         return NULL;
-
-    // get the handle and type on which to set the attribute
-    switch (*attribute) {
-        case OCI_ATTR_INTERNAL_NAME:
-        case OCI_ATTR_EXTERNAL_NAME:
-            status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
-                    (dvoid**) &ociHandle, 0, OCI_ATTR_SERVER,
-                    self->environment->errorHandle);
-            if (Environment_CheckForError(self->environment, status,
-                    "Connection_GetOCIAttr(): determine server handle") < 0)
-                return NULL;
-            ociHandleType = OCI_HTYPE_SERVER;
-            break;
-        default:
-            status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
-                    (dvoid**) &ociHandle, 0, OCI_ATTR_SESSION,
-                    self->environment->errorHandle);
-            if (Environment_CheckForError(self->environment, status,
-                    "Connection_GetOCIAttr(): determine session handle") < 0)
-                return NULL;
-            ociHandleType = OCI_HTYPE_SESSION;
-    }
-
-    // get the value from the OCI
-    status = OCIAttrGet(ociHandle, ociHandleType, (text**) &buffer.ptr,
-            &bufferSize, *attribute, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_GetOCIAttr()") < 0)
-        return NULL;
-    if (!buffer.ptr) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-
-    buffer.size = bufferSize;
-    return cxString_FromEncodedString(buffer.ptr, buffer.size,
-            self->environment->encoding);
+    if ((*func)(self->handle, &value, &valueLength) < 0)
+        return Error_RaiseAndReturnNull();
+    if (!value)
+        Py_RETURN_NONE;
+    return cxString_FromEncodedString(value, valueLength,
+            self->encodingInfo.encoding);
 }
 
 
 //-----------------------------------------------------------------------------
-// Connection_SetOCIAttr()
-//   Set the value of the OCI attribute.
+// Connection_SetAttrText()
+//   Set the value of the attribute using the given function. The value is
+// assumed to be a text value.
 //-----------------------------------------------------------------------------
-static int Connection_SetOCIAttr(
-    udt_Connection *self,               // connection to set
-    PyObject *value,                    // value to set
-    ub4 *attribute)                     // OCI attribute type
+static int Connection_SetAttrText(udt_Connection *self, PyObject *value,
+        int (*func)(dpiConn *conn, const char *value, uint32_t valueLength))
 {
-    ub4 ociHandleType;
     udt_Buffer buffer;
-    void *ociHandle;
-    sword status;
+    int status;
 
-    // make sure connection is connected
     if (Connection_IsConnected(self) < 0)
         return -1;
-
-    // get the handle and type on which to set the attribute
-    switch (*attribute) {
-        case OCI_ATTR_INTERNAL_NAME:
-        case OCI_ATTR_EXTERNAL_NAME:
-            status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
-                    (dvoid**) &ociHandle, 0, OCI_ATTR_SERVER,
-                    self->environment->errorHandle);
-            if (Environment_CheckForError(self->environment, status,
-                    "Connection_SetOCIAttr(): determine server handle") < 0)
-                return -1;
-            ociHandleType = OCI_HTYPE_SERVER;
-            break;
-        default:
-            status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
-                    (dvoid**) &ociHandle, 0, OCI_ATTR_SESSION,
-                    self->environment->errorHandle);
-            if (Environment_CheckForError(self->environment, status,
-                    "Connection_SetOCIAttr(): determine session handle") < 0)
-                return -1;
-            ociHandleType = OCI_HTYPE_SESSION;
-    }
-
-    // set the value in the OCI
-    if (cxBuffer_FromObject(&buffer, value, self->environment->encoding))
+    if (cxBuffer_FromObject(&buffer, value, self->encodingInfo.encoding))
         return -1;
-    status = OCIAttrSet(ociHandle, ociHandleType, (text*) buffer.ptr,
-            (ub4) buffer.size, *attribute, self->environment->errorHandle);
+    status = (*func)(self->handle, buffer.ptr, buffer.size);
     cxBuffer_Clear(&buffer);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_SetOCIAttr(): set value") < 0)
-        return -1;
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Connection_Attach()
-//   Attach to an existing connection.
-//-----------------------------------------------------------------------------
-static int Connection_Attach(
-    udt_Connection *self,               // connection
-    OCISvcCtx *handle)                  // handle of connection to attach to
-{
-    OCISession *sessionHandle;
-    OCIServer *serverHandle;
-    sword status;
-
-    // acquire the server handle
-    status = OCIAttrGet(handle, OCI_HTYPE_SVCCTX, (dvoid**) &serverHandle, 0,
-            OCI_ATTR_SERVER, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Attach(): determine server handle") < 0)
-        return -1;
-
-    // acquire the session handle
-    status = OCIAttrGet(handle, OCI_HTYPE_SVCCTX, (dvoid**) &sessionHandle, 0,
-            OCI_ATTR_SESSION, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Attach(): determine session handle") < 0)
-        return -1;
-
-    // allocate the service context handle
-    status = OCIHandleAlloc(self->environment->handle,
-            (dvoid*) &self->handle, OCI_HTYPE_SVCCTX, 0, 0);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Attach(): allocate service context handle") < 0)
-        return -1;
-
-    // set attribute for server handle
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX, serverHandle, 0,
-            OCI_ATTR_SERVER, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Attach(): set server handle") < 0)
-        return -1;
-
-    // set attribute for session handle
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX, sessionHandle, 0,
-            OCI_ATTR_SESSION, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Attach(): set session handle") < 0)
-        return -1;
-
-    self->attached = 1;
+    if (status < 0)
+        return Error_RaiseAndReturnInt();
     return 0;
 }
 
@@ -551,396 +428,63 @@ static int Connection_Attach(
 // Connection_ChangePassword()
 //   Change the password for the given connection.
 //-----------------------------------------------------------------------------
-static int Connection_ChangePassword(
-    udt_Connection *self,               // connection
-    PyObject *oldPasswordObj,           // old password
-    PyObject *newPasswordObj)           // new password
+static PyObject *Connection_ChangePassword(udt_Connection *self,
+        PyObject *args)
 {
     udt_Buffer usernameBuffer, oldPasswordBuffer, newPasswordBuffer;
-    sword status;
-
-    if (cxBuffer_FromObject(&usernameBuffer, self->username,
-            self->environment->encoding) < 0)
-        return -1;
-    if (cxBuffer_FromObject(&oldPasswordBuffer, oldPasswordObj,
-            self->environment->encoding) < 0) {
-        cxBuffer_Clear(&usernameBuffer);
-        return -1;
-    }
-    if (cxBuffer_FromObject(&newPasswordBuffer, newPasswordObj,
-            self->environment->encoding) < 0) {
-        cxBuffer_Clear(&usernameBuffer);
-        cxBuffer_Clear(&oldPasswordBuffer);
-        return -1;
-    }
-
-    // begin the session
-    Py_BEGIN_ALLOW_THREADS
-    status = OCIPasswordChange(self->handle, self->environment->errorHandle,
-            (text*) usernameBuffer.ptr, (ub4) usernameBuffer.size,
-            (text*) oldPasswordBuffer.ptr, (ub4) oldPasswordBuffer.size,
-            (text*) newPasswordBuffer.ptr, (ub4) newPasswordBuffer.size,
-            OCI_AUTH);
-    Py_END_ALLOW_THREADS
-    cxBuffer_Clear(&usernameBuffer);
-    cxBuffer_Clear(&oldPasswordBuffer);
-    cxBuffer_Clear(&newPasswordBuffer);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_ChangePassword(): change password") < 0)
-        return -1;
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Connection_ChangePasswordExternal()
-//   Change the password for the given connection.
-//-----------------------------------------------------------------------------
-static PyObject *Connection_ChangePasswordExternal(
-    udt_Connection *self,               // connection
-    PyObject *args)                     // arguments
-{
     PyObject *oldPasswordObj, *newPasswordObj;
+    int status;
 
     // parse the arguments
     if (!PyArg_ParseTuple(args, "O!O!", cxString_Type, &oldPasswordObj,
             cxString_Type, &newPasswordObj))
         return NULL;
 
-    if (Connection_ChangePassword(self, oldPasswordObj, newPasswordObj) < 0)
+    // populate buffers
+    cxBuffer_Init(&usernameBuffer);
+    cxBuffer_Init(&oldPasswordBuffer);
+    cxBuffer_Init(&newPasswordBuffer);
+    if (cxBuffer_FromObject(&usernameBuffer, self->username,
+                    self->encodingInfo.encoding) < 0 ||
+            cxBuffer_FromObject(&oldPasswordBuffer, oldPasswordObj,
+                    self->encodingInfo.encoding) < 0 ||
+            cxBuffer_FromObject(&newPasswordBuffer, newPasswordObj,
+                    self->encodingInfo.encoding) < 0) {
+        cxBuffer_Clear(&usernameBuffer);
+        cxBuffer_Clear(&oldPasswordBuffer);
+        cxBuffer_Clear(&newPasswordBuffer);
         return NULL;
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-//-----------------------------------------------------------------------------
-// Connection_ProcessAppContext()
-//   Process application context during the establishing of a session. This is
-// intended to replace setting module, action and clientinfo (which was never
-// intended to be supported anyway!) and is more flexible in any case.
-//-----------------------------------------------------------------------------
-static int Connection_ProcessAppContext(
-    udt_Connection *self,               // connection
-    PyObject *appContextObj)            // app context value
-{
-    void *listHandle, *entryHandle;
-    PyObject *entryObj;
-    udt_Buffer buffer;
-    ub4 numEntries, i;
-    sword status;
-
-    // validate context is a list with at least one entry in it
-    if (!appContextObj)
-        return 0;
-    if (!PyList_Check(appContextObj)) {
-        PyErr_SetString(PyExc_TypeError,
-                "appcontext should be a list of 3-tuples");
-        return -1;
-    }
-    numEntries = (ub4) PyList_GET_SIZE(appContextObj);
-    if (numEntries == 0)
-        return 0;
-
-    // set the number of application context entries
-    status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-            (void*) &numEntries, sizeof(ub4),
-            OCI_ATTR_APPCTX_SIZE, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_ProcessAppContext(): set app context size") < 0)
-        return -1;
-
-    // get the application context list handle
-    status = OCIAttrGet(self->sessionHandle, OCI_HTYPE_SESSION, &listHandle, 0,
-            OCI_ATTR_APPCTX_LIST, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_ProcessAppContext(): get list handle") < 0)
-        return -1;
-
-    // set each application context entry
-    for (i = 0; i < numEntries; i++) {
-
-        // get entry
-        entryObj = PyList_GET_ITEM(appContextObj, i);
-        if (!PyTuple_Check(entryObj) || PyTuple_GET_SIZE(entryObj) != 3) {
-            PyErr_SetString(PyExc_TypeError,
-                    "appcontext should be a list of 3-tuples");
-            return -1;
-        }
-
-        // retrieve the context element descriptor
-        status = OCIParamGet(listHandle, OCI_DTYPE_PARAM,
-                self->environment->errorHandle, &entryHandle, i + 1);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_ProcessAppContext(): get entry handle") < 0)
-            return -1;
-
-        // set the namespace name
-        if (cxBuffer_FromObject(&buffer, PyTuple_GET_ITEM(entryObj, 0),
-                self->environment->encoding) < 0)
-            return -1;
-        status = OCIAttrSet(entryHandle, OCI_DTYPE_PARAM,
-                (void*) buffer.ptr, buffer.size, OCI_ATTR_APPCTX_NAME,
-                self->environment->errorHandle);
-        cxBuffer_Clear(&buffer);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_ProcessAppContext(): set namespace name") < 0)
-            return -1;
-
-        // set the name
-        if (cxBuffer_FromObject(&buffer, PyTuple_GET_ITEM(entryObj, 1),
-                self->environment->encoding) < 0)
-            return -1;
-        status = OCIAttrSet(entryHandle, OCI_DTYPE_PARAM,
-                (void*) buffer.ptr, buffer.size, OCI_ATTR_APPCTX_ATTR,
-                self->environment->errorHandle);
-        cxBuffer_Clear(&buffer);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_ProcessAppContext(): set name") < 0)
-            return -1;
-
-        // set the value
-        if (cxBuffer_FromObject(&buffer, PyTuple_GET_ITEM(entryObj, 2),
-                self->environment->encoding) < 0)
-            return -1;
-        status = OCIAttrSet(entryHandle, OCI_DTYPE_PARAM,
-                (void*) buffer.ptr, buffer.size, OCI_ATTR_APPCTX_VALUE,
-                self->environment->errorHandle);
-        cxBuffer_Clear(&buffer);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_ProcessAppContext(): set value") < 0)
-            return -1;
-
     }
 
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Connection_Connect()
-//   Create a new connection object by connecting to the database.
-//-----------------------------------------------------------------------------
-static int Connection_Connect(
-    udt_Connection *self,               // connection
-    ub4 mode,                           // mode to connect as
-    int twophase,                       // allow two phase commit?
-    PyObject *passwordObj,              // password
-    PyObject *newPasswordObj,           // new password (if desired)
-    PyObject *moduleObj,                // session "module" value
-    PyObject *actionObj,                // session "action" value
-    PyObject *clientinfoObj,            // session "clientinfo" value
-    PyObject *editionObj,               // session "edition" value
-    PyObject *appContextObj)            // app context value
-{
-    ub4 credentialType = OCI_CRED_EXT;
-    udt_Buffer buffer;
-    sword status;
-
-    // allocate the server handle
-    status = OCIHandleAlloc(self->environment->handle,
-            (dvoid**) &self->serverHandle, OCI_HTYPE_SERVER, 0, 0);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Connect(): allocate server handle") < 0)
-        return -1;
-
-    // attach to the server
-    if (cxBuffer_FromObject(&buffer, self->dsn,
-            self->environment->encoding) < 0)
-        return -1;
+    // change the password
     Py_BEGIN_ALLOW_THREADS
-    status = OCIServerAttach(self->serverHandle,
-            self->environment->errorHandle, (text*) buffer.ptr,
-            (ub4) buffer.size, OCI_DEFAULT);
+    status = dpiConn_changePassword(self->handle, usernameBuffer.ptr,
+            usernameBuffer.size, oldPasswordBuffer.ptr, oldPasswordBuffer.size,
+            newPasswordBuffer.ptr, newPasswordBuffer.size);
     Py_END_ALLOW_THREADS
-    cxBuffer_Clear(&buffer);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Connect(): server attach") < 0)
-        return -1;
+    cxBuffer_Clear(&usernameBuffer);
+    cxBuffer_Clear(&oldPasswordBuffer);
+    cxBuffer_Clear(&newPasswordBuffer);
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
 
-    // allocate the service context handle
-    status = OCIHandleAlloc(self->environment->handle,
-            (dvoid**) &self->handle, OCI_HTYPE_SVCCTX, 0, 0);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Connect(): allocate service context handle") < 0)
-        return -1;
-
-    // set attribute for server handle
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX, self->serverHandle, 0,
-            OCI_ATTR_SERVER, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Connect(): set server handle") < 0)
-        return -1;
-
-    // set the internal and external names; these are needed for global
-    // transactions but are limited in terms of the lengths of the strings
-    if (twophase) {
-        status = OCIAttrSet(self->serverHandle, OCI_HTYPE_SERVER,
-                (dvoid*) "cx_Oracle", 0, OCI_ATTR_INTERNAL_NAME,
-                self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Connect(): set internal name") < 0)
-            return -1;
-        status = OCIAttrSet(self->serverHandle, OCI_HTYPE_SERVER,
-                (dvoid*) "cx_Oracle", 0, OCI_ATTR_EXTERNAL_NAME,
-                self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Connect(): set external name") < 0)
-            return -1;
-    }
-
-    // allocate the session handle
-    status = OCIHandleAlloc(self->environment->handle,
-            (dvoid**) &self->sessionHandle, OCI_HTYPE_SESSION, 0, 0);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Connect(): allocate session handle") < 0)
-        return -1;
-
-    // set user name in session handle
-    if (cxBuffer_FromObject(&buffer, self->username,
-            self->environment->encoding) < 0)
-        return -1;
-    if (buffer.size > 0) {
-        credentialType = OCI_CRED_RDBMS;
-        status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_USERNAME,
-                self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Connect(): set user name") < 0) {
-            cxBuffer_Clear(&buffer);
-            return -1;
-        }
-    }
-    cxBuffer_Clear(&buffer);
-
-    // set password in session handle
-    if (cxBuffer_FromObject(&buffer, passwordObj,
-            self->environment->encoding) < 0)
-        return -1;
-    if (buffer.size > 0) {
-        credentialType = OCI_CRED_RDBMS;
-        status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_PASSWORD,
-                self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Connect(): set password") < 0) {
-            cxBuffer_Clear(&buffer);
-            return -1;
-        }
-    }
-    cxBuffer_Clear(&buffer);
-
-    // set driver name
-    status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-            (text*) DRIVER_NAME, (ub4) strlen(DRIVER_NAME),
-            OCI_ATTR_DRIVER_NAME, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Connect(): set driver name") < 0)
-        return -1;
-
-    // set the session handle on the service context handle
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX,
-            self->sessionHandle, 0, OCI_ATTR_SESSION,
-            self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Connect(): set session handle") < 0)
-        return -1;
-
-    // set module (deprecated)
-    if (moduleObj) {
-        if (cxBuffer_FromObject(&buffer, moduleObj,
-                self->environment->encoding))
-            return -1;
-        status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_MODULE,
-                self->environment->errorHandle);
-        cxBuffer_Clear(&buffer);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Connect(): set module") < 0)
-            return -1;
-    }
-
-    // set action (deprecated)
-    if (actionObj) {
-        if (cxBuffer_FromObject(&buffer, actionObj,
-                self->environment->encoding))
-            return -1;
-        status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_ACTION,
-                self->environment->errorHandle);
-        cxBuffer_Clear(&buffer);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Connect(): set action") < 0)
-            return -1;
-    }
-
-    // set client info (deprecated)
-    if (clientinfoObj) {
-        if (cxBuffer_FromObject(&buffer, clientinfoObj,
-                self->environment->encoding))
-            return -1;
-        status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_CLIENT_INFO,
-                self->environment->errorHandle);
-        cxBuffer_Clear(&buffer);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Connect(): set clientinfo") < 0)
-            return -1;
-    }
-
-    // set edition
-    if (editionObj) {
-        if (cxBuffer_FromObject(&buffer, editionObj,
-                self->environment->encoding))
-            return -1;
-        status = OCIAttrSet(self->sessionHandle, OCI_HTYPE_SESSION,
-                (text*) buffer.ptr, (ub4) buffer.size, OCI_ATTR_EDITION,
-                self->environment->errorHandle);
-        cxBuffer_Clear(&buffer);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Connect(): set edition") < 0)
-            return -1;
-    }
-
-    // set application context, if applicable
-    if (appContextObj && Connection_ProcessAppContext(self, appContextObj) < 0)
-        return -1;
-
-    // if a new password has been specified, change it which will also
-    // establish the session
-    if (newPasswordObj)
-        return Connection_ChangePassword(self, passwordObj, newPasswordObj);
-
-    // begin the session
-    Py_BEGIN_ALLOW_THREADS
-    status = OCISessionBegin(self->handle, self->environment->errorHandle,
-            self->sessionHandle, credentialType, mode);
-    Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Connect(): begin session") < 0) {
-        self->sessionHandle = NULL;
-        return -1;
-    }
-
-    return 0;
+    Py_RETURN_NONE;
 }
 
 
 #include "Cursor.c"
 #include "Subscription.c"
-#include "AQ.c"
+#include "DeqOptions.c"
+#include "EnqOptions.c"
+#include "MsgProps.c"
 
 
 //-----------------------------------------------------------------------------
 // Connection_New()
 //   Create a new connection object and return it.
 //-----------------------------------------------------------------------------
-static PyObject* Connection_New(
-    PyTypeObject *type,                 // type object
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject* Connection_New(PyTypeObject *type, PyObject *args,
+        PyObject *keywordArgs)
 {
     udt_Connection *self;
 
@@ -948,7 +492,6 @@ static PyObject* Connection_New(
     self = (udt_Connection*) type->tp_alloc(type, 0);
     if (!self)
         return NULL;
-    self->commitMode = OCI_DEFAULT;
 
     return (PyObject*) self;
 }
@@ -960,10 +503,8 @@ static PyObject* Connection_New(
 // characters up to the split string and put the characters after the split
 // string in to the target.
 //-----------------------------------------------------------------------------
-static int Connection_SplitComponent(
-    PyObject **sourceObj,               // source object to split
-    PyObject **targetObj,               // target object (for component)
-    const char *splitString)            // split string (assume one character)
+static int Connection_SplitComponent(PyObject **sourceObj,
+        PyObject **targetObj, const char *splitString)
 {
     PyObject *temp, *posObj;
     Py_ssize_t size, pos;
@@ -997,68 +538,57 @@ static int Connection_SplitComponent(
 // Connection_Init()
 //   Initialize the connection members.
 //-----------------------------------------------------------------------------
-static int Connection_Init(
-    udt_Connection *self,               // connection
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static int Connection_Init(udt_Connection *self, PyObject *args,
+        PyObject *keywordArgs)
 {
+    PyObject *tagObj, *matchAnyTagObj, *threadedObj, *eventsObj, *contextObj;
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj, *editionObj;
-    PyObject *threadedObj, *twophaseObj, *eventsObj, *newPasswordObj;
-    PyObject *moduleObj, *actionObj, *clientinfoObj, *appContextObj;
-    int threaded, twophase, events;
-    char *encoding, *nencoding;
-    ub4 connectMode, purity;
+    dpiCommonCreateParams dpiCommonParams;
+    dpiConnCreateParams dpiCreateParams;
+    udt_ConnectionParams params;
+    PyObject *newPasswordObj;
     udt_SessionPool *pool;
-    OCISvcCtx *handle;
+    const char *encoding;
+    int status, temp;
 
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "mode",
-            "handle", "pool", "threaded", "twophase", "events", "cclass",
-            "purity", "newpassword", "encoding", "nencoding", "module",
-            "action", "clientinfo", "edition", "appcontext", NULL };
+            "handle", "pool", "threaded", "events", "cclass", "purity",
+            "newpassword", "encoding", "nencoding", "edition", "appcontext",
+            "tag", "matchanytag", NULL };
 
     // parse arguments
     pool = NULL;
-    handle = NULL;
-    connectMode = OCI_STMT_CACHE;
-    threadedObj = twophaseObj = eventsObj = newPasswordObj = NULL;
-    usernameObj = passwordObj = dsnObj = cclassObj = editionObj = NULL;
-    moduleObj = actionObj = clientinfoObj = appContextObj = NULL;
-    threaded = twophase = events = purity = 0;
-    encoding = nencoding = NULL;
-    purity = OCI_ATTR_PURITY_DEFAULT;
+    threadedObj = eventsObj = newPasswordObj = usernameObj = NULL;
+    passwordObj = dsnObj = cclassObj = editionObj = tagObj = NULL;
+    matchAnyTagObj = contextObj = NULL;
+    if (dpiContext_initCommonCreateParams(g_DpiContext, &dpiCommonParams) < 0)
+        return Error_RaiseAndReturnInt();
+    dpiCommonParams.driverName = DRIVER_NAME;
+    dpiCommonParams.driverNameLength = strlen(dpiCommonParams.driverName);
+    if (dpiContext_initConnCreateParams(g_DpiContext, &dpiCreateParams) < 0)
+        return Error_RaiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOiiO!OOOOiOssOOOOO", keywordList, &usernameObj, &passwordObj,
-            &dsnObj, &connectMode, &handle, &g_SessionPoolType, &pool,
-            &threadedObj, &twophaseObj, &eventsObj, &cclassObj, &purity,
-            &newPasswordObj, &encoding, &nencoding, &moduleObj, &actionObj,
-            &clientinfoObj, &editionObj, &appContextObj))
+            "|OOOikO!OOOiOssOOOO", keywordList, &usernameObj, &passwordObj,
+            &dsnObj, &dpiCreateParams.authMode,
+            &dpiCreateParams.externalHandle, &g_SessionPoolType, &pool,
+            &threadedObj, &eventsObj, &cclassObj, &dpiCreateParams.purity,
+            &newPasswordObj, &dpiCommonParams.encoding,
+            &dpiCommonParams.nencoding, &editionObj, &contextObj, &tagObj,
+            &matchAnyTagObj))
         return -1;
-    if (threadedObj) {
-        threaded = PyObject_IsTrue(threadedObj);
-        if (threaded < 0)
-            return -1;
-    }
-    if (twophaseObj) {
-        twophase = PyObject_IsTrue(twophaseObj);
-        if (twophase < 0)
-            return -1;
-    }
-    if (eventsObj) {
-        events = PyObject_IsTrue(eventsObj);
-        if (events < 0)
-            return -1;
-    }
-
-    // set up the environment
-    if (pool)
-        self->environment = Environment_Clone(pool->environment);
-    else self->environment = Environment_NewFromScratch(threaded, events,
-            encoding, nencoding);
-    if (!self->environment)
+    if (GetBooleanValue(threadedObj, 0, &temp) < 0)
+        return -1;
+    if (temp)
+        dpiCommonParams.createMode |= DPI_MODE_CREATE_THREADED;
+    if (GetBooleanValue(eventsObj, 0, &temp) < 0)
+        return -1;
+    if (temp)
+        dpiCommonParams.createMode |= DPI_MODE_CREATE_EVENTS;
+    if (GetBooleanValue(matchAnyTagObj, 0, &dpiCreateParams.matchAnyTag) < 0)
         return -1;
 
-    // keep a copy of the credentials
+    // keep a copy of the user name and connect string (DSN)
     Py_XINCREF(usernameObj);
     self->username = usernameObj;
     Py_XINCREF(dsnObj);
@@ -1070,15 +600,72 @@ static int Connection_Init(
     if (Connection_SplitComponent(&passwordObj, &self->dsn, "@") < 0)
         return -1;
 
-    // handle the different ways of initializing the connection
-    if (handle)
-        return Connection_Attach(self, handle);
-    if (pool || cclassObj)
-        return Connection_GetConnection(self, pool, passwordObj, cclassObj,
-                purity);
-    return Connection_Connect(self, connectMode, twophase, passwordObj,
-            newPasswordObj, moduleObj, actionObj, clientinfoObj,
-            editionObj, appContextObj);
+    // setup parameters
+    if (pool) {
+        dpiCreateParams.pool = pool->handle;
+        encoding = pool->encodingInfo.encoding;
+    } else encoding = GetAdjustedEncoding(dpiCommonParams.encoding);
+    ConnectionParams_Initialize(&params);
+    if (ConnectionParams_ProcessContext(&params, contextObj, encoding) < 0)
+        return ConnectionParams_Finalize(&params);
+    if (cxBuffer_FromObject(&params.userNameBuffer, self->username,
+                    encoding) < 0 ||
+            cxBuffer_FromObject(&params.passwordBuffer, passwordObj,
+                    encoding) < 0 ||
+            cxBuffer_FromObject(&params.dsnBuffer, self->dsn, encoding) < 0 ||
+            cxBuffer_FromObject(&params.connectionClassBuffer, cclassObj,
+                    encoding) < 0 ||
+            cxBuffer_FromObject(&params.newPasswordBuffer, newPasswordObj,
+                    encoding) < 0 ||
+            cxBuffer_FromObject(&params.editionBuffer, editionObj,
+                    encoding) < 0 ||
+            cxBuffer_FromObject(&params.tagBuffer, tagObj, encoding) < 0)
+        return ConnectionParams_Finalize(&params);
+    if (params.userNameBuffer.size == 0 && params.passwordBuffer.size == 0)
+        dpiCreateParams.externalAuth = 1;
+    dpiCreateParams.connectionClass = params.connectionClassBuffer.ptr;
+    dpiCreateParams.connectionClassLength = params.connectionClassBuffer.size;
+    dpiCreateParams.newPassword = params.newPasswordBuffer.ptr;
+    dpiCreateParams.newPasswordLength = params.newPasswordBuffer.size;
+    dpiCommonParams.edition = params.editionBuffer.ptr;
+    dpiCommonParams.editionLength = params.editionBuffer.size;
+    dpiCreateParams.tag = params.tagBuffer.ptr;
+    dpiCreateParams.tagLength = params.tagBuffer.size;
+    dpiCreateParams.appContext = params.appContext;
+    dpiCreateParams.numAppContext = params.numAppContext;
+    if (pool && !pool->homogeneous && pool->username && self->username) {
+        temp = PyObject_RichCompareBool(self->username, pool->username, Py_EQ);
+        if (temp < 0)
+            return ConnectionParams_Finalize(&params);
+        if (temp)
+            params.userNameBuffer.size = 0;
+    }
+
+    // create connection
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiConn_create(g_DpiContext, params.userNameBuffer.ptr,
+            params.userNameBuffer.size, params.passwordBuffer.ptr,
+            params.passwordBuffer.size, params.dsnBuffer.ptr,
+            params.dsnBuffer.size, &dpiCommonParams, &dpiCreateParams,
+            &self->handle);
+    Py_END_ALLOW_THREADS
+    ConnectionParams_Finalize(&params);
+    if (status < 0)
+        return Error_RaiseAndReturnInt();
+
+    // determine encodings to use
+    if (pool)
+        self->encodingInfo = pool->encodingInfo;
+    else {
+        if (dpiConn_getEncodingInfo(self->handle, &self->encodingInfo) < 0)
+            return Error_RaiseAndReturnInt();
+        self->encodingInfo.encoding =
+                GetAdjustedEncoding(self->encodingInfo.encoding);
+        self->encodingInfo.nencoding =
+                GetAdjustedEncoding(self->encodingInfo.nencoding);
+    }
+
+    return 0;
 }
 
 
@@ -1086,30 +673,14 @@ static int Connection_Init(
 // Connection_Free()
 //   Deallocate the connection, disconnecting from the database if necessary.
 //-----------------------------------------------------------------------------
-static void Connection_Free(
-    udt_Connection *self)               // connection object
+static void Connection_Free(udt_Connection *self)
 {
-    if (self->release) {
+    if (self->handle) {
         Py_BEGIN_ALLOW_THREADS
-        OCITransRollback(self->handle, self->environment->errorHandle,
-                OCI_DEFAULT);
-        OCISessionRelease(self->handle, self->environment->errorHandle, NULL,
-                0, OCI_DEFAULT);
+        dpiConn_release(self->handle);
         Py_END_ALLOW_THREADS
-    } else if (!self->attached) {
-        if (self->sessionHandle) {
-            Py_BEGIN_ALLOW_THREADS
-            OCITransRollback(self->handle, self->environment->errorHandle,
-                    OCI_DEFAULT);
-            OCISessionEnd(self->handle, self->environment->errorHandle,
-                    self->sessionHandle, OCI_DEFAULT);
-            Py_END_ALLOW_THREADS
-        }
-        if (self->serverHandle)
-            OCIServerDetach(self->serverHandle,
-                    self->environment->errorHandle, OCI_DEFAULT);
+        self->handle = NULL;
     }
-    Py_CLEAR(self->environment);
     Py_CLEAR(self->sessionPool);
     Py_CLEAR(self->username);
     Py_CLEAR(self->dsn);
@@ -1124,8 +695,7 @@ static void Connection_Free(
 // Connection_Repr()
 //   Return a string representation of the connection.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Repr(
-    udt_Connection *connection)         // connection to return the string for
+static PyObject *Connection_Repr(udt_Connection *connection)
 {
     PyObject *module, *name, *result, *format, *formatArgs = NULL;
 
@@ -1165,21 +735,14 @@ static PyObject *Connection_Repr(
 // Connection_GetStmtCacheSize()
 //   Return the Oracle statement cache size.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_GetStmtCacheSize(
-    udt_Connection* self,               // connection object
-    void* arg)                          // optional argument (ignored)
+static PyObject *Connection_GetStmtCacheSize(udt_Connection* self, void* arg)
 {
-    ub4 cacheSize;
-    sword status;
+    uint32_t cacheSize;
 
     if (Connection_IsConnected(self) < 0)
         return NULL;
-    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
-            (dvoid**) &cacheSize, 0, OCI_ATTR_STMTCACHESIZE,
-            self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_GetStmtCacheSize()") < 0)
-        return NULL;
+    if (dpiConn_getStmtCacheSize(self->handle, &cacheSize) < 0)
+        return Error_RaiseAndReturnNull();
     return PyInt_FromLong(cacheSize);
 }
 
@@ -1188,13 +751,10 @@ static PyObject *Connection_GetStmtCacheSize(
 // Connection_SetStmtCacheSize()
 //   Set the Oracle statement cache size.
 //-----------------------------------------------------------------------------
-static int Connection_SetStmtCacheSize(
-    udt_Connection* self,               // connection object
-    PyObject *value,                    // value to set it to
-    void* arg)                          // optional argument (ignored)
+static int Connection_SetStmtCacheSize(udt_Connection* self, PyObject *value,
+        void* arg)
 {
-    ub4 valueToSet;
-    sword status;
+    uint32_t cacheSize;
 
     if (Connection_IsConnected(self) < 0)
         return -1;
@@ -1202,14 +762,9 @@ static int Connection_SetStmtCacheSize(
         PyErr_SetString(PyExc_TypeError, "value must be an integer");
         return -1;
     }
-    valueToSet = (ub4) PyInt_AsLong(value);
-    if (PyErr_Occurred())
-        return -1;
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX, (dvoid*) &valueToSet,
-            0, OCI_ATTR_STMTCACHESIZE, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_SetStmtCacheSize()") < 0)
-        return -1;
+    cacheSize = (uint32_t) PyInt_AsLong(value);
+    if (dpiConn_setStmtCacheSize(self->handle, cacheSize) < 0)
+        return Error_RaiseAndReturnInt();
     return 0;
 }
 
@@ -1218,9 +773,7 @@ static int Connection_SetStmtCacheSize(
 // Connection_GetType()
 //   Return a type object given its name.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_GetType(
-    udt_Connection *self,               // connection
-    PyObject *args)                     // arguments
+static PyObject *Connection_GetType(udt_Connection *self, PyObject *args)
 {
     PyObject *nameObj = NULL;
 
@@ -1238,76 +791,20 @@ static PyObject *Connection_GetType(
 // function also places the result in the associated dictionary so it is only
 // calculated once.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_GetVersion(
-    udt_Connection *self,               // connection object
-    void *arg)                          // optional argument (ignored)
+static PyObject *Connection_GetVersion(udt_Connection *self, void *unused)
 {
-    PyObject *procName, *listOfArguments;
-    udt_Variable *versionVar, *compatVar;
-    udt_Cursor *cursor;
+    int versionNum, releaseNum, updateNum, portReleaseNum, portUpdateNum;
+    const char *releaseString;
+    uint32_t releaseStringLength;
+    char buffer[25];
 
-    // if version has already been determined, no need to determine again
-    if (self->version) {
-        Py_INCREF(self->version);
-        return self->version;
-    }
-
-    // allocate a cursor to retrieve the version
-    cursor = (udt_Cursor*) Connection_NewCursor(self, NULL, NULL);
-    if (!cursor)
-        return NULL;
-
-    // allocate version variable
-    versionVar = Variable_New(cursor, cursor->arraySize, &vt_String,
-            vt_String.size);
-    if (!versionVar) {
-        Py_DECREF(cursor);
-        return NULL;
-    }
-
-    // allocate compatibility variable
-    compatVar = Variable_New(cursor, cursor->arraySize, &vt_String,
-            vt_String.size);
-    if (!compatVar) {
-        Py_DECREF(versionVar);
-        Py_DECREF(cursor);
-        return NULL;
-    }
-
-    // create the list of arguments
-    listOfArguments = PyList_New(2);
-    if (!listOfArguments) {
-        Py_DECREF(versionVar);
-        Py_DECREF(compatVar);
-        Py_DECREF(cursor);
-        return NULL;
-    }
-    PyList_SET_ITEM(listOfArguments, 0, (PyObject*) versionVar);
-    PyList_SET_ITEM(listOfArguments, 1, (PyObject*) compatVar);
-
-    // create the string variable
-    procName = cxString_FromAscii("dbms_utility.db_version");
-    if (!procName) {
-        Py_DECREF(listOfArguments);
-        Py_DECREF(cursor);
-        return NULL;
-    }
-
-    // call stored procedure
-    if (Cursor_Call(cursor, NULL, procName, listOfArguments, NULL) < 0) {
-        Py_DECREF(procName);
-        Py_DECREF(listOfArguments);
-        Py_DECREF(cursor);
-        return NULL;
-    }
-    Py_DECREF(procName);
-
-    // retrieve value
-    self->version = Variable_GetValue(versionVar, 0);
-    Py_DECREF(listOfArguments);
-    Py_DECREF(cursor);
-    Py_XINCREF(self->version);
-    return self->version;
+    if (dpiConn_getServerVersion(self->handle, &releaseString,
+            &releaseStringLength, &versionNum, &releaseNum, &updateNum,
+            &portReleaseNum, &portUpdateNum) < 0)
+        return Error_RaiseAndReturnNull();
+    snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d.%d", versionNum, releaseNum,
+            updateNum, portReleaseNum, portUpdateNum);
+    return cxString_FromAscii(buffer);
 }
 
 
@@ -1315,51 +812,43 @@ static PyObject *Connection_GetVersion(
 // Connection_GetEncoding()
 //   Return the encoding associated with the environment of the connection.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_GetEncoding(
-    udt_Connection *self,               // connection object
-    void *arg)                          // optional argument (ignored)
+static PyObject *Connection_GetEncoding(udt_Connection *self, void *unused)
 {
-    return cxString_FromAscii(self->environment->encoding);
+    return cxString_FromAscii(self->encodingInfo.encoding);
 }
 
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
 //-----------------------------------------------------------------------------
 // Connection_GetLTXID()
 //   Return the logical transaction id used with Transaction Guard.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_GetLTXID(
-    udt_Connection *self,               // connection object
-    void *arg)                          // optional argument (ignored)
+static PyObject *Connection_GetLTXID(udt_Connection *self, void *unused)
 {
-    OCISession *sessionHandle;
-    ub4 ltxidLength;
-    sword status;
-    ub1 *ltxid;
+    uint32_t ltxidLength;
+    const char *ltxid;
 
-    // make sure connection is connected
     if (Connection_IsConnected(self) < 0)
         return NULL;
-
-    // acquire the session handle
-    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
-            (dvoid**) &sessionHandle, 0, OCI_ATTR_SESSION,
-            self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_GetLTXID(): determine session handle") < 0)
-        return NULL;
-
-    // get the value from the OCI
-    status = OCIAttrGet(sessionHandle, OCI_HTYPE_SESSION,
-            &ltxid, &ltxidLength, OCI_ATTR_LTXID,
-            self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_GetLTXID()") < 0)
-        return NULL;
-
-    return PyBytes_FromStringAndSize( (char*) ltxid, (Py_ssize_t) ltxidLength);
+    if (dpiConn_getLTXID(self->handle, &ltxid, &ltxidLength) < 0)
+        return Error_RaiseAndReturnNull();
+    return PyBytes_FromStringAndSize(ltxid, ltxidLength);
 }
-#endif
+
+
+//-----------------------------------------------------------------------------
+// Connection_GetHandle()
+//   Return the OCI handle used by the connection.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetHandle(udt_Connection *self, void *unused)
+{
+    void *handle;
+
+    if (Connection_IsConnected(self) < 0)
+        return NULL;
+    if (dpiConn_getHandle(self->handle, &handle) < 0)
+        return Error_RaiseAndReturnNull();
+    return PyInt_FromLong((long) handle);
+}
 
 
 //-----------------------------------------------------------------------------
@@ -1367,11 +856,10 @@ static PyObject *Connection_GetLTXID(
 //   Return the national encoding associated with the environment of the
 // connection.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_GetNationalEncoding(
-    udt_Connection *self,               // connection object
-    void *arg)                          // optional argument (ignored)
+static PyObject *Connection_GetNationalEncoding(udt_Connection *self,
+        void *unused)
 {
-    return cxString_FromAscii(self->environment->nencoding);
+    return cxString_FromAscii(self->encodingInfo.nencoding);
 }
 
 
@@ -1379,11 +867,10 @@ static PyObject *Connection_GetNationalEncoding(
 // Connection_GetMaxBytesPerCharacter()
 //   Return the maximum number of bytes per character.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_GetMaxBytesPerCharacter(
-    udt_Connection *self,               // connection object
-    void *arg)                          // optional argument (ignored)
+static PyObject *Connection_GetMaxBytesPerCharacter(udt_Connection *self,
+        void *unused)
 {
-    return PyInt_FromLong(self->environment->maxBytesPerCharacter);
+    return PyInt_FromLong(self->encodingInfo.maxBytesPerCharacter);
 }
 
 
@@ -1391,65 +878,19 @@ static PyObject *Connection_GetMaxBytesPerCharacter(
 // Connection_Close()
 //   Close the connection, disconnecting from the database.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Close(
-    udt_Connection *self,               // connection to close
-    PyObject *args)                     // arguments
+static PyObject *Connection_Close(udt_Connection *self, PyObject *args)
 {
-    sword status;
+    int status;
 
-    // make sure we are actually connected
     if (Connection_IsConnected(self) < 0)
         return NULL;
-
-    // perform a rollback
     Py_BEGIN_ALLOW_THREADS
-    status = OCITransRollback(self->handle, self->environment->errorHandle,
-            OCI_DEFAULT);
+    status = dpiConn_close(self->handle, DPI_MODE_CONN_CLOSE_DEFAULT, NULL, 0);
     Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Close(): rollback") < 0)
-        return NULL;
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
 
-    // logoff of the server
-    if (self->release) {
-        Py_BEGIN_ALLOW_THREADS
-        status = OCISessionRelease(self->handle,
-                self->environment->errorHandle, NULL, 0, OCI_DEFAULT);
-        Py_END_ALLOW_THREADS
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Close(): release session") < 0)
-            return NULL;
-        self->release = 0;
-    }
-    else {
-        if (self->sessionHandle) {
-            Py_BEGIN_ALLOW_THREADS
-            status = OCISessionEnd(self->handle,
-                    self->environment->errorHandle, self->sessionHandle,
-                    OCI_DEFAULT);
-            Py_END_ALLOW_THREADS
-            if (Environment_CheckForError(self->environment, status,
-                    "Connection_Close(): end session") < 0)
-                return NULL;
-            OCIHandleFree(self->sessionHandle, OCI_HTYPE_SESSION);
-            self->sessionHandle = NULL;
-            OCIHandleFree(self->handle, OCI_HTYPE_SVCCTX);
-        }
-
-        if (self->serverHandle) {
-            status = OCIServerDetach(self->serverHandle,
-                self->environment->errorHandle, OCI_DEFAULT);
-            if (Environment_CheckForError(self->environment, status,
-                "Connection_Close(): server detach") < 0)
-                return NULL;
-            OCIHandleFree(self->serverHandle, OCI_HTYPE_SERVER);
-            self->serverHandle = NULL;
-        }
-    }
-    self->handle = NULL;
-
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1457,28 +898,19 @@ static PyObject *Connection_Close(
 // Connection_Commit()
 //   Commit the transaction on the connection.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Commit(
-    udt_Connection *self,               // connection to commit
-    PyObject *args)                     // arguments
+static PyObject *Connection_Commit(udt_Connection *self, PyObject *args)
 {
-    sword status;
+    int status;
 
-    // make sure we are actually connected
     if (Connection_IsConnected(self) < 0)
         return NULL;
-
-    // perform the commit
     Py_BEGIN_ALLOW_THREADS
-    status = OCITransCommit(self->handle, self->environment->errorHandle,
-            self->commitMode);
+    status = dpiConn_commit(self->handle);
     Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Commit()") < 0)
-        return NULL;
-    self->commitMode = OCI_DEFAULT;
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1486,87 +918,33 @@ static PyObject *Connection_Commit(
 // Connection_Begin()
 //   Begin a new transaction on the connection.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Begin(
-    udt_Connection *self,               // connection to commit
-    PyObject *args)                     // arguments
+static PyObject *Connection_Begin(udt_Connection *self, PyObject *args)
 {
-    unsigned transactionIdLength, branchIdLength;
+    uint32_t transactionIdLength, branchIdLength;
     const char *transactionId, *branchId;
-    OCITrans *transactionHandle;
-    int formatId;
-    sword status;
-    XID xid;
+    int formatId, status;
 
     // parse the arguments
     formatId = -1;
+    transactionId = branchId = NULL;
     transactionIdLength = branchIdLength = 0;
     if (!PyArg_ParseTuple(args, "|is#s#", &formatId, &transactionId,
             &transactionIdLength,  &branchId, &branchIdLength))
         return NULL;
-    if (transactionIdLength > MAXGTRIDSIZE) {
-        PyErr_SetString(PyExc_ValueError, "transaction id too large");
-        return NULL;
-    }
-    if (branchIdLength > MAXBQUALSIZE) {
-        PyErr_SetString(PyExc_ValueError, "branch id too large");
-        return NULL;
-    }
 
     // make sure we are actually connected
     if (Connection_IsConnected(self) < 0)
         return NULL;
 
-    // determine if a transaction handle was previously allocated
-    status = OCIAttrGet(self->handle, OCI_HTYPE_SVCCTX,
-            (dvoid**) &transactionHandle, 0, OCI_ATTR_TRANS,
-            self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Begin(): find existing transaction handle") < 0)
-        return NULL;
-
-    // create a new transaction handle, if necessary
-    if (!transactionHandle) {
-        status = OCIHandleAlloc(self->environment->handle,
-                (dvoid**) &transactionHandle, OCI_HTYPE_TRANS, 0, 0);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Begin(): allocate transaction handle") < 0)
-            return NULL;
-    }
-
-    // set the XID for the transaction, if applicable
-    if (formatId != -1) {
-        xid.formatID = formatId;
-        xid.gtrid_length = transactionIdLength;
-        xid.bqual_length = branchIdLength;
-        if (transactionIdLength > 0)
-            strncpy(xid.data, transactionId, transactionIdLength);
-        if (branchIdLength > 0)
-            strncpy(&xid.data[transactionIdLength], branchId, branchIdLength);
-        OCIAttrSet(transactionHandle, OCI_HTYPE_TRANS, &xid, sizeof(XID),
-                OCI_ATTR_XID, self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Connection_Begin(): set XID") < 0)
-            return NULL;
-    }
-
-    // associate the transaction with the connection
-    OCIAttrSet(self->handle, OCI_HTYPE_SVCCTX, transactionHandle, 0,
-            OCI_ATTR_TRANS, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Begin(): associate transaction") < 0)
-        return NULL;
-
-    // start the transaction
+    // begin the distributed transaction
     Py_BEGIN_ALLOW_THREADS
-    status = OCITransStart(self->handle, self->environment->errorHandle, 0,
-            OCI_TRANS_NEW);
+    status = dpiConn_beginDistribTrans(self->handle, formatId, transactionId,
+            transactionIdLength, branchId, branchIdLength);
     Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Begin(): start transaction") < 0)
-        return NULL;
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1574,11 +952,9 @@ static PyObject *Connection_Begin(
 // Connection_Prepare()
 //   Commit the transaction on the connection.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Prepare(
-    udt_Connection *self,               // connection to commit
-    PyObject *args)                     // arguments
+static PyObject *Connection_Prepare(udt_Connection *self, PyObject *args)
 {
-    sword status;
+    int status, commitNeeded;
 
     // make sure we are actually connected
     if (Connection_IsConnected(self) < 0)
@@ -1586,23 +962,15 @@ static PyObject *Connection_Prepare(
 
     // perform the prepare
     Py_BEGIN_ALLOW_THREADS
-    status = OCITransPrepare(self->handle, self->environment->errorHandle,
-            OCI_DEFAULT);
+    status = dpiConn_prepareDistribTrans(self->handle, &commitNeeded);
     Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Prepare()") < 0)
-        return NULL;
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
 
-    // if nothing available to prepare, return False in order to allow for
-    // avoiding the call to commit() which will fail with ORA-24756
-    // (transaction does not exist)
-    if (status == OCI_SUCCESS_WITH_INFO) {
-        Py_INCREF(Py_False);
-        return Py_False;
-    }
-    self->commitMode = OCI_TRANS_TWOPHASE;
-    Py_INCREF(Py_True);
-    return Py_True;
+    // return whether a commit is needed in order to allow for avoiding the
+    // call to commit() which will fail with ORA-24756 (transaction does not
+    // exist)
+    return PyBool_FromLong(commitNeeded);
 }
 
 
@@ -1610,27 +978,19 @@ static PyObject *Connection_Prepare(
 // Connection_Rollback()
 //   Rollback the transaction on the connection.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Rollback(
-    udt_Connection *self,               // connection to rollback
-    PyObject *args)                     // arguments
+static PyObject *Connection_Rollback(udt_Connection *self, PyObject *args)
 {
-    sword status;
+    int status;
 
-    // make sure we are actually connected
     if (Connection_IsConnected(self) < 0)
         return NULL;
-
-    // perform the rollback
     Py_BEGIN_ALLOW_THREADS
-    status = OCITransRollback(self->handle, self->environment->errorHandle,
-            OCI_DEFAULT);
+    status = dpiConn_rollback(self->handle);
     Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Rollback()") < 0)
-        return NULL;
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1638,10 +998,8 @@ static PyObject *Connection_Rollback(
 // Connection_NewCursor()
 //   Create a new cursor (statement) referencing the connection.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_NewCursor(
-    udt_Connection *self,               // connection to create cursor on
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Connection_NewCursor(udt_Connection *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     PyObject *createArgs, *result;
     Py_ssize_t numArgs = 0, i;
@@ -1664,27 +1022,17 @@ static PyObject *Connection_NewCursor(
 
 //-----------------------------------------------------------------------------
 // Connection_Cancel()
-//   Execute an OCIBreak() to cause an immediate (asynchronous) abort of any
-// currently executing OCI function.
+//   Cause Oracle to issue an immediate (asynchronous) abort of any currently
+// executing statement.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Cancel(
-    udt_Connection *self,               // connection to cancel
-    PyObject *args)                     // arguments
+static PyObject *Connection_Cancel(udt_Connection *self, PyObject *args)
 {
-    sword status;
-
-    // make sure we are actually connected
     if (Connection_IsConnected(self) < 0)
         return NULL;
+    if (dpiConn_breakExecution(self->handle) < 0)
+        return Error_RaiseAndReturnNull();
 
-    // perform the break
-    status = OCIBreak(self->handle, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Cancel()") < 0)
-        return NULL;
-
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1692,11 +1040,10 @@ static PyObject *Connection_Cancel(
 // Connection_NewEnqueueOptions()
 //   Creates a new enqueue options object and returns it.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_NewEnqueueOptions(
-    udt_Connection *self,               // connection
-    PyObject *args)                     // none
+static PyObject *Connection_NewEnqueueOptions(udt_Connection *self,
+        PyObject *args)
 {
-    return (PyObject*) EnqOptions_New(self->environment);
+    return (PyObject*) EnqOptions_New(self);
 }
 
 
@@ -1704,11 +1051,10 @@ static PyObject *Connection_NewEnqueueOptions(
 // Connection_NewDequeueOptions()
 //   Creates a new dequeue options object and returns it.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_NewDequeueOptions(
-    udt_Connection *self,               // connection
-    PyObject *args)                     // none
+static PyObject *Connection_NewDequeueOptions(udt_Connection *self,
+        PyObject *args)
 {
-    return (PyObject*) DeqOptions_New(self->environment);
+    return (PyObject*) DeqOptions_New(self);
 }
 
 
@@ -1716,11 +1062,10 @@ static PyObject *Connection_NewDequeueOptions(
 // Connection_NewMessageProperties()
 //   Creates a new message properties object and returns it.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_NewMessageProperties(
-    udt_Connection *self,               // connection
-    PyObject *args)                     // none
+static PyObject *Connection_NewMessageProperties(udt_Connection *self,
+        PyObject *args)
 {
-    return (PyObject*) MessageProperties_New(self->environment);
+    return (PyObject*) MsgProps_New(self);
 }
 
 
@@ -1729,23 +1074,19 @@ static PyObject *Connection_NewMessageProperties(
 //   Dequeues a message using Advanced Queuing capabilities. The message ID is
 // returned if a message is available or None if no message is available.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Dequeue(
-    udt_Connection *self,               // connection
-    PyObject* args,                     // arguments
-    PyObject* keywordArgs)              // keyword arguments
+static PyObject *Connection_Dequeue(udt_Connection *self, PyObject* args,
+        PyObject* keywordArgs)
 {
     static char *keywordList[] = { "name", "options", "msgproperties",
             "payload", NULL };
-    PyObject *nameObj, *excType, *excValue, *traceback;
-    udt_MessageProperties *propertiesObj;
+    udt_MsgProps *propertiesObj;
+    const char *messageIdValue;
     udt_DeqOptions *optionsObj;
+    uint32_t messageIdLength;
     udt_Object *payloadObj;
     udt_Buffer nameBuffer;
-    char *messageIdValue;
-    OCIRaw *messageId;
-    ub4 messageIdSize;
-    udt_Error *error;
-    sword status;
+    PyObject *nameObj;
+    int status;
 
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!O!O!", keywordList,
@@ -1753,37 +1094,21 @@ static PyObject *Connection_Dequeue(
             &propertiesObj, &g_ObjectType, &payloadObj))
         return NULL;
     if (cxBuffer_FromObject(&nameBuffer, nameObj,
-            self->environment->encoding) < 0)
+            self->encodingInfo.encoding) < 0)
         return NULL;
 
-    // enqueue payload
-    messageId = NULL;
-    status = OCIAQDeq(self->handle, self->environment->errorHandle,
-            (oratext*) nameBuffer.ptr, optionsObj->handle,
-            propertiesObj->handle, payloadObj->objectType->tdo,
-            &payloadObj->instance, &payloadObj->indicator, &messageId,
-            OCI_DEFAULT);
+    // dequeue payload
+    status = dpiConn_deqObject(self->handle, nameBuffer.ptr, nameBuffer.size,
+            optionsObj->handle, propertiesObj->handle, payloadObj->handle,
+            &messageIdValue, &messageIdLength);
     cxBuffer_Clear(&nameBuffer);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Dequeue()") < 0) {
-        PyErr_Fetch(&excType, &excValue, &traceback);
-        if (excValue) {
-            error = (udt_Error*) excValue;
-            if (error->code == 25228) {
-                Py_XDECREF(excType);
-                Py_XDECREF(excValue);
-                Py_XDECREF(traceback);
-                Py_RETURN_NONE;
-            }
-        }
-        PyErr_Restore(excType, excValue, traceback);
-        return NULL;
-    }
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
 
-    // determine the message id
-    messageIdValue = (char*) OCIRawPtr(self->environment->handle, messageId);
-    messageIdSize = OCIRawSize(self->environment->handle, messageId);
-    return PyBytes_FromStringAndSize(messageIdValue, messageIdSize);
+    // return message id
+    if (!messageIdValue)
+        Py_RETURN_NONE;
+    return PyBytes_FromStringAndSize(messageIdValue, messageIdLength);
 }
 
 
@@ -1792,22 +1117,19 @@ static PyObject *Connection_Dequeue(
 //   Enqueues a message using Advanced Queuing capabilities. The message ID is
 // returned.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Enqueue(
-    udt_Connection *self,               // connection
-    PyObject* args,                     // arguments
-    PyObject* keywordArgs)              // keyword arguments
+static PyObject *Connection_Enqueue(udt_Connection *self, PyObject* args,
+        PyObject* keywordArgs)
 {
     static char *keywordList[] = { "name", "options", "msgproperties",
             "payload", NULL };
-    udt_MessageProperties *propertiesObj;
+    udt_MsgProps *propertiesObj;
+    const char *messageIdValue;
     udt_EnqOptions *optionsObj;
+    uint32_t messageIdLength;
     udt_Object *payloadObj;
     udt_Buffer nameBuffer;
-    char *messageIdValue;
     PyObject *nameObj;
-    OCIRaw *messageId;
-    ub4 messageIdSize;
-    sword status;
+    int status;
 
     // parse arguments
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!O!O!", keywordList,
@@ -1815,25 +1137,19 @@ static PyObject *Connection_Enqueue(
             &propertiesObj, &g_ObjectType, &payloadObj))
         return NULL;
     if (cxBuffer_FromObject(&nameBuffer, nameObj,
-            self->environment->encoding) < 0)
+            self->encodingInfo.encoding) < 0)
         return NULL;
 
     // enqueue payload
-    messageId = NULL;
-    status = OCIAQEnq(self->handle, self->environment->errorHandle,
-            (oratext*) nameBuffer.ptr, optionsObj->handle,
-            propertiesObj->handle, payloadObj->objectType->tdo,
-            &payloadObj->instance, &payloadObj->indicator, &messageId,
-            OCI_DEFAULT);
+    status = dpiConn_enqObject(self->handle, nameBuffer.ptr, nameBuffer.size,
+            optionsObj->handle, propertiesObj->handle, payloadObj->handle,
+            &messageIdValue, &messageIdLength);
     cxBuffer_Clear(&nameBuffer);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Enqueue()") < 0)
-        return NULL;
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
 
-    // determine the message id
-    messageIdValue = (char*) OCIRawPtr(self->environment->handle, messageId);
-    messageIdSize = OCIRawSize(self->environment->handle, messageId);
-    return PyBytes_FromStringAndSize(messageIdValue, messageIdSize);
+    // return message id
+    return PyBytes_FromStringAndSize(messageIdValue, messageIdLength);
 }
 
 
@@ -1842,9 +1158,8 @@ static PyObject *Connection_Enqueue(
 //   Called when the connection is used as a context manager and simply returns
 // itself as a convenience to the caller.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_ContextManagerEnter(
-    udt_Connection *self,               // connection
-    PyObject* args)                     // arguments
+static PyObject *Connection_ContextManagerEnter(udt_Connection *self,
+        PyObject* args)
 {
     Py_INCREF(self);
     return (PyObject*) self;
@@ -1856,9 +1171,8 @@ static PyObject *Connection_ContextManagerEnter(
 //   Called when the connection is used as a context manager and if any
 // exception a rollback takes place; otherwise, a commit takes place.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_ContextManagerExit(
-    udt_Connection *self,               // connection
-    PyObject* args)                     // arguments
+static PyObject *Connection_ContextManagerExit(udt_Connection *self,
+        PyObject* args)
 {
     PyObject *excType, *excValue, *excTraceback, *result;
     char *methodName;
@@ -1883,21 +1197,19 @@ static PyObject *Connection_ContextManagerExit(
 //   Makes a round trip call to the server to confirm that the connection and
 // server are active.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Ping(
-    udt_Connection *self,               // connection
-    PyObject* args)                     // arguments
+static PyObject *Connection_Ping(udt_Connection *self, PyObject* args)
 {
-    sword status;
+    int status;
 
     if (Connection_IsConnected(self) < 0)
         return NULL;
-    status = OCIPing(self->handle, self->environment->errorHandle,
-            OCI_DEFAULT);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Ping()") < 0)
-        return NULL;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiConn_ping(self->handle);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
+
+    Py_RETURN_NONE;
 }
 
 
@@ -1906,32 +1218,27 @@ static PyObject *Connection_Ping(
 //   Shuts down the database. Note that this must be done in two phases except
 // in the situation where the instance is aborted.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Shutdown(
-    udt_Connection *self,               // connection
-    PyObject* args,                     // arguments
-    PyObject* keywordArgs)              // keyword arguments
+static PyObject *Connection_Shutdown(udt_Connection *self, PyObject* args,
+        PyObject* keywordArgs)
 {
     static char *keywordList[] = { "mode", NULL };
-    sword status;
-    ub4 mode;
+    dpiShutdownMode mode;
 
     // parse arguments
-    mode = OCI_DEFAULT;
+    mode = DPI_MODE_SHUTDOWN_DEFAULT;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|i", keywordList,
             &mode))
         return NULL;
 
-    // perform the work
+    // make sure we are actually connected
     if (Connection_IsConnected(self) < 0)
         return NULL;
-    status = OCIDBShutdown(self->handle, self->environment->errorHandle, NULL,
-            mode);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Shutdown()") < 0)
-        return NULL;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    // perform the work
+    if (dpiConn_shutdownDatabase(self->handle, mode) < 0)
+        return Error_RaiseAndReturnNull();
+
+    Py_RETURN_NONE;
 }
 
 
@@ -1939,16 +1246,13 @@ static PyObject *Connection_Shutdown(
 // Connection_Startup()
 //   Starts up the database, equivalent to "startup nomount" in SQL*Plus.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Startup(
-    udt_Connection *self,               // connection
-    PyObject* args,                     // arguments
-    PyObject* keywordArgs)              // keyword arguments
+static PyObject *Connection_Startup(udt_Connection *self, PyObject* args,
+        PyObject* keywordArgs)
 {
     static char *keywordList[] = { "force", "restrict", NULL };
     PyObject *forceObj, *restrictObj;
-    int flagTemp;
-    sword status;
-    ub4 flags;
+    dpiStartupMode mode;
+    int temp;
 
     // parse arguments
     forceObj = restrictObj = NULL;
@@ -1957,33 +1261,25 @@ static PyObject *Connection_Startup(
         return NULL;
 
     // set the flags to use during startup
-    flags = 0;
-    if (forceObj) {
-        flagTemp = PyObject_IsTrue(forceObj);
-        if (flagTemp < 0)
-            return NULL;
-        if (flagTemp)
-            flags |= OCI_DBSTARTUPFLAG_FORCE;
-    }
-    if (restrictObj) {
-        flagTemp = PyObject_IsTrue(restrictObj);
-        if (flagTemp < 0)
-            return NULL;
-        if (flagTemp)
-            flags |= OCI_DBSTARTUPFLAG_RESTRICT;
-    }
+    mode = DPI_MODE_STARTUP_DEFAULT;
+    if (GetBooleanValue(forceObj, 0, &temp) < 0)
+        return NULL;
+    if (temp)
+        mode |= DPI_MODE_STARTUP_FORCE;
+    if (GetBooleanValue(restrictObj, 0, &temp) < 0)
+        return NULL;
+    if (temp)
+        mode |= DPI_MODE_STARTUP_RESTRICT;
 
-    // perform the work
+    // make sure we are actually connected
     if (Connection_IsConnected(self) < 0)
         return NULL;
-    status = OCIDBStartup(self->handle, self->environment->errorHandle, NULL,
-            OCI_DEFAULT, flags);
-    if (Environment_CheckForError(self->environment, status,
-            "Connection_Startup()") < 0)
-        return NULL;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    // perform the work
+    if (dpiConn_startupDatabase(self->handle, mode) < 0)
+        return Error_RaiseAndReturnNull();
+
+    Py_RETURN_NONE;
 }
 
 
@@ -1991,38 +1287,153 @@ static PyObject *Connection_Startup(
 // Connection_Subscribe()
 //   Create a subscription to events that take place in the database.
 //-----------------------------------------------------------------------------
-static PyObject *Connection_Subscribe(
-    udt_Connection *self,               // connection
-    PyObject* args,                     // arguments
-    PyObject* keywordArgs)              // keyword arguments
+static PyObject *Connection_Subscribe(udt_Connection *self, PyObject* args,
+        PyObject* keywordArgs)
 {
     static char *keywordList[] = { "namespace", "protocol", "callback",
-            "timeout", "operations", "rowids", "port", "qos", "cqqos", NULL };
-    ub4 namespace, protocol, port, timeout, rowids, operations, qos, cqqos;
-    PyObject *rowidsObj, *callback;
-    int temp;
+            "timeout", "operations", "port", "qos", NULL };
+    uint32_t namespace, protocol, port, timeout, operations, qos;
+    PyObject *callback;
 
-    // parse arguments
-    timeout = rowids = port = qos = cqqos = 0;
-    rowidsObj = callback = NULL;
-    namespace = OCI_SUBSCR_NAMESPACE_DBCHANGE;
-    protocol = OCI_SUBSCR_PROTO_OCI;
-    operations = OCI_OPCODE_ALLOPS;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiOiii",
+    callback = NULL;
+    timeout = port = qos = 0;
+    namespace = DPI_SUBSCR_NAMESPACE_DBCHANGE;
+    protocol = DPI_SUBSCR_PROTO_CALLBACK;
+    operations = DPI_OPCODE_ALL_OPS;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiii",
             keywordList, &namespace, &protocol, &callback, &timeout,
-            &operations, &rowidsObj, &port, &qos, &cqqos))
+            &operations, &port, &qos))
         return NULL;
-
-    // set the value for rowids
-    if (rowidsObj) {
-        temp = PyObject_IsTrue(rowidsObj);
-        if (temp < 0)
-            return NULL;
-        if (temp)
-            rowids = 1;
-    }
-
     return (PyObject*) Subscription_New(self, namespace, protocol, port,
-            callback, timeout, operations, qos, cqqos, rowids);
+            callback, timeout, operations, qos);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_GetCurrentSchema()
+//   Return the current schema associated with the connection.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetCurrentSchema(udt_Connection* self,
+        void* unused)
+{
+    return Connection_GetAttrText(self, dpiConn_getCurrentSchema);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_GetEdition()
+//   Return the edition associated with the connection.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetEdition(udt_Connection* self, void* unused)
+{
+    return Connection_GetAttrText(self, dpiConn_getEdition);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_GetExternalName()
+//   Return the external name associated with the connection.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetExternalName(udt_Connection* self, void* unused)
+{
+    return Connection_GetAttrText(self, dpiConn_getExternalName);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_GetInternalName()
+//   Return the internal name associated with the connection.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetInternalName(udt_Connection* self, void* unused)
+{
+    return Connection_GetAttrText(self, dpiConn_getInternalName);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_SetAction()
+//   Set the action associated with the connection.
+//-----------------------------------------------------------------------------
+static int Connection_SetAction(udt_Connection* self, PyObject *value,
+        void* unused)
+{
+    return Connection_SetAttrText(self, value, dpiConn_setAction);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_SetClientIdentifier()
+//   Set the client identifier associated with the connection.
+//-----------------------------------------------------------------------------
+static int Connection_SetClientIdentifier(udt_Connection* self,
+        PyObject *value, void* unused)
+{
+    return Connection_SetAttrText(self, value, dpiConn_setClientIdentifier);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_SetClientInfo()
+//   Set the client info associated with the connection.
+//-----------------------------------------------------------------------------
+static int Connection_SetClientInfo(udt_Connection* self, PyObject *value,
+        void* unused)
+{
+    return Connection_SetAttrText(self, value, dpiConn_setClientInfo);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_SetCurrentSchema()
+//   Set the current schema associated with the connection.
+//-----------------------------------------------------------------------------
+static int Connection_SetCurrentSchema(udt_Connection* self, PyObject *value,
+        void* unused)
+{
+    return Connection_SetAttrText(self, value, dpiConn_setCurrentSchema);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_SetDbOp()
+//   Set the database operation associated with the connection.
+//-----------------------------------------------------------------------------
+static int Connection_SetDbOp(udt_Connection* self, PyObject *value,
+        void* unused)
+{
+    return Connection_SetAttrText(self, value, dpiConn_setDbOp);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_SetExternalName()
+//   Set the external name associated with the connection.
+//-----------------------------------------------------------------------------
+static int Connection_SetExternalName(udt_Connection* self, PyObject *value,
+        void* unused)
+{
+    return Connection_SetAttrText(self, value, dpiConn_setExternalName);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_SetInternalName()
+//   Set the internal name associated with the connection.
+//-----------------------------------------------------------------------------
+static int Connection_SetInternalName(udt_Connection* self, PyObject *value,
+        void* unused)
+{
+    return Connection_SetAttrText(self, value, dpiConn_setInternalName);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_SetModule()
+//   Set the module associated with the connection.
+//-----------------------------------------------------------------------------
+static int Connection_SetModule(udt_Connection* self, PyObject *value,
+        void* unused)
+{
+    return Connection_SetAttrText(self, value, dpiConn_setModule);
 }
 

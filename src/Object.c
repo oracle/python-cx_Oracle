@@ -18,9 +18,7 @@
 typedef struct {
     PyObject_HEAD
     udt_ObjectType *objectType;
-    dvoid *instance;
-    dvoid *indicator;
-    int isIndependent;
+    dpiObject *handle;
 } udt_Object;
 
 
@@ -31,8 +29,6 @@ static void Object_Free(udt_Object*);
 static PyObject *Object_GetAttr(udt_Object*, PyObject*);
 static PyObject *Object_Repr(udt_Object*);
 static int Object_SetAttr(udt_Object*, PyObject*, PyObject*);
-static PyObject *Object_ConvertToPython(udt_Environment*, OCITypeCode, dvoid*,
-        dvoid*, udt_ObjectType*);
 static PyObject *Object_Append(udt_Object*, PyObject*);
 static PyObject *Object_AsList(udt_Object*, PyObject*);
 static PyObject *Object_Copy(udt_Object*, PyObject*);
@@ -117,127 +113,25 @@ static PyTypeObject g_ObjectType = {
 
 
 //-----------------------------------------------------------------------------
-// Declaration of attribute data union
-//-----------------------------------------------------------------------------
-typedef union {
-    boolean booleanValue;
-    int integerValue;
-    OCINumber numberValue;
-    OCIDate dateValue;
-    OCIDateTime *timestampValue;
-    OCIString *stringValue;
-} udt_AttributeData;
-
-
-//-----------------------------------------------------------------------------
-// AttributeData_Initialize()
-//   Initialize any memory required for the convert from Python calls. All
-// fields checked in the free routine should be initialized.
-//-----------------------------------------------------------------------------
-static void AttributeData_Initialize(
-    udt_AttributeData *data,            // data structure to initialize
-    OCITypeCode typeCode)               // type of Oracle data
-{
-    switch (typeCode) {
-        case OCI_TYPECODE_CHAR:
-        case OCI_TYPECODE_VARCHAR:
-        case OCI_TYPECODE_VARCHAR2:
-            data->stringValue = NULL;
-            break;
-        case OCI_TYPECODE_TIMESTAMP:
-            data->timestampValue = NULL;
-    };
-}
-
-
-//-----------------------------------------------------------------------------
-// AttributeData_Free()
-//   Free any memory that was allocated by the convert from Python calls.
-//-----------------------------------------------------------------------------
-static void AttributeData_Free(
-    udt_Environment *environment,       // environment object
-    udt_AttributeData *data,            // data structure to initialize
-    OCITypeCode typeCode)               // type of Oracle data
-{
-    switch (typeCode) {
-        case OCI_TYPECODE_CHAR:
-        case OCI_TYPECODE_VARCHAR:
-        case OCI_TYPECODE_VARCHAR2:
-            if (data->stringValue)
-                OCIStringResize(environment->handle, environment->errorHandle,
-                        0, &data->stringValue);
-            break;
-        case OCI_TYPECODE_TIMESTAMP:
-            if (data->timestampValue)
-                OCIDescriptorFree(data->timestampValue, OCI_DTYPE_TIMESTAMP);
-    };
-}
-
-
-//-----------------------------------------------------------------------------
 // Object_New()
 //   Create a new object.
 //-----------------------------------------------------------------------------
-PyObject *Object_New(
-    udt_ObjectType *objectType,         // type of object
-    dvoid *instance,                    // object instance data
-    dvoid *indicator,                   // indicator structure
-    int isIndependent)                  // is object independent?
+PyObject *Object_New(udt_ObjectType *objectType, dpiObject *handle,
+        int addReference)
 {
     udt_Object *self;
 
+    if (addReference && dpiObject_addRef(handle) < 0)
+        return Error_RaiseAndReturnNull();
     self = (udt_Object*) g_ObjectType.tp_alloc(&g_ObjectType, 0);
-    if (!self)
+    if (!self) {
+        dpiObject_release(handle);
         return NULL;
+    }
     Py_INCREF(objectType);
     self->objectType = objectType;
-    self->instance = instance;
-    self->indicator = indicator;
-    self->isIndependent = isIndependent;
+    self->handle = handle;
     return (PyObject*) self;
-}
-
-
-//-----------------------------------------------------------------------------
-// Object_Create()
-//   Create a new object in the OCI.
-//-----------------------------------------------------------------------------
-static udt_Object *Object_Create(
-    udt_ObjectType *self)               // type of object to create
-{
-    dvoid *instance;
-    udt_Object *obj;
-    sword status;
-
-    // create the object instance
-    status = OCIObjectNew(self->connection->environment->handle,
-            self->connection->environment->errorHandle,
-            self->connection->handle, self->typeCode, self->tdo, NULL,
-            OCI_DURATION_SESSION, TRUE, &instance);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "Object_Create(): create object instance") < 0)
-        return NULL;
-
-    // create the object
-    obj = (udt_Object*) Object_New(self, instance, NULL, 1);
-    if (!obj) {
-        OCIObjectFree(self->connection->environment->handle,
-                self->connection->environment->errorHandle, instance,
-                OCI_DEFAULT);
-        return NULL;
-    }
-
-    // get the null indicator structure
-    status = OCIObjectGetInd(self->connection->environment->handle,
-            self->connection->environment->errorHandle, instance,
-            &obj->indicator);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "Object_Create(): get indicator structure") < 0) {
-        Py_DECREF(obj);
-        return NULL;
-    }
-
-    return obj;
 }
 
 
@@ -245,13 +139,12 @@ static udt_Object *Object_Create(
 // Object_Free()
 //   Free an object.
 //-----------------------------------------------------------------------------
-static void Object_Free(
-    udt_Object *self)                   // variable to free
+static void Object_Free(udt_Object *self)
 {
-    if (self->isIndependent)
-        OCIObjectFree(self->objectType->connection->environment->handle,
-                self->objectType->connection->environment->errorHandle,
-                self->instance, OCI_DEFAULT);
+    if (self->handle) {
+        dpiObject_release(self->handle);
+        self->handle = NULL;
+    }
     Py_CLEAR(self->objectType);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
@@ -261,8 +154,7 @@ static void Object_Free(
 // Object_Repr()
 //   Return a string representation of the object.
 //-----------------------------------------------------------------------------
-static PyObject *Object_Repr(
-    udt_Object *self)                   // object type to return the string for
+static PyObject *Object_Repr(udt_Object *self)
 {
     PyObject *module, *name, *result, *format, *formatArgs;
 
@@ -293,101 +185,70 @@ static PyObject *Object_Repr(
 // Object_ConvertFromPython()
 //   Convert a Python value to an Oracle value.
 //-----------------------------------------------------------------------------
-static int Object_ConvertFromPython(
-    udt_Environment *environment,       // environment to use
-    PyObject *pythonValue,              // Python value to convert
-    OCITypeCode typeCode,               // type of Oracle data
-    udt_AttributeData *oracleValue,     // Oracle value
-    dvoid **ociValue,                   // OCI value
-    OCIInd *ociValueIndicator,          // OCI value indicator
-    dvoid **ociObjectIndicator,         // OCI object indicator
-    udt_ObjectType *subType)            // sub type (for sub objects)
+static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
+        dpiNativeTypeNum *nativeTypeNum, dpiData *data, udt_Buffer *buffer)
 {
-    udt_Object *objectValue;
-    udt_Buffer buffer;
-    sword status;
+    dpiTimestamp *timestamp;
+    udt_Object *otherObj;
+    dpiBytes *bytes;
 
     // None is treated as null
-    if (pythonValue == Py_None) {
-        *ociValueIndicator = OCI_IND_NULL;
+    if (value == Py_None) {
+        data->isNull = 1;
+        return 0;
+    }
 
-    // all other values need to be converted
-    } else {
+    // convert the different Python types
+    data->isNull = 0;
+    if (PyUnicode_Check(value) || PyBytes_Check(value)) {
+        if (cxBuffer_FromObject(buffer, value, obj->objectType->encoding) < 0)
+            return -1;
+        *nativeTypeNum = DPI_NATIVE_TYPE_BYTES;
+        bytes = &data->value.asBytes;
+        bytes->ptr = (char*) buffer->ptr;
+        bytes->length = buffer->size;
+    } else if (PyBool_Check(value)) {
+        *nativeTypeNum = DPI_NATIVE_TYPE_BOOLEAN;
+        data->value.asBoolean = (value == Py_True);
+#if PY_MAJOR_VERSION < 3
 
-        *ociValueIndicator = OCI_IND_NOTNULL;
-        switch (typeCode) {
-            case OCI_TYPECODE_CHAR:
-            case OCI_TYPECODE_VARCHAR:
-            case OCI_TYPECODE_VARCHAR2:
-                if (cxBuffer_FromObject(&buffer, pythonValue,
-                        environment->encoding) < 0)
-                    return -1;
-                status = OCIStringAssignText(environment->handle,
-                        environment->errorHandle, buffer.ptr,
-                        (ub4) buffer.size, &oracleValue->stringValue);
-                cxBuffer_Clear(&buffer);
-                if (Environment_CheckForError(environment, status,
-                        "Object_ConvertFromPython(): assigning string") < 0)
-                    return -1;
-                *ociValue = oracleValue->stringValue;
-                break;
-            case OCI_TYPECODE_INTEGER:
-            case OCI_TYPECODE_NUMBER:
-                if (PythonNumberToOracleNumber(environment,
-                        pythonValue, &oracleValue->numberValue) < 0)
-                    return -1;
-                *ociValue = &oracleValue->numberValue;
-                break;
-            case OCI_TYPECODE_DATE:
-                if (PythonDateToOracleDate(pythonValue,
-                        &oracleValue->dateValue) < 0)
-                    return -1;
-                *ociValue = &oracleValue->dateValue;
-                break;
-            case OCI_TYPECODE_TIMESTAMP:
-                status = OCIDescriptorAlloc(environment->handle,
-                        (dvoid**) &oracleValue->timestampValue,
-                        OCI_DTYPE_TIMESTAMP, 0, 0);
-                if (Environment_CheckForError(environment, status,
-                        "Object_ConvertFromPython(): "
-                        "create timestamp descriptor") < 0)
-                    return -1;
-                if (PythonDateToOracleTimestamp(environment,
-                        pythonValue, oracleValue->timestampValue) < 0)
-                    return -1;
-                *ociValue = oracleValue->timestampValue;
-                break;
-            case OCI_TYPECODE_NAMEDCOLLECTION:
-            case OCI_TYPECODE_OBJECT:
-                if (Py_TYPE(pythonValue) != &g_ObjectType) {
-                    PyErr_SetString(PyExc_TypeError,
-                            "expecting cx_Oracle.Object");
-                    return -1;
-                }
-                objectValue = (udt_Object*) pythonValue;
-                if (objectValue->objectType->tdo != subType->tdo) {
-                    PyErr_SetString(PyExc_TypeError,
-                            "expecting an object of the correct type");
-                    return -1;
-                }
-                *ociValue = objectValue->instance;
-                *ociObjectIndicator = objectValue->indicator;
-                break;
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
-            case OCI_TYPECODE_BOOLEAN:
-                if (PythonBooleanToOracleBoolean(pythonValue,
-                        &oracleValue->booleanValue) < 0)
-                    return -1;
-                *ociValue = &oracleValue->booleanValue;
-                break;
+    } else if (PyInt_Check(value)) {
+        *nativeTypeNum = DPI_NATIVE_TYPE_INT64;
+        data->value.asInt64 = PyInt_AS_LONG(value);
 #endif
-            default:
-                PyErr_Format(g_NotSupportedErrorException,
-                        "Object_ConvertFromPython(): unhandled data type %d",
-                        typeCode);
-                return -1;
-        };
-
+    } else if (PyLong_Check(value)) {
+        *nativeTypeNum = DPI_NATIVE_TYPE_INT64;
+        data->value.asInt64 = PyLong_AsLong(value);
+        if (PyErr_Occurred())
+            return -1;
+    } else if (PyFloat_Check(value)) {
+        *nativeTypeNum = DPI_NATIVE_TYPE_DOUBLE;
+        data->value.asDouble = PyFloat_AS_DOUBLE(value);
+    } else if (PyDateTime_Check(value) || PyDate_Check(value)) {
+        *nativeTypeNum = DPI_NATIVE_TYPE_TIMESTAMP;
+        timestamp = &data->value.asTimestamp;
+        timestamp->year = PyDateTime_GET_YEAR(value);
+        timestamp->month = PyDateTime_GET_MONTH(value);
+        timestamp->day = PyDateTime_GET_DAY(value);
+        if (PyDateTime_Check(value)) {
+            timestamp->hour = PyDateTime_DATE_GET_HOUR(value);
+            timestamp->minute = PyDateTime_DATE_GET_MINUTE(value);
+            timestamp->second = PyDateTime_DATE_GET_SECOND(value);
+            timestamp->fsecond = PyDateTime_DATE_GET_MICROSECOND(value) * 1000;
+        } else {
+            timestamp->hour = 0;
+            timestamp->minute = 0;
+            timestamp->second = 0;
+            timestamp->fsecond = 0;
+        }
+    } else if (Py_TYPE(value) == &g_ObjectType) {
+        *nativeTypeNum = DPI_NATIVE_TYPE_OBJECT;
+        otherObj = (udt_Object*) value;
+        data->value.asObject = otherObj->handle;
+    } else {
+        PyErr_Format(g_NotSupportedErrorException,
+                "Object_ConvertFromPython(): unhandled value type");
+        return -1;
     }
 
     return 0;
@@ -398,54 +259,57 @@ static int Object_ConvertFromPython(
 // Object_ConvertToPython()
 //   Convert an Oracle value to a Python value.
 //-----------------------------------------------------------------------------
-static PyObject *Object_ConvertToPython(
-    udt_Environment *environment,       // environment to use
-    OCITypeCode typeCode,               // type of Oracle data
-    dvoid *value,                       // Oracle value
-    dvoid *indicator,                   // null indicator
-    udt_ObjectType *subType)            // sub type (for sub objects)
+static PyObject *Object_ConvertToPython(udt_Object *obj,
+        dpiNativeTypeNum nativeTypeNum, dpiData *data, udt_ObjectType *objType)
 {
-    text *stringValue;
-    ub4 stringSize;
+    dpiIntervalDS *intervalDS;
+    dpiTimestamp *timestamp;
+    dpiBytes *bytes;
+    int32_t seconds;
 
     // null values returned as None
-    if (* (OCIInd*) indicator == OCI_IND_NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+    if (data->isNull)
+        Py_RETURN_NONE;
+
+    // convert other values as required
+    switch (nativeTypeNum) {
+        case DPI_NATIVE_TYPE_INT64:
+            return PyInt_FromLong(data->value.asInt64);
+#if PY_MAJOR_VERSION >= 3
+        case DPI_NATIVE_TYPE_UINT64:
+            return PyInt_FromUnsignedLong(data->value.asUint64);
+#endif
+        case DPI_NATIVE_TYPE_FLOAT:
+        case DPI_NATIVE_TYPE_DOUBLE:
+            return PyFloat_FromDouble(data->value.asDouble);
+        case DPI_NATIVE_TYPE_BYTES:
+            bytes = &data->value.asBytes;
+            return cxString_FromEncodedString(bytes->ptr, bytes->length,
+                    bytes->encoding);
+        case DPI_NATIVE_TYPE_TIMESTAMP:
+            timestamp = &data->value.asTimestamp;
+            return PyDateTime_FromDateAndTime(timestamp->year,
+                    timestamp->month, timestamp->day, timestamp->hour,
+                    timestamp->minute, timestamp->second,
+                    timestamp->fsecond / 1000);
+        case DPI_NATIVE_TYPE_INTERVAL_DS:
+            intervalDS = &data->value.asIntervalDS;
+            seconds = intervalDS->hours * 60 * 60 + intervalDS->minutes * 60 +
+                    intervalDS->seconds;
+            return PyDelta_FromDSU(intervalDS->days, seconds,
+                    intervalDS->fseconds / 1000);
+        case DPI_NATIVE_TYPE_OBJECT:
+            return Object_New(objType, data->value.asObject, 0);
+        case DPI_NATIVE_TYPE_BOOLEAN:
+            if (data->value.asBoolean)
+                Py_RETURN_TRUE;
+            Py_RETURN_FALSE;
+        default:
+            break;
     }
 
-    switch (typeCode) {
-        case OCI_TYPECODE_CHAR:
-        case OCI_TYPECODE_VARCHAR:
-        case OCI_TYPECODE_VARCHAR2:
-            stringValue = OCIStringPtr(environment->handle,
-                    * (OCIString**) value);
-            stringSize = OCIStringSize(environment->handle,
-                    * (OCIString**) value);
-            return cxString_FromEncodedString( (char*) stringValue,
-                    stringSize, environment->encoding);
-        case OCI_TYPECODE_INTEGER:
-            return OracleNumberToPythonInteger(environment,
-                    (OCINumber*) value);
-        case OCI_TYPECODE_NUMBER:
-            return OracleNumberToPythonFloat(environment, (OCINumber*) value);
-        case OCI_TYPECODE_DATE:
-            return OracleDateToPythonDate(&vt_DateTime, (OCIDate*) value);
-        case OCI_TYPECODE_TIMESTAMP:
-            return OracleTimestampToPythonDate(environment,
-                    * (OCIDateTime**) value);
-        case OCI_TYPECODE_OBJECT:
-            return Object_New(subType, value, indicator, 0);
-        case OCI_TYPECODE_NAMEDCOLLECTION:
-            return Object_New(subType, * (OCIColl**) value, indicator, 0);
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
-        case OCI_TYPECODE_BOOLEAN:
-            return OracleBooleanToPythonBoolean((boolean*) value);
-#endif
-    };
-
     return PyErr_Format(g_NotSupportedErrorException,
-            "Object_ConvertToPython(): unhandled data type %d", typeCode);
+            "Object_ConvertToPython(): unhandled data type");
 }
 
 
@@ -453,38 +317,16 @@ static PyObject *Object_ConvertToPython(
 // Object_GetAttributeValue()
 //   Retrieve an attribute on the object.
 //-----------------------------------------------------------------------------
-static PyObject *Object_GetAttributeValue(
-    udt_Object *self,                   // object
-    udt_ObjectAttribute *attribute)     // attribute to get
+static PyObject *Object_GetAttributeValue(udt_Object *self,
+        udt_ObjectAttribute *attribute)
 {
-    dvoid *valueIndicator, *value;
-    OCIInd scalarValueIndicator;
-    udt_Connection *connection;
-    udt_Buffer buffer;
-    sword status;
-    OCIType *tdo;
+    dpiData data;
 
-    // get the value for the attribute
-    connection = self->objectType->connection;
-    if (cxBuffer_FromObject(&buffer, attribute->name,
-            connection->environment->encoding) < 0)
-        return NULL;
-    status = OCIObjectGetAttr(connection->environment->handle,
-            connection->environment->errorHandle, self->instance,
-            self->indicator, self->objectType->tdo,
-            (const OraText**) &buffer.ptr, (ub4*) &buffer.size, 1, 0, 0,
-            &scalarValueIndicator, &valueIndicator, &value, &tdo);
-    cxBuffer_Clear(&buffer);
-    if (Environment_CheckForError(connection->environment, status,
-            "Object_GetAttributeValue(): getting value") < 0)
-        return NULL;
-
-    // determine the proper null indicator
-    if (!valueIndicator)
-        valueIndicator = &scalarValueIndicator;
-
-    return Object_ConvertToPython(connection->environment,
-            attribute->typeCode, value, valueIndicator, attribute->subType);
+    if (dpiObject_getAttributeValue(self->handle, attribute->handle,
+            attribute->nativeTypeNum, &data) < 0)
+        return Error_RaiseAndReturnNull();
+    return Object_ConvertToPython(self, attribute->nativeTypeNum, &data,
+            attribute->type);
 }
 
 
@@ -492,49 +334,23 @@ static PyObject *Object_GetAttributeValue(
 // Object_SetAttributeValue()
 //   Set an attribute on the object.
 //-----------------------------------------------------------------------------
-static int Object_SetAttributeValue(
-    udt_Object *self,                   // object
-    udt_ObjectAttribute *attribute,     // attribute to set
-    PyObject *value)                    // value to set
+static int Object_SetAttributeValue(udt_Object *self,
+        udt_ObjectAttribute *attribute, PyObject *value)
 {
-    dvoid *ociObjectIndicator, *ociValue;
-    udt_AttributeData attributeData;
-    OCIInd ociValueIndicator;
-    udt_Connection *connection;
+    dpiNativeTypeNum nativeTypeNum = 0;
     udt_Buffer buffer;
-    sword status;
+    dpiData data;
+    int status;
 
-    // convert from Python
-    ociValue = ociObjectIndicator = NULL;
-    connection = self->objectType->connection;
-    AttributeData_Initialize(&attributeData, attribute->typeCode);
-    if (Object_ConvertFromPython(connection->environment, value,
-            attribute->typeCode, &attributeData, &ociValue, &ociValueIndicator,
-            &ociObjectIndicator, attribute->subType) < 0) {
-        AttributeData_Free(connection->environment, &attributeData,
-                attribute->typeCode);
+    cxBuffer_Init(&buffer);
+    if (Object_ConvertFromPython(self, value, &nativeTypeNum, &data,
+            &buffer) < 0)
         return -1;
-    }
-
-    // set the value for the attribute
-    if (cxBuffer_FromObject(&buffer, attribute->name,
-            connection->environment->encoding) < 0) {
-        AttributeData_Free(connection->environment, &attributeData,
-                attribute->typeCode);
-        return -1;
-    }
-    status = OCIObjectSetAttr(connection->environment->handle,
-            connection->environment->errorHandle, self->instance,
-            self->indicator, self->objectType->tdo,
-            (const OraText**) &buffer.ptr, (ub4*) &buffer.size, 1, 0, 0,
-            ociValueIndicator, ociObjectIndicator, ociValue);
-    AttributeData_Free(connection->environment, &attributeData,
-            attribute->typeCode);
+    status = dpiObject_setAttributeValue(self->handle, attribute->handle,
+            nativeTypeNum, &data);
     cxBuffer_Clear(&buffer);
-    if (Environment_CheckForError(connection->environment, status,
-            "Object_SetAttributeValue(): setting value") < 0)
-        return -1;
-
+    if (status < 0)
+        return Error_RaiseAndReturnInt();
     return 0;
 }
 
@@ -543,9 +359,7 @@ static int Object_SetAttributeValue(
 // Object_GetAttr()
 //   Retrieve an attribute on an object.
 //-----------------------------------------------------------------------------
-static PyObject *Object_GetAttr(
-    udt_Object *self,                   // object
-    PyObject *nameObject)               // name of attribute
+static PyObject *Object_GetAttr(udt_Object *self, PyObject *nameObject)
 {
     udt_ObjectAttribute *attribute;
 
@@ -562,10 +376,8 @@ static PyObject *Object_GetAttr(
 // Object_SetAttr()
 //   Set an attribute on an object.
 //-----------------------------------------------------------------------------
-static int Object_SetAttr(
-    udt_Object *self,                   // object
-    PyObject *nameObject,               // name of attribute
-    PyObject *value)                    // value to set
+static int Object_SetAttr(udt_Object *self, PyObject *nameObject,
+        PyObject *value)
 {
     udt_ObjectAttribute *attribute;
 
@@ -579,104 +391,24 @@ static int Object_SetAttr(
 
 
 //-----------------------------------------------------------------------------
-// Object_CheckIsCollection()
-//   Check if the object is a collection, and if not, raise an exception. This
-// is used by the collection methods below.
-//-----------------------------------------------------------------------------
-static int Object_CheckIsCollection(
-    udt_Object *self)                   // object
-{
-    if (!self->objectType->isCollection) {
-        PyErr_SetString(PyExc_TypeError, "object is not a collection");
-        return -1;
-    }
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Object_PopulateList()
-//   Convert the collection elements to Python values.
-//-----------------------------------------------------------------------------
-static int Object_PopulateList(
-    udt_Object *self,                   // collection iterating
-    OCIIter *iter,                      // iterator
-    PyObject *list)                     // list result
-{
-    dvoid *elementValue, *elementIndicator;
-    udt_Environment *environment;
-    PyObject *elementObject;
-    boolean endOfCollection;
-    sword status;
-
-    environment = self->objectType->connection->environment;
-    while (list) {
-        status = OCIIterNext(environment->handle, environment->errorHandle,
-                iter, &elementValue, &elementIndicator, &endOfCollection);
-        if (Environment_CheckForError(environment, status,
-                "Object_PopulateList(): get next") < 0)
-            return -1;
-        if (endOfCollection)
-            break;
-        elementObject = Object_ConvertToPython(environment,
-                self->objectType->elementTypeCode, elementValue,
-                elementIndicator,
-                (udt_ObjectType*) self->objectType->elementType);
-        if (!elementObject)
-            return -1;
-        if (PyList_Append(list, elementObject) < 0) {
-            Py_DECREF(elementObject);
-            return -1;
-        }
-        Py_DECREF(elementObject);
-    }
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
 // Object_InternalAppend()
 //   Append an item to the collection.
 //-----------------------------------------------------------------------------
-static int Object_InternalAppend(
-    udt_Object *self,                   // object
-    PyObject *value)                    // value to append
+static int Object_InternalAppend(udt_Object *self, PyObject *value)
 {
-    void *elementValue, *elementIndicator;
-    udt_AttributeData attributeData;
-    udt_Environment *environment;
-    OCIInd tempIndicator;
-    sword status;
+    dpiNativeTypeNum nativeTypeNum = 0;
+    udt_Buffer buffer;
+    dpiData data;
+    int status;
 
-    // convert Python value to OCI value
-    elementValue = elementIndicator = NULL;
-    environment = self->objectType->connection->environment;
-    AttributeData_Initialize(&attributeData,
-            self->objectType->elementTypeCode);
-    if (Object_ConvertFromPython(environment, value,
-            self->objectType->elementTypeCode, &attributeData, &elementValue,
-            &tempIndicator, &elementIndicator,
-            (udt_ObjectType*) self->objectType->elementType) < 0) {
-        AttributeData_Free(environment, &attributeData,
-                self->objectType->elementTypeCode);
+    cxBuffer_Init(&buffer);
+    if (Object_ConvertFromPython(self, value, &nativeTypeNum, &data,
+            &buffer) < 0)
         return -1;
-    }
-    if (!elementIndicator)
-        elementIndicator = &tempIndicator;
-
-    // append converted value to collection
-    status = OCICollAppend(environment->handle, environment->errorHandle,
-            elementValue, elementIndicator, (OCIColl*) self->instance);
-    if (Environment_CheckForError(environment, status,
-            "Object_Append()") < 0) {
-        AttributeData_Free(environment, &attributeData,
-                self->objectType->elementTypeCode);
-        return -1;
-    }
-    AttributeData_Free(environment, &attributeData,
-            self->objectType->elementTypeCode);
-
+    status = dpiObject_appendElement(self->handle, nativeTypeNum, &data);
+    cxBuffer_Clear(&buffer);
+    if (status < 0)
+        return Error_RaiseAndReturnInt();
     return 0;
 }
 
@@ -685,16 +417,10 @@ static int Object_InternalAppend(
 // Object_InternalExtend()
 //   Extend the collection by appending each of the items in the sequence.
 //-----------------------------------------------------------------------------
-static int Object_InternalExtend(
-    udt_Object *self,                   // object
-    PyObject *sequence)                 // sequence to extend collection with
+static int Object_InternalExtend(udt_Object *self, PyObject *sequence)
 {
     PyObject *fastSequence, *element;
     Py_ssize_t size, i;
-
-    // make sure we are dealing with a collection
-    if (Object_CheckIsCollection(self) < 0)
-        return -1;
 
     // append each of the items in the sequence to the collection
     fastSequence = PySequence_Fast(sequence, "expecting sequence");
@@ -715,14 +441,10 @@ static int Object_InternalExtend(
 // Object_Append()
 //   Append an item to the collection.
 //-----------------------------------------------------------------------------
-static PyObject *Object_Append(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments
+static PyObject *Object_Append(udt_Object *self, PyObject *args)
 {
     PyObject *value;
 
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
     if (!PyArg_ParseTuple(args, "O", &value))
         return NULL;
     if (Object_InternalAppend(self, value) < 0)
@@ -737,36 +459,49 @@ static PyObject *Object_Append(
 //   Returns a collection as a list of elements. If the object is not a
 // collection, an error is returned.
 //-----------------------------------------------------------------------------
-static PyObject *Object_AsList(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments (none)
+static PyObject *Object_AsList(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    PyObject *list;
-    OCIIter *iter;
-    sword status;
-
-    // make sure this is a collection
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
-
-    // create the iterator
-    environment = self->objectType->connection->environment;
-    status = OCIIterCreate(environment->handle, environment->errorHandle,
-            self->instance, &iter);
-    if (Environment_CheckForError(environment, status,
-            "Object_AsList(): creating iterator") < 0)
-        return NULL;
+    int32_t index, nextIndex, exists;
+    PyObject *list, *elementValue;
+    dpiData data;
 
     // create the result list
     list = PyList_New(0);
-    if (list) {
-        if (Object_PopulateList(self, iter, list) < 0) {
-            Py_DECREF(list);
-            list = NULL;
-        }
+    if (!list)
+        return NULL;
+
+    // populate it with each of the elements in the list
+    if (dpiObject_getFirstIndex(self->handle, &index) < 0) {
+        Py_DECREF(list);
+        return Error_RaiseAndReturnNull();
     }
-    OCIIterDelete(environment->handle, environment->errorHandle, &iter);
+    exists = 1;
+    while (exists) {
+        if (dpiObject_getElementValue(self->handle, index,
+                self->objectType->elementNativeTypeNum, &data) < 0) {
+            Py_DECREF(list);
+            return Error_RaiseAndReturnNull();
+        }
+        elementValue = Object_ConvertToPython(self,
+                self->objectType->elementNativeTypeNum, &data,
+                (udt_ObjectType*) self->objectType->elementType);
+        if (!elementValue) {
+            Py_DECREF(list);
+            return NULL;
+        }
+        if (PyList_Append(list, elementValue) < 0) {
+            Py_DECREF(elementValue);
+            Py_DECREF(list);
+            return NULL;
+        }
+        Py_DECREF(elementValue);
+        if (dpiObject_getNextIndex(self->handle, index, &nextIndex,
+                &exists) < 0) {
+            Py_DECREF(list);
+            return Error_RaiseAndReturnNull();
+        }
+        index = nextIndex;
+    }
 
     return list;
 }
@@ -776,28 +511,13 @@ static PyObject *Object_AsList(
 // Object_Copy()
 //   Return a copy of the object.
 //-----------------------------------------------------------------------------
-static PyObject *Object_Copy(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments (none)
+static PyObject *Object_Copy(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    udt_Object *copiedObject;
-    sword status;
+    dpiObject *handle;
 
-    copiedObject = Object_Create(self->objectType);
-    if (!copiedObject)
-        return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCIObjectCopy(environment->handle, environment->errorHandle,
-            self->objectType->connection->handle, self->instance,
-            self->indicator, copiedObject->instance, copiedObject->indicator,
-            self->objectType->tdo, OCI_DURATION_SESSION, OCI_DEFAULT);
-    if (Environment_CheckForError(environment, status, "Object_Copy()") < 0) {
-        Py_DECREF(copiedObject);
-        return NULL;
-    }
-
-    return (PyObject*) copiedObject;
+    if (dpiObject_copy(self->handle, &handle) < 0)
+        return Error_RaiseAndReturnNull();
+    return (PyObject*) Object_New(self->objectType, handle, 0);
 }
 
 
@@ -805,23 +525,14 @@ static PyObject *Object_Copy(
 // Object_Delete()
 //   Delete the element at the specified index in the collection.
 //-----------------------------------------------------------------------------
-static PyObject *Object_Delete(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments
+static PyObject *Object_Delete(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    sword status;
-    sb4 index;
+    int32_t index;
 
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
     if (!PyArg_ParseTuple(args, "i", &index))
         return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCITableDelete(environment->handle, environment->errorHandle,
-            index, self->instance);
-    if (Environment_CheckForError(environment, status, "Object_Delete()") < 0)
-        return NULL;
+    if (dpiObject_deleteElement(self->handle, index) < 0)
+        return Error_RaiseAndReturnNull();
     Py_RETURN_NONE;
 }
 
@@ -831,24 +542,15 @@ static PyObject *Object_Delete(
 //   Return true or false indicating if an element exists in the collection at
 // the specified index.
 //-----------------------------------------------------------------------------
-static PyObject *Object_Exists(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments
+static PyObject *Object_Exists(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    boolean exists;
-    sword status;
-    sb4 index;
+    int32_t index;
+    int exists;
 
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
     if (!PyArg_ParseTuple(args, "i", &index))
         return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCITableExists(environment->handle, environment->errorHandle,
-            self->instance, index, &exists);
-    if (Environment_CheckForError(environment, status, "Object_Exists()") < 0)
-        return NULL;
+    if (dpiObject_getElementExists(self->handle, index, &exists) < 0)
+        return Error_RaiseAndReturnNull();
     if (exists)
         Py_RETURN_TRUE;
     Py_RETURN_FALSE;
@@ -859,9 +561,7 @@ static PyObject *Object_Exists(
 // Object_Extend()
 //   Extend the collection by appending each of the items in the sequence.
 //-----------------------------------------------------------------------------
-static PyObject *Object_Extend(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments
+static PyObject *Object_Extend(udt_Object *self, PyObject *args)
 {
     PyObject *sequence;
 
@@ -877,34 +577,18 @@ static PyObject *Object_Extend(
 // Object_GetElement()
 //   Return the element at the given position in the collection.
 //-----------------------------------------------------------------------------
-static PyObject *Object_GetElement(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments
+static PyObject *Object_GetElement(udt_Object *self, PyObject *args)
 {
-    void *elementValue, *elementIndicator;
-    udt_Environment *environment;
-    boolean exists;
-    sb4 position;
-    sword status;
+    dpiData data;
+    int32_t index;
 
-    if (Object_CheckIsCollection(self) < 0)
+    if (!PyArg_ParseTuple(args, "i", &index))
         return NULL;
-    if (!PyArg_ParseTuple(args, "i", &position))
-        return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCICollGetElem(environment->handle, environment->errorHandle,
-            (OCIColl*) self->instance, (sb4) position, &exists,
-            &elementValue, &elementIndicator);
-    if (Environment_CheckForError(environment, status,
-            "Object_GetItem(): get element") < 0)
-        return NULL;
-    if (!exists) {
-        PyErr_SetString(PyExc_IndexError, "element does not exist");
-        return NULL;
-    }
-    return Object_ConvertToPython(environment,
-            self->objectType->elementTypeCode, elementValue, elementIndicator,
-            (udt_ObjectType*) self->objectType->elementType);
+    if (dpiObject_getElementValue(self->handle, index,
+            self->objectType->elementNativeTypeNum, &data) < 0)
+        return Error_RaiseAndReturnNull();
+    return Object_ConvertToPython(self, self->objectType->elementNativeTypeNum,
+            &data, (udt_ObjectType*) self->objectType->elementType);
 }
 
 
@@ -912,22 +596,12 @@ static PyObject *Object_GetElement(
 // Object_GetFirstIndex()
 //   Return the index of the first entry in the collection.
 //-----------------------------------------------------------------------------
-static PyObject *Object_GetFirstIndex(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments (none)
+static PyObject *Object_GetFirstIndex(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    sword status;
-    sb4 index;
+    int32_t index;
 
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCITableFirst(environment->handle, environment->errorHandle,
-            self->instance, &index);
-    if (Environment_CheckForError(environment, status,
-            "Object_GetFirstIndex()") < 0)
-        return NULL;
+    if (dpiObject_getFirstIndex(self->handle, &index) < 0)
+        return Error_RaiseAndReturnNull();
     return PyInt_FromLong(index);
 }
 
@@ -936,22 +610,12 @@ static PyObject *Object_GetFirstIndex(
 // Object_GetLastIndex()
 //   Return the index of the last entry in the collection.
 //-----------------------------------------------------------------------------
-static PyObject *Object_GetLastIndex(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments (none)
+static PyObject *Object_GetLastIndex(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    sword status;
-    sb4 index;
+    int32_t index;
 
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCITableLast(environment->handle, environment->errorHandle,
-            self->instance, &index);
-    if (Environment_CheckForError(environment, status,
-            "Object_GetLastIndex()") < 0)
-        return NULL;
+    if (dpiObject_getLastIndex(self->handle, &index) < 0)
+        return Error_RaiseAndReturnNull();
     return PyInt_FromLong(index);
 }
 
@@ -961,25 +625,15 @@ static PyObject *Object_GetLastIndex(
 //   Return the index of the next entry in the collection following the index
 // specified. If there is no next entry, None is returned.
 //-----------------------------------------------------------------------------
-static PyObject *Object_GetNextIndex(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments
+static PyObject *Object_GetNextIndex(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    sb4 index, nextIndex;
-    boolean exists;
-    sword status;
+    int32_t index, nextIndex;
+    int exists;
 
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
     if (!PyArg_ParseTuple(args, "i", &index))
         return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCITableNext(environment->handle, environment->errorHandle,
-            index, self->instance, &nextIndex, &exists);
-    if (Environment_CheckForError(environment, status,
-            "Object_GetNextIndex()") < 0)
-        return NULL;
+    if (dpiObject_getNextIndex(self->handle, index, &nextIndex, &exists) < 0)
+        return Error_RaiseAndReturnNull();
     if (exists)
         return PyInt_FromLong(nextIndex);
     Py_RETURN_NONE;
@@ -991,25 +645,15 @@ static PyObject *Object_GetNextIndex(
 //   Return the index of the previous entry in the collection preceding the
 // index specified. If there is no previous entry, None is returned.
 //-----------------------------------------------------------------------------
-static PyObject *Object_GetPrevIndex(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments
+static PyObject *Object_GetPrevIndex(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    sb4 index, prevIndex;
-    boolean exists;
-    sword status;
+    int32_t index, prevIndex;
+    int exists;
 
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
     if (!PyArg_ParseTuple(args, "i", &index))
         return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCITablePrev(environment->handle, environment->errorHandle,
-            index, self->instance, &prevIndex, &exists);
-    if (Environment_CheckForError(environment, status,
-            "Object_GetPrevIndex()") < 0)
-        return NULL;
+    if (dpiObject_getPrevIndex(self->handle, index, &prevIndex, &exists) < 0)
+        return Error_RaiseAndReturnNull();
     if (exists)
         return PyInt_FromLong(prevIndex);
     Py_RETURN_NONE;
@@ -1021,21 +665,12 @@ static PyObject *Object_GetPrevIndex(
 //   Return the size of a collection. If the object is not a collection, an
 // error is returned.
 //-----------------------------------------------------------------------------
-static PyObject *Object_GetSize(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments (none)
+static PyObject *Object_GetSize(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    sword status;
-    sb4 size;
+    int32_t size;
 
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCICollSize(environment->handle, environment->errorHandle,
-            (const OCIColl*) self->instance, &size);
-    if (Environment_CheckForError(environment, status, "Object_Size()") < 0)
-        return NULL;
+    if (dpiObject_getSize(self->handle, &size) < 0)
+        return Error_RaiseAndReturnNull();
     return PyInt_FromLong(size);
 }
 
@@ -1044,53 +679,26 @@ static PyObject *Object_GetSize(
 // Object_SetElement()
 //   Set the element at the specified location to the given value.
 //-----------------------------------------------------------------------------
-static PyObject *Object_SetElement(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments
+static PyObject *Object_SetElement(udt_Object *self, PyObject *args)
 {
-    void *elementValue, *elementIndicator;
-    udt_AttributeData attributeData;
-    udt_Environment *environment;
-    OCIInd tempIndicator;
+    dpiNativeTypeNum nativeTypeNum = 0;
+    udt_Buffer buffer;
     PyObject *value;
-    sb4 position;
-    sword status;
+    int32_t index;
+    dpiData data;
+    int status;
 
-    // make sure we are dealing with a collection
-    if (Object_CheckIsCollection(self) < 0)
+    if (!PyArg_ParseTuple(args, "iO", &index, &value))
         return NULL;
-
-    // parse arguments
-    if (!PyArg_ParseTuple(args, "iO", &position, &value))
+    cxBuffer_Init(&buffer);
+    if (Object_ConvertFromPython(self, value, &nativeTypeNum, &data,
+            &buffer) < 0)
         return NULL;
-
-    // convert to OCI value
-    elementValue = elementIndicator = NULL;
-    environment = self->objectType->connection->environment;
-    AttributeData_Initialize(&attributeData,
-            self->objectType->elementTypeCode);
-    if (Object_ConvertFromPython(environment, value,
-            self->objectType->elementTypeCode, &attributeData, &elementValue,
-            &tempIndicator, &elementIndicator,
-            (udt_ObjectType*) self->objectType->elementType) < 0) {
-        AttributeData_Free(environment, &attributeData,
-                self->objectType->elementTypeCode);
-        return NULL;
-    }
-    if (!elementIndicator)
-        elementIndicator = &tempIndicator;
-    status = OCICollAssignElem(environment->handle, environment->errorHandle,
-            position, elementValue, elementIndicator,
-            (OCIColl*) self->instance);
-    if (Environment_CheckForError(environment, status,
-            "Object_SetItem(): assign element") < 0) {
-        AttributeData_Free(environment, &attributeData,
-                self->objectType->elementTypeCode);
-        return NULL;
-    }
-    AttributeData_Free(environment, &attributeData,
-            self->objectType->elementTypeCode);
-
+    status = dpiObject_setElementValue(self->handle, index, nativeTypeNum,
+            &data);
+    cxBuffer_Clear(&buffer);
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
     Py_RETURN_NONE;
 }
 
@@ -1099,23 +707,14 @@ static PyObject *Object_SetElement(
 // Object_Trim()
 //   Trim a number of elements from the end of the collection.
 //-----------------------------------------------------------------------------
-static PyObject *Object_Trim(
-    udt_Object *self,                   // object
-    PyObject *args)                     // arguments
+static PyObject *Object_Trim(udt_Object *self, PyObject *args)
 {
-    udt_Environment *environment;
-    sb4 numToTrim;
-    sword status;
+    int32_t numToTrim;
 
-    if (Object_CheckIsCollection(self) < 0)
-        return NULL;
     if (!PyArg_ParseTuple(args, "i", &numToTrim))
         return NULL;
-    environment = self->objectType->connection->environment;
-    status = OCICollTrim(environment->handle, environment->errorHandle,
-            numToTrim, self->instance);
-    if (Environment_CheckForError(environment, status, "Object_Trim()") < 0)
-        return NULL;
+    if (dpiObject_trim(self->handle, numToTrim) < 0)
+        return Error_RaiseAndReturnNull();
     Py_RETURN_NONE;
 }
 

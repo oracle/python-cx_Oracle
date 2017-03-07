@@ -120,6 +120,35 @@ class TestFeatures12_1(BaseTestCase):
         self.cursor.callproc("pkg_TestNumberArrays.TestOutArrays", (3, obj))
         self.assertEqual(obj.aslist(), [100, 200, 300])
 
+    def testBindPLSQLRecordArray(self):
+        "test binding an array of PL/SQL records (in)"
+        recType = self.connection.gettype("PKG_TESTRECORDS.UDT_RECORD")
+        arrayType = self.connection.gettype("PKG_TESTRECORDS.UDT_RECORDARRAY")
+        arrayObj = arrayType.newobject()
+        for i in range(3):
+            obj = recType.newobject()
+            obj.NUMBERVALUE = i + 1
+            obj.STRINGVALUE = "String in record #%d" % (i + 1)
+            obj.DATEVALUE = datetime.datetime(2017, i + 1, 1)
+            obj.TIMESTAMPVALUE = datetime.datetime(2017, 1, i + 1)
+            obj.BOOLEANVALUE = (i % 2) == 1
+            arrayObj.append(obj)
+        result = self.cursor.callfunc("pkg_TestRecords.TestInArrays", str,
+                (arrayObj,))
+        self.assertEqual(result,
+                "udt_Record(1, 'String in record #1', " \
+                "to_date('2017-01-01', 'YYYY-MM-DD'), " \
+                "to_timestamp('2017-01-01 00:00:00', " \
+                "'YYYY-MM-DD HH24:MI:SS'), false); " \
+                "udt_Record(2, 'String in record #2', " \
+                "to_date('2017-02-01', 'YYYY-MM-DD'), " \
+                "to_timestamp('2017-01-02 00:00:00', " \
+                "'YYYY-MM-DD HH24:MI:SS'), true); " \
+                "udt_Record(3, 'String in record #3', " \
+                "to_date('2017-03-01', 'YYYY-MM-DD'), " \
+                "to_timestamp('2017-01-03 00:00:00', " \
+                "'YYYY-MM-DD HH24:MI:SS'), false)")
+
     def testBindPLSQLRecordIn(self):
         "test binding a PL/SQL record (in)"
         typeObj = self.connection.gettype("PKG_TESTRECORDS.UDT_RECORD")
@@ -312,9 +341,9 @@ class TestFeatures12_1(BaseTestCase):
                 arraydmlrowcounts = True)
         expectedErrors = [
                 ( 4, 1438, "ORA-01438: value larger than specified " \
-                        "precision allowed for this column\n" ),
+                        "precision allowed for this column" ),
                 ( 2, 1, "ORA-00001: unique constraint " \
-                        "(CX_ORACLE.TESTARRAYDML_PK) violated\n")
+                        "(CX_ORACLE.TESTARRAYDML_PK) violated")
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]
@@ -349,7 +378,7 @@ class TestFeatures12_1(BaseTestCase):
         self.cursor.executemany(sql, rows, batcherrors = True)
         expectedErrors = [
                 ( 6, 1, "ORA-00001: unique constraint " \
-                        "(CX_ORACLE.TESTARRAYDML_PK) violated\n")
+                        "(CX_ORACLE.TESTARRAYDML_PK) violated")
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]
@@ -364,7 +393,7 @@ class TestFeatures12_1(BaseTestCase):
                 batcherrors = True)
         expectedErrors = [
                 ( 2, 1438, "ORA-01438: value larger than specified " \
-                        "precision allowed for this column\n" )
+                        "precision allowed for this column" )
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]

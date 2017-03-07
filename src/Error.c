@@ -17,22 +17,12 @@
 //-----------------------------------------------------------------------------
 typedef struct {
     PyObject_HEAD
-    sb4 code;
-    ub2 offset;
+    long code;
+    unsigned offset;
     PyObject *message;
-    const char *context;
-    boolean isRecoverable;
+    PyObject *context;
+    char isRecoverable;
 } udt_Error;
-
-
-//-----------------------------------------------------------------------------
-// maximum size of error message string in bytes
-//-----------------------------------------------------------------------------
-#ifdef OCI_ERROR_MAXMSG_SIZE2
-#define ERROR_BUF_SIZE                OCI_ERROR_MAXMSG_SIZE2
-#else
-#define ERROR_BUF_SIZE                OCI_ERROR_MAXMSG_SIZE
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -57,10 +47,10 @@ static PyMethodDef g_ErrorMethods[] = {
 // declaration of members
 //-----------------------------------------------------------------------------
 static PyMemberDef g_ErrorMembers[] = {
-    { "code", T_INT, offsetof(udt_Error, code), READONLY },
-    { "offset", T_INT, offsetof(udt_Error, offset), READONLY },
+    { "code", T_LONG, offsetof(udt_Error, code), READONLY },
+    { "offset", T_UINT, offsetof(udt_Error, offset), READONLY },
     { "message", T_OBJECT, offsetof(udt_Error, message), READONLY },
-    { "context", T_STRING, offsetof(udt_Error, context), READONLY },
+    { "context", T_OBJECT, offsetof(udt_Error, context), READONLY },
     { "isrecoverable", T_BOOL, offsetof(udt_Error, isRecoverable), READONLY },
     { NULL }
 };
@@ -116,12 +106,12 @@ static PyTypeObject g_ErrorType = {
 
 //-----------------------------------------------------------------------------
 // Error_Free()
-//   Deallocate the environment, disconnecting from the database if necessary.
+//   Deallocate the error.
 //-----------------------------------------------------------------------------
-static void Error_Free(
-    udt_Error *self)                    // error object
+static void Error_Free(udt_Error *self)
 {
     Py_CLEAR(self->message);
+    Py_CLEAR(self->context);
     PyObject_Del(self);
 }
 
@@ -131,32 +121,29 @@ static void Error_Free(
 //   Create a new error object. This is intended to only be used by the
 // unpickling routine, and not by direct creation!
 //-----------------------------------------------------------------------------
-static PyObject *Error_New(
-    PyTypeObject *type,                 // type object
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Error_New(PyTypeObject *type, PyObject *args,
+        PyObject *keywordArgs)
 {
-    boolean isRecoverable;
-    PyObject *message;
+    PyObject *message, *context;
+    int isRecoverable, code;
     udt_Error *self;
     unsigned offset;
-    char *context;
-    int code;
 
     isRecoverable = 0;
-    if (!PyArg_ParseTuple(args, "OiIs|i", &message, &code, &offset, &context,
+    if (!PyArg_ParseTuple(args, "OiIO|i", &message, &code, &offset, &context,
             &isRecoverable))
         return NULL;
     self = (udt_Error*) type->tp_alloc(type, 0);
     if (!self)
         return NULL;
 
-    self->context = context;
     self->code = code;
     self->offset = offset;
-    self->isRecoverable = isRecoverable;
+    self->isRecoverable = (char) isRecoverable;
     Py_INCREF(message);
     self->message = message;
+    Py_INCREF(context);
+    self->context = context;
 
     return (PyObject*) self;
 }
@@ -166,8 +153,7 @@ static PyObject *Error_New(
 // Error_Str()
 //   Return a string representation of the error variable.
 //-----------------------------------------------------------------------------
-static PyObject *Error_Str(
-    udt_Error *self)                    // variable to return the string for
+static PyObject *Error_Str(udt_Error *self)
 {
     Py_INCREF(self->message);
     return self->message;
@@ -176,57 +162,61 @@ static PyObject *Error_Str(
 
 //-----------------------------------------------------------------------------
 // Error_InternalNew()
-//   Internal method for creating an error object.
+//   Internal method for creating an error object from the DPI error
+// information.
 //-----------------------------------------------------------------------------
-static udt_Error *Error_InternalNew(
-    udt_Environment *environment,       // environment object
-    const char *context,                // context in which error occurred
-    ub4 handleType,                     // handle type
-    dvoid* handle)                      // handle
+static udt_Error *Error_InternalNew(dpiErrorInfo *errorInfo)
 {
-    char errorText[ERROR_BUF_SIZE];
+    PyObject *format, *args, *fnName, *action;
     udt_Error *self;
-    sword status;
-#if PY_MAJOR_VERSION >= 3
-    Py_ssize_t len;
-#endif
 
+    // create error object and initialize it
     self = (udt_Error*) g_ErrorType.tp_alloc(&g_ErrorType, 0);
     if (!self)
         return NULL;
-    self->context = context;
+    self->code = errorInfo->code;
+    self->offset = errorInfo->offset;
+    self->isRecoverable = (char) errorInfo->isRecoverable;
 
-    if (handle) {
-        status = OCIErrorGet(handle, 1, 0, &self->code,
-                (unsigned char*) errorText, sizeof(errorText), handleType);
-        if (status != OCI_SUCCESS) {
-            Py_DECREF(self);
-            PyErr_SetString(g_InternalErrorException, "No Oracle error?");
-            return NULL;
-        }
-#if PY_MAJOR_VERSION < 3
-        self->message = PyBytes_FromString(errorText);
-#else
-        len = strlen(errorText);
-        self->message = PyUnicode_Decode(errorText, len, environment->encoding,
-                NULL);
-#endif
-        if (!self->message) {
-            Py_DECREF(self);
-            return NULL;
-        }
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
-        // determine if error is recoverable (Transaction Guard)
-        // if the attribute cannot be read properly, simply set it to false;
-        // otherwise, that error will mask the one that we really want to see
-        if (handleType == OCI_HTYPE_ERROR) {
-            status = OCIAttrGet(handle, handleType,
-                    (dvoid*) &self->isRecoverable, 0,
-                    OCI_ATTR_ERROR_IS_RECOVERABLE, handle);
-            if (status != OCI_SUCCESS)
-                self->isRecoverable = 0;
-        }
-#endif
+    // create message
+    self->message = cxString_FromEncodedString(errorInfo->message,
+            errorInfo->messageLength, errorInfo->encoding);
+    if (!self->message) {
+        Py_DECREF(self);
+        return NULL;
+    }
+
+    // create context composed of function name and action
+    fnName = cxString_FromAscii(errorInfo->fnName);
+    if (!fnName) {
+        Py_DECREF(self);
+        return NULL;
+    }
+    action = cxString_FromAscii(errorInfo->action);
+    if (!action) {
+        Py_DECREF(fnName);
+        Py_DECREF(self);
+        return NULL;
+    }
+    args = PyTuple_Pack(2, fnName, action);
+    Py_DECREF(fnName);
+    Py_DECREF(action);
+    if (!args) {
+        Py_DECREF(self);
+        return NULL;
+    }
+    format = cxString_FromAscii("%s: %s");
+    if (!format) {
+        Py_DECREF(self);
+        Py_DECREF(args);
+        return NULL;
+    }
+    self->context = cxString_Format(format, args);
+    Py_DECREF(format);
+    Py_DECREF(args);
+    if (!self->context) {
+        Py_DECREF(self);
+        return NULL;
     }
 
     return self;
@@ -234,94 +224,84 @@ static udt_Error *Error_InternalNew(
 
 
 //-----------------------------------------------------------------------------
-// Error_Raise()
-//   Reads the error that was caused by the last Oracle statement and raise an
-// exception for Python. Return -1 as a convenience to the caller.
+// Error_RaiseFromInfo()
+//   Internal method for raising an exception given an error information
+// structure from DPI. Return -1 as a convenience to the caller.
 //-----------------------------------------------------------------------------
-static int Error_Raise(
-    udt_Environment *environment,       // environment object
-    const char *context,                // context in which error occurred
-    OCIError* errorHandle)              // handle
+static int Error_RaiseFromInfo(dpiErrorInfo *errorInfo)
 {
     PyObject *exceptionType;
-    udt_Error *error;
+    udt_Error *self;
 
-    error = Error_InternalNew(environment, context, OCI_HTYPE_ERROR,
-            errorHandle);
-    if (error) {
-        switch (error->code) {
-            case 1:
-            case 1400:
-            case 2290:
-            case 2291:
-            case 2292:
-                exceptionType = g_IntegrityErrorException;
-                break;
-            case 22:
-            case 378:
-            case 602:
-            case 603:
-            case 604:
-            case 609:
-            case 1012:
-            case 1013:
-            case 1033:
-            case 1034:
-            case 1041:
-            case 1043:
-            case 1089:
-            case 1090:
-            case 1092:
-            case 3113:
-            case 3114:
-            case 3122:
-            case 3135:
-            case 12153:
-            case 12203:
-            case 12500:
-            case 12571:
-            case 27146:
-            case 28511:
-                exceptionType = g_OperationalErrorException;
-                break;
-            default:
-                exceptionType = g_DatabaseErrorException;
-                break;
-        }
-        PyErr_SetObject(exceptionType, (PyObject*) error);
-        Py_DECREF(error);
+    self = Error_InternalNew(errorInfo);
+    switch (errorInfo->code) {
+        case 1:
+        case 1400:
+        case 2290:
+        case 2291:
+        case 2292:
+            exceptionType = g_IntegrityErrorException;
+            break;
+        case 22:
+        case 378:
+        case 602:
+        case 603:
+        case 604:
+        case 609:
+        case 1012:
+        case 1013:
+        case 1033:
+        case 1034:
+        case 1041:
+        case 1043:
+        case 1089:
+        case 1090:
+        case 1092:
+        case 3113:
+        case 3114:
+        case 3122:
+        case 3135:
+        case 12153:
+        case 12203:
+        case 12500:
+        case 12571:
+        case 27146:
+        case 28511:
+            exceptionType = g_OperationalErrorException;
+            break;
+        default:
+            exceptionType = g_DatabaseErrorException;
+            break;
     }
+    PyErr_SetObject(exceptionType, (PyObject*) self);
+    Py_DECREF(self);
     return -1;
 }
 
 
 //-----------------------------------------------------------------------------
-// Error_Check()
-//   Check for an error in the last call and if an error has occurred, raise a
-// Python exception.
+// Error_RaiseAndReturnInt()
+//   Internal method for raising an exception from an error generated from DPI.
+// Return -1 as a convenience to the caller.
 //-----------------------------------------------------------------------------
-static int Error_Check(
-    udt_Environment *environment,       // environment to raise error in
-    sword status,                       // status of last call
-    const char *context,                // context
-    OCIError *errorHandle)              // error handle to use
+static int Error_RaiseAndReturnInt(void)
 {
-    udt_Error *error;
+    dpiErrorInfo errorInfo;
 
-    if (status != OCI_SUCCESS && status != OCI_SUCCESS_WITH_INFO) {
-        if (status != OCI_INVALID_HANDLE)
-            return Error_Raise(environment, context, errorHandle);
-        error = Error_InternalNew(environment, context, 0, NULL);
-        if (!error)
-            return -1;
-        error->code = 0;
-        error->message = cxString_FromAscii("Invalid handle!");
-        if (!error->message)
-            Py_DECREF(error);
-        else PyErr_SetObject(g_DatabaseErrorException, (PyObject*) error);
-        return -1;
-    }
-    return 0;
+    dpiContext_getError(g_DpiContext, &errorInfo);
+    return Error_RaiseFromInfo(&errorInfo);
+}
+
+
+//-----------------------------------------------------------------------------
+// Error_RaiseAndReturnNull()
+//   Internal method for raising an exception from an error generated from DPI.
+// Return NULL as a convenience to the caller.
+//-----------------------------------------------------------------------------
+static PyObject *Error_RaiseAndReturnNull(void)
+{
+    Error_RaiseAndReturnInt();
+    return NULL;
 }
 
 
@@ -329,10 +309,9 @@ static int Error_Check(
 // Error_Reduce()
 //   Method provided for pickling/unpickling of Error objects.
 //-----------------------------------------------------------------------------
-static PyObject *Error_Reduce(
-    udt_Error *self)                    // error object
+static PyObject *Error_Reduce(udt_Error *self)
 {
-    return Py_BuildValue("(O(OiIs))", Py_TYPE(self), self->message,
+    return Py_BuildValue("(O(OiIO))", Py_TYPE(self), self->message,
             self->code, self->offset, self->context);
 }
 

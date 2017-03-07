@@ -12,86 +12,45 @@
 //   Defines Python types for Oracle variables.
 //-----------------------------------------------------------------------------
 
+#include "ObjectType.c"
+
 //-----------------------------------------------------------------------------
 // define structure common to all variables
 //-----------------------------------------------------------------------------
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
-    #define OCIBINDBYNAME               OCIBindByName2
-    #define OCIBINDBYPOS                OCIBindByPos2
-    #define OCIDEFINEBYPOS              OCIDefineByPos2
-    #define ACTUAL_LENGTH_TYPE          ub4
-#else
-    #define OCIBINDBYNAME               OCIBindByName
-    #define OCIBINDBYPOS                OCIBindByPos
-    #define OCIDEFINEBYPOS              OCIDefineByPos
-    #define ACTUAL_LENGTH_TYPE          ub2
-#endif
-
-struct _udt_VariableType;
-#define Variable_HEAD \
-    PyObject_HEAD \
-    OCIBind *bindHandle; \
-    OCIDefine *defineHandle; \
-    OCIStmt *boundCursorHandle; \
-    PyObject *boundName; \
-    PyObject *inConverter; \
-    PyObject *outConverter; \
-    ub4 boundPos; \
-    udt_Environment *environment; \
-    ub4 allocatedElements; \
-    ub4 actualElements; \
-    unsigned internalFetchNum; \
-    int isArray; \
-    int isAllocatedInternally; \
-    sb2 *indicator; \
-    ub2 *returnCode; \
-    ACTUAL_LENGTH_TYPE *actualLength; \
-    ub4 size; \
-    ub4 bufferSize; \
-    struct _udt_VariableType *type;
 typedef struct {
-    Variable_HEAD
-    void *data;
+    PyObject_HEAD
+    dpiVar *handle;
+    dpiData *data;
+    udt_Connection *connection;
+    PyObject *inConverter;
+    PyObject *outConverter;
+    udt_ObjectType *objectType;
+    uint32_t allocatedElements;
+    uint32_t size;
+    uint32_t bufferSize;
+    int isArray;
+    int alwaysGetData;
+    struct _udt_VariableType *type;
 } udt_Variable;
 
 
 //-----------------------------------------------------------------------------
 // define function types for the common actions that take place on a variable
 //-----------------------------------------------------------------------------
-typedef int (*InitializeProc)(udt_Variable*, udt_Cursor*);
-typedef void (*FinalizeProc)(udt_Variable*);
-typedef int (*PreDefineProc)(udt_Variable*, OCIParam*);
-typedef int (*PostDefineProc)(udt_Variable*);
-typedef int (*PostBindProc)(udt_Variable*);
-typedef int (*PreFetchProc)(udt_Variable*);
-typedef int (*IsNullProc)(udt_Variable*, unsigned);
-typedef int (*SetValueProc)(udt_Variable*, unsigned, PyObject*);
-typedef PyObject * (*GetValueProc)(udt_Variable*, unsigned);
-typedef ub4  (*GetBufferSizeProc)(udt_Variable*);
+typedef int (*SetValueProc)(udt_Variable*, uint32_t, dpiData*, PyObject*);
+typedef PyObject * (*GetValueProc)(udt_Variable*, dpiData*);
 
 
 //-----------------------------------------------------------------------------
 // define structure for the common actions that take place on a variable
 //-----------------------------------------------------------------------------
 typedef struct _udt_VariableType {
-    InitializeProc initializeProc;
-    FinalizeProc finalizeProc;
-    PreDefineProc preDefineProc;
-    PostDefineProc postDefineProc;
-    PostBindProc postBindProc;
-    PreFetchProc preFetchProc;
-    IsNullProc isNullProc;
     SetValueProc setValueProc;
     GetValueProc getValueProc;
-    GetBufferSizeProc getBufferSizeProc;
     PyTypeObject *pythonType;
-    ub2 oracleType;
-    ub1 charsetForm;
-    ub4 size;
-    int isCharacterData;
-    int isVariableLength;
-    int canBeCopied;
-    int canBeInArray;
+    dpiOracleTypeNum oracleTypeNum;
+    dpiNativeTypeNum nativeTypeNum;
+    uint32_t size;
 } udt_VariableType;
 
 
@@ -99,13 +58,13 @@ typedef struct _udt_VariableType {
 // Declaration of common variable functions.
 //-----------------------------------------------------------------------------
 static void Variable_Free(udt_Variable *);
+static int Variable_SetValueBytes(udt_Variable *, uint32_t, dpiData *,
+        PyObject *);
 static PyObject *Variable_Repr(udt_Variable *);
 static PyObject *Variable_ExternalCopy(udt_Variable *, PyObject *);
 static PyObject *Variable_ExternalSetValue(udt_Variable *, PyObject *);
 static PyObject *Variable_ExternalGetValue(udt_Variable *, PyObject *,
         PyObject *);
-static int Variable_InternalBind(udt_Variable *);
-static int Variable_Resize(udt_Variable *, unsigned);
 
 
 //-----------------------------------------------------------------------------
@@ -118,6 +77,7 @@ static PyMemberDef g_VariableMembers[] = {
             READONLY },
     { "outconverter", T_OBJECT, offsetof(udt_Variable, outConverter), 0 },
     { "size", T_INT, offsetof(udt_Variable, size), READONLY },
+    { "type", T_OBJECT, offsetof(udt_Variable, objectType), READONLY },
     { NULL }
 };
 
@@ -134,51 +94,11 @@ static PyMethodDef g_VariableMethods[] = {
 };
 
 
-//-----------------------------------------------------------------------------
-// The base variable type
-//-----------------------------------------------------------------------------
-static PyTypeObject g_BaseVarType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle._BASEVARTYPE",           // tp_name
-    sizeof(udt_Variable),               // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) Variable_Free,         // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    (reprfunc) Variable_Repr,           // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    0,                                  // tp_iter
-    0,                                  // tp_iternext
-    g_VariableMethods,                  // tp_methods
-    g_VariableMembers                   // tp_members
-};
-
-
-#include "Transforms.c"
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
 #include "BooleanVar.c"
-#endif
 #include "StringVar.c"
 #include "LongVar.c"
 #include "NumberVar.c"
 #include "DateTimeVar.c"
-#include "TimestampVar.c"
 #include "LobVar.c"
 #include "CursorVar.c"
 #include "ObjectVar.c"
@@ -186,33 +106,70 @@ static PyTypeObject g_BaseVarType = {
 
 
 //-----------------------------------------------------------------------------
-// Variable_AllocateData()
-//   Allocate the data for the variable.
+// VarType_FromQueryInfo()
+//   Return a variable type given query metadata, or NULL indicating that the
+// data indicated by the query metadata is not supported.
 //-----------------------------------------------------------------------------
-static int Variable_AllocateData(
-    udt_Variable *self)                 // variable to allocate data for
+static udt_VariableType *VarType_FromQueryInfo(dpiQueryInfo *info)
 {
-    unsigned PY_LONG_LONG dataLength;
+    char message[120];
 
-    // set the buffer size for the variable
-    if (self->type->getBufferSizeProc)
-        self->bufferSize = (*self->type->getBufferSizeProc)(self);
-    else self->bufferSize = self->size;
-
-    // allocate the data as long as it is small enough
-    dataLength = (unsigned PY_LONG_LONG) self->allocatedElements *
-            (unsigned PY_LONG_LONG) self->bufferSize;
-    if (dataLength > INT_MAX) {
-        PyErr_SetString(PyExc_ValueError, "array size too large");
-        return -1;
+    switch (info->oracleTypeNum) {
+        case DPI_ORACLE_TYPE_VARCHAR:
+            return &vt_String;
+        case DPI_ORACLE_TYPE_NVARCHAR:
+            return &vt_NationalCharString;
+        case DPI_ORACLE_TYPE_CHAR:
+            return &vt_FixedChar;
+        case DPI_ORACLE_TYPE_NCHAR:
+            return &vt_FixedNationalChar;
+        case DPI_ORACLE_TYPE_ROWID:
+            return &vt_Rowid;
+        case DPI_ORACLE_TYPE_RAW:
+            return &vt_Binary;
+        case DPI_ORACLE_TYPE_NATIVE_FLOAT:
+        case DPI_ORACLE_TYPE_NATIVE_DOUBLE:
+            return &vt_NativeFloat;
+        case DPI_ORACLE_TYPE_NUMBER:
+            if (info->scale == 0 && info->precision > 0) {
+                if (info->precision <= DPI_MAX_INT64_PRECISION)
+                    return &vt_NumberAsInteger;
+                return &vt_NumberAsLongInteger;
+            }
+            return &vt_NumberAsFloat;
+        case DPI_ORACLE_TYPE_NATIVE_INT:
+            return &vt_NativeInteger;
+        case DPI_ORACLE_TYPE_DATE:
+            return &vt_DateTime;
+        case DPI_ORACLE_TYPE_TIMESTAMP:
+            return &vt_Timestamp;
+        case DPI_ORACLE_TYPE_TIMESTAMP_TZ:
+        case DPI_ORACLE_TYPE_TIMESTAMP_LTZ:
+            return &vt_TimestampLTZ;
+        case DPI_ORACLE_TYPE_INTERVAL_DS:
+            return &vt_Interval;
+        case DPI_ORACLE_TYPE_CLOB:
+            return &vt_CLOB;
+        case DPI_ORACLE_TYPE_NCLOB:
+            return &vt_NCLOB;
+        case DPI_ORACLE_TYPE_BLOB:
+            return &vt_BLOB;
+        case DPI_ORACLE_TYPE_BFILE:
+            return &vt_BFILE;
+        case DPI_ORACLE_TYPE_STMT:
+            return &vt_Cursor;
+        case DPI_ORACLE_TYPE_OBJECT:
+            return &vt_Object;
+        case DPI_ORACLE_TYPE_LONG_VARCHAR:
+            return &vt_LongString;
+        case DPI_ORACLE_TYPE_LONG_RAW:
+            return &vt_LongBinary;
+        default:
+            sprintf(message, "Oracle type %d not supported.",
+                    info->oracleTypeNum);
+            PyErr_SetString(g_NotSupportedErrorException, message);
+            return NULL;
     }
-    self->data = PyMem_Malloc((size_t) dataLength);
-    if (!self->data) {
-        PyErr_NoMemory();
-        return -1;
-    }
-
-    return 0;
 }
 
 
@@ -220,14 +177,12 @@ static int Variable_AllocateData(
 // Variable_New()
 //   Allocate a new variable.
 //-----------------------------------------------------------------------------
-static udt_Variable *Variable_New(
-    udt_Cursor *cursor,                 // cursor to associate variable with
-    unsigned numElements,               // number of elements to allocate
-    udt_VariableType *type,             // variable type
-    ub4 size)                           // used only for variable length types
+static udt_Variable *Variable_New(udt_Cursor *cursor, uint32_t numElements,
+        udt_VariableType *type, uint32_t size, int isArray,
+        udt_ObjectType *objType)
 {
+    dpiObjectType *typeHandle = NULL;
     udt_Variable *self;
-    ub4 i;
 
     // attempt to allocate the object
     self = (udt_Variable*) type->pythonType->tp_alloc(type->pythonType, 0);
@@ -235,57 +190,34 @@ static udt_Variable *Variable_New(
         return NULL;
 
     // perform basic initialization
-    Py_INCREF(cursor->connection->environment);
-    self->environment = cursor->connection->environment;
-    if (numElements < 1)
-        self->allocatedElements = 1;
-    else self->allocatedElements = numElements;
-    self->isAllocatedInternally = 1;
+    Py_INCREF(cursor->connection);
+    self->connection = cursor->connection;
+    if (objType) {
+        Py_INCREF(objType);
+        self->objectType = objType;
+        typeHandle = objType->handle;
+    }
+    if (numElements == 0)
+        numElements = 1;
+    self->allocatedElements = numElements;
     self->type = type;
+    self->size = (size == 0) ? type->size : size;
+    self->isArray = isArray;
 
-    // set the maximum length of the variable, ensure that a minimum of
-    // 2 bytes is allocated to ensure that the array size check works
-    self->size = type->size;
-    if (type->isVariableLength) {
-        if (size < sizeof(ub2))
-            size = sizeof(ub2);
-        self->size = size;
-    }
-
-    // allocate the data for the variable
-    if (Variable_AllocateData(self) < 0) {
+    // acquire and initialize DPI variable
+    if (dpiConn_newVar(cursor->connection->handle, type->oracleTypeNum,
+            type->nativeTypeNum, numElements, self->size, 0, isArray,
+            typeHandle, &self->handle, &self->data) < 0) {
+        Error_RaiseAndReturnNull();
         Py_DECREF(self);
         return NULL;
     }
 
-    // allocate the indicator for the variable
-    self->indicator = PyMem_Malloc(self->allocatedElements * sizeof(sb2));
-    if (!self->indicator) {
-        PyErr_NoMemory();
+    // get buffer size for information
+    if (dpiVar_getSizeInBytes(self->handle, &self->bufferSize) < 0) {
+        Error_RaiseAndReturnNull();
         Py_DECREF(self);
         return NULL;
-    }
-
-    // ensure that all variable values start out NULL
-    for (i = 0; i < self->allocatedElements; i++)
-        self->indicator[i] = OCI_IND_NULL;
-
-    // for variable length data, also allocate the return code
-    if (type->isVariableLength) {
-        self->returnCode = PyMem_Malloc(self->allocatedElements * sizeof(ub2));
-        if (!self->returnCode) {
-            PyErr_NoMemory();
-            Py_DECREF(self);
-            return NULL;
-        }
-    }
-
-    // perform extended initialization
-    if (self->type->initializeProc) {
-        if ((*self->type->initializeProc)(self, cursor) < 0) {
-            Py_DECREF(self);
-            return NULL;
-        }
     }
 
     return self;
@@ -296,61 +228,46 @@ static udt_Variable *Variable_New(
 // Variable_Free()
 //   Free an existing variable.
 //-----------------------------------------------------------------------------
-static void Variable_Free(
-    udt_Variable *self)                 // variable to free
+static void Variable_Free(udt_Variable *self)
 {
-    if (self->isAllocatedInternally) {
-        if (self->type->finalizeProc)
-            (*self->type->finalizeProc)(self);
-        if (self->indicator)
-            PyMem_Free(self->indicator);
-        if (self->data)
-            PyMem_Free(self->data);
-        if (self->actualLength)
-            PyMem_Free(self->actualLength);
-        if (self->returnCode)
-            PyMem_Free(self->returnCode);
+    if (self->handle) {
+        Py_BEGIN_ALLOW_THREADS
+        dpiVar_release(self->handle);
+        Py_END_ALLOW_THREADS
+        self->handle = NULL;
     }
-    Py_CLEAR(self->environment);
-    Py_CLEAR(self->boundName);
+    Py_CLEAR(self->connection);
     Py_CLEAR(self->inConverter);
     Py_CLEAR(self->outConverter);
+    Py_CLEAR(self->objectType);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
 
 //-----------------------------------------------------------------------------
-// Variable_Resize()
-//   Resize the variable.
+// Variable_SetValueBytes()
+//   Transfer the value to DPI as bytes. The Python value is transformed into
+// an object from which bytes can be extracted.
 //-----------------------------------------------------------------------------
-static int Variable_Resize(
-    udt_Variable *self,                 // variable to resize
-    unsigned size)                      // new size to use
+static int Variable_SetValueBytes(udt_Variable *var, uint32_t pos,
+        dpiData *data, PyObject *value)
 {
-    ub4 origBufferSize, i;
-    char *origData;
+    udt_Buffer buffer;
+    int status;
 
-    // allocate the data for the new array
-    origData = self->data;
-    origBufferSize = self->bufferSize;
-    self->size = size;
-    if (Variable_AllocateData(self) < 0)
+    if (cxBuffer_FromObject(&buffer, value,
+            var->connection->encodingInfo.encoding) < 0)
         return -1;
-
-    // copy the data from the original array to the new array
-    for (i = 0; i < self->allocatedElements; i++)
-        memcpy( (char*) self->data + self->bufferSize * i,
-                (void*) ( (char*) origData + origBufferSize * i ),
-                origBufferSize);
-    PyMem_Free(origData);
-
-    // force rebinding
-    if (self->boundName || self->boundPos > 0) {
-        if (Variable_InternalBind(self) < 0)
+    if (var->type->size > 0 && buffer.size > var->bufferSize) {
+        if (dpiVar_resize(var->handle, buffer.size) < 0) {
+            cxBuffer_Clear(&buffer);
             return -1;
+        }
+        var->bufferSize = buffer.size;
     }
-
-    return 0;
+    status = dpiVar_setFromBytes(var->handle, pos, buffer.ptr, buffer.size);
+    cxBuffer_Clear(&buffer);
+    return status;
 }
 
 
@@ -358,33 +275,31 @@ static int Variable_Resize(
 // Variable_Check()
 //   Returns a boolean indicating if the object is a variable.
 //-----------------------------------------------------------------------------
-static int Variable_Check(
-    PyObject *object)                   // Python object to check
+static int Variable_Check(PyObject *object)
 {
-    return (Py_TYPE(object) == &g_CursorVarType ||
-            Py_TYPE(object) == &g_DateTimeVarType ||
-            Py_TYPE(object) == &g_BFILEVarType ||
-            Py_TYPE(object) == &g_BLOBVarType ||
-            Py_TYPE(object) == &g_CLOBVarType ||
-            Py_TYPE(object) == &g_LongStringVarType ||
-            Py_TYPE(object) == &g_LongBinaryVarType ||
-            Py_TYPE(object) == &g_NumberVarType ||
-            Py_TYPE(object) == &g_StringVarType ||
-            Py_TYPE(object) == &g_FixedCharVarType ||
-            Py_TYPE(object) == &g_NCLOBVarType ||
-            Py_TYPE(object) == &g_NCharVarType ||
-            Py_TYPE(object) == &g_FixedNCharVarType ||
-            Py_TYPE(object) == &g_LongNCharVarType ||
-            Py_TYPE(object) == &g_RowidVarType ||
-            Py_TYPE(object) == &g_BinaryVarType ||
-            Py_TYPE(object) == &g_TimestampVarType ||
-            Py_TYPE(object) == &g_IntervalVarType ||
-            Py_TYPE(object) == &g_ObjectVarType ||
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
-            Py_TYPE(object) == &g_BooleanVarType ||
-#endif
-            Py_TYPE(object) == &g_NativeFloatVarType ||
-            Py_TYPE(object) == &g_NativeIntVarType);
+    PyTypeObject *objectType = Py_TYPE(object);
+
+    return (objectType == &g_CursorVarType ||
+            objectType == &g_DateTimeVarType ||
+            objectType == &g_BFILEVarType ||
+            objectType == &g_BLOBVarType ||
+            objectType == &g_CLOBVarType ||
+            objectType == &g_LongStringVarType ||
+            objectType == &g_LongBinaryVarType ||
+            objectType == &g_NumberVarType ||
+            objectType == &g_StringVarType ||
+            objectType == &g_FixedCharVarType ||
+            objectType == &g_NCLOBVarType ||
+            objectType == &g_NCharVarType ||
+            objectType == &g_FixedNCharVarType ||
+            objectType == &g_RowidVarType ||
+            objectType == &g_BinaryVarType ||
+            objectType == &g_TimestampVarType ||
+            objectType == &g_IntervalVarType ||
+            objectType == &g_ObjectVarType ||
+            objectType == &g_BooleanVarType ||
+            objectType == &g_NativeFloatVarType ||
+            objectType == &g_NativeIntVarType);
 }
 
 
@@ -393,9 +308,8 @@ static int Variable_Check(
 //   Return a variable type given a Python type object or NULL if the Python
 // type does not have a corresponding variable type.
 //-----------------------------------------------------------------------------
-static udt_VariableType *Variable_TypeByPythonType(
-    udt_Cursor* cursor,                 // cursor variable created for
-    PyObject* type)                     // Python type
+static udt_VariableType *Variable_TypeByPythonType(udt_Cursor* cursor,
+        PyObject* type)
 {
     if (type == (PyObject*) &g_StringVarType)
         return &vt_String;
@@ -411,8 +325,6 @@ static udt_VariableType *Variable_TypeByPythonType(
 #endif
     if (type == (PyObject*) &g_FixedNCharVarType)
         return &vt_FixedNationalChar;
-    if (type == (PyObject*) &g_LongNCharVarType)
-        return &vt_LongNationalCharString;
     if (type == (PyObject*) &g_NCLOBVarType)
         return &vt_NCLOB;
     if (type == (PyObject*) &g_RowidVarType)
@@ -431,23 +343,20 @@ static udt_VariableType *Variable_TypeByPythonType(
         return &vt_BLOB;
     if (type == (PyObject*) &g_CLOBVarType)
         return &vt_CLOB;
-    if (type == (PyObject*) &g_NumberVarType) {
-        if (cursor->numbersAsStrings)
-            return &vt_NumberAsString;
-        return &vt_Float;
-    }
+    if (type == (PyObject*) &g_NumberVarType)
+        return &vt_NumberAsFloat;
     if (type == (PyObject*) &PyFloat_Type)
-        return &vt_Float;
+        return &vt_NumberAsFloat;
 #if PY_MAJOR_VERSION < 3
     if (type == (PyObject*) &PyInt_Type)
-        return &vt_Integer;
+        return &vt_NumberAsInteger;
 #endif
     if (type == (PyObject*) &PyLong_Type)
-        return &vt_LongInteger;
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+        return &vt_NumberAsLongInteger;
+    if (type == (PyObject*) g_DecimalType)
+        return &vt_NumberAsDecimal;
     if (type == (PyObject*) &g_BooleanVarType)
         return &vt_Boolean;
-#endif
     if (type == (PyObject*) &PyBool_Type)
         return &vt_Boolean;
     if (type == (PyObject*) &g_DateTimeVarType)
@@ -484,10 +393,8 @@ static udt_VariableType *Variable_TypeByPythonType(
 //   Return a variable type given a Python object or NULL if the Python
 // object does not have a corresponding variable type.
 //-----------------------------------------------------------------------------
-static udt_VariableType *Variable_TypeByValue(
-    PyObject* value,                    // Python type
-    ub4* size,                          // size to use (OUT)
-    unsigned *numElements)              // number of elements (OUT)
+static udt_VariableType *Variable_TypeByValue(PyObject* value, uint32_t* size,
+        uint32_t *numElements)
 {
     udt_VariableType *varType;
     PyObject *elementValue;
@@ -500,37 +407,33 @@ static udt_VariableType *Variable_TypeByValue(
         return &vt_String;
     }
     if (cxString_Check(value)) {
-        *size = (ub4) cxString_GetSize(value);
-        if (*size > 32768)
-            return &vt_LongString;
+        *size = cxString_GetSize(value);
         return &vt_String;
     }
     if (PyBool_Check(value))
         return &vt_Boolean;
 #if PY_MAJOR_VERSION < 3
     if (PyUnicode_Check(value)) {
-        *size = (ub4) PyUnicode_GET_SIZE(value);
-        if (*size > 32768)
-            return &vt_LongNationalCharString;
+        *size = PyUnicode_GET_SIZE(value);
         return &vt_NationalCharString;
     }
     if (PyInt_Check(value))
-        return &vt_Integer;
+        return &vt_NumberAsInteger;
 #else
     if (PyBytes_Check(value)) {
-        *size = (ub4) PyBytes_GET_SIZE(value);
+        *size = PyBytes_GET_SIZE(value);
         return &vt_Binary;
     }
 #endif
     if (PyLong_Check(value))
-        return &vt_LongInteger;
+        return &vt_NumberAsInteger;
     if (PyFloat_Check(value))
-        return &vt_Float;
+        return &vt_NumberAsFloat;
     if (cxBinary_Check(value)) {
         udt_Buffer temp;
         if (cxBuffer_FromObject(&temp, value, NULL) < 0)
             return NULL;
-        *size = (ub4) temp.size;
+        *size = temp.size;
         cxBuffer_Clear(&temp);
         return &vt_Binary;
     }
@@ -548,7 +451,7 @@ static udt_VariableType *Variable_TypeByValue(
     if (Py_TYPE(value) == g_DateTimeType)
         return &vt_DateTime;
     if (Py_TYPE(value) == g_DecimalType)
-        return &vt_NumberAsString;
+        return &vt_NumberAsDecimal;
     if (Py_TYPE(value) == &g_ObjectType)
         return &vt_Object;
 
@@ -563,7 +466,7 @@ static udt_VariableType *Variable_TypeByValue(
         varType = Variable_TypeByValue(elementValue, size, numElements);
         if (!varType)
             return NULL;
-        *numElements = (ub4) PyList_GET_SIZE(value);
+        *numElements = PyList_GET_SIZE(value);
         *size = varType->size;
         return varType;
     }
@@ -576,153 +479,26 @@ static udt_VariableType *Variable_TypeByValue(
 
 
 //-----------------------------------------------------------------------------
-// Variable_TypeByOracleDataType()
-//   Return a variable type given an Oracle data type or NULL if the Oracle
-// data type does not have a corresponding variable type.
-//-----------------------------------------------------------------------------
-static udt_VariableType *Variable_TypeByOracleDataType (
-    ub2 oracleDataType,                 // Oracle data type
-    ub1 charsetForm)                    // character set form
-{
-    char buffer[100];
-
-    switch(oracleDataType) {
-        case SQLT_LNG:
-            return &vt_LongString;
-        case SQLT_AFC:
-            if (charsetForm == SQLCS_NCHAR)
-                return &vt_FixedNationalChar;
-            return &vt_FixedChar;
-        case SQLT_CHR:
-            if (charsetForm == SQLCS_NCHAR)
-                return &vt_NationalCharString;
-            return &vt_String;
-        case SQLT_RDD:
-            return &vt_Rowid;
-        case SQLT_BIN:
-            return &vt_Binary;
-        case SQLT_LBI:
-            return &vt_LongBinary;
-        case SQLT_BFLOAT:
-        case SQLT_IBFLOAT:
-        case SQLT_BDOUBLE:
-        case SQLT_IBDOUBLE:
-            return &vt_NativeFloat;
-        case SQLT_INT:
-            return &vt_NativeInteger;
-        case SQLT_NUM:
-        case SQLT_VNU:
-            return &vt_Float;
-        case SQLT_DAT:
-        case SQLT_ODT:
-            return &vt_DateTime;
-        case SQLT_DATE:
-        case SQLT_TIMESTAMP:
-        case SQLT_TIMESTAMP_TZ:
-        case SQLT_TIMESTAMP_LTZ:
-            return &vt_Timestamp;
-        case SQLT_INTERVAL_DS:
-            return &vt_Interval;
-        case SQLT_CLOB:
-            if (charsetForm == SQLCS_NCHAR)
-                return &vt_NCLOB;
-            return &vt_CLOB;
-        case SQLT_BLOB:
-            return &vt_BLOB;
-        case SQLT_BFILE:
-            return &vt_BFILE;
-        case SQLT_RSET:
-            return &vt_Cursor;
-        case SQLT_NTY:
-            return &vt_Object;
-    }
-
-    sprintf(buffer, "Variable_TypeByOracleDataType: unhandled data type %d",
-            oracleDataType);
-    PyErr_SetString(g_NotSupportedErrorException, buffer);
-    return NULL;
-}
-
-
-//-----------------------------------------------------------------------------
-// Variable_TypeByOracleDescriptor()
-//   Return a variable type given an Oracle descriptor.
-//-----------------------------------------------------------------------------
-static udt_VariableType *Variable_TypeByOracleDescriptor(
-    OCIParam *param,                    // parameter to get type from
-    udt_Environment *environment)       // environment to use
-{
-    ub1 charsetForm;
-    ub2 dataType;
-    sword status;
-
-    // retrieve datatype of the parameter
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &dataType, 0,
-            OCI_ATTR_DATA_TYPE, environment->errorHandle);
-    if (Environment_CheckForError(environment, status,
-            "Variable_TypeByOracleDescriptor(): data type") < 0)
-        return NULL;
-
-    // retrieve character set form of the parameter
-    if (dataType != SQLT_CHR && dataType != SQLT_AFC &&
-            dataType != SQLT_CLOB) {
-        charsetForm = SQLCS_IMPLICIT;
-    } else {
-        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &charsetForm,
-                0, OCI_ATTR_CHARSET_FORM, environment->errorHandle);
-        if (Environment_CheckForError(environment, status,
-                "Variable_TypeByOracleDescriptor(): charset form") < 0)
-            return NULL;
-    }
-
-    return Variable_TypeByOracleDataType(dataType, charsetForm);
-}
-
-
-//-----------------------------------------------------------------------------
-// Variable_MakeArray()
-//   Make the variable an array, ensuring that the type supports arrays.
-//-----------------------------------------------------------------------------
-static int Variable_MakeArray(
-    udt_Variable *var)                  // variable to make an array
-{
-    if (!var->type->canBeInArray) {
-        PyErr_SetString(g_NotSupportedErrorException,
-                "Variable_MakeArray(): type does not support arrays");
-        return -1;
-    }
-    var->isArray = 1;
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
 // Variable_DefaultNewByValue()
 //   Default method for determining the type of variable to use for the data.
 //-----------------------------------------------------------------------------
-static udt_Variable *Variable_DefaultNewByValue(
-    udt_Cursor *cursor,                 // cursor to associate variable with
-    PyObject *value,                    // Python value to associate
-    unsigned numElements)               // number of elements to allocate
+static udt_Variable *Variable_DefaultNewByValue(udt_Cursor *cursor,
+        PyObject *value, uint32_t numElements)
 {
+    udt_ObjectType *objType = NULL;
     udt_VariableType *varType;
-    udt_Variable *var;
-    ub4 size = 0;
+    uint32_t size = 0;
+    udt_Object *obj;
 
     varType = Variable_TypeByValue(value, &size, &numElements);
     if (!varType)
         return NULL;
-    var = Variable_New(cursor, numElements, varType, size);
-    if (!var)
-        return NULL;
-    if (PyList_Check(value)) {
-        if (Variable_MakeArray(var) < 0) {
-            Py_DECREF(var);
-            return NULL;
-        }
+    if (varType == &vt_Object) {
+        obj = (udt_Object*) value;
+        objType = obj->objectType;
     }
-
-    return var;
+    return Variable_New(cursor, numElements, varType, size,
+            PyList_Check(value), objType);
 }
 
 
@@ -730,11 +506,8 @@ static udt_Variable *Variable_DefaultNewByValue(
 // Variable_NewByInputTypeHandler()
 //   Allocate a new variable by looking at the type of the data.
 //-----------------------------------------------------------------------------
-static udt_Variable *Variable_NewByInputTypeHandler(
-    udt_Cursor *cursor,                 // cursor to associate variable with
-    PyObject *inputTypeHandler,         // input type handler
-    PyObject *value,                    // Python value to associate
-    unsigned numElements)               // number of elements to allocate
+static udt_Variable *Variable_NewByInputTypeHandler(udt_Cursor *cursor,
+        PyObject *inputTypeHandler, PyObject *value, uint32_t numElements)
 {
     PyObject *var;
 
@@ -760,10 +533,8 @@ static udt_Variable *Variable_NewByInputTypeHandler(
 // Variable_NewByValue()
 //   Allocate a new variable by looking at the type of the data.
 //-----------------------------------------------------------------------------
-static udt_Variable *Variable_NewByValue(
-    udt_Cursor *cursor,                 // cursor to associate variable with
-    PyObject *value,                    // Python value to associate
-    unsigned numElements)               // number of elements to allocate
+static udt_Variable *Variable_NewByValue(udt_Cursor *cursor, PyObject *value,
+        uint32_t numElements)
 {
     if (cursor->inputTypeHandler && cursor->inputTypeHandler != Py_None)
         return Variable_NewByInputTypeHandler(cursor, cursor->inputTypeHandler,
@@ -780,14 +551,12 @@ static udt_Variable *Variable_NewByValue(
 // Variable_NewArrayByType()
 //   Allocate a new PL/SQL array by looking at the Python data type.
 //-----------------------------------------------------------------------------
-static udt_Variable *Variable_NewArrayByType(
-    udt_Cursor *cursor,                 // cursor to bind variable to
-    PyObject *value)                    // value to bind
+static udt_Variable *Variable_NewArrayByType(udt_Cursor *cursor,
+        PyObject *value)
 {
     PyObject *typeObj, *numElementsObj;
     udt_VariableType *varType;
-    unsigned numElements;
-    udt_Variable *var;
+    uint32_t numElements;
 
     if (PyList_GET_SIZE(value) != 2) {
         PyErr_SetString(g_ProgrammingErrorException,
@@ -810,15 +579,7 @@ static udt_Variable *Variable_NewArrayByType(
     numElements = PyInt_AsLong(numElementsObj);
     if (PyErr_Occurred())
         return NULL;
-    var = Variable_New(cursor, numElements, varType, varType->size);
-    if (!var)
-        return NULL;
-    if (Variable_MakeArray(var) < 0) {
-        Py_DECREF(var);
-        return NULL;
-    }
-
-    return var;
+    return Variable_New(cursor, numElements, varType, varType->size, 1, NULL);
 }
 
 
@@ -826,10 +587,8 @@ static udt_Variable *Variable_NewArrayByType(
 // Variable_NewByType()
 //   Allocate a new variable by looking at the Python data type.
 //-----------------------------------------------------------------------------
-static udt_Variable *Variable_NewByType(
-    udt_Cursor *cursor,                 // cursor to associate variable with
-    PyObject *value,                    // Python data type to associate
-    unsigned numElements)               // number of elements to allocate
+static udt_Variable *Variable_NewByType(udt_Cursor *cursor, PyObject *value,
+        uint32_t numElements)
 {
     udt_VariableType *varType;
     int size;
@@ -839,10 +598,8 @@ static udt_Variable *Variable_NewByType(
         size = PyInt_AsLong(value);
         if (PyErr_Occurred())
             return NULL;
-        if (size > 32768)
-            varType = &vt_LongString;
-        else varType = &vt_String;
-        return Variable_New(cursor, numElements, varType, size);
+        varType = &vt_String;
+        return Variable_New(cursor, numElements, varType, size, 0, NULL);
     }
 
     // passing an array of two elements to define an array
@@ -859,287 +616,7 @@ static udt_Variable *Variable_NewByType(
     varType = Variable_TypeByPythonType(cursor, value);
     if (!varType)
         return NULL;
-    return Variable_New(cursor, numElements, varType, varType->size);
-}
-
-
-//-----------------------------------------------------------------------------
-// Variable_NewByOutputTypeHandler()
-//   Create a new variable by calling the output type handler.
-//-----------------------------------------------------------------------------
-static udt_Variable *Variable_NewByOutputTypeHandler(
-    udt_Cursor *cursor,                 // cursor to associate variable with
-    OCIParam *param,                    // parameter descriptor
-    PyObject *outputTypeHandler,        // method to call to get type
-    udt_VariableType *varType,          // variable type already chosen
-    ub4 size,                           // maximum size of variable
-    unsigned numElements)               // number of elements
-{
-    udt_Variable *var;
-    PyObject *result;
-    ub4 nameLength;
-    sb2 precision;
-    sword status;
-    char *name;
-    sb1 scale;
-
-    // determine name of variable
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &name,
-            &nameLength, OCI_ATTR_NAME, cursor->environment->errorHandle);
-    if (Environment_CheckForError(cursor->environment, status,
-            "Variable_NewByOutputTypeHandler(): get name") < 0)
-        return NULL;
-
-    // retrieve scale and precision of the parameter, if applicable
-    precision = scale = 0;
-    if (varType->pythonType == &g_NumberVarType) {
-        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &scale, 0,
-                OCI_ATTR_SCALE, cursor->environment->errorHandle);
-        if (Environment_CheckForError(cursor->environment, status,
-                "Variable_NewByOutputTypeHandler(): get scale") < 0)
-            return NULL;
-        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &precision, 0,
-                OCI_ATTR_PRECISION, cursor->environment->errorHandle);
-        if (Environment_CheckForError(cursor->environment, status,
-                "Variable_NewByOutputTypeHandler(): get precision") < 0)
-            return NULL;
-    }
-
-    // call method, passing parameters
-    result = PyObject_CallFunction(outputTypeHandler, "Os#Oiii", cursor, name,
-            nameLength, varType->pythonType, size, precision, scale);
-    if (!result)
-        return NULL;
-
-    // if result is None, assume default behavior
-    if (result == Py_None) {
-        Py_DECREF(result);
-        return Variable_New(cursor, numElements, varType, size);
-    }
-
-    // otherwise, verify that the result is an actual variable
-    if (!Variable_Check(result)) {
-        Py_DECREF(result);
-        PyErr_SetString(PyExc_TypeError,
-                "expecting variable from output type handler");
-        return NULL;
-    }
-
-    // verify that the array size is sufficient to handle the fetch
-    var = (udt_Variable*) result;
-    if (var->allocatedElements < cursor->fetchArraySize) {
-        Py_DECREF(result);
-        PyErr_SetString(PyExc_TypeError,
-                "expecting variable with array size large enough for fetch");
-        return NULL;
-    }
-
-    return var;
-}
-
-
-//-----------------------------------------------------------------------------
-// Variable_DefineHelper()
-//   Helper routine for Variable_Define() used so that constant calls to
-// OCIDescriptorFree() is not necessary.
-//-----------------------------------------------------------------------------
-static udt_Variable *Variable_DefineHelper(
-    udt_Cursor *cursor,                 // cursor in use
-    OCIParam *param,                    // parameter descriptor
-    unsigned position,                  // position in define list
-    unsigned numElements)               // number of elements to create
-{
-    udt_VariableType *varType;
-    ub2 sizeFromOracle;
-    udt_Variable *var;
-    sword status;
-    ub4 size;
-
-    // determine data type
-    varType = Variable_TypeByOracleDescriptor(param, cursor->environment);
-    if (!varType)
-        return NULL;
-    if (cursor->numbersAsStrings && varType == &vt_Float)
-        varType = &vt_NumberAsString;
-
-    // retrieve size of the parameter
-    size = varType->size;
-    if (varType->isVariableLength) {
-
-        // determine the maximum length from Oracle
-        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE,
-                (dvoid*) &sizeFromOracle, 0, OCI_ATTR_DATA_SIZE,
-                cursor->environment->errorHandle);
-        if (Environment_CheckForError(cursor->environment, status,
-                "Variable_Define(): data size") < 0)
-            return NULL;
-
-        // use the length from Oracle directly if available
-        if (sizeFromOracle)
-            size = sizeFromOracle;
-
-        // otherwise, use the value set with the setoutputsize() parameter
-        else if (cursor->outputSize >= 0) {
-            if (cursor->outputSizeColumn < 0 ||
-                    (int) position == cursor->outputSizeColumn)
-                size = cursor->outputSize;
-        }
-    }
-
-    // create a variable of the correct type
-    if (cursor->outputTypeHandler && cursor->outputTypeHandler != Py_None)
-        var = Variable_NewByOutputTypeHandler(cursor, param,
-                cursor->outputTypeHandler, varType, size, numElements);
-    else if (cursor->connection->outputTypeHandler &&
-            cursor->connection->outputTypeHandler != Py_None)
-        var = Variable_NewByOutputTypeHandler(cursor, param,
-                cursor->connection->outputTypeHandler, varType, size,
-                numElements);
-    else var = Variable_New(cursor, numElements, varType, size);
-    if (!var)
-        return NULL;
-
-    // call the procedure to set values prior to define
-    if (var->type->preDefineProc) {
-        if ((*var->type->preDefineProc)(var, param) < 0) {
-            Py_DECREF(var);
-            return NULL;
-        }
-    }
-
-    // perform the define
-    status = OCIDEFINEBYPOS(cursor->handle, &var->defineHandle,
-            var->environment->errorHandle, position, var->data,
-            var->bufferSize, var->type->oracleType, var->indicator,
-            var->actualLength, var->returnCode, OCI_DEFAULT);
-    if (Environment_CheckForError(var->environment, status,
-            "Variable_Define(): define") < 0) {
-        Py_DECREF(var);
-        return NULL;
-    }
-
-    // call the procedure to set values after define
-    if (var->type->postDefineProc) {
-        if ((*var->type->postDefineProc)(var) < 0) {
-            Py_DECREF(var);
-            return NULL;
-        }
-    }
-
-    return var;
-}
-
-
-//-----------------------------------------------------------------------------
-// Variable_Define()
-//   Allocate a variable and define it for the given statement.
-//-----------------------------------------------------------------------------
-static udt_Variable *Variable_Define(
-    udt_Cursor *cursor,                 // cursor to define for
-    unsigned numElements,               // number of elements to create
-    unsigned position)                  // position to define
-{
-    udt_Variable *var;
-    OCIParam *param;
-    sword status;
-
-    // retrieve parameter descriptor
-    status = OCIParamGet(cursor->handle, OCI_HTYPE_STMT,
-            cursor->environment->errorHandle, (void**) &param, position);
-    if (Environment_CheckForError(cursor->environment, status,
-            "Variable_Define(): parameter") < 0)
-        return NULL;
-
-    // call the helper to do the actual work
-    var = Variable_DefineHelper(cursor, param, position, numElements);
-    OCIDescriptorFree(param, OCI_DTYPE_PARAM);
-    return var;
-}
-
-
-//-----------------------------------------------------------------------------
-// Variable_InternalBind()
-//   Allocate a variable and bind it to the given statement.
-//-----------------------------------------------------------------------------
-static int Variable_InternalBind(
-    udt_Variable *var)                  // variable to bind
-{
-    sword status;
-
-    // perform the bind
-    if (var->boundName) {
-        udt_Buffer buffer;
-        if (cxBuffer_FromObject(&buffer, var->boundName,
-                var->environment->encoding) < 0)
-            return -1;
-        if (var->isArray) {
-            status = OCIBINDBYNAME(var->boundCursorHandle, &var->bindHandle,
-                    var->environment->errorHandle, (text*) buffer.ptr,
-                    (sb4) buffer.size, var->data, var->bufferSize,
-                    var->type->oracleType, var->indicator, var->actualLength,
-                    var->returnCode, var->allocatedElements,
-                    &var->actualElements, OCI_DEFAULT);
-        } else {
-            status = OCIBINDBYNAME(var->boundCursorHandle, &var->bindHandle,
-                    var->environment->errorHandle, (text*) buffer.ptr,
-                    (sb4) buffer.size, var->data, var->bufferSize,
-                    var->type->oracleType, var->indicator, var->actualLength,
-                    var->returnCode, 0, 0, OCI_DEFAULT);
-        }
-        cxBuffer_Clear(&buffer);
-    } else {
-        if (var->isArray) {
-            status = OCIBINDBYPOS(var->boundCursorHandle, &var->bindHandle,
-                    var->environment->errorHandle, var->boundPos, var->data,
-                    (sb4) var->bufferSize, var->type->oracleType,
-                    var->indicator, var->actualLength, var->returnCode,
-                    var->allocatedElements, &var->actualElements, OCI_DEFAULT);
-        } else {
-            status = OCIBINDBYPOS(var->boundCursorHandle, &var->bindHandle,
-                    var->environment->errorHandle, var->boundPos, var->data,
-                    (sb4) var->bufferSize, var->type->oracleType,
-                    var->indicator, var->actualLength, var->returnCode, 0, 0,
-                    OCI_DEFAULT);
-        }
-    }
-    if (Environment_CheckForError(var->environment, status,
-            "Variable_InternalBind()") < 0)
-        return -1;
-
-    // set the charset form and id if applicable
-    if (var->type->charsetForm != SQLCS_IMPLICIT) {
-        status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
-                (dvoid*) &var->type->charsetForm, 0, OCI_ATTR_CHARSET_FORM,
-                var->environment->errorHandle);
-        if (Environment_CheckForError(var->environment, status,
-                "Variable_InternalBind(): set charset form") < 0)
-            return -1;
-        status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
-                (dvoid*) &var->bufferSize, 0, OCI_ATTR_MAXDATA_SIZE,
-                var->environment->errorHandle);
-        if (Environment_CheckForError(var->environment, status,
-                "Variable_InternalBind(): set max data size") < 0)
-            return -1;
-    }
-
-    // set the max data size for strings
-    if ((var->type == &vt_String || var->type == &vt_FixedChar)
-            && var->size > var->type->size) {
-        status = OCIAttrSet(var->bindHandle, OCI_HTYPE_BIND,
-                (dvoid*) &var->type->size, 0, OCI_ATTR_MAXDATA_SIZE,
-                var->environment->errorHandle);
-        if (Environment_CheckForError(var->environment, status,
-                "Variable_InternalBind(): set max data size") < 0)
-            return -1;
-    }
-
-    // call the procedure to set values after define
-    if (var->type->postBindProc) {
-        if ((*var->type->postBindProc)(var) < 0)
-            return -1;
-    }
-
-    return 0;
+    return Variable_New(cursor, numElements, varType, varType->size, 0, NULL);
 }
 
 
@@ -1147,54 +624,28 @@ static int Variable_InternalBind(
 // Variable_Bind()
 //   Allocate a variable and bind it to the given statement.
 //-----------------------------------------------------------------------------
-static int Variable_Bind(
-    udt_Variable *var,                  // variable to bind
-    udt_Cursor *cursor,                 // cursor to bind to
-    PyObject *name,                     // name to bind to
-    ub4 pos)                            // position to bind to
+static int Variable_Bind(udt_Variable *var, udt_Cursor *cursor, PyObject *name,
+        uint32_t pos)
 {
-    // nothing to do if already bound
-    if (var->bindHandle && name == var->boundName && pos == var->boundPos)
-        return 0;
-
-    // set the instance variables specific for binding
-    var->boundPos = pos;
-    var->boundCursorHandle = cursor->handle;
-    Py_XDECREF(var->boundName);
-    Py_XINCREF(name);
-    var->boundName = name;
+    udt_Buffer nameBuffer;
+    int status;
 
     // perform the bind
-    return Variable_InternalBind(var);
-}
-
-
-//-----------------------------------------------------------------------------
-// Variable_VerifyFetch()
-//   Verifies that truncation or other problems did not take place on retrieve.
-//-----------------------------------------------------------------------------
-static int Variable_VerifyFetch(
-  udt_Variable *var,                    // variable to check fetch for
-  unsigned arrayPos)                    // array position
-{
-    char messageText[200];
-    udt_Error *error;
-
-    if (var->type->isVariableLength) {
-        if (var->returnCode[arrayPos] != 0) {
-            error = Error_InternalNew(var->environment,
-                    "Variable_VerifyFetch()", 0, NULL);
-            error->code = var->returnCode[arrayPos];
-            sprintf(messageText, 
-                    "column at array pos %d fetched with error: %d",
-                    arrayPos, var->returnCode[arrayPos]);
-            error->message = cxString_FromAscii(messageText);
-            if (!error->message)
-                Py_DECREF(error);
-            else PyErr_SetObject(g_DatabaseErrorException, (PyObject*) error);
+    if (name) {
+        if (cxBuffer_FromObject(&nameBuffer, name,
+                cursor->connection->encodingInfo.encoding) < 0)
             return -1;
-        }
+        status = dpiStmt_bindByName(cursor->handle, (char*) nameBuffer.ptr,
+                nameBuffer.size, var->handle);
+        cxBuffer_Clear(&nameBuffer);
+    } else {
+        status = dpiStmt_bindByPos(cursor->handle, pos, var->handle);
     }
+    if (status < 0)
+        return Error_RaiseAndReturnInt();
+    if (cursor->stmtInfo.isReturning)
+        var->alwaysGetData = 1;
+
     return 0;
 }
 
@@ -1203,35 +654,15 @@ static int Variable_VerifyFetch(
 // Variable_GetSingleValue()
 //   Return the value of the variable at the given position.
 //-----------------------------------------------------------------------------
-static PyObject *Variable_GetSingleValue(
-    udt_Variable *var,                  // variable to get the value for
-    unsigned arrayPos)                  // array position
+static PyObject *Variable_GetSingleValue(udt_Variable *var, uint32_t arrayPos)
 {
     PyObject *value, *result;
-    int isNull;
+    dpiData *data;
 
-    // ensure we do not exceed the number of allocated elements
-    if (arrayPos >= var->allocatedElements) {
-        PyErr_SetString(PyExc_IndexError,
-                "Variable_GetSingleValue: array size exceeded");
-        return NULL;
-    }
-
-    // check for a NULL value
-    if (var->type->isNullProc)
-        isNull = (*var->type->isNullProc)(var, arrayPos);
-    else isNull = (var->indicator[arrayPos] == OCI_IND_NULL);
-    if (isNull) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-
-    // check for truncation or other problems on retrieve
-    if (Variable_VerifyFetch(var, arrayPos) < 0)
-        return NULL;
-
-    // calculate value to return
-    value = (*var->type->getValueProc)(var, arrayPos);
+    data = &var->data[arrayPos];
+    if (data->isNull)
+        Py_RETURN_NONE;
+    value = (*var->type->getValueProc)(var, data);
     if (value && var->outConverter && var->outConverter != Py_None) {
         result = PyObject_CallFunctionObjArgs(var->outConverter, value, NULL);
         Py_DECREF(value);
@@ -1246,12 +677,11 @@ static PyObject *Variable_GetSingleValue(
 // Variable_GetArrayValue()
 //   Return the value of the variable as an array.
 //-----------------------------------------------------------------------------
-static PyObject *Variable_GetArrayValue(
-    udt_Variable *var,                  // variable to get the value for
-    ub4 numElements)                    // number of elements to include
+static PyObject *Variable_GetArrayValue(udt_Variable *var,
+        uint32_t numElements)
 {
     PyObject *value, *singleValue;
-    ub4 i;
+    uint32_t i;
 
     value = PyList_New(numElements);
     if (!value)
@@ -1274,12 +704,22 @@ static PyObject *Variable_GetArrayValue(
 // Variable_GetValue()
 //   Return the value of the variable.
 //-----------------------------------------------------------------------------
-static PyObject *Variable_GetValue(
-    udt_Variable *var,                  // variable to get the value for
-    unsigned arrayPos)                  // array position
+static PyObject *Variable_GetValue(udt_Variable *var, uint32_t arrayPos)
 {
-    if (var->isArray)
-        return Variable_GetArrayValue(var, var->actualElements);
+    uint32_t numElements;
+
+    if (var->alwaysGetData) {
+        if (dpiVar_getData(var->handle, &var->allocatedElements,
+                &var->data) < 0)
+            return Error_RaiseAndReturnNull();
+    }
+
+    if (var->isArray) {
+        if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
+            return Error_RaiseAndReturnNull();
+        return Variable_GetArrayValue(var, numElements);
+    }
+
     return Variable_GetSingleValue(var, arrayPos);
 }
 
@@ -1288,20 +728,12 @@ static PyObject *Variable_GetValue(
 // Variable_SetSingleValue()
 //   Set a single value in the variable.
 //-----------------------------------------------------------------------------
-static int Variable_SetSingleValue(
-    udt_Variable *var,                  // variable to set value for
-    unsigned arrayPos,                  // array position
-    PyObject *value)                    // value to set
+static int Variable_SetSingleValue(udt_Variable *var, uint32_t arrayPos,
+        PyObject *value)
 {
     PyObject *convertedValue = NULL;
-    int result;
-
-    // ensure we do not exceed the number of allocated elements
-    if (arrayPos >= var->allocatedElements) {
-        PyErr_SetString(PyExc_IndexError,
-                "Variable_SetSingleValue: array size exceeded");
-        return -1;
-    }
+    int result = 0;
+    dpiData *data;
 
     // convert value, if necessary
     if (var->inConverter && var->inConverter != Py_None) {
@@ -1312,17 +744,11 @@ static int Variable_SetSingleValue(
         value = convertedValue;
     }
 
-    // check for a NULL value
-    if (value == Py_None) {
-        var->indicator[arrayPos] = OCI_IND_NULL;
-        Py_XDECREF(convertedValue);
-        return 0;
-    }
-
-    var->indicator[arrayPos] = OCI_IND_NOTNULL;
-    if (var->type->isVariableLength)
-        var->returnCode[arrayPos] = 0;
-    result = (*var->type->setValueProc)(var, arrayPos, value);
+    // set up for transformation from Python to value expected by DPI
+    data = &var->data[arrayPos];
+    data->isNull = (value == Py_None);
+    if (!data->isNull)
+        result = (*var->type->setValueProc)(var, arrayPos, data, value);
     Py_XDECREF(convertedValue);
     return result;
 }
@@ -1332,12 +758,9 @@ static int Variable_SetSingleValue(
 // Variable_SetArrayValue()
 //   Set all of the array values for the variable.
 //-----------------------------------------------------------------------------
-static int Variable_SetArrayValue(
-    udt_Variable *var,                  // variable to set value for
-    PyObject *value)                    // value to set
+static int Variable_SetArrayValue(udt_Variable *var, PyObject *value)
 {
-    unsigned numElements;
-    ub4 i;
+    uint32_t numElements, i;
 
     // ensure we have an array to set
     if (!PyList_Check(value)) {
@@ -1345,20 +768,17 @@ static int Variable_SetArrayValue(
         return -1;
     }
 
-    // ensure we haven't exceeded the number of allocated elements
-    numElements = (unsigned) PyList_GET_SIZE(value);
-    if (numElements > var->allocatedElements) {
-        PyErr_SetString(PyExc_IndexError,
-                "Variable_SetArrayValue: array size exceeded");
-        return -1;
-    }
+    // set the number of actual elements
+    numElements = PyList_GET_SIZE(value);
+    if (dpiVar_setNumElementsInArray(var->handle, numElements) < 0)
+        return Error_RaiseAndReturnInt();
 
     // set all of the values
-    var->actualElements = numElements;
-    for (i = 0; i < var->actualElements; i++) {
+    for (i = 0; i < numElements; i++) {
         if (Variable_SetSingleValue(var, i, PyList_GET_ITEM(value, i)) < 0)
             return -1;
     }
+
     return 0;
 }
 
@@ -1367,10 +787,8 @@ static int Variable_SetArrayValue(
 // Variable_SetValue()
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
-static int Variable_SetValue(
-    udt_Variable *var,                  // variable to set
-    unsigned arrayPos,                  // array position
-    PyObject *value)                    // value to set
+static int Variable_SetValue(udt_Variable *var, uint32_t arrayPos,
+        PyObject *value)
 {
     if (var->isArray) {
         if (arrayPos > 0) {
@@ -1388,14 +806,11 @@ static int Variable_SetValue(
 // Variable_ExternalCopy()
 //   Copy the contents of the source variable to the destination variable.
 //-----------------------------------------------------------------------------
-static PyObject *Variable_ExternalCopy(
-    udt_Variable *targetVar,            // variable to set
-    PyObject *args)                     // arguments
+static PyObject *Variable_ExternalCopy(udt_Variable *targetVar, PyObject *args)
 {
-    unsigned sourcePos, targetPos;
+    uint32_t sourcePos, targetPos;
     udt_Variable *sourceVar;
 
-    // parse arguments; verify that copy is possible
     if (!PyArg_ParseTuple(args, "Oii", &sourceVar, &sourcePos, &targetPos))
         return NULL;
     if (Py_TYPE(targetVar) != Py_TYPE(sourceVar)) {
@@ -1403,53 +818,11 @@ static PyObject *Variable_ExternalCopy(
                 "source and target variable type must match");
         return NULL;
     }
-    if (!sourceVar->type->canBeCopied) {
-        PyErr_SetString(g_ProgrammingErrorException,
-                "variable does not support copying");
-        return NULL;
-    }
+    if (dpiVar_copyData(targetVar->handle, targetPos, sourceVar->handle,
+            sourcePos) < 0)
+        return Error_RaiseAndReturnNull();
 
-    // ensure array positions are not violated
-    if (sourcePos >= sourceVar->allocatedElements) {
-        PyErr_SetString(PyExc_IndexError,
-                "Variable_ExternalCopy: source array size exceeded");
-        return NULL;
-    }
-    if (targetPos >= targetVar->allocatedElements) {
-        PyErr_SetString(PyExc_IndexError,
-                "Variable_ExternalCopy: target array size exceeded");
-        return NULL;
-    }
-
-    // ensure target can support amount data from the source
-    if (targetVar->bufferSize < sourceVar->bufferSize) {
-        PyErr_SetString(g_ProgrammingErrorException,
-                "target variable has insufficient space to copy source data");
-        return NULL;
-    }
-
-    // handle null case directly
-    if (sourceVar->indicator[sourcePos] == OCI_IND_NULL)
-        targetVar->indicator[targetPos] = OCI_IND_NULL;
-
-    // otherwise, copy data
-    else {
-        targetVar->indicator[targetPos] = OCI_IND_NOTNULL;
-        if (Variable_VerifyFetch(sourceVar, sourcePos) < 0)
-            return NULL;
-        if (targetVar->actualLength)
-            targetVar->actualLength[targetPos] =
-                    sourceVar->actualLength[sourcePos];
-        if (targetVar->returnCode)
-            targetVar->returnCode[targetPos] =
-                    sourceVar->returnCode[sourcePos];
-        memcpy( (char*) targetVar->data + targetPos * targetVar->bufferSize,
-                (char*) sourceVar->data + sourcePos * sourceVar->bufferSize,
-                sourceVar->bufferSize);
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1457,20 +830,17 @@ static PyObject *Variable_ExternalCopy(
 // Variable_ExternalSetValue()
 //   Set the value of the variable at the given position.
 //-----------------------------------------------------------------------------
-static PyObject *Variable_ExternalSetValue(
-    udt_Variable *var,                  // variable to set
-    PyObject *args)                     // arguments
+static PyObject *Variable_ExternalSetValue(udt_Variable *var, PyObject *args)
 {
     PyObject *value;
-    unsigned pos;
+    uint32_t pos;
 
     if (!PyArg_ParseTuple(args, "iO", &pos, &value))
       return NULL;
     if (Variable_SetValue(var, pos, value) < 0)
       return NULL;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1478,13 +848,11 @@ static PyObject *Variable_ExternalSetValue(
 // Variable_ExternalGetValue()
 //   Return the value of the variable at the given position.
 //-----------------------------------------------------------------------------
-static PyObject *Variable_ExternalGetValue(
-    udt_Variable *var,                  // variable to set
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Variable_ExternalGetValue(udt_Variable *var, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "pos", NULL };
-    unsigned pos = 0;
+    uint32_t pos = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|i", keywordList,
             &pos))
@@ -1497,36 +865,41 @@ static PyObject *Variable_ExternalGetValue(
 // Variable_Repr()
 //   Return a string representation of the variable.
 //-----------------------------------------------------------------------------
-static PyObject *Variable_Repr(
-    udt_Variable *var)                  // variable to return the string for
+static PyObject *Variable_Repr(udt_Variable *var)
 {
-    PyObject *valueRepr, *value, *module, *name, *result, *format, *formatArgs;
+    PyObject *value, *module, *name, *result, *format, *formatArgs;
+    uint32_t numElements;
 
-    if (var->isArray)
-        value = Variable_GetArrayValue(var, var->actualElements);
-    else if (var->allocatedElements == 1)
+    if (var->alwaysGetData) {
+        if (dpiVar_getData(var->handle, &var->allocatedElements,
+                &var->data) < 0)
+            return Error_RaiseAndReturnNull();
+    }
+
+    if (var->isArray) {
+        if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
+            return Error_RaiseAndReturnNull();
+        value = Variable_GetArrayValue(var, numElements);
+    } else if (var->allocatedElements == 1)
         value = Variable_GetSingleValue(var, 0);
     else value = Variable_GetArrayValue(var, var->allocatedElements);
     if (!value)
         return NULL;
-    valueRepr = PyObject_Repr(value);
-    Py_DECREF(value);
-    if (!valueRepr)
-        return NULL;
-    format = cxString_FromAscii("<%s.%s with value %s>");
+
+    format = cxString_FromAscii("<%s.%s with value %r>");
     if (!format) {
-        Py_DECREF(valueRepr);
+        Py_DECREF(value);
         return NULL;
     }
     if (GetModuleAndName(Py_TYPE(var), &module, &name) < 0) {
-        Py_DECREF(valueRepr);
+        Py_DECREF(value);
         Py_DECREF(format);
         return NULL;
     }
-    formatArgs = PyTuple_Pack(3, module, name, valueRepr);
+    formatArgs = PyTuple_Pack(3, module, name, value);
     Py_DECREF(module);
     Py_DECREF(name);
-    Py_DECREF(valueRepr);
+    Py_DECREF(value);
     if (!formatArgs) {
         Py_DECREF(format);
         return NULL;

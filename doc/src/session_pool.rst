@@ -9,10 +9,29 @@ SessionPool Object
    This object is an extension to the DB API.
 
 
-.. method:: SessionPool.acquire()
+.. method:: SessionPool.acquire(user=None, password=None, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, tag=None, matchanytag=False)
 
    Acquire a connection from the session pool and return a
    :ref:`connection object <connobj>`.
+
+   The user and password arguments may not be specified if the pool is
+   homogeneous. In that case an exception will be raised.
+
+   The cclass argument, if specified, should be a string corresponding to the
+   connection class for database resident connection pooling (DRCP).
+
+   The purity argument is expected to be one of
+   :data:`~cx_Oracle.ATTR_PURITY_NEW`, :data:`~cx_Oracle.ATTR_PURITY_SELF`, or
+   :data:`~cx_Oracle.ATTR_PURITY_DEFAULT`.
+
+   The tag argument, if specified, is expected to be a string and will limit
+   the sessions that can be returned from a session pool unless the matchanytag
+   argument is set to True. In that case sessions with the specified tag will
+   be preferred over others, but if no such sessions are available a session
+   with a different tag may be returned instead. In any case, untagged sessions
+   will always be returned if no sessions with the specified tag are available.
+   Sessions are tagged when they are :meth:`released <SessionPool.release>`
+   back to the pool.
 
 
 .. attribute:: SessionPool.busy
@@ -81,10 +100,24 @@ SessionPool Object
    the session pool.
 
 
-.. method:: SessionPool.release(connection)
+.. method:: SessionPool.release(connection, tag=None)
 
    Release the connection back to the pool. This will be done automatically as
    well if the connection object is garbage collected.
+
+   If a tag is specified, the session will be tagged (or retagged) with the
+   specified value before being returned to the pool.
+
+
+.. attribute:: SessionPool.stmtcachesize
+
+   This read-write attribute specifies the size of the statement cache that
+   will be used as the starting point for any connections that are created by
+   the session pool. Once created, the connection's statement cache size can
+   only be changed by setting the stmtcachesize attribute on the connection
+   itself.
+
+   .. versionadded:: 6.0
 
 
 .. attribute:: SessionPool.timeout

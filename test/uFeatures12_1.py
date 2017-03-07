@@ -103,9 +103,9 @@ class TestArrayDMLBatchError(BaseTestCase):
                 arraydmlrowcounts = True)
         expectedErrors = [
                 ( 4, 1438, u"ORA-01438: value larger than specified " \
-                        u"precision allowed for this column\n" ),
+                        u"precision allowed for this column" ),
                 ( 2, 1, u"ORA-00001: unique constraint " \
-                        u"(CX_ORACLE.TESTARRAYDML_PK) violated\n")
+                        u"(CX_ORACLE.TESTARRAYDML_PK) violated")
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]
@@ -140,7 +140,7 @@ class TestArrayDMLBatchError(BaseTestCase):
         self.cursor.executemany(sql, rows, batcherrors = True)
         expectedErrors = [
                 ( 6, 1, u"ORA-00001: unique constraint " \
-                        u"(CX_ORACLE.TESTARRAYDML_PK) violated\n")
+                        u"(CX_ORACLE.TESTARRAYDML_PK) violated")
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]
@@ -155,7 +155,7 @@ class TestArrayDMLBatchError(BaseTestCase):
                 batcherrors = True)
         expectedErrors = [
                 ( 2, 1438, u"ORA-01438: value larger than specified " \
-                        u"precision allowed for this column\n" )
+                        u"precision allowed for this column" )
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]

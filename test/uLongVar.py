@@ -72,7 +72,6 @@ class TestLongVar(BaseTestCase):
         self.cursor.execute(u"select * from TestLongRaws")
         longVar = self.cursor.fetchvars[1]
         self.assertEqual(longVar.size, 25000)
-        self.assertEqual(longVar.bufferSize, 25004)
 
     def testSetOutputSizesWrongColumn(self):
         "test setoutputsizes is valid (wrong column)"
@@ -80,11 +79,10 @@ class TestLongVar(BaseTestCase):
         self.cursor.execute(u"select * from TestLongRaws")
         longVar = self.cursor.fetchvars[1]
         self.assertEqual(longVar.size, 131072)
-        self.assertEqual(longVar.bufferSize, 131076)
 
     def testArraySizeTooLarge(self):
         "test array size too large generates an exception"
-        self.cursor.arraysize = 65536
-        self.assertRaises(ValueError, self.cursor.execute,
+        self.cursor.arraysize = 268435456
+        self.assertRaises(cx_Oracle.DatabaseError, self.cursor.execute,
                 u"select * from TestLongRaws")
 

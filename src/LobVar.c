@@ -13,363 +13,88 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// LOB type
-//-----------------------------------------------------------------------------
-typedef struct {
-    Variable_HEAD
-    OCILobLocator **data;
-    udt_Connection *connection;
-    int isFile;
-} udt_LobVar;
-
-//-----------------------------------------------------------------------------
 // Declaration of LOB variable functions.
 //-----------------------------------------------------------------------------
-static int LobVar_Initialize(udt_LobVar*, udt_Cursor*);
-static int LobVar_PreFetch(udt_LobVar*);
-static void LobVar_Finalize(udt_LobVar*);
-static PyObject *LobVar_GetValue(udt_LobVar*, unsigned);
-static int LobVar_SetValue(udt_LobVar*, unsigned, PyObject*);
-static int LobVar_Write(udt_LobVar*, unsigned, PyObject*, oraub8);
+static int LobVar_SetValue(udt_Variable*, uint32_t, dpiData*, PyObject*);
+static PyObject *LobVar_GetValue(udt_Variable*, dpiData*);
 
 //-----------------------------------------------------------------------------
 // Python type declarations
 //-----------------------------------------------------------------------------
-static PyTypeObject g_CLOBVarType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.CLOB",                   // tp_name
-    sizeof(udt_LobVar),                 // tp_basicsize
-    0,                                  // tp_itemsize
-    0,                                  // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0                                   // tp_doc
-};
-
-
-static PyTypeObject g_NCLOBVarType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.NCLOB",                  // tp_name
-    sizeof(udt_LobVar),                 // tp_basicsize
-    0,                                  // tp_itemsize
-    0,                                  // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0                                   // tp_doc
-};
-
-
-static PyTypeObject g_BLOBVarType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.BLOB",                   // tp_name
-    sizeof(udt_LobVar),                 // tp_basicsize
-    0,                                  // tp_itemsize
-    0,                                  // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0                                   // tp_doc
-};
-
-
-static PyTypeObject g_BFILEVarType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.BFILE",                  // tp_name
-    sizeof(udt_LobVar),                 // tp_basicsize
-    0,                                  // tp_itemsize
-    0,                                  // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0                                   // tp_doc
-};
+DECLARE_VARIABLE_TYPE(g_CLOBVarType, CLOB)
+DECLARE_VARIABLE_TYPE(g_NCLOBVarType, NCLOB)
+DECLARE_VARIABLE_TYPE(g_BLOBVarType, BLOB)
+DECLARE_VARIABLE_TYPE(g_BFILEVarType, BFILE)
 
 
 //-----------------------------------------------------------------------------
 // variable type declarations
 //-----------------------------------------------------------------------------
 static udt_VariableType vt_CLOB = {
-    (InitializeProc) LobVar_Initialize,
-    (FinalizeProc) LobVar_Finalize,
-    (PreDefineProc) NULL,
-    (PostDefineProc) NULL,
-    (PostBindProc) NULL,
-    (PreFetchProc) LobVar_PreFetch,
-    (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
-    (GetBufferSizeProc) NULL,
     &g_CLOBVarType,                     // Python type
-    SQLT_CLOB,                          // Oracle type
-    SQLCS_IMPLICIT,                     // charset form
-    sizeof(OCILobLocator*),             // element length
-    1,                                  // is character data
-    0,                                  // is variable length
-    0,                                  // can be copied
-    0                                   // can be in array
+    DPI_ORACLE_TYPE_CLOB,               // Oracle type
+    DPI_NATIVE_TYPE_LOB,                // native type
+    0                                   // element length
 };
 
 
 static udt_VariableType vt_NCLOB = {
-    (InitializeProc) LobVar_Initialize,
-    (FinalizeProc) LobVar_Finalize,
-    (PreDefineProc) NULL,
-    (PostDefineProc) NULL,
-    (PostBindProc) NULL,
-    (PreFetchProc) LobVar_PreFetch,
-    (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
-    (GetBufferSizeProc) NULL,
     &g_NCLOBVarType,                    // Python type
-    SQLT_CLOB,                          // Oracle type
-    SQLCS_NCHAR,                        // charset form
-    sizeof(OCILobLocator*),             // element length
-    1,                                  // is character data
-    0,                                  // is variable length
-    0,                                  // can be copied
-    0                                   // can be in array
+    DPI_ORACLE_TYPE_NCLOB,              // Oracle type
+    DPI_NATIVE_TYPE_LOB,                // native type
+    0                                   // element length
 };
 
 
 static udt_VariableType vt_BLOB = {
-    (InitializeProc) LobVar_Initialize,
-    (FinalizeProc) LobVar_Finalize,
-    (PreDefineProc) NULL,
-    (PostDefineProc) NULL,
-    (PostBindProc) NULL,
-    (PreFetchProc) LobVar_PreFetch,
-    (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
-    (GetBufferSizeProc) NULL,
     &g_BLOBVarType,                     // Python type
-    SQLT_BLOB,                          // Oracle type
-    SQLCS_IMPLICIT,                     // charset form
-    sizeof(OCILobLocator*),             // element length
-    0,                                  // is character data
-    0,                                  // is variable length
-    0,                                  // can be copied
-    0                                   // can be in array
+    DPI_ORACLE_TYPE_BLOB,               // Oracle type
+    DPI_NATIVE_TYPE_LOB,                // native type
+    0                                   // element length
 };
 
 
 static udt_VariableType vt_BFILE = {
-    (InitializeProc) LobVar_Initialize,
-    (FinalizeProc) LobVar_Finalize,
-    (PreDefineProc) NULL,
-    (PostDefineProc) NULL,
-    (PostBindProc) NULL,
-    (PreFetchProc) LobVar_PreFetch,
-    (IsNullProc) NULL,
     (SetValueProc) LobVar_SetValue,
     (GetValueProc) LobVar_GetValue,
-    (GetBufferSizeProc) NULL,
     &g_BFILEVarType,                    // Python type
-    SQLT_BFILE,                         // Oracle type
-    SQLCS_IMPLICIT,                     // charset form
-    sizeof(OCILobLocator*),             // element length
-    0,                                  // is character data
-    0,                                  // is variable length
-    0,                                  // can be copied
-    0                                   // can be in array
+    DPI_ORACLE_TYPE_BFILE,              // Oracle type
+    DPI_NATIVE_TYPE_LOB,                // native type
+    0                                   // element length
 };
 
 
-#include "ExternalLobVar.c"
+#include "LOB.c"
 
 
 //-----------------------------------------------------------------------------
-// LobVar_Initialize()
-//   Initialize the variable.
+// LobVar_SetValue()
+//   Set the value of the variable.
 //-----------------------------------------------------------------------------
-static int LobVar_Initialize(
-    udt_LobVar *var,                    // variable to initialize
-    udt_Cursor *cursor)                 // cursor created by
+static int LobVar_SetValue(udt_Variable *var, uint32_t pos, dpiData *data,
+        PyObject *value)
 {
-    sword status;
-    ub4 i;
-
-    // initialize members
-    Py_INCREF(cursor->connection);
-    var->connection = cursor->connection;
-    var->isFile = (var->type == &vt_BFILE);
-
-    // initialize the LOB locators
-    for (i = 0; i < var->allocatedElements; i++) {
-        status = OCIDescriptorAlloc(var->environment->handle,
-                (dvoid**) &var->data[i], OCI_DTYPE_LOB, 0, 0);
-        if (Environment_CheckForError(var->environment, status,
-                "LobVar_Initialize()") < 0)
-            return -1;
-    }
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// LobVar_PreFetch()
-//   Free temporary LOBs prior to fetch.
-//-----------------------------------------------------------------------------
-static int LobVar_PreFetch(
-    udt_LobVar *var)                    // variable to free
-{
-    boolean isTemporary;
-    sword status;
-    ub4 i;
-
-    for (i = 0; i < var->allocatedElements; i++) {
-        if (var->data[i]) {
-            status = OCILobIsTemporary(var->environment->handle,
-                    var->environment->errorHandle, var->data[i], &isTemporary);
-            if (Environment_CheckForError(var->environment, status,
-                    "LobVar_PreFetch(): is temporary LOB?") < 0)
-                return -1;
-            if (isTemporary) {
-                Py_BEGIN_ALLOW_THREADS
-                status = OCILobFreeTemporary(var->connection->handle,
-                        var->environment->errorHandle, var->data[i]);
-                Py_END_ALLOW_THREADS
-                if (Environment_CheckForError(var->environment, status,
-                        "LobVar_PreFetch(): free temporary LOB") < 0)
-                    return -1;
-            }
-        }
-    }
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// LobVar_Finalize()
-//   Prepare for variable destruction.
-//-----------------------------------------------------------------------------
-static void LobVar_Finalize(
-    udt_LobVar *var)                    // variable to free
-{
-    boolean isTemporary;
-    ub4 i;
-
-    for (i = 0; i < var->allocatedElements; i++) {
-        if (var->data[i]) {
-            OCILobIsTemporary(var->environment->handle,
-                    var->environment->errorHandle, var->data[i], &isTemporary);
-            if (isTemporary) {
-                Py_BEGIN_ALLOW_THREADS
-                OCILobFreeTemporary(var->connection->handle,
-                        var->environment->errorHandle, var->data[i]);
-                Py_END_ALLOW_THREADS
-            }
-            OCIDescriptorFree(var->data[i], OCI_DTYPE_LOB);
-        }
-    }
-    Py_DECREF(var->connection);
-}
-
-
-//-----------------------------------------------------------------------------
-// LobVar_Write()
-//   Write data to the LOB variable.
-//-----------------------------------------------------------------------------
-static int LobVar_Write(
-    udt_LobVar *var,                    // variable to perform write against
-    unsigned position,                  // position to perform write against
-    PyObject *dataObj,                  // data object to write into LOB
-    oraub8 offset)                      // offset into variable
-{
-    oraub8 lengthInBytes, lengthInChars = 0;
     const char *encoding;
     udt_Buffer buffer;
-    ub2 charsetId;
-    sword status;
+    int status;
 
-    // verify the data type
-    if (var->type == &vt_BFILE) {
-        PyErr_SetString(PyExc_TypeError, "BFILEs are read only");
+    if (var->type == &vt_NCLOB)
+        encoding = var->connection->encodingInfo.nencoding;
+    else encoding = var->connection->encodingInfo.encoding;
+    if (cxBuffer_FromObject(&buffer, value, encoding) < 0)
         return -1;
-    }
-
-    // determine the buffer to write
-    if (var->type->charsetForm == SQLCS_NCHAR) {
-        charsetId = var->environment->ncharsetId;
-        encoding = var->environment->nencoding;
-    } else {
-        charsetId = var->environment->charsetId;
-        encoding = var->environment->encoding;
-    }
-    if (cxBuffer_FromObject(&buffer, dataObj, encoding) < 0)
-        return -1;
-    lengthInBytes = buffer.size;
-
-    // nothing to do if no data to write
-    if (lengthInBytes == 0) {
-        cxBuffer_Clear(&buffer);
-        return 0;
-    }
-
-    // write the data with the correct character set
     Py_BEGIN_ALLOW_THREADS
-    status = OCILobWrite2(var->connection->handle,
-            var->environment->errorHandle, var->data[position], &lengthInBytes,
-            &lengthInChars, offset, (void*) buffer.ptr, buffer.size,
-            OCI_ONE_PIECE, NULL, NULL, charsetId, var->type->charsetForm);
+    status = dpiLob_setFromBytes(data->value.asLOB, buffer.ptr, buffer.size);
     Py_END_ALLOW_THREADS
     cxBuffer_Clear(&buffer);
-    if (Environment_CheckForError(var->environment, status,
-            "LobVar_Write()") < 0)
-        return -1;
+    if (status < 0)
+        return Error_RaiseAndReturnInt();
 
     return 0;
 }
@@ -379,58 +104,8 @@ static int LobVar_Write(
 // LobVar_GetValue()
 //   Returns the value stored at the given array position.
 //-----------------------------------------------------------------------------
-static PyObject *LobVar_GetValue(
-    udt_LobVar *var,                    // variable to determine value for
-    unsigned pos)                       // array position
+static PyObject *LobVar_GetValue(udt_Variable *var, dpiData *data)
 {
-    return ExternalLobVar_New(var, pos);
-}
-
-
-//-----------------------------------------------------------------------------
-// LobVar_SetValue()
-//   Sets the value stored at the given array position.
-//-----------------------------------------------------------------------------
-static int LobVar_SetValue(
-    udt_LobVar *var,                    // variable to determine value for
-    unsigned position,                  // array position
-    PyObject *value)                    // value to set
-{
-    boolean isTemporary;
-    sword status;
-    ub1 lobType;
-
-    // make sure have temporary LOBs set up
-    status = OCILobIsTemporary(var->environment->handle,
-            var->environment->errorHandle, var->data[position], &isTemporary);
-    if (Environment_CheckForError(var->environment, status,
-            "LobVar_SetValue(): is temporary?") < 0)
-        return -1;
-    if (!isTemporary) {
-        if (var->type->oracleType == SQLT_BLOB)
-            lobType = OCI_TEMP_BLOB;
-        else lobType = OCI_TEMP_CLOB;
-        Py_BEGIN_ALLOW_THREADS
-        status = OCILobCreateTemporary(var->connection->handle,
-                var->environment->errorHandle, var->data[position],
-                OCI_DEFAULT, var->type->charsetForm, lobType, FALSE,
-                OCI_DURATION_SESSION);
-        Py_END_ALLOW_THREADS
-        if (Environment_CheckForError(var->environment, status,
-                "LobVar_SetValue(): create temporary") < 0)
-            return -1;
-    }
-
-    // trim the current value
-    Py_BEGIN_ALLOW_THREADS
-    status = OCILobTrim(var->connection->handle,
-            var->environment->errorHandle, var->data[position], 0);
-    Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(var->environment, status,
-            "LobVar_SetValue(): trim") < 0)
-        return -1;
-
-    // set the current value
-    return LobVar_Write(var, position, value, 1);
+    return LOB_New(var, data->value.asLOB);
 }
 

@@ -18,28 +18,17 @@
 #include <datetime.h>
 #include <structmember.h>
 #include <time.h>
-#include <oci.h>
-#include <orid.h>
-#include <xa.h>
+#include <dpi.h>
 
-// validate OCI library
-#if !defined(OCI_MAJOR_VERSION) || (OCI_MAJOR_VERSION < 11) || \
-        ((OCI_MAJOR_VERSION == 11) && (OCI_MINOR_VERSION < 2))
-#error Oracle 11.2 or later client libraries are required for building
-#endif
-
-// define simple way to respresent Oracle version
-#define ORACLE_VERSION(major, minor) \
-        ((major << 8) | minor)
-#define ORACLE_VERSION_HEX \
-        ORACLE_VERSION(OCI_MAJOR_VERSION, OCI_MINOR_VERSION)
-
-// define PyInt_* macros for Python 3.x
+// define integer macros/methods for Python 3.x
 #ifndef PyInt_Check
 #define PyInt_Check             PyLong_Check
 #define PyInt_FromLong          PyLong_FromLong
+#define PyInt_FromUnsignedLong  PyLong_FromUnsignedLong
 #define PyInt_AsLong            PyLong_AsLong
+#define PyInt_AsUnsignedLong    PyLong_AsUnsignedLong
 #define PyInt_Type              PyLong_Type
+#define PyNumber_Int            PyNumber_Long
 #endif
 
 // use the bytes methods in cx_Oracle and define them as the equivalent string
@@ -61,7 +50,7 @@
     #define cxString_Type               &PyUnicode_Type
     #define cxString_Format             PyUnicode_Format
     #define cxString_Check              PyUnicode_Check
-    #define cxString_GetSize            PyUnicode_GET_SIZE
+    #define cxString_GetSize            PyUnicode_GET_LENGTH
 #else
     #define cxBinary_Type               PyBuffer_Type
     #define cxBinary_Check              PyBuffer_Check
@@ -104,28 +93,49 @@
     if (PyModule_AddObject(module, name, (PyObject*) type) < 0) \
         return NULL;
 
-// define macros for making types ready
+// define macros for defining and making variable types ready
+#define DECLARE_VARIABLE_TYPE(INTERNAL_NAME, EXTERNAL_NAME) \
+    static PyTypeObject INTERNAL_NAME = { \
+        PyVarObject_HEAD_INIT(NULL, 0) \
+        "cx_Oracle." #EXTERNAL_NAME,        /* tp_name */ \
+        sizeof(udt_Variable),               /* tp_basicsize */ \
+        0,                                  /* tp_itemsize */ \
+        (destructor) Variable_Free,         /* tp_dealloc */ \
+        0,                                  /* tp_print */ \
+        0,                                  /* tp_getattr */ \
+        0,                                  /* tp_setattr */ \
+        0,                                  /* tp_compare */ \
+        (reprfunc) Variable_Repr,           /* tp_repr */ \
+        0,                                  /* tp_as_number */ \
+        0,                                  /* tp_as_sequence */ \
+        0,                                  /* tp_as_mapping */ \
+        0,                                  /* tp_hash */ \
+        0,                                  /* tp_call */ \
+        0,                                  /* tp_str */ \
+        0,                                  /* tp_getattro */ \
+        0,                                  /* tp_setattro */ \
+        0,                                  /* tp_as_buffer */ \
+        Py_TPFLAGS_DEFAULT,                 /* tp_flags */ \
+        0,                                  /* tp_doc */ \
+        0,                                  /* tp_traverse */ \
+        0,                                  /* tp_clear */ \
+        0,                                  /* tp_richcompare */ \
+        0,                                  /* tp_weaklistoffset */ \
+        0,                                  /* tp_iter */ \
+        0,                                  /* tp_iternext */ \
+        g_VariableMethods,                  /* tp_methods */ \
+        g_VariableMembers                   /* tp_members */ \
+    };
+
 #define MAKE_TYPE_READY(type) \
     if (PyType_Ready(type) < 0) \
         return NULL;
-#define MAKE_VARIABLE_TYPE_READY(type) \
-    (type)->tp_base = &g_BaseVarType;  \
-    MAKE_TYPE_READY(type)
 
 // define macros to get the build version as a string and the driver name
 #define xstr(s)                 str(s)
 #define str(s)                  #s
 #define BUILD_VERSION_STRING    xstr(BUILD_VERSION)
 #define DRIVER_NAME             "cx_Oracle : "BUILD_VERSION_STRING
-
-// define constants used for subscription quality of service
-// these are intended to more closely follow the PL/SQL implementation and
-// merge the SUBSCR_QOS and SUBSCR_CQ_QOS constants
-#define CX_SUBSCR_QOS_RELIABLE          0x01
-#define CX_SUBSCR_QOS_DEREG_NFY         0x02
-#define CX_SUBSCR_QOS_ROWIDS            0x04
-#define CX_SUBSCR_QOS_QUERY             0x08
-#define CX_SUBSCR_QOS_BEST_EFFORT       0x10
 
 #include "Buffer.c"
 
@@ -144,17 +154,15 @@ static PyObject *g_ProgrammingErrorException = NULL;
 static PyObject *g_NotSupportedErrorException = NULL;
 static PyTypeObject *g_DateTimeType = NULL;
 static PyTypeObject *g_DecimalType = NULL;
+static dpiContext *g_DpiContext = NULL;
 
 
 //-----------------------------------------------------------------------------
 // SetException()
 //   Create an exception and set it in the provided dictionary.
 //-----------------------------------------------------------------------------
-static int SetException(
-    PyObject *module,                   // module object
-    PyObject **exception,               // exception to create
-    char *name,                         // name of the exception
-    PyObject *baseException)            // exception to base exception on
+static int SetException(PyObject *module, PyObject **exception, char *name,
+        PyObject *baseException)
 {
     char buffer[100];
 
@@ -170,10 +178,8 @@ static int SetException(
 // GetModuleAndName()
 //   Return the module and name for the type.
 //-----------------------------------------------------------------------------
-static int GetModuleAndName(
-    PyTypeObject *type,                 // type to get module/name for
-    PyObject **module,                  // name of module
-    PyObject **name)                    // name of type
+static int GetModuleAndName(PyTypeObject *type, PyObject **module,
+        PyObject **name)
 {
     *module = PyObject_GetAttrString( (PyObject*) type, "__module__");
     if (!*module)
@@ -187,7 +193,47 @@ static int GetModuleAndName(
 }
 
 
-#include "Environment.c"
+//-----------------------------------------------------------------------------
+// GetBooleanValue()
+//   Get a boolean value from a Python object.
+//-----------------------------------------------------------------------------
+static int GetBooleanValue(PyObject *obj, int defaultValue, int *value)
+{
+    if (!obj)
+        *value = defaultValue;
+    else {
+        *value = PyObject_IsTrue(obj);
+        if (*value < 0)
+            return -1;
+    }
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// GetAdjustedEncoding()
+//   Return the adjusted encoding to use when encoding and decoding strings
+// that are passed to and from the Oracle database. The Oracle client interface
+// does not support the inclusion of a BOM in the encoded string but assumes
+// native endian order for UTF-16. Python generates a BOM at the beginning of
+// the encoded string if plain UTF-16 is specified. For this reason, the
+// correct byte order must be determined and used inside Python so that the
+// Oracle client receives the data it expects.
+//-----------------------------------------------------------------------------
+static const char *GetAdjustedEncoding(const char *encoding)
+{
+    static const union {
+        unsigned char bytes[4];
+        uint32_t value;
+    } hostOrder = { { 0, 1, 2, 3 } };
+
+    if (!encoding || strcmp(encoding, "UTF-16") != 0)
+        return encoding;
+    return (hostOrder.value == 0x03020100) ? "UTF-16LE" : "UTF-16BE";
+}
+
+
+#include "Error.c"
 #include "SessionPool.c"
 
 
@@ -195,34 +241,78 @@ static int GetModuleAndName(
 // MakeDSN()
 //   Make a data source name given the host port and SID.
 //-----------------------------------------------------------------------------
-static PyObject* MakeDSN(
-    PyObject* self,                     // passthrough argument
-    PyObject* args,                     // arguments to function
-    PyObject* keywordArgs)              // keyword arguments
+static PyObject* MakeDSN(PyObject* self, PyObject* args, PyObject* keywordArgs)
 {
+    static unsigned int numConnectDataArgs = 5;
     static char *keywordList[] = { "host", "port", "sid", "service_name",
-            NULL };
-    PyObject *hostObj, *portObj, *sidObj, *serviceNameObj, *connectDataObj;
-    PyObject *format, *result, *formatArgs;
+            "region", "sharding_key", "super_sharding_key", NULL };
+    PyObject *format, *formatArgs, *result, *connectData, *hostObj, *portObj;
+    char connectDataFormat[72], *sourcePtr, *targetPtr;
+    PyObject *connectDataArgs[5], *formatArgsArray;
+    unsigned int i;
 
     // parse arguments
-    sidObj = serviceNameObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO|OO", keywordList,
-            &hostObj, &portObj, &sidObj, &serviceNameObj))
+    for (i = 0; i < numConnectDataArgs; i++)
+        connectDataArgs[i] = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO|OOOO0",
+            keywordList, &hostObj, &portObj, &connectDataArgs[0],
+            &connectDataArgs[1], &connectDataArgs[2], &connectDataArgs[3],
+            &connectDataArgs[4]))
         return NULL;
-    if (sidObj) {
-        connectDataObj = sidObj;
-        format = cxString_FromAscii("(DESCRIPTION=(ADDRESS="
-                "(PROTOCOL=TCP)(HOST=%s)(PORT=%s))(CONNECT_DATA=(SID=%s)))");
-    } else {
-        connectDataObj = serviceNameObj;
-        format = cxString_FromAscii("(DESCRIPTION=(ADDRESS="
-                "(PROTOCOL=TCP)(HOST=%s)(PORT=%s))(CONNECT_DATA="
-                "(SERVICE_NAME=%s)))");
+
+    // create list for connect data format arguments
+    formatArgsArray = PyList_New(0);
+    if (!formatArgsArray)
+        return NULL;
+
+    // process each of the connect data arguments
+    // build up a format string and a list of format arguments
+    targetPtr = connectDataFormat;
+    *targetPtr = '\0';
+    for (i = 0; i < numConnectDataArgs; i++) {
+        if (connectDataArgs[i]) {
+            if (PyList_Append(formatArgsArray, connectDataArgs[i]) < 0) {
+                Py_DECREF(formatArgsArray);
+                return NULL;
+            }
+            sourcePtr = keywordList[i + 2];
+            *targetPtr++ = '(';
+            while (*sourcePtr)
+                *targetPtr++ = toupper(*sourcePtr++);
+            *targetPtr++ = '=';
+            *targetPtr++ = '%';
+            *targetPtr++ = 's';
+            *targetPtr++ = ')';
+            *targetPtr = '\0';
+        }
     }
-    if (!format)
+    formatArgs = PyList_AsTuple(formatArgsArray);
+    Py_DECREF(formatArgsArray);
+    if (!formatArgs)
         return NULL;
-    formatArgs = PyTuple_Pack(3, hostObj, portObj, connectDataObj);
+
+    // determine connect data
+    format = cxString_FromAscii(connectDataFormat);
+    if (!format) {
+        Py_DECREF(formatArgs);
+        return NULL;
+    }
+
+    connectData = cxString_Format(format, formatArgs);
+    Py_DECREF(format);
+    Py_DECREF(formatArgs);
+    if (!connectData)
+        return NULL;
+
+    // perform overall format
+    format = cxString_FromAscii("(DESCRIPTION=(ADDRESS="
+            "(PROTOCOL=TCP)(HOST=%s)(PORT=%s))(CONNECT_DATA=%s))");
+    if (!format) {
+        Py_DECREF(connectData);
+        return NULL;
+    }
+    formatArgs = PyTuple_Pack(3, hostObj, portObj, connectData);
+    Py_DECREF(connectData);
     if (!formatArgs) {
         Py_DECREF(format);
         return NULL;
@@ -238,16 +328,15 @@ static PyObject* MakeDSN(
 // ClientVersion()
 //   Return the version of the Oracle client being used as a 5-tuple.
 //-----------------------------------------------------------------------------
-static PyObject* ClientVersion(
-    PyObject* self,                     // passthrough argument
-    PyObject* args)                     // arguments to function
+static PyObject* ClientVersion(PyObject* self, PyObject* args)
 {
-    sword majorVersion, minorVersion, updateNum, patchNum, portUpdateNum;
+    int versionNum, releaseNum, updateNum, portReleaseNum, portUpdateNum;
 
-    OCIClientVersion(&majorVersion, &minorVersion, &updateNum,
-            &patchNum, &portUpdateNum);
-    return Py_BuildValue("(iiiii)", majorVersion, minorVersion, updateNum,
-            patchNum, portUpdateNum);
+    if (dpiContext_getClientVersion(g_DpiContext, &versionNum, &releaseNum,
+            &updateNum, &portReleaseNum, &portUpdateNum) < 0)
+        return Error_RaiseAndReturnNull();
+    return Py_BuildValue("(iiiii)", versionNum, releaseNum, updateNum,
+            portReleaseNum, portUpdateNum);
 }
 
 
@@ -255,9 +344,7 @@ static PyObject* ClientVersion(
 // Time()
 //   Returns a time value suitable for binding.
 //-----------------------------------------------------------------------------
-static PyObject* Time(
-    PyObject* self,                     // passthrough argument
-    PyObject* args)                     // arguments to function
+static PyObject* Time(PyObject* self, PyObject* args)
 {
     PyErr_SetString(g_NotSupportedErrorException,
             "Oracle does not support time only variables");
@@ -269,9 +356,7 @@ static PyObject* Time(
 // TimeFromTicks()
 //   Returns a time value suitable for binding.
 //-----------------------------------------------------------------------------
-static PyObject* TimeFromTicks(
-    PyObject* self,                     // passthrough argument
-    PyObject* args)                     // arguments to function
+static PyObject* TimeFromTicks(PyObject* self, PyObject* args)
 {
     PyErr_SetString(g_NotSupportedErrorException,
             "Oracle does not support time only variables");
@@ -283,9 +368,7 @@ static PyObject* TimeFromTicks(
 // DateFromTicks()
 //   Returns a date value suitable for binding.
 //-----------------------------------------------------------------------------
-static PyObject* DateFromTicks(
-    PyObject* self,                     // passthrough argument
-    PyObject* args)                     // arguments to function
+static PyObject* DateFromTicks(PyObject* self, PyObject* args)
 {
     return PyDate_FromTimestamp(args);
 }
@@ -295,9 +378,7 @@ static PyObject* DateFromTicks(
 // TimestampFromTicks()
 //   Returns a date value suitable for binding.
 //-----------------------------------------------------------------------------
-static PyObject* TimestampFromTicks(
-    PyObject* self,                     // passthrough argument
-    PyObject* args)                     // arguments to function
+static PyObject* TimestampFromTicks(PyObject* self, PyObject* args)
 {
     return PyDateTime_FromTimestamp(args);
 }
@@ -341,6 +422,7 @@ static struct PyModuleDef g_ModuleDef = {
 //-----------------------------------------------------------------------------
 static PyObject *Module_Initialize(void)
 {
+    dpiErrorInfo errorInfo;
     PyObject *module;
 
 #ifdef WITH_THREAD
@@ -365,10 +447,9 @@ static PyObject *Module_Initialize(void)
     MAKE_TYPE_READY(&g_CursorType);
     MAKE_TYPE_READY(&g_ErrorType);
     MAKE_TYPE_READY(&g_SessionPoolType);
-    MAKE_TYPE_READY(&g_EnvironmentType);
     MAKE_TYPE_READY(&g_ObjectTypeType);
     MAKE_TYPE_READY(&g_ObjectAttributeType);
-    MAKE_TYPE_READY(&g_ExternalLobVarType);
+    MAKE_TYPE_READY(&g_LOBType);
     MAKE_TYPE_READY(&g_ObjectType);
     MAKE_TYPE_READY(&g_EnqOptionsType);
     MAKE_TYPE_READY(&g_DeqOptionsType);
@@ -378,30 +459,27 @@ static PyObject *Module_Initialize(void)
     MAKE_TYPE_READY(&g_MessageTableType);
     MAKE_TYPE_READY(&g_MessageRowType);
     MAKE_TYPE_READY(&g_MessageQueryType);
-    MAKE_VARIABLE_TYPE_READY(&g_StringVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_FixedCharVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_RowidVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_BinaryVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_LongStringVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_LongBinaryVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_NumberVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_DateTimeVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_TimestampVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_CLOBVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_BLOBVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_BFILEVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_CursorVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_ObjectVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_NCharVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_FixedNCharVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_LongNCharVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_NCLOBVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_NativeFloatVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_NativeIntVarType);
-    MAKE_VARIABLE_TYPE_READY(&g_IntervalVarType);
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
-    MAKE_VARIABLE_TYPE_READY(&g_BooleanVarType);
-#endif
+    MAKE_TYPE_READY(&g_StringVarType);
+    MAKE_TYPE_READY(&g_FixedCharVarType);
+    MAKE_TYPE_READY(&g_RowidVarType);
+    MAKE_TYPE_READY(&g_BinaryVarType);
+    MAKE_TYPE_READY(&g_LongStringVarType);
+    MAKE_TYPE_READY(&g_LongBinaryVarType);
+    MAKE_TYPE_READY(&g_NumberVarType);
+    MAKE_TYPE_READY(&g_DateTimeVarType);
+    MAKE_TYPE_READY(&g_TimestampVarType);
+    MAKE_TYPE_READY(&g_CLOBVarType);
+    MAKE_TYPE_READY(&g_BLOBVarType);
+    MAKE_TYPE_READY(&g_BFILEVarType);
+    MAKE_TYPE_READY(&g_CursorVarType);
+    MAKE_TYPE_READY(&g_ObjectVarType);
+    MAKE_TYPE_READY(&g_NCharVarType);
+    MAKE_TYPE_READY(&g_FixedNCharVarType);
+    MAKE_TYPE_READY(&g_NCLOBVarType);
+    MAKE_TYPE_READY(&g_NativeFloatVarType);
+    MAKE_TYPE_READY(&g_NativeIntVarType);
+    MAKE_TYPE_READY(&g_IntervalVarType);
+    MAKE_TYPE_READY(&g_BooleanVarType);
 
     // initialize module and retrieve the dictionary
 #if PY_MAJOR_VERSION >= 3
@@ -444,6 +522,13 @@ static PyObject *Module_Initialize(void)
             "NotSupportedError", g_DatabaseErrorException) < 0)
         return NULL;
 
+    // initialize DPI library and create DPI context
+    if (dpiContext_create(DPI_MAJOR_VERSION, DPI_MINOR_VERSION, &g_DpiContext,
+            &errorInfo) < 0) {
+        Error_RaiseFromInfo(&errorInfo);
+        return NULL;
+    }
+
     // set up the types that are available
     ADD_TYPE_OBJECT("Binary", &cxBinary_Type)
     ADD_TYPE_OBJECT("Connection", &g_ConnectionType)
@@ -472,9 +557,8 @@ static PyObject *Module_Initialize(void)
     ADD_TYPE_OBJECT("FIXED_CHAR", &g_FixedCharVarType)
     ADD_TYPE_OBJECT("FIXED_NCHAR", &g_FixedNCharVarType)
     ADD_TYPE_OBJECT("NCHAR", &g_NCharVarType)
-    ADD_TYPE_OBJECT("LONG_NCHAR", &g_LongNCharVarType)
     ADD_TYPE_OBJECT("INTERVAL", &g_IntervalVarType)
-    ADD_TYPE_OBJECT("LOB", &g_ExternalLobVarType)
+    ADD_TYPE_OBJECT("LOB", &g_LOBType)
     ADD_TYPE_OBJECT("LONG_BINARY", &g_LongBinaryVarType)
     ADD_TYPE_OBJECT("LONG_STRING", &g_LongStringVarType)
     ADD_TYPE_OBJECT("NCLOB", &g_NCLOBVarType)
@@ -484,9 +568,7 @@ static PyObject *Module_Initialize(void)
     ADD_TYPE_OBJECT("TIMESTAMP", &g_TimestampVarType)
     ADD_TYPE_OBJECT("NATIVE_INT", &g_NativeIntVarType)
     ADD_TYPE_OBJECT("NATIVE_FLOAT", &g_NativeFloatVarType)
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
     ADD_TYPE_OBJECT("BOOLEAN", &g_BooleanVarType)
-#endif
 
     // create constants required by Python DB API 2.0
     if (PyModule_AddStringConstant(module, "apilevel", "2.0") < 0)
@@ -508,108 +590,103 @@ static PyObject *Module_Initialize(void)
         return NULL;
 
     // add constants for authorization modes
-    ADD_INT_CONSTANT("SYSASM", OCI_SYSASM)
-    ADD_INT_CONSTANT("SYSDBA", OCI_SYSDBA)
-    ADD_INT_CONSTANT("SYSOPER", OCI_SYSOPER)
-    ADD_INT_CONSTANT("PRELIM_AUTH", OCI_PRELIM_AUTH)
+    ADD_INT_CONSTANT("SYSASM", DPI_MODE_AUTH_SYSASM)
+    ADD_INT_CONSTANT("SYSDBA", DPI_MODE_AUTH_SYSDBA)
+    ADD_INT_CONSTANT("SYSOPER", DPI_MODE_AUTH_SYSOPER)
+    ADD_INT_CONSTANT("PRELIM_AUTH", DPI_MODE_AUTH_PRELIM)
 
     // add constants for session pool get modes
-    ADD_INT_CONSTANT("SPOOL_ATTRVAL_WAIT", OCI_SPOOL_ATTRVAL_WAIT)
-    ADD_INT_CONSTANT("SPOOL_ATTRVAL_NOWAIT", OCI_SPOOL_ATTRVAL_NOWAIT)
-    ADD_INT_CONSTANT("SPOOL_ATTRVAL_FORCEGET", OCI_SPOOL_ATTRVAL_FORCEGET)
+    ADD_INT_CONSTANT("SPOOL_ATTRVAL_WAIT", DPI_MODE_POOL_GET_WAIT)
+    ADD_INT_CONSTANT("SPOOL_ATTRVAL_NOWAIT", DPI_MODE_POOL_GET_NOWAIT)
+    ADD_INT_CONSTANT("SPOOL_ATTRVAL_FORCEGET", DPI_MODE_POOL_GET_FORCEGET)
 
     // add constants for database shutdown modes
-    ADD_INT_CONSTANT("DBSHUTDOWN_ABORT", OCI_DBSHUTDOWN_ABORT)
-    ADD_INT_CONSTANT("DBSHUTDOWN_FINAL", OCI_DBSHUTDOWN_FINAL)
-    ADD_INT_CONSTANT("DBSHUTDOWN_IMMEDIATE", OCI_DBSHUTDOWN_IMMEDIATE)
-    ADD_INT_CONSTANT("DBSHUTDOWN_TRANSACTIONAL", OCI_DBSHUTDOWN_TRANSACTIONAL)
+    ADD_INT_CONSTANT("DBSHUTDOWN_ABORT", DPI_MODE_SHUTDOWN_ABORT)
+    ADD_INT_CONSTANT("DBSHUTDOWN_FINAL", DPI_MODE_SHUTDOWN_FINAL)
+    ADD_INT_CONSTANT("DBSHUTDOWN_IMMEDIATE", DPI_MODE_SHUTDOWN_IMMEDIATE)
+    ADD_INT_CONSTANT("DBSHUTDOWN_TRANSACTIONAL",
+            DPI_MODE_SHUTDOWN_TRANSACTIONAL)
     ADD_INT_CONSTANT("DBSHUTDOWN_TRANSACTIONAL_LOCAL",
-            OCI_DBSHUTDOWN_TRANSACTIONAL_LOCAL)
+            DPI_MODE_SHUTDOWN_TRANSACTIONAL_LOCAL)
 
     // add constants for purity
-    ADD_INT_CONSTANT("ATTR_PURITY_DEFAULT", OCI_ATTR_PURITY_DEFAULT)
-    ADD_INT_CONSTANT("ATTR_PURITY_NEW", OCI_ATTR_PURITY_NEW)
-    ADD_INT_CONSTANT("ATTR_PURITY_SELF", OCI_ATTR_PURITY_SELF)
+    ADD_INT_CONSTANT("ATTR_PURITY_DEFAULT", DPI_PURITY_DEFAULT)
+    ADD_INT_CONSTANT("ATTR_PURITY_NEW", DPI_PURITY_NEW)
+    ADD_INT_CONSTANT("ATTR_PURITY_SELF", DPI_PURITY_SELF)
 
     // add constants for subscription protocols
-    ADD_INT_CONSTANT("SUBSCR_PROTO_OCI", OCI_SUBSCR_PROTO_OCI)
-    ADD_INT_CONSTANT("SUBSCR_PROTO_MAIL", OCI_SUBSCR_PROTO_MAIL)
-    ADD_INT_CONSTANT("SUBSCR_PROTO_SERVER", OCI_SUBSCR_PROTO_SERVER)
-    ADD_INT_CONSTANT("SUBSCR_PROTO_HTTP", OCI_SUBSCR_PROTO_HTTP)
+    ADD_INT_CONSTANT("SUBSCR_PROTO_OCI", DPI_SUBSCR_PROTO_CALLBACK)
+    ADD_INT_CONSTANT("SUBSCR_PROTO_MAIL", DPI_SUBSCR_PROTO_MAIL)
+    ADD_INT_CONSTANT("SUBSCR_PROTO_SERVER", DPI_SUBSCR_PROTO_PLSQL)
+    ADD_INT_CONSTANT("SUBSCR_PROTO_HTTP", DPI_SUBSCR_PROTO_HTTP)
 
     // add constants for subscription quality of service
-    ADD_INT_CONSTANT("SUBSCR_QOS_RELIABLE", CX_SUBSCR_QOS_RELIABLE)
-    ADD_INT_CONSTANT("SUBSCR_QOS_DEREG_NFY", CX_SUBSCR_QOS_DEREG_NFY)
-    ADD_INT_CONSTANT("SUBSCR_QOS_ROWIDS", CX_SUBSCR_QOS_ROWIDS)
-    ADD_INT_CONSTANT("SUBSCR_QOS_QUERY", CX_SUBSCR_QOS_QUERY)
-    ADD_INT_CONSTANT("SUBSCR_QOS_BEST_EFFORT", CX_SUBSCR_QOS_BEST_EFFORT)
-
-    // add constants for deprecated subscription quality of service
-    ADD_INT_CONSTANT("SUBSCR_CQ_QOS_PURGE_ON_NTFN", CX_SUBSCR_QOS_DEREG_NFY)
-    ADD_INT_CONSTANT("SUBSCR_CQ_QOS_QUERY", CX_SUBSCR_QOS_QUERY)
-    ADD_INT_CONSTANT("SUBSCR_CQ_QOS_BEST_EFFORT",
-            OCI_SUBSCR_CQ_QOS_BEST_EFFORT)
+    ADD_INT_CONSTANT("SUBSCR_QOS_RELIABLE", DPI_SUBSCR_QOS_RELIABLE)
+    ADD_INT_CONSTANT("SUBSCR_QOS_DEREG_NFY", DPI_SUBSCR_QOS_DEREG_NFY)
+    ADD_INT_CONSTANT("SUBSCR_QOS_ROWIDS", DPI_SUBSCR_QOS_ROWIDS)
+    ADD_INT_CONSTANT("SUBSCR_QOS_QUERY", DPI_SUBSCR_QOS_QUERY)
+    ADD_INT_CONSTANT("SUBSCR_QOS_BEST_EFFORT", DPI_SUBSCR_QOS_BEST_EFFORT)
 
     // add constants for subscription namespaces
     ADD_INT_CONSTANT("SUBSCR_NAMESPACE_DBCHANGE",
-            OCI_SUBSCR_NAMESPACE_DBCHANGE)
+            DPI_SUBSCR_NAMESPACE_DBCHANGE)
 
     // add constants for event types
-    ADD_INT_CONSTANT("EVENT_NONE", OCI_EVENT_NONE)
-    ADD_INT_CONSTANT("EVENT_STARTUP", OCI_EVENT_STARTUP)
-    ADD_INT_CONSTANT("EVENT_SHUTDOWN", OCI_EVENT_SHUTDOWN)
-    ADD_INT_CONSTANT("EVENT_SHUTDOWN_ANY", OCI_EVENT_SHUTDOWN_ANY)
-    ADD_INT_CONSTANT("EVENT_DEREG", OCI_EVENT_DEREG)
-    ADD_INT_CONSTANT("EVENT_OBJCHANGE", OCI_EVENT_OBJCHANGE)
-    ADD_INT_CONSTANT("EVENT_QUERYCHANGE", OCI_EVENT_QUERYCHANGE)
+    ADD_INT_CONSTANT("EVENT_NONE", DPI_EVENT_NONE)
+    ADD_INT_CONSTANT("EVENT_STARTUP", DPI_EVENT_STARTUP)
+    ADD_INT_CONSTANT("EVENT_SHUTDOWN", DPI_EVENT_SHUTDOWN)
+    ADD_INT_CONSTANT("EVENT_SHUTDOWN_ANY", DPI_EVENT_SHUTDOWN_ANY)
+    ADD_INT_CONSTANT("EVENT_DEREG", DPI_EVENT_DEREG)
+    ADD_INT_CONSTANT("EVENT_OBJCHANGE", DPI_EVENT_OBJCHANGE)
+    ADD_INT_CONSTANT("EVENT_QUERYCHANGE", DPI_EVENT_QUERYCHANGE)
 
     // add constants for opcodes
-    ADD_INT_CONSTANT("OPCODE_ALLOPS", OCI_OPCODE_ALLOPS)
-    ADD_INT_CONSTANT("OPCODE_ALLROWS", OCI_OPCODE_ALLROWS)
-    ADD_INT_CONSTANT("OPCODE_INSERT", OCI_OPCODE_INSERT)
-    ADD_INT_CONSTANT("OPCODE_UPDATE", OCI_OPCODE_UPDATE)
-    ADD_INT_CONSTANT("OPCODE_DELETE", OCI_OPCODE_DELETE)
-    ADD_INT_CONSTANT("OPCODE_ALTER", OCI_OPCODE_ALTER)
-    ADD_INT_CONSTANT("OPCODE_DROP", OCI_OPCODE_DROP)
+    ADD_INT_CONSTANT("OPCODE_ALLOPS", DPI_OPCODE_ALL_OPS)
+    ADD_INT_CONSTANT("OPCODE_ALLROWS", DPI_OPCODE_ALL_ROWS)
+    ADD_INT_CONSTANT("OPCODE_INSERT", DPI_OPCODE_INSERT)
+    ADD_INT_CONSTANT("OPCODE_UPDATE", DPI_OPCODE_UPDATE)
+    ADD_INT_CONSTANT("OPCODE_DELETE", DPI_OPCODE_DELETE)
+    ADD_INT_CONSTANT("OPCODE_ALTER", DPI_OPCODE_ALTER)
+    ADD_INT_CONSTANT("OPCODE_DROP", DPI_OPCODE_DROP)
 
     // add constants for AQ dequeue modes
-    ADD_INT_CONSTANT("DEQ_BROWSE", OCI_DEQ_BROWSE)
-    ADD_INT_CONSTANT("DEQ_LOCKED", OCI_DEQ_LOCKED)
-    ADD_INT_CONSTANT("DEQ_REMOVE", OCI_DEQ_REMOVE)
-    ADD_INT_CONSTANT("DEQ_REMOVE_NODATA", OCI_DEQ_REMOVE_NODATA)
+    ADD_INT_CONSTANT("DEQ_BROWSE", DPI_MODE_DEQ_BROWSE)
+    ADD_INT_CONSTANT("DEQ_LOCKED", DPI_MODE_DEQ_LOCKED)
+    ADD_INT_CONSTANT("DEQ_REMOVE", DPI_MODE_DEQ_REMOVE)
+    ADD_INT_CONSTANT("DEQ_REMOVE_NODATA", DPI_MODE_DEQ_REMOVE_NO_DATA)
 
     // add constants for AQ dequeue navigation
-    ADD_INT_CONSTANT("DEQ_FIRST_MSG", OCI_DEQ_FIRST_MSG)
-    ADD_INT_CONSTANT("DEQ_NEXT_TRANSACTION", OCI_DEQ_NEXT_TRANSACTION)
-    ADD_INT_CONSTANT("DEQ_NEXT_MSG", OCI_DEQ_NEXT_MSG)
+    ADD_INT_CONSTANT("DEQ_FIRST_MSG", DPI_DEQ_NAV_FIRST_MSG)
+    ADD_INT_CONSTANT("DEQ_NEXT_TRANSACTION", DPI_DEQ_NAV_NEXT_TRANSACTION)
+    ADD_INT_CONSTANT("DEQ_NEXT_MSG", DPI_DEQ_NAV_NEXT_MSG)
 
     // add constants for AQ dequeue visibility
-    ADD_INT_CONSTANT("DEQ_IMMEDIATE", OCI_DEQ_IMMEDIATE)
-    ADD_INT_CONSTANT("DEQ_ON_COMMIT", OCI_DEQ_ON_COMMIT)
+    ADD_INT_CONSTANT("DEQ_IMMEDIATE", DPI_VISIBILITY_IMMEDIATE)
+    ADD_INT_CONSTANT("DEQ_ON_COMMIT", DPI_VISIBILITY_ON_COMMIT)
 
     // add constants for AQ dequeue wait
-    ADD_INT_CONSTANT("DEQ_NO_WAIT", OCI_DEQ_NO_WAIT)
-    ADD_INT_CONSTANT("DEQ_WAIT_FOREVER", OCI_DEQ_WAIT_FOREVER)
+    ADD_INT_CONSTANT("DEQ_NO_WAIT", DPI_DEQ_WAIT_NO_WAIT)
+    ADD_INT_CONSTANT("DEQ_WAIT_FOREVER", DPI_DEQ_WAIT_FOREVER)
 
     // add constants for AQ enqueue visibility
-    ADD_INT_CONSTANT("ENQ_IMMEDIATE", OCI_ENQ_IMMEDIATE)
-    ADD_INT_CONSTANT("ENQ_ON_COMMIT", OCI_ENQ_ON_COMMIT)
+    ADD_INT_CONSTANT("ENQ_IMMEDIATE", DPI_VISIBILITY_IMMEDIATE)
+    ADD_INT_CONSTANT("ENQ_ON_COMMIT", DPI_VISIBILITY_ON_COMMIT)
 
     // add constants for AQ table purge mode (message)
-    ADD_INT_CONSTANT("MSG_PERSISTENT", OCI_MSG_PERSISTENT)
-    ADD_INT_CONSTANT("MSG_BUFFERED", OCI_MSG_BUFFERED)
+    ADD_INT_CONSTANT("MSG_PERSISTENT", DPI_MODE_MSG_PERSISTENT)
+    ADD_INT_CONSTANT("MSG_BUFFERED", DPI_MODE_MSG_BUFFERED)
     ADD_INT_CONSTANT("MSG_PERSISTENT_OR_BUFFERED",
-            OCI_MSG_PERSISTENT_OR_BUFFERED)
+            DPI_MODE_MSG_PERSISTENT_OR_BUFFERED)
 
     // add constants for AQ message state
-    ADD_INT_CONSTANT("MSG_EXPIRED", OCI_MSG_EXPIRED)
-    ADD_INT_CONSTANT("MSG_READY", OCI_MSG_READY)
-    ADD_INT_CONSTANT("MSG_PROCESSED", OCI_MSG_PROCESSED)
-    ADD_INT_CONSTANT("MSG_WAITING", OCI_MSG_WAITING)
+    ADD_INT_CONSTANT("MSG_EXPIRED", DPI_MSG_STATE_EXPIRED)
+    ADD_INT_CONSTANT("MSG_READY", DPI_MSG_STATE_READY)
+    ADD_INT_CONSTANT("MSG_PROCESSED", DPI_MSG_STATE_PROCESSED)
+    ADD_INT_CONSTANT("MSG_WAITING", DPI_MSG_STATE_WAITING)
 
     // add special constants for AQ delay/expiration
-    ADD_INT_CONSTANT("MSG_NO_DELAY", OCI_MSG_NO_DELAY)
-    ADD_INT_CONSTANT("MSG_NO_EXPIRATION", OCI_MSG_NO_EXPIRATION)
+    ADD_INT_CONSTANT("MSG_NO_DELAY", 0)
+    ADD_INT_CONSTANT("MSG_NO_EXPIRATION", -1)
 
     return module;
 }
@@ -629,4 +706,31 @@ void initcx_Oracle(void)
     Module_Initialize();
 }
 #endif
+
+
+//-----------------------------------------------------------------------------
+// include all DPI files
+//-----------------------------------------------------------------------------
+
+#include "dpiConn.c"
+#include "dpiContext.c"
+#include "dpiData.c"
+#include "dpiDeqOptions.c"
+#include "dpiEnqOptions.c"
+#include "dpiEnv.c"
+#include "dpiError.c"
+#include "dpiGen.c"
+#include "dpiGlobal.c"
+#include "dpiLob.c"
+#include "dpiMsgProps.c"
+#include "dpiObject.c"
+#include "dpiObjectAttr.c"
+#include "dpiObjectType.c"
+#include "dpiOracleType.c"
+#include "dpiPool.c"
+#include "dpiRowid.c"
+#include "dpiStmt.c"
+#include "dpiSubscr.c"
+#include "dpiUtils.c"
+#include "dpiVar.c"
 

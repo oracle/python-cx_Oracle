@@ -10,17 +10,6 @@ LOB Objects
    :data:`CLOB`, :data:`BLOB` and :data:`BFILE` columns are fetched.
 
 
-.. note::
-
-   Internally, Oracle uses LOB locators which are allocated based on the
-   cursor array size. Thus, it is important that the data in the LOB object be
-   manipulated before another internal fetch takes place. The safest way to do
-   this is to use the cursor as an iterator. In particular, do not use the
-   :meth:`Cursor.fetchall()` method. The exception "LOB variable no longer
-   valid after subsequent fetch" will be raised if an attempt to access a LOB
-   variable after a subsequent fetch is detected.
-
-
 .. method:: LOB.close()
 
    Close the LOB. Call this when writing is completed so that the indexes

@@ -17,9 +17,9 @@
 //-----------------------------------------------------------------------------
 typedef struct {
     PyObject_HEAD
-    OCIStmt *handle;
+    dpiStmt *handle;
+    dpiStmtInfo stmtInfo;
     udt_Connection *connection;
-    udt_Environment *environment;
     PyObject *statement;
     PyObject *statementTag;
     PyObject *bindVariables;
@@ -27,22 +27,19 @@ typedef struct {
     PyObject *rowFactory;
     PyObject *inputTypeHandler;
     PyObject *outputTypeHandler;
-    ub4 arraySize;
-    ub4 bindArraySize;
-    ub4 fetchArraySize;
-    int numbersAsStrings;
+    uint32_t arraySize;
+    uint32_t bindArraySize;
+    uint32_t fetchArraySize;
     int setInputSizes;
     int outputSize;
     int outputSizeColumn;
-    ub8 rowCount;
-    ub8 bufferMinRow;
-    ub4 bufferRowCount;
-    ub4 bufferRowIndex;
-    int statementType;
-    int hasRowsToFetch;
+    uint64_t rowCount;
+    uint32_t fetchBufferRowIndex;
+    uint32_t numRowsInFetchBuffer;
+    int moreRowsToFetch;
+    int isScrollable;
+    int fixupRefCursor;
     int isOpen;
-    int isOwned;
-    boolean isScrollable;
 } udt_Cursor;
 
 
@@ -80,10 +77,9 @@ static PyObject *Cursor_New(PyTypeObject*, PyObject*, PyObject*);
 static int Cursor_Init(udt_Cursor*, PyObject*, PyObject*);
 static PyObject *Cursor_Repr(udt_Cursor*);
 static PyObject* Cursor_GetBatchErrors(udt_Cursor*);
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
 static PyObject *Cursor_GetArrayDMLRowCounts(udt_Cursor*);
 static PyObject *Cursor_GetImplicitResults(udt_Cursor*);
-#endif
+static int Cursor_PerformDefine(udt_Cursor*, uint32_t);
 
 
 //-----------------------------------------------------------------------------
@@ -116,12 +112,10 @@ static PyMethodDef g_CursorMethods[] = {
     { "bindnames", (PyCFunction) Cursor_BindNames, METH_NOARGS },
     { "close", (PyCFunction) Cursor_Close, METH_NOARGS },
     { "getbatcherrors", (PyCFunction) Cursor_GetBatchErrors, METH_NOARGS },
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
     { "getarraydmlrowcounts", (PyCFunction) Cursor_GetArrayDMLRowCounts,
               METH_NOARGS },
     { "getimplicitresults", (PyCFunction) Cursor_GetImplicitResults,
               METH_NOARGS },
-#endif    
     { NULL, NULL }
 };
 
@@ -135,7 +129,6 @@ static PyMemberDef g_CursorMembers[] = {
     { "rowcount", T_ULONGLONG, offsetof(udt_Cursor, rowCount), READONLY },
     { "statement", T_OBJECT, offsetof(udt_Cursor, statement), READONLY },
     { "connection", T_OBJECT_EX, offsetof(udt_Cursor, connection), READONLY },
-    { "numbersAsStrings", T_INT, offsetof(udt_Cursor, numbersAsStrings), 0 },
     { "rowfactory", T_OBJECT, offsetof(udt_Cursor, rowFactory), 0 },
     { "bindvars", T_OBJECT, offsetof(udt_Cursor, bindVariables), READONLY },
     { "fetchvars", T_OBJECT, offsetof(udt_Cursor, fetchVariables), READONLY },
@@ -206,87 +199,15 @@ static PyTypeObject g_CursorType = {
 };
 
 
-//-----------------------------------------------------------------------------
-// Cursor_AllocateHandle()
-//   Allocate a new handle.
-//-----------------------------------------------------------------------------
-static int Cursor_AllocateHandle(
-    udt_Cursor *self)                   // cursor object
-{
-    sword status;
-
-    self->isOwned = 1;
-    status = OCIHandleAlloc(self->environment->handle,
-            (dvoid**) &self->handle, OCI_HTYPE_STMT, 0, 0);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_New()") < 0)
-        return -1;
-
-    return 0;
-}
-
-//-----------------------------------------------------------------------------
-// Cursor_FreeHandle()
-//   Free the handle which may be reallocated if necessary.
-//-----------------------------------------------------------------------------
-static int Cursor_FreeHandle(
-    udt_Cursor *self,                   // cursor object
-    int raiseException)                 // raise an exception, if necesary?
-{
-    udt_Buffer buffer;
-    sword status;
-
-    if (self->handle) {
-        if (self->isOwned) {
-            status = OCIHandleFree(self->handle, OCI_HTYPE_STMT);
-            if (raiseException && Environment_CheckForError(
-                    self->environment, status, "Cursor_FreeHandle()") < 0)
-                return -1;
-        } else if (self->connection->handle != 0) {
-            if (cxBuffer_FromObject(&buffer, self->statementTag,
-                    self->environment->encoding) < 0)
-                return (raiseException) ? -1 : 0;
-            status = OCIStmtRelease(self->handle,
-                    self->environment->errorHandle, (text*) buffer.ptr,
-                    (ub4) buffer.size, OCI_DEFAULT);
-            cxBuffer_Clear(&buffer);
-            if (raiseException && Environment_CheckForError(
-                    self->environment, status, "Cursor_FreeHandle()") < 0)
-                return -1;
-        }
-        self->handle = NULL;
-    }
-    return 0;
-}
-
-
 #include "Variable.c"
-
-
-//-----------------------------------------------------------------------------
-// Cursor_IsOpen()
-//   Determines if the cursor object is open and if so, if the connection is
-// also open.
-//-----------------------------------------------------------------------------
-static int Cursor_IsOpen(
-    udt_Cursor *self)                   // cursor to check
-{
-    if (!self->isOpen) {
-        PyErr_SetString(g_InterfaceErrorException, "not open");
-        return -1;
-    }
-    return Connection_IsConnected(self->connection);
-}
 
 
 //-----------------------------------------------------------------------------
 // Cursor_New()
 //   Create a new cursor object.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_New(
-    PyTypeObject *type,                 // type object
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Cursor_New(PyTypeObject *type, PyObject *args,
+        PyObject *keywordArgs)
 {
     return type->tp_alloc(type, 0);
 }
@@ -296,10 +217,7 @@ static PyObject *Cursor_New(
 // Cursor_Init()
 //   Create a new cursor object.
 //-----------------------------------------------------------------------------
-static int Cursor_Init(
-    udt_Cursor *self,                   // cursor object
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static int Cursor_Init(udt_Cursor *self, PyObject *args, PyObject *keywordArgs)
 {
     static char *keywordList[] = { "connection", "scrollable", NULL };
     udt_Connection *connection;
@@ -310,23 +228,18 @@ static int Cursor_Init(
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|O", keywordList,
             &g_ConnectionType, &connection, &scrollableObj))
         return -1;
+    if (GetBooleanValue(scrollableObj, 0, &self->isScrollable) < 0)
+        return -1;
 
     // initialize members
     Py_INCREF(connection);
     self->connection = connection;
-    self->environment = connection->environment;
     self->arraySize = 100;
     self->fetchArraySize = 100;
     self->bindArraySize = 1;
-    self->statementType = -1;
     self->outputSize = -1;
     self->outputSizeColumn = -1;
     self->isOpen = 1;
-    if (scrollableObj) {
-        self->isScrollable = PyObject_IsTrue(scrollableObj);
-        if (self->isScrollable < 0)
-            return -1;
-    }
 
     return 0;
 }
@@ -336,8 +249,7 @@ static int Cursor_Init(
 // Cursor_Repr()
 //   Return a string representation of the cursor.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Repr(
-    udt_Cursor *cursor)                 // cursor to return the string for
+static PyObject *Cursor_Repr(udt_Cursor *cursor)
 {
     PyObject *connectionRepr, *module, *name, *result, *format, *formatArgs;
 
@@ -373,14 +285,16 @@ static PyObject *Cursor_Repr(
 // Cursor_Free()
 //   Deallocate the cursor.
 //-----------------------------------------------------------------------------
-static void Cursor_Free(
-    udt_Cursor *self)                   // cursor object
+static void Cursor_Free(udt_Cursor *self)
 {
-    Cursor_FreeHandle(self, 0);
     Py_CLEAR(self->statement);
     Py_CLEAR(self->statementTag);
     Py_CLEAR(self->bindVariables);
     Py_CLEAR(self->fetchVariables);
+    if (self->handle) {
+        dpiStmt_release(self->handle);
+        self->handle = NULL;
+    }
     Py_CLEAR(self->connection);
     Py_CLEAR(self->rowFactory);
     Py_CLEAR(self->inputTypeHandler);
@@ -390,98 +304,84 @@ static void Cursor_Free(
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetBindNames()
-//   Return a list of bind variable names. At this point the cursor must have
-// already been prepared.
+// Cursor_IsOpen()
+//   Determines if the cursor object is open. Since the same cursor can be
+// used to execute multiple statements, simply checking for the DPI statement
+// handle is insufficient.
 //-----------------------------------------------------------------------------
-static int Cursor_GetBindNames(
-    udt_Cursor *self,                   // cursor to get information from
-    int numElements,                    // number of elements (IN/OUT)
-    PyObject **names)                   // list of names (OUT)
+static int Cursor_IsOpen(udt_Cursor *self)
 {
-    ub1 *bindNameLengths, *indicatorNameLengths, *duplicate;
-    char *buffer, **bindNames, **indicatorNames;
-    OCIBind **bindHandles;
-    int elementSize, i;
-    sb4 foundElements;
-    PyObject *temp;
-    sword status;
+    if (!self->isOpen) {
+        PyErr_SetString(g_InterfaceErrorException, "not open");
+        return -1;
+    }
+    return Connection_IsConnected(self->connection);
+}
 
-    // ensure that a statement has already been prepared
-    if (!self->statement) {
-        PyErr_SetString(g_ProgrammingErrorException,
-                "statement must be prepared first");
+
+//-----------------------------------------------------------------------------
+// Cursor_VerifyFetch()
+//   Verify that fetching may happen from this cursor.
+//-----------------------------------------------------------------------------
+static int Cursor_VerifyFetch(udt_Cursor *self)
+{
+    uint32_t numQueryColumns;
+
+    // make sure the cursor is open
+    if (Cursor_IsOpen(self) < 0)
+        return -1;
+
+    // fixup REF cursor, if applicable
+    if (self->fixupRefCursor) {
+        if (dpiStmt_getNumQueryColumns(self->handle, &numQueryColumns) < 0)
+            return Error_RaiseAndReturnInt();
+        if (Cursor_PerformDefine(self, numQueryColumns) < 0)
+            return Error_RaiseAndReturnInt();
+        self->fixupRefCursor = 0;
+    }
+
+    // make sure the cursor is for a query
+    if (!self->fetchVariables) {
+        PyErr_SetString(g_InterfaceErrorException, "not a query");
         return -1;
     }
 
-    // avoid bus errors on 64-bit platforms
-    numElements = numElements + (sizeof(void*) - numElements % sizeof(void*));
+    return 0;
+}
 
-    // initialize the buffers
-    elementSize = sizeof(char*) + sizeof(ub1) + sizeof(char*) + sizeof(ub1) +
-            sizeof(ub1) + sizeof(OCIBind*);
-    buffer = (char*) PyMem_Malloc(numElements * elementSize);
-    if (!buffer) {
-        PyErr_NoMemory();
-        return -1;
-    }
-    bindNames = (char**) buffer;
-    bindNameLengths = (ub1*) (((char*) bindNames) +
-            sizeof(char*) * numElements);
-    indicatorNames = (char**) (((char*) bindNameLengths) +
-            sizeof(ub1) * numElements);
-    indicatorNameLengths = (ub1*) (((char*) indicatorNames) +
-            sizeof(char*) * numElements);
-    duplicate = (ub1*) (((char*) indicatorNameLengths) +
-            sizeof(ub1) * numElements);
-    bindHandles = (OCIBind**) (((char*) duplicate) +
-            sizeof(ub1) * numElements);
 
-    // get the bind information
-    status = OCIStmtGetBindInfo(self->handle,
-            self->environment->errorHandle, numElements, 1, &foundElements,
-            (text**) bindNames, bindNameLengths, (text**) indicatorNames,
-            indicatorNameLengths, duplicate, bindHandles);
-    if (status != OCI_NO_DATA &&
-            Environment_CheckForError(self->environment, status,
-            "Cursor_GetBindNames()") < 0) {
-        PyMem_Free(buffer);
-        return -1;
-    }
-    if (foundElements < 0) {
-        *names = NULL;
-        PyMem_Free(buffer);
-        return abs(foundElements);
+//-----------------------------------------------------------------------------
+// Cursor_FetchRow()
+//   Fetch a single row from the cursor. Internally the number of rows left in
+// the buffer is managed in order to minimize calls to Py_BEGIN_ALLOW_THREADS
+// and Py_END_ALLOW_THREADS which have a significant overhead.
+//-----------------------------------------------------------------------------
+static int Cursor_FetchRow(udt_Cursor *self, int *found,
+        uint32_t *bufferRowIndex)
+{
+    int status;
+
+    // if the number of rows in the fetch buffer is zero and there are more
+    // rows to fetch, call DPI with threading enabled in order to perform any
+    // fetch requiring a network round trip
+    if (self->numRowsInFetchBuffer == 0 && self->moreRowsToFetch) {
+        Py_BEGIN_ALLOW_THREADS
+        status = dpiStmt_fetchRows(self->handle, self->fetchArraySize,
+                &self->fetchBufferRowIndex, &self->numRowsInFetchBuffer,
+                &self->moreRowsToFetch);
+        Py_END_ALLOW_THREADS
+        if (status < 0)
+            return Error_RaiseAndReturnInt();
     }
 
-    // create the list which is to be returned
-    *names = PyList_New(0);
-    if (!*names) {
-        PyMem_Free(buffer);
-        return -1;
+    // keep track of where we are in the fetch buffer
+    if (self->numRowsInFetchBuffer == 0)
+        *found = 0;
+    else {
+        *found = 1;
+        *bufferRowIndex = self->fetchBufferRowIndex++;
+        self->numRowsInFetchBuffer--;
     }
-
-    // process the bind information returned
-    for (i = 0; i < foundElements; i++) {
-        if (!duplicate[i]) {
-            temp = cxString_FromEncodedString(bindNames[i],
-                    bindNameLengths[i],
-                    self->connection->environment->encoding);
-            if (!temp) {
-                Py_DECREF(*names);
-                PyMem_Free(buffer);
-                return -1;
-            }
-            if (PyList_Append(*names, temp) < 0) {
-                Py_DECREF(*names);
-                Py_DECREF(temp);
-                PyMem_Free(buffer);
-                return -1;
-            }
-            Py_DECREF(temp);
-        }
-    }
-    PyMem_Free(buffer);
 
     return 0;
 }
@@ -492,32 +392,113 @@ static int Cursor_GetBindNames(
 //   Perform the defines for the cursor. At this point it is assumed that the
 // statement being executed is in fact a query.
 //-----------------------------------------------------------------------------
-static int Cursor_PerformDefine(
-    udt_Cursor *self)                   // cursor to perform define on
+static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
 {
-    int numParams, pos;
+    PyObject *outputTypeHandler, *result;
+    udt_ObjectType *objectType;
+    udt_VariableType *varType;
+    dpiQueryInfo queryInfo;
+    uint32_t pos, size;
     udt_Variable *var;
-    sword status;
-
-    // determine number of items in select-list
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, (dvoid*) &numParams, 0,
-            OCI_ATTR_PARAM_COUNT, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_PerformDefine()") < 0)
-        return -1;
 
     // create a list corresponding to the number of items
-    self->fetchVariables = PyList_New(numParams);
+    self->fetchVariables = PyList_New(numQueryColumns);
     if (!self->fetchVariables)
         return -1;
 
-    // define a variable for each select-item
+    // initialize fetching variables; these are used to reduce the number of
+    // times that Py_BEGIN_ALLOW_THREADS/Py_END_ALLOW_THREADS is called as
+    // there is a significant amount of overhead in making these calls
+    self->numRowsInFetchBuffer = 0;
+    self->moreRowsToFetch = 1;
+
+    // create a variable for each of the query columns
     self->fetchArraySize = self->arraySize;
-    for (pos = 1; pos <= numParams; pos++) {
-        var = Variable_Define(self, self->fetchArraySize, pos);
-        if (!var)
+    for (pos = 1; pos <= numQueryColumns; pos++) {
+
+        // get query information for the column position
+        if (dpiStmt_getQueryInfo(self->handle, pos, &queryInfo) < 0)
+            return Error_RaiseAndReturnInt();
+        if (queryInfo.sizeInChars)
+            size = queryInfo.sizeInChars;
+        else size = queryInfo.clientSizeInBytes;
+
+        // determine object type, if applicable
+        objectType = NULL;
+        if (queryInfo.objectType) {
+            objectType = ObjectType_New(self->connection,
+                    queryInfo.objectType);
+            if (!objectType)
+                return -1;
+        }
+
+        // if setoutputsize() called, use its value instead
+        if (self->outputSize >= 0) {
+            if (self->outputSizeColumn < 0 ||
+                    (int) pos == self->outputSizeColumn)
+                size = self->outputSize;
+        }
+
+        // determine the default type 
+        varType = VarType_FromQueryInfo(&queryInfo);
+        if (!varType)
             return -1;
+
+        // see if an output type handler should be used
+        var = NULL;
+        outputTypeHandler = NULL;
+        if (self->outputTypeHandler && self->outputTypeHandler != Py_None)
+            outputTypeHandler = self->outputTypeHandler;
+        else if (self->connection->outputTypeHandler &&
+                self->connection->outputTypeHandler != Py_None)
+            outputTypeHandler = self->connection->outputTypeHandler;
+
+        // if using an output type handler, None implies default behavior
+        if (outputTypeHandler) {
+            result = PyObject_CallFunction(outputTypeHandler, "Os#Oiii",
+                    self, queryInfo.name, queryInfo.nameLength,
+                    varType->pythonType, size, queryInfo.precision,
+                    queryInfo.scale);
+            if (!result) {
+                Py_XDECREF(objectType);
+                return -1;
+            } else if (result == Py_None)
+                Py_DECREF(result);
+            else if (!Variable_Check(result)) {
+                Py_DECREF(result);
+                Py_XDECREF(objectType);
+                PyErr_SetString(PyExc_TypeError,
+                        "expecting variable from output type handler");
+                return -1;
+            } else {
+                var = (udt_Variable*) result;
+                if (var->allocatedElements < self->fetchArraySize) {
+                    Py_DECREF(result);
+                    Py_XDECREF(objectType);
+                    PyErr_SetString(PyExc_TypeError,
+                            "expecting variable with array size large "
+                            "enough for fetch");
+                    return -1;
+                }
+            }
+        }
+
+        // if no variable created yet, use the database metadata
+        if (!var) {
+            var = Variable_New(self, self->fetchArraySize, varType, size, 0,
+                    objectType);
+            if (!var) {
+                Py_XDECREF(objectType);
+                return -1;
+            }
+        }
+
+        // add the variable to the fetch variables and perform define
+        Py_XDECREF(objectType);
         PyList_SET_ITEM(self->fetchVariables, pos - 1, (PyObject *) var);
+        if (dpiStmt_define(self->handle, pos, var->handle) < 0)
+            return Error_RaiseAndReturnInt();
+
     }
 
     return 0;
@@ -525,264 +506,48 @@ static int Cursor_PerformDefine(
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetRowCount()
-//   Get the row count from the statement handle. This is a 64-bit value in
-// Oracle Database 12.1 and later and a 32-bit value prior to that.
+// Cursor_ItemDescription()
+//   Return a tuple describing the item at the given position.
 //-----------------------------------------------------------------------------
-static int Cursor_GetRowCount(
-    udt_Cursor *self,                   // cursor to get the row count on
-    ub8* value)                         // the row count (OUT)
-{
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
-    ub8 rowCount;
-    ub4 attribute = OCI_ATTR_UB8_ROW_COUNT;
-#else
-    ub4 rowCount;
-    ub4 attribute = OCI_ATTR_ROW_COUNT;
-#endif
-    sword status;
-
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &rowCount, 0,
-            attribute, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_GetRowCount()") < 0)
-        return -1;
-    *value = rowCount;
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_SetRowCount()
-//   Set the rowcount variable.
-//-----------------------------------------------------------------------------
-static int Cursor_SetRowCount(
-    udt_Cursor *self)                   // cursor to set the rowcount on
-{
-    self->rowCount = 0;
-    self->hasRowsToFetch = 0;
-    if (self->statementType == OCI_STMT_SELECT) {
-        self->bufferMinRow = 0;
-        self->bufferRowCount = 0;
-        self->bufferRowIndex = 0;
-        self->hasRowsToFetch = 1;
-    } else if (self->statementType == OCI_STMT_INSERT ||
-               self->statementType == OCI_STMT_UPDATE ||
-               self->statementType == OCI_STMT_DELETE ||
-               self->statementType == OCI_STMT_BEGIN ||
-               self->statementType == OCI_STMT_DECLARE) {
-        if (Cursor_GetRowCount(self, &self->rowCount) < 0)
-            return -1;
-    }
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_SetErrorOffset()
-//   Set the error offset on the error object, if applicable.
-//-----------------------------------------------------------------------------
-static void Cursor_SetErrorOffset(
-    udt_Cursor *self)                   // cursor to get the error offset from
-{
-    PyObject *type, *value, *traceback, *args;
-    udt_Error *error;
-    ub2 offset = 0;
-
-    PyErr_Fetch(&type, &value, &traceback);
-    if (type == g_DatabaseErrorException) {
-        PyErr_NormalizeException(&type, &value, &traceback);
-        OCIAttrGet(self->handle, OCI_HTYPE_STMT, &offset, 0,
-                OCI_ATTR_PARSE_ERROR_OFFSET, self->environment->errorHandle);
-        args = PyObject_GetAttrString(value, "args");
-        error = (udt_Error*) PyTuple_GET_ITEM(args, 0);
-        error->offset = offset;
-        Py_DECREF(args);
-    }
-    PyErr_Restore(type, value, traceback);
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_InternalExecute()
-//   Perform the work of executing a cursor and set the rowcount appropriately
-// regardless of whether an error takes place.
-//-----------------------------------------------------------------------------
-static int Cursor_InternalExecute(
-    udt_Cursor *self,                   // cursor to perform the execute on
-    ub4 numIters,                       // number of iterations to execute
-    ub4 additionalMode)                 // additional modes to set
-{
-    sword status;
-    ub4 mode;
-
-    if (self->connection->autocommit)
-        mode = OCI_COMMIT_ON_SUCCESS;
-    else mode = OCI_DEFAULT;
-    mode |= additionalMode;
-
-    Py_BEGIN_ALLOW_THREADS
-    status = OCIStmtExecute(self->connection->handle, self->handle,
-            self->environment->errorHandle, numIters, 0, 0, 0, mode);
-    Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_InternalExecute()") < 0) {
-        Cursor_SetErrorOffset(self);
-        if (Cursor_SetRowCount(self) < 0)
-            PyErr_Clear();
-        return -1;
-    }
-    return Cursor_SetRowCount(self);
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_GetStatementType()
-//   Determine if the cursor is executing a select statement.
-//-----------------------------------------------------------------------------
-static int Cursor_GetStatementType(
-    udt_Cursor *self)                   // cursor to perform binds on
-{
-    ub2 statementType;
-    sword status;
-
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT,
-            (dvoid*) &statementType, 0, OCI_ATTR_STMT_TYPE,
-            self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_GetStatementType()") < 0)
-        return -1;
-    self->statementType = statementType;
-    if (self->fetchVariables) {
-        Py_DECREF(self->fetchVariables);
-        self->fetchVariables = NULL;
-    }
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_FixupBoundCursor()
-//   Fixup a cursor so that fetching and returning cursor descriptions are
-// successful after binding a cursor to another cursor.
-//-----------------------------------------------------------------------------
-static int Cursor_FixupBoundCursor(
-    udt_Cursor *self)                   // cursor that may have been bound
-{
-    if (self->handle && self->statementType < 0) {
-        if (Cursor_GetStatementType(self) < 0)
-            return -1;
-        if (self->statementType == OCI_STMT_SELECT &&
-                Cursor_PerformDefine(self) < 0)
-            return -1;
-        if (Cursor_SetRowCount(self) < 0)
-            return -1;
-    }
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_ItemDescriptionHelper()
-//   Helper for Cursor_ItemDescription() used so that it is not necessary to
-// constantly free the descriptor when an error takes place.
-//-----------------------------------------------------------------------------
-static PyObject *Cursor_ItemDescriptionHelper(
-    udt_Cursor *self,                   // cursor object
-    unsigned pos,                       // position in description
-    OCIParam *param)                    // parameter to use for description
+static PyObject *Cursor_ItemDescription(udt_Cursor *self, uint32_t pos)
 {
     udt_VariableType *varType;
-    ub2 bytesSize, charSize;
     int displaySize, index;
-    PyObject *tuple;
-    ub4 nameLength;
-    sb2 precision;
-    sword status;
-    char *name;
-    ub1 nullOk;
-    sb1 scale;
+    dpiQueryInfo queryInfo;
+    PyObject *tuple, *temp;
 
-    // acquire usable type of item
-    varType = Variable_TypeByOracleDescriptor(param, self->environment);
+    // get information about the column position
+    if (dpiStmt_getQueryInfo(self->handle, pos, &queryInfo) < 0)
+        return NULL;
+    varType = VarType_FromQueryInfo(&queryInfo);
     if (!varType)
         return NULL;
 
-    // acquire internal size of item
-    bytesSize = 0;
-    if (varType->isVariableLength && varType->canBeInArray) {
-        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &bytesSize, 0,
-                OCI_ATTR_DATA_SIZE, self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Cursor_ItemDescription(): internal size") < 0)
-            return NULL;
-    }
-
-    // acquire character size of item
-    charSize = 0;
-    if (varType->isVariableLength && varType->canBeInArray &&
-            varType->isCharacterData) {
-        status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &charSize, 0,
-                OCI_ATTR_CHAR_SIZE, self->environment->errorHandle);
-        if (Environment_CheckForError(self->environment, status,
-                "Cursor_ItemDescription(): character size") < 0)
-            return NULL;
-        if (varType->charsetForm == SQLCS_IMPLICIT)
-            bytesSize = charSize * self->environment->maxBytesPerCharacter;
-        else bytesSize = charSize * self->environment->nmaxBytesPerCharacter;
-    }
-
-    // aquire name of item
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &name,
-            &nameLength, OCI_ATTR_NAME, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_ItemDescription(): name") < 0)
-        return NULL;
-
-    // lookup scale
-    scale = 0;
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &scale, 0,
-            OCI_ATTR_SCALE, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_ItemDescription(): scale") < 0)
-        return NULL;
-
-    // lookup precision
-    precision = 0;
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &precision, 0,
-            OCI_ATTR_PRECISION, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_ItemDescription(): precision") < 0)
-        return NULL;
-
-    // lookup whether null is permitted for the attribute
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &nullOk, 0,
-            OCI_ATTR_IS_NULL, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_ItemDescription(): nullable") < 0)
-        return NULL;
-
     // set display size based on data type
-    switch (varType->oracleType) {
-        case SQLT_CHR:
-        case SQLT_AFC:
-            displaySize = charSize;
+    switch (queryInfo.oracleTypeNum) {
+        case DPI_ORACLE_TYPE_VARCHAR:
+        case DPI_ORACLE_TYPE_NVARCHAR:
+        case DPI_ORACLE_TYPE_CHAR:
+        case DPI_ORACLE_TYPE_NCHAR:
+        case DPI_ORACLE_TYPE_ROWID:
+            displaySize = (int) queryInfo.sizeInChars;
             break;
-        case SQLT_BIN:
-            displaySize = bytesSize;
+        case DPI_ORACLE_TYPE_RAW:
+            displaySize = (int) queryInfo.clientSizeInBytes;
             break;
-        case SQLT_VNU:
-            if (precision) {
-                displaySize = precision + 1;
-                if (scale > 0)
-                    displaySize += scale + 1;
+        case DPI_ORACLE_TYPE_NATIVE_FLOAT:
+        case DPI_ORACLE_TYPE_NATIVE_DOUBLE:
+        case DPI_ORACLE_TYPE_NATIVE_INT:
+        case DPI_ORACLE_TYPE_NUMBER:
+            if (queryInfo.precision) {
+                displaySize = queryInfo.precision + 1;
+                if (queryInfo.scale > 0)
+                    displaySize += queryInfo.scale + 1;
             }
             else displaySize = 127;
             break;
-        case SQLT_ODT:
-        case SQLT_TIMESTAMP:
+        case DPI_ORACLE_TYPE_DATE:
+        case DPI_ORACLE_TYPE_TIMESTAMP:
             displaySize = 23;
             break;
         default:
@@ -795,8 +560,8 @@ static PyObject *Cursor_ItemDescriptionHelper(
         return NULL;
 
     // set each of the items in the tuple
-    PyTuple_SET_ITEM(tuple, 0, cxString_FromEncodedString(name, nameLength,
-            self->connection->environment->encoding));
+    PyTuple_SET_ITEM(tuple, 0, cxString_FromEncodedString(queryInfo.name,
+            queryInfo.nameLength, self->connection->encodingInfo.encoding));
     Py_INCREF(varType->pythonType);
     PyTuple_SET_ITEM(tuple, 1, (PyObject*) varType->pythonType);
     if (displaySize)
@@ -805,57 +570,34 @@ static PyObject *Cursor_ItemDescriptionHelper(
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 2, Py_None);
     }
-    if (bytesSize)
-        PyTuple_SET_ITEM(tuple, 3, PyInt_FromLong(bytesSize));
+    if (queryInfo.clientSizeInBytes)
+        PyTuple_SET_ITEM(tuple, 3,
+                PyInt_FromLong(queryInfo.clientSizeInBytes));
     else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 3, Py_None);
     }
-    if (precision || scale) {
-        PyTuple_SET_ITEM(tuple, 4, PyInt_FromLong(precision));
-        PyTuple_SET_ITEM(tuple, 5, PyInt_FromLong(scale));
+    if (queryInfo.precision || queryInfo.scale) {
+        PyTuple_SET_ITEM(tuple, 4, PyInt_FromLong(queryInfo.precision));
+        PyTuple_SET_ITEM(tuple, 5, PyInt_FromLong(queryInfo.scale));
     } else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 4, Py_None);
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 5, Py_None);
     }
-    PyTuple_SET_ITEM(tuple, 6, PyInt_FromLong(nullOk != 0));
+    PyTuple_SET_ITEM(tuple, 6, PyInt_FromLong(queryInfo.nullOk != 0));
 
     // make sure the tuple is ok
     for (index = 0; index < 7; index++) {
-        if (!PyTuple_GET_ITEM(tuple, index)) {
+        temp = PyTuple_GET_ITEM(tuple, index);
+        if (!temp) {
             Py_DECREF(tuple);
             return NULL;
-        }
+        } else if (temp == Py_None)
+            Py_INCREF(temp);
     }
 
-    return tuple;
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_ItemDescription()
-//   Return a tuple describing the item at the given position.
-//-----------------------------------------------------------------------------
-static PyObject *Cursor_ItemDescription(
-    udt_Cursor *self,                   // cursor object
-    unsigned pos)                       // position
-{
-    PyObject *tuple;
-    OCIParam *param;
-    sword status;
-
-    // acquire parameter descriptor
-    status = OCIParamGet(self->handle, OCI_HTYPE_STMT,
-            self->environment->errorHandle, (void**) &param, pos);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_ItemDescription(): parameter") < 0)
-        return NULL;
-
-    // use helper routine to get tuple
-    tuple = Cursor_ItemDescriptionHelper(self, pos, param);
-    OCIDescriptorFree(param, OCI_DTYPE_PARAM);
     return tuple;
 }
 
@@ -865,48 +607,36 @@ static PyObject *Cursor_ItemDescription(
 //   Return a list of 7-tuples consisting of the description of the define
 // variables.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_GetDescription(
-    udt_Cursor *self,                   // cursor object
-    void *arg)                          // optional argument (ignored)
+static PyObject *Cursor_GetDescription(udt_Cursor *self, void *unused)
 {
+    uint32_t numQueryColumns, i;
     PyObject *results, *tuple;
-    int numItems, index;
-    sword status;
 
     // make sure the cursor is open
     if (Cursor_IsOpen(self) < 0)
         return NULL;
 
-    // fixup bound cursor, if necessary
-    if (Cursor_FixupBoundCursor(self) < 0)
-        return NULL;
-
-    // if not a query, return None
-    if (self->statementType != OCI_STMT_SELECT) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-
-    // determine number of items in select-list
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, (dvoid*) &numItems, 0,
-            OCI_ATTR_PARAM_COUNT, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-                "Cursor_GetDescription()") < 0)
-        return NULL;
+    // determine the number of query columns; if not a query return None
+    if (!self->handle)
+        Py_RETURN_NONE;
+    if (dpiStmt_getNumQueryColumns(self->handle, &numQueryColumns) < 0)
+        return Error_RaiseAndReturnNull();
+    if (numQueryColumns == 0)
+        Py_RETURN_NONE;
 
     // create a list of the required length
-    results = PyList_New(numItems);
+    results = PyList_New(numQueryColumns);
     if (!results)
         return NULL;
 
     // create tuples corresponding to the select-items
-    for (index = 0; index < numItems; index++) {
-        tuple = Cursor_ItemDescription(self, index + 1);
+    for (i = 0; i < numQueryColumns; i++) {
+        tuple = Cursor_ItemDescription(self, i + 1);
         if (!tuple) {
             Py_DECREF(results);
             return NULL;
         }
-        PyList_SET_ITEM(results, index, tuple);
+        PyList_SET_ITEM(results, i, tuple);
     }
 
     return results;
@@ -915,24 +645,24 @@ static PyObject *Cursor_GetDescription(
 
 //-----------------------------------------------------------------------------
 // Cursor_Close()
-//   Close the cursor.
+//   Close the cursor. Any action taken on this cursor from this point forward
+// results in an exception being raised.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Close(
-    udt_Cursor *self,                   // cursor to close
-    PyObject *args)                     // arguments
+static PyObject *Cursor_Close(udt_Cursor *self, PyObject *args)
 {
-    // make sure we are actually open
     if (Cursor_IsOpen(self) < 0)
         return NULL;
-
-    // close the cursor
-    if (Cursor_FreeHandle(self, 1) < 0)
-        return NULL;
-
+    Py_CLEAR(self->bindVariables);
+    Py_CLEAR(self->fetchVariables);
+    if (self->handle) {
+        if (dpiStmt_close(self->handle, NULL, 0) < 0)
+            return Error_RaiseAndReturnNull();
+        dpiStmt_release(self->handle);
+        self->handle = NULL;
+    }
     self->isOpen = 0;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -940,14 +670,9 @@ static PyObject *Cursor_Close(
 // Cursor_SetBindVariableHelper()
 //   Helper for setting a bind variable.
 //-----------------------------------------------------------------------------
-static int Cursor_SetBindVariableHelper(
-    udt_Cursor *self,                   // cursor to perform bind on
-    unsigned numElements,               // number of elements to create
-    unsigned arrayPos,                  // array position to set
-    PyObject *value,                    // value to bind
-    udt_Variable *origVar,              // original variable bound
-    udt_Variable **newVar,              // new variable to be bound
-    int deferTypeAssignment)            // defer type assignment if null?
+static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
+        unsigned arrayPos, PyObject *value, udt_Variable *origVar,
+        udt_Variable **newVar, int deferTypeAssignment)
 {
     int isValueVar;
 
@@ -970,22 +695,19 @@ static int Cursor_SetBindVariableHelper(
         // passes a value of 1 for the number of elements
         } else if (numElements > origVar->allocatedElements) {
             *newVar = Variable_New(self, numElements, origVar->type,
-                    origVar->size);
+                    origVar->size, origVar->isArray, origVar->objectType);
             if (!*newVar)
                 return -1;
-            if (Variable_SetValue(*newVar, arrayPos, value) < 0)
+            if (Variable_SetValue(*newVar, arrayPos, value) < 0) {
+                Py_CLEAR(*newVar);
                 return -1;
+            }
 
         // otherwise, attempt to set the value
         } else if (Variable_SetValue(origVar, arrayPos, value) < 0) {
 
             // executemany() should simply fail after the first element
             if (arrayPos > 0)
-                return -1;
-
-            // anything other than index error or type error should fail
-            if (!PyErr_ExceptionMatches(PyExc_IndexError) &&
-                    !PyErr_ExceptionMatches(PyExc_TypeError))
                 return -1;
 
             // clear the exception and try to create a new variable
@@ -1002,9 +724,6 @@ static int Cursor_SetBindVariableHelper(
         if (isValueVar) {
             Py_INCREF(value);
             *newVar = (udt_Variable*) value;
-            (*newVar)->boundPos = 0;
-            Py_XDECREF((*newVar)->boundName);
-            (*newVar)->boundName = NULL;
 
         // otherwise, create a new variable, unless the value is None and
         // we wish to defer type assignment
@@ -1012,8 +731,10 @@ static int Cursor_SetBindVariableHelper(
             *newVar = Variable_NewByValue(self, value, numElements);
             if (!*newVar)
                 return -1;
-            if (Variable_SetValue(*newVar, arrayPos, value) < 0)
+            if (Variable_SetValue(*newVar, arrayPos, value) < 0) {
+                Py_CLEAR(*newVar);
                 return -1;
+            }
         }
 
     }
@@ -1026,19 +747,16 @@ static int Cursor_SetBindVariableHelper(
 // Cursor_SetBindVariables()
 //   Create or set bind variables.
 //-----------------------------------------------------------------------------
-static int Cursor_SetBindVariables(
-    udt_Cursor *self,                   // cursor to perform binds on
-    PyObject *parameters,               // parameters to bind
-    unsigned numElements,               // number of elements to create
-    unsigned arrayPos,                  // array position to set
-    int deferTypeAssignment)            // defer type assignment if null?
+static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
+        unsigned numElements, unsigned arrayPos, int deferTypeAssignment)
 {
-    Py_ssize_t i, origBoundByPos, origNumParams, boundByPos, numParams, pos;
+    int i, origBoundByPos, origNumParams, boundByPos, numParams;
     PyObject *key, *value, *origVar;
     udt_Variable *newVar;
+    Py_ssize_t pos;
 
     // make sure positional and named binds are not being intermixed
-    numParams = 0;
+    origNumParams = numParams = 0;
     boundByPos = PySequence_Check(parameters);
     if (boundByPos) {
         numParams = PySequence_Size(parameters);
@@ -1052,7 +770,8 @@ static int Cursor_SetBindVariables(
                     "positional and named binds cannot be intermixed");
             return -1;
         }
-        origNumParams = PyList_GET_SIZE(self->bindVariables);
+        if (origBoundByPos)
+            origNumParams = PyList_GET_SIZE(self->bindVariables);
 
     // otherwise, create the list or dictionary if needed
     } else {
@@ -1126,12 +845,11 @@ static int Cursor_SetBindVariables(
 // Cursor_PerformBind()
 //   Perform the binds on the cursor.
 //-----------------------------------------------------------------------------
-static int Cursor_PerformBind(
-    udt_Cursor *self)                   // cursor to perform binds on
+static int Cursor_PerformBind(udt_Cursor *self)
 {
     PyObject *key, *var;
     Py_ssize_t pos;
-    ub2 i;
+    int i;
 
     // ensure that input sizes are reset
     // this is done before binding is attempted so that if binding fails and
@@ -1148,7 +866,7 @@ static int Cursor_PerformBind(
                     return -1;
             }
         } else {
-            for (i = 0; i < (ub2) PyList_GET_SIZE(self->bindVariables); i++) {
+            for (i = 0; i < PyList_GET_SIZE(self->bindVariables); i++) {
                 var = PyList_GET_ITEM(self->bindVariables, i);
                 if (var != Py_None) {
                     if (Variable_Bind((udt_Variable*) var, self, NULL,
@@ -1170,12 +888,14 @@ static int Cursor_PerformBind(
 // row factory function called with the argument tuple that would otherwise be
 // returned.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_CreateRow(
-    udt_Cursor *self)                   // cursor object
+static PyObject *Cursor_CreateRow(udt_Cursor *self, uint32_t pos)
 {
     PyObject *tuple, *item, *result;
-    Py_ssize_t numItems, pos;
+    int numItems, i;
     udt_Variable *var;
+
+    // bump row count as a new row has been found
+    self->rowCount++;
 
     // create a new tuple
     numItems = PyList_GET_SIZE(self->fetchVariables);
@@ -1184,19 +904,15 @@ static PyObject *Cursor_CreateRow(
         return NULL;
 
     // acquire the value for each item
-    for (pos = 0; pos < numItems; pos++) {
-        var = (udt_Variable*) PyList_GET_ITEM(self->fetchVariables, pos);
-        item = Variable_GetValue(var, self->bufferRowIndex);
+    for (i = 0; i < numItems; i++) {
+        var = (udt_Variable*) PyList_GET_ITEM(self->fetchVariables, i);
+        item = Variable_GetSingleValue(var, pos);
         if (!item) {
             Py_DECREF(tuple);
             return NULL;
         }
-        PyTuple_SET_ITEM(tuple, pos, item);
+        PyTuple_SET_ITEM(tuple, i, item);
     }
-
-    // increment row counters
-    self->bufferRowIndex++;
-    self->rowCount++;
 
     // if a row factory is defined, call it
     if (self->rowFactory && self->rowFactory != Py_None) {
@@ -1213,13 +929,11 @@ static PyObject *Cursor_CreateRow(
 // Cursor_InternalPrepare()
 //   Internal method for preparing a statement for execution.
 //-----------------------------------------------------------------------------
-static int Cursor_InternalPrepare(
-    udt_Cursor *self,                   // cursor to perform prepare on
-    PyObject *statement,                // statement to prepare
-    PyObject *statementTag)             // tag of statement to prepare
+static int Cursor_InternalPrepare(udt_Cursor *self, PyObject *statement,
+        PyObject *statementTag)
 {
     udt_Buffer statementBuffer, tagBuffer;
-    sword status;
+    int status;
 
     // make sure we don't get a situation where nothing is to be executed
     if (statement == Py_None && !self->statement) {
@@ -1231,9 +945,7 @@ static int Cursor_InternalPrepare(
     // nothing to do if the statement is identical to the one already stored
     // but go ahead and prepare anyway for create, alter and drop statments
     if (statement == Py_None || statement == self->statement) {
-        if (self->statementType != OCI_STMT_CREATE &&
-                self->statementType != OCI_STMT_DROP &&
-                self->statementType != OCI_STMT_ALTER)
+        if (self->handle && !self->stmtInfo.isDDL)
             return 0;
         statement = self->statement;
     }
@@ -1243,53 +955,47 @@ static int Cursor_InternalPrepare(
     Py_INCREF(statement);
     self->statement = statement;
 
-    // release existing statement, if necessary
+    // keep track of the tag
     Py_XDECREF(self->statementTag);
     Py_XINCREF(statementTag);
     self->statementTag = statementTag;
-    if (Cursor_FreeHandle(self, 1) < 0)
-        return -1;
+
+    // clear fetch and bind variables if applicable
+    Py_CLEAR(self->fetchVariables);
+    if (!self->setInputSizes)
+        Py_CLEAR(self->bindVariables);
 
     // prepare statement
-    self->isOwned = 0;
     if (cxBuffer_FromObject(&statementBuffer, statement,
-            self->environment->encoding) < 0)
+            self->connection->encodingInfo.encoding) < 0)
         return -1;
     if (cxBuffer_FromObject(&tagBuffer, statementTag,
-            self->environment->encoding) < 0) {
+            self->connection->encodingInfo.encoding) < 0) {
         cxBuffer_Clear(&statementBuffer);
         return -1;
     }
     Py_BEGIN_ALLOW_THREADS
-    status = OCIStmtPrepare2(self->connection->handle, &self->handle,
-            self->environment->errorHandle, (text*) statementBuffer.ptr,
-            (ub4) statementBuffer.size, (text*) tagBuffer.ptr,
-            (ub4) tagBuffer.size, OCI_NTV_SYNTAX, OCI_DEFAULT);
+    if (self->handle)
+        dpiStmt_release(self->handle);
+    status = dpiConn_prepareStmt(self->connection->handle, self->isScrollable,
+            (const char*) statementBuffer.ptr, statementBuffer.size,
+            (const char*) tagBuffer.ptr, tagBuffer.size, &self->handle);
     Py_END_ALLOW_THREADS
     cxBuffer_Clear(&statementBuffer);
     cxBuffer_Clear(&tagBuffer);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_InternalPrepare(): prepare") < 0) {
-        // this is needed to avoid "invalid handle" errors since Oracle doesn't
-        // seem to leave the pointer alone when an error is raised but the
-        // resulting handle is still invalid
-        self->handle = NULL;
-        return -1;
-    }
+    if (status < 0)
+        return Error_RaiseAndReturnInt();
 
-    // clear bind variables, if applicable
-    if (!self->setInputSizes) {
-        Py_XDECREF(self->bindVariables);
-        self->bindVariables = NULL;
-    }
+    // get statement information
+    if (dpiStmt_getInfo(self->handle, &self->stmtInfo) < 0)
+        return Error_RaiseAndReturnInt();
 
-    // clear row factory, if spplicable
-    Py_XDECREF(self->rowFactory);
-    self->rowFactory = NULL;
+    // set the fetch array size
+    if (dpiStmt_setFetchArraySize(self->handle, self->arraySize) < 0)
+        return Error_RaiseAndReturnInt();
 
-    // determine if statement is a query
-    if (Cursor_GetStatementType(self) < 0)
-        return -1;
+    // clear row factory, if applicable
+    Py_CLEAR(self->rowFactory);
 
     return 0;
 }
@@ -1300,13 +1006,12 @@ static int Cursor_InternalPrepare(
 //   Parse the statement without executing it. This also retrieves information
 // about the select list for select statements.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Parse(
-    udt_Cursor *self,                   // cursor to perform parse on
-    PyObject *args)                     // arguments
+static PyObject *Cursor_Parse(udt_Cursor *self, PyObject *args)
 {
+    uint32_t mode, numQueryColumns;
+    dpiStmtInfo stmtInfo;
     PyObject *statement;
-    sword status;
-    ub4 mode;
+    int status;
 
     // statement text is expected
     if (!PyArg_ParseTuple(args, "S", &statement))
@@ -1316,24 +1021,23 @@ static PyObject *Cursor_Parse(
     if (Cursor_IsOpen(self) < 0)
         return NULL;
 
-    // prepare the statement
+    // prepare the statement and get statement information
     if (Cursor_InternalPrepare(self, statement, NULL) < 0)
         return NULL;
+    if (dpiStmt_getInfo(self->handle, &stmtInfo) < 0)
+        return Error_RaiseAndReturnNull();
 
     // parse the statement
-    if (self->statementType == OCI_STMT_SELECT)
-        mode = OCI_DESCRIBE_ONLY;
-    else mode = OCI_PARSE_ONLY;
+    if (stmtInfo.isQuery)
+        mode = DPI_MODE_EXEC_DESCRIBE_ONLY;
+    else mode = DPI_MODE_EXEC_PARSE_ONLY;
     Py_BEGIN_ALLOW_THREADS
-    status = OCIStmtExecute(self->connection->handle, self->handle,
-            self->environment->errorHandle, 0, 0, 0, 0, mode);
+    status = dpiStmt_execute(self->handle, mode, &numQueryColumns);
     Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_Parse()") < 0)
-        return NULL;
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1341,9 +1045,7 @@ static PyObject *Cursor_Parse(
 // Cursor_Prepare()
 //   Prepare the statement for execution.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Prepare(
-    udt_Cursor *self,                   // cursor to perform prepare on
-    PyObject *args)                     // arguments
+static PyObject *Cursor_Prepare(udt_Cursor *self, PyObject *args)
 {
     PyObject *statement, *statementTag;
 
@@ -1360,8 +1062,7 @@ static PyObject *Cursor_Prepare(
     if (Cursor_InternalPrepare(self, statement, statementTag) < 0)
         return NULL;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1369,14 +1070,10 @@ static PyObject *Cursor_Prepare(
 // Cursor_CallCalculateSize()
 //   Calculate the size of the statement that is to be executed.
 //-----------------------------------------------------------------------------
-static int Cursor_CallCalculateSize(
-    PyObject *name,                     // name of procedure/function to call
-    udt_Variable *returnValue,          // return value variable (optional)
-    PyObject *listOfArguments,          // list of positional arguments
-    PyObject *keywordArguments,         // dictionary of keyword arguments
-    Py_ssize_t *size)                   // statement size (OUT)
+static int Cursor_CallCalculateSize(PyObject *name, udt_Variable *returnValue,
+        PyObject *listOfArguments, PyObject *keywordArguments, int *size)
 {
-    Py_ssize_t numPositionalArgs, numKeywordArgs;
+    int numPositionalArgs, numKeywordArgs;
 
     // set base size without any arguments
     *size = 17;
@@ -1424,17 +1121,14 @@ static int Cursor_CallCalculateSize(
 //   Determine the statement and the bind variables to bind to the statement
 // that is created for calling a stored procedure or function.
 //-----------------------------------------------------------------------------
-static int Cursor_CallBuildStatement(
-    PyObject *name,                     // name of procedure/function to call
-    udt_Variable *returnValue,          // return value variable (optional)
-    PyObject *listOfArguments,          // arguments
-    PyObject *keywordArguments,         // keyword arguments
-    char *statement,                    // allocated statement text
-    PyObject **statementObj,            // statement object (OUT)
-    PyObject **bindVariables)           // variables to bind (OUT)
+static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
+        PyObject *listOfArguments, PyObject *keywordArguments, char *statement,
+        PyObject **statementObj, PyObject **bindVariables)
 {
+    int versionNum, releaseNum, updateNum, portReleaseNum, portUpdateNum;
     PyObject *key, *value, *format, *formatArgs, *positionalArgs, *temp;
-    Py_ssize_t i, argNum, numPositionalArgs, pos;
+    int i, argNum, numPositionalArgs;
+    Py_ssize_t pos;
     char *ptr;
 
     // initialize the bind variables to the list of positional arguments
@@ -1470,6 +1164,12 @@ static int Cursor_CallBuildStatement(
     ptr = statement + strlen(statement);
     *ptr++ = '(';
 
+    // determine the client version in use
+    // booleans are not supported until Oracle 12.1
+    if (dpiContext_getClientVersion(g_DpiContext, &versionNum, &releaseNum,
+            &updateNum, &portReleaseNum, &portUpdateNum) < 0)
+        return Error_RaiseAndReturnInt();
+
     // include any positional arguments first
     if (listOfArguments) {
         positionalArgs = PySequence_Fast(listOfArguments,
@@ -1482,11 +1182,10 @@ static int Cursor_CallBuildStatement(
         for (i = 0; i < numPositionalArgs; i++) {
             if (i > 0)
                 *ptr++ = ',';
-            ptr += sprintf(ptr, ":%ld", (long) argNum++);
-#if ORACLE_VERSION_HEX < ORACLE_VERSION(12, 1)
-            if (PyBool_Check(PySequence_Fast_GET_ITEM(positionalArgs, i)))
+            ptr += sprintf(ptr, ":%d", argNum++);
+            if (versionNum < 12 &&
+                    PyBool_Check(PySequence_Fast_GET_ITEM(positionalArgs, i)))
                 ptr += sprintf(ptr, " = 1");
-#endif
         }
         Py_DECREF(positionalArgs);
     }
@@ -1505,11 +1204,9 @@ static int Cursor_CallBuildStatement(
             }
             if ((argNum > 1 && !returnValue) || (argNum > 2 && returnValue))
                 *ptr++ = ',';
-            ptr += sprintf(ptr, "%%s => :%ld", (long) argNum++);
-#if ORACLE_VERSION_HEX < ORACLE_VERSION(12, 1)
-            if (PyBool_Check(value))
+            ptr += sprintf(ptr, "%%s => :%d", argNum++);
+            if (versionNum < 12 && PyBool_Check(value))
                 ptr += sprintf(ptr, " = 1");
-#endif
         }
     }
 
@@ -1540,15 +1237,11 @@ static int Cursor_CallBuildStatement(
 // Cursor_Call()
 //   Call a stored procedure or function.
 //-----------------------------------------------------------------------------
-static int Cursor_Call(
-    udt_Cursor *self,                   // cursor to call procedure/function
-    udt_Variable *returnValue,          // return value variable (optional)
-    PyObject *name,                     // name of procedure/function to call
-    PyObject *listOfArguments,          // arguments
-    PyObject *keywordArguments)         // keyword arguments
+static int Cursor_Call(udt_Cursor *self, udt_Variable *returnValue,
+        PyObject *name, PyObject *listOfArguments, PyObject *keywordArguments)
 {
     PyObject *bindVariables, *statementObj, *results;
-    Py_ssize_t statementSize;
+    int statementSize;
     char *statement;
 
     // verify that the arguments are passed correctly
@@ -1610,10 +1303,8 @@ static int Cursor_Call(
 // Cursor_CallFunc()
 //   Call a stored function and return the return value of the function.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_CallFunc(
-    udt_Cursor *self,                   // cursor to execute
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Cursor_CallFunc(udt_Cursor *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "name", "returnType", "parameters",
             "keywordParameters", NULL };
@@ -1632,10 +1323,8 @@ static PyObject *Cursor_CallFunc(
         return NULL;
 
     // call the function
-    if (Cursor_Call(self, var, name, listOfArguments, keywordArguments) < 0) {
-        Py_DECREF(var);
+    if (Cursor_Call(self, var, name, listOfArguments, keywordArguments) < 0)
         return NULL;
-    }
 
     // determine the results
     results = Variable_GetValue(var, 0);
@@ -1648,15 +1337,13 @@ static PyObject *Cursor_CallFunc(
 // Cursor_CallProc()
 //   Call a stored procedure and return the (possibly modified) arguments.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_CallProc(
-    udt_Cursor *self,                   // cursor to execute
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Cursor_CallProc(udt_Cursor *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "name", "parameters", "keywordParameters",
             NULL };
     PyObject *listOfArguments, *keywordArguments, *results, *var, *temp, *name;
-    Py_ssize_t numArgs, i;
+    int numArgs, i;
 
     // parse arguments
     listOfArguments = keywordArguments = NULL;
@@ -1691,14 +1378,12 @@ static PyObject *Cursor_CallProc(
 // Cursor_Execute()
 //   Execute the statement.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Execute(
-    udt_Cursor *self,                   // cursor to execute
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keywords
+static PyObject *Cursor_Execute(udt_Cursor *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     PyObject *statement, *executeArgs;
-    int isQuery;
-    ub4 mode;
+    uint32_t numQueryColumns, mode;
+    int status;
 
     executeArgs = NULL;
     if (!PyArg_ParseTuple(args, "O|O", &statement, &executeArgs))
@@ -1738,30 +1423,38 @@ static PyObject *Cursor_Execute(
         return NULL;
 
     // execute the statement
-    mode = OCI_DEFAULT;
-    isQuery = (self->statementType == OCI_STMT_SELECT);
-    if (isQuery && self->isScrollable)
-        mode = OCI_STMT_SCROLLABLE_READONLY;
-    if (Cursor_InternalExecute(self, isQuery ? 0 : 1, mode) < 0)
-        return NULL;
+    Py_BEGIN_ALLOW_THREADS
+    mode = (self->connection->autocommit) ? DPI_MODE_EXEC_COMMIT_ON_SUCCESS :
+            DPI_MODE_EXEC_DEFAULT;
+    status = dpiStmt_execute(self->handle, mode, &numQueryColumns);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
+
+    // get the count of the rows affected
+    if (dpiStmt_getRowCount(self->handle, &self->rowCount) < 0)
+        return Error_RaiseAndReturnNull();
 
     // perform defines, if necessary
-    if (isQuery && !self->fetchVariables && Cursor_PerformDefine(self) < 0)
-        return NULL;
+    if (numQueryColumns > 0) {
+        if (Cursor_PerformDefine(self, numQueryColumns) < 0) {
+            Py_CLEAR(self->fetchVariables);
+            return NULL;
+        }
+    }
 
     // reset the values of setoutputsize()
     self->outputSize = -1;
     self->outputSizeColumn = -1;
 
     // for queries, return the cursor for convenience
-    if (isQuery) {
+    if (numQueryColumns > 0) {
         Py_INCREF(self);
         return (PyObject*) self;
     }
 
     // for all other statements, simply return None
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1770,17 +1463,15 @@ static PyObject *Cursor_Execute(
 //   Execute the statement many times. The number of times is equivalent to the
 // number of elements in the array of dictionaries.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_ExecuteMany(
-    udt_Cursor *self,                   // cursor to execute
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Cursor_ExecuteMany(udt_Cursor *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "statement", "parameters", "batcherrors",
             "arraydmlrowcounts", NULL };
-    int arrayDMLRowCountsEnabled = 0, batchErrorsEnabled = 0;
+    int i, numRows, arrayDMLRowCountsEnabled = 0, batchErrorsEnabled = 0;
     PyObject *arguments, *listOfArguments, *statement;
-    ub4 additionalMode = 0;
-    unsigned i, numRows;
+    uint32_t mode;
+    int status;
 
     // expect statement text (optional) plus list of sequences/mappings
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!|ii", keywordList,
@@ -1792,27 +1483,20 @@ static PyObject *Cursor_ExecuteMany(
     if (Cursor_IsOpen(self) < 0)
         return NULL;
 
-    // define additional mode, if needed
+    // determine execution mode
+    mode = (self->connection->autocommit) ? DPI_MODE_EXEC_COMMIT_ON_SUCCESS :
+            DPI_MODE_EXEC_DEFAULT;
     if (batchErrorsEnabled)
-        additionalMode |= OCI_BATCH_ERRORS;
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
+        mode |= DPI_MODE_EXEC_BATCH_ERRORS;
     if (arrayDMLRowCountsEnabled)
-        additionalMode |= OCI_RETURN_ROW_COUNT_ARRAY;
-#endif
+        mode |= DPI_MODE_EXEC_ARRAY_DML_ROWCOUNTS;
 
     // prepare the statement
     if (Cursor_InternalPrepare(self, statement, NULL) < 0)
         return NULL;
 
-    // queries are not supported as the result is undefined
-    if (self->statementType == OCI_STMT_SELECT) {
-        PyErr_SetString(g_NotSupportedErrorException,
-                "queries not supported: results undefined");
-        return NULL;
-    }
-
     // perform binds
-    numRows = (unsigned) PyList_GET_SIZE(listOfArguments);
+    numRows = PyList_GET_SIZE(listOfArguments);
     for (i = 0; i < numRows; i++) {
         arguments = PyList_GET_ITEM(listOfArguments, i);
         if (!PyDict_Check(arguments) && !PySequence_Check(arguments)) {
@@ -1830,12 +1514,19 @@ static PyObject *Cursor_ExecuteMany(
     // execute the statement, but only if the number of rows is greater than
     // zero since Oracle raises an error otherwise
     if (numRows > 0) {
-        if (Cursor_InternalExecute(self, numRows, additionalMode) < 0)
+        Py_BEGIN_ALLOW_THREADS
+        status = dpiStmt_executeMany(self->handle, mode, numRows);
+        Py_END_ALLOW_THREADS
+        if (status < 0) {
+            Error_RaiseAndReturnNull();
+            dpiStmt_getRowCount(self->handle, &self->rowCount);
             return NULL;
+        }
+        if (dpiStmt_getRowCount(self->handle, &self->rowCount) < 0)
+            return Error_RaiseAndReturnNull();
     }
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1845,136 +1536,31 @@ static PyObject *Cursor_ExecuteMany(
 // point, the statement must have been already prepared and the bind variables
 // must have their values set.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_ExecuteManyPrepared(
-    udt_Cursor *self,                   // cursor to execute
-    PyObject *args)                     // arguments
+static PyObject *Cursor_ExecuteManyPrepared(udt_Cursor *self, PyObject *args)
 {
-    ub4 numIters;
+    int numIters, status;
 
     // expect number of times to execute the statement
     if (!PyArg_ParseTuple(args, "i", &numIters))
         return NULL;
-    if (numIters > self->bindArraySize) {
-        PyErr_SetString(g_InterfaceErrorException,
-                "iterations exceed bind array size");
-        return NULL;
-    }
 
     // make sure the cursor is open
     if (Cursor_IsOpen(self) < 0)
         return NULL;
-
-    // queries are not supported as the result is undefined
-    if (self->statementType == OCI_STMT_SELECT) {
-        PyErr_SetString(g_NotSupportedErrorException,
-                "queries not supported: results undefined");
-        return NULL;
-    }
 
     // perform binds
     if (Cursor_PerformBind(self) < 0)
         return NULL;
 
     // execute the statement
-    if (Cursor_InternalExecute(self, numIters, 0) < 0)
-        return NULL;
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_VerifyFetch()
-//   Verify that fetching may happen from this cursor.
-//-----------------------------------------------------------------------------
-static int Cursor_VerifyFetch(
-    udt_Cursor *self)                   // cursor to fetch from
-{
-    // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
-        return -1;
-
-    // fixup bound cursor, if necessary
-    if (Cursor_FixupBoundCursor(self) < 0)
-        return -1;
-
-    // make sure the cursor is for a query
-    if (self->statementType != OCI_STMT_SELECT) {
-        PyErr_SetString(g_InterfaceErrorException, "not a query");
-        return -1;
-    }
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_InternalFetch()
-//   Performs the actual fetch from Oracle.
-//-----------------------------------------------------------------------------
-static int Cursor_InternalFetch(
-    udt_Cursor *self,                   // cursor to fetch from
-    int numRows)                        // number of rows to fetch
-{
-    udt_Variable *var;
-    sword status;
-    int i;
-
-    if (!self->fetchVariables) {
-        PyErr_SetString(g_InterfaceErrorException, "query not executed");
-        return -1;
-    }
-    for (i = 0; i < PyList_GET_SIZE(self->fetchVariables); i++) {
-        var = (udt_Variable*) PyList_GET_ITEM(self->fetchVariables, i);
-        var->internalFetchNum++;
-        if (var->type->preFetchProc) {
-            if ((*var->type->preFetchProc)(var) < 0)
-                return -1;
-        }
-    }
     Py_BEGIN_ALLOW_THREADS
-    status = OCIStmtFetch2(self->handle, self->environment->errorHandle,
-            numRows, OCI_FETCH_NEXT, 0, OCI_DEFAULT);
+    status = dpiStmt_executeMany(self->handle, DPI_MODE_EXEC_DEFAULT,
+            numIters);
     Py_END_ALLOW_THREADS
-    if (status == OCI_NO_DATA)
-        self->hasRowsToFetch = 0;
-    else if (Environment_CheckForError(self->environment, status,
-            "Cursor_InternalFetch(): fetch") < 0)
-        return -1;
+    if (status < 0 || dpiStmt_getRowCount(self->handle, &self->rowCount) < 0)
+        return Error_RaiseAndReturnNull();
 
-    // determine the number of rows fetched into buffers
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &self->bufferRowCount, 0,
-            OCI_ATTR_ROWS_FETCHED, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_InternalFetch(): get rows fetched") < 0)
-        return -1;
-
-    // set buffer row info
-    self->bufferMinRow = self->rowCount + 1;
-    self->bufferRowIndex = 0;
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// Cursor_MoreRows()
-//   Returns an integer indicating if more rows can be retrieved from the
-// cursor.
-//-----------------------------------------------------------------------------
-static int Cursor_MoreRows(
-    udt_Cursor *self)                   // cursor to fetch from
-{
-    if (self->bufferRowIndex >= self->bufferRowCount) {
-        if (self->hasRowsToFetch) {
-            if (Cursor_InternalFetch(self, self->fetchArraySize) < 0)
-                return -1;
-        }
-        if (self->bufferRowIndex >= self->bufferRowCount)
-            return 0;
-    }
-    return 1;
+    Py_RETURN_NONE;
 }
 
 
@@ -1983,12 +1569,15 @@ static int Cursor_MoreRows(
 //   Return a list consisting of the remaining rows up to the given row limit
 // (if specified).
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_MultiFetch(
-    udt_Cursor *self,                   // cursor to fetch from
-    int rowLimit)                       // row limit
+static PyObject *Cursor_MultiFetch(udt_Cursor *self, int rowLimit)
 {
+    uint32_t bufferRowIndex = 0;
     PyObject *results, *row;
-    int rowNum, status;
+    int found, rowNum;
+
+    // verify fetch can be performed
+    if (Cursor_VerifyFetch(self) < 0)
+        return NULL;
 
     // create an empty list
     results = PyList_New(0);
@@ -1997,25 +1586,23 @@ static PyObject *Cursor_MultiFetch(
 
     // fetch as many rows as possible
     for (rowNum = 0; rowLimit == 0 || rowNum < rowLimit; rowNum++) {
-        status = Cursor_MoreRows(self);
-        if (status < 0) {
+        if (Cursor_FetchRow(self, &found, &bufferRowIndex) < 0) {
             Py_DECREF(results);
             return NULL;
-        } else if (status == 0) {
-            break;
-        } else {
-            row = Cursor_CreateRow(self);
-            if (!row) {
-                Py_DECREF(results);
-                return NULL;
-            }
-            if (PyList_Append(results, row) < 0) {
-                Py_DECREF(row);
-                Py_DECREF(results);
-                return NULL;
-            }
-            Py_DECREF(row);
         }
+        if (!found)
+            break;
+        row = Cursor_CreateRow(self, bufferRowIndex);
+        if (!row) {
+            Py_DECREF(results);
+            return NULL;
+        }
+        if (PyList_Append(results, row) < 0) {
+            Py_DECREF(row);
+            Py_DECREF(results);
+            return NULL;
+        }
+        Py_DECREF(row);
     }
 
     return results;
@@ -2026,25 +1613,19 @@ static PyObject *Cursor_MultiFetch(
 // Cursor_FetchOne()
 //   Fetch a single row from the cursor.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_FetchOne(
-    udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args)                     // arguments
+static PyObject *Cursor_FetchOne(udt_Cursor *self, PyObject *args)
 {
-    int status;
+    uint32_t bufferRowIndex = 0;
+    int found = 0;
 
-    // verify fetch can be performed
     if (Cursor_VerifyFetch(self) < 0)
         return NULL;
-
-    // setup return value
-    status = Cursor_MoreRows(self);
-    if (status < 0)
+    if (Cursor_FetchRow(self, &found, &bufferRowIndex) < 0)
         return NULL;
-    else if (status > 0)
-        return Cursor_CreateRow(self);
+    if (found)
+        return Cursor_CreateRow(self, bufferRowIndex);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -2052,10 +1633,8 @@ static PyObject *Cursor_FetchOne(
 // Cursor_FetchMany()
 //   Fetch multiple rows from the cursor based on the arraysize.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_FetchMany(
-    udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Cursor_FetchMany(udt_Cursor *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "numRows", NULL };
     int rowLimit;
@@ -2066,10 +1645,6 @@ static PyObject *Cursor_FetchMany(
             &rowLimit))
         return NULL;
 
-    // verify fetch can be performed
-    if (Cursor_VerifyFetch(self) < 0)
-        return NULL;
-
     return Cursor_MultiFetch(self, rowLimit);
 }
 
@@ -2078,12 +1653,8 @@ static PyObject *Cursor_FetchMany(
 // Cursor_FetchAll()
 //   Fetch all remaining rows from the cursor.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_FetchAll(
-    udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args)                     // arguments
+static PyObject *Cursor_FetchAll(udt_Cursor *self, PyObject *args)
 {
-    if (Cursor_VerifyFetch(self) < 0)
-        return NULL;
     return Cursor_MultiFetch(self, 0);
 }
 
@@ -2092,13 +1663,12 @@ static PyObject *Cursor_FetchAll(
 // Cursor_FetchRaw()
 //   Perform raw fetch on the cursor; return the actual number of rows fetched.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_FetchRaw(
-    udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Cursor_FetchRaw(udt_Cursor *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "numRows", NULL };
-    ub4 numRowsToFetch, numRowsFetched;
+    uint32_t numRowsToFetch, numRowsFetched, bufferRowIndex;
+    int moreRows;
 
     // expect an optional number of rows to retrieve
     numRowsToFetch = self->fetchArraySize;
@@ -2111,18 +1681,12 @@ static PyObject *Cursor_FetchRaw(
         return NULL;
     }
 
-    // do not attempt to perform fetch if no more rows to fetch
-    if (self->bufferRowCount > 0 && self->bufferRowCount < self->fetchArraySize)
-        return PyInt_FromLong(0);
-
-    // perform internal fetch
-    if (Cursor_InternalFetch(self, numRowsToFetch) < 0)
-        return NULL;
-
-    self->rowCount += self->bufferRowCount;
-    numRowsFetched = self->bufferRowCount;
-    if (self->bufferRowCount == numRowsToFetch)
-        self->bufferRowCount = 0;
+    // perform the fetch
+    if (dpiStmt_fetchRows(self->handle, numRowsToFetch, &bufferRowIndex,
+            &numRowsFetched, &moreRows) < 0)
+        return Error_RaiseAndReturnNull();
+    self->rowCount += numRowsFetched;
+    self->numRowsInFetchBuffer = 0;
     return PyInt_FromLong(numRowsFetched);
 }
 
@@ -2131,41 +1695,34 @@ static PyObject *Cursor_FetchRaw(
 // Cursor_Scroll()
 //   Scroll the cursor using the value and mode specified.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Scroll(
-    udt_Cursor *self,                   // cursor to execute
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Cursor_Scroll(udt_Cursor *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "value", "mode", NULL };
-    ub4 fetchMode, numRows, currentPosition;
-    ub8 desiredRow;
-    sword status;
-    char *mode;
-    sb4 value;
+    dpiFetchMode mode;
+    int32_t offset;
+    char *strMode;
+    int status;
 
     // parse arguments
-    value = 0;
-    mode = NULL;
+    offset = 0;
+    strMode = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|is", keywordList,
-            &value, &mode))
+            &offset, &strMode))
         return NULL;
 
     // validate mode
-    if (!mode || strcmp(mode, "relative") == 0) {
-        fetchMode = OCI_FETCH_RELATIVE;
-        desiredRow = self->rowCount + value;
-        value = (sb4) (desiredRow -
-                (self->bufferMinRow + self->bufferRowCount - 1));
-    } else if (strcmp(mode, "absolute") == 0) {
-        fetchMode = OCI_FETCH_ABSOLUTE;
-        desiredRow = value;
-    } else if (strcmp(mode, "first") == 0) {
-        fetchMode = OCI_FETCH_FIRST;
-        desiredRow = 1;
-    } else if (strcmp(mode, "last") == 0) {
-        fetchMode = OCI_FETCH_LAST;
-        desiredRow = 0;
-    } else {
+    if (!strMode)
+        mode = DPI_MODE_FETCH_RELATIVE;
+    else if (strcmp(strMode, "relative") == 0)
+        mode = DPI_MODE_FETCH_RELATIVE;
+    else if (strcmp(strMode, "absolute") == 0)
+        mode = DPI_MODE_FETCH_ABSOLUTE;
+    else if (strcmp(strMode, "first") == 0)
+        mode = DPI_MODE_FETCH_FIRST;
+    else if (strcmp(strMode, "last") == 0)
+        mode = DPI_MODE_FETCH_LAST;
+    else {
         PyErr_SetString(g_InterfaceErrorException,
                 "mode must be one of relative, absolute, first or last");
         return NULL;
@@ -2175,59 +1732,21 @@ static PyObject *Cursor_Scroll(
     if (Cursor_IsOpen(self) < 0)
         return NULL;
 
-    // determine if a fetch is actually required; "last" is always fetched
-    if (fetchMode != OCI_FETCH_LAST && desiredRow >= self->bufferMinRow &&
-            desiredRow < self->bufferMinRow + self->bufferRowCount) {
-        self->bufferRowIndex = (ub4) (desiredRow - self->bufferMinRow);
-        self->rowCount = desiredRow - 1;
-        Py_RETURN_NONE;
-    }
-
-    // perform fetch; when fetching the last row, only fetch a single row
-    numRows = (fetchMode == OCI_FETCH_LAST) ? 1 : self->fetchArraySize;
+    // perform scroll and get new row count and number of rows in buffer
     Py_BEGIN_ALLOW_THREADS
-    status = OCIStmtFetch2(self->handle, self->environment->errorHandle,
-            numRows, fetchMode, value, OCI_DEFAULT);
+    status = dpiStmt_scroll(self->handle, mode, offset,
+            -self->numRowsInFetchBuffer);
+    if (status == 0)
+        status = dpiStmt_fetchRows(self->handle, self->fetchArraySize,
+                &self->fetchBufferRowIndex, &self->numRowsInFetchBuffer,
+                &self->moreRowsToFetch);
+    if (status == 0)
+        status = dpiStmt_getRowCount(self->handle, &self->rowCount);
     Py_END_ALLOW_THREADS
-    if (status == OCI_NO_DATA || fetchMode == OCI_FETCH_LAST)
-        self->hasRowsToFetch = 0;
-    else if (Environment_CheckForError(self->environment, status,
-            "Cursor_Scroll(): fetch") < 0)
-        return NULL;
-    else self->hasRowsToFetch = 1;
+    if (status < 0)
+        return Error_RaiseAndReturnNull();
+    self->rowCount -= self->numRowsInFetchBuffer;
 
-    // determine the number of rows actually fetched
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &self->bufferRowCount, 0,
-            OCI_ATTR_ROWS_FETCHED, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_Scroll(): get rows fetched") < 0)
-        return NULL;
-
-    // handle the case when no rows have been retrieved
-    if (self->bufferRowCount == 0) {
-        if (fetchMode != OCI_FETCH_FIRST && fetchMode != OCI_FETCH_LAST) {
-            PyErr_SetString(g_DatabaseErrorException,
-                    "requested scroll operation would leave result set");
-            return NULL;
-        }
-        self->rowCount = 0;
-        self->bufferMinRow = 0;
-        self->bufferRowCount = 0;
-        self->bufferRowIndex = 0;
-        Py_RETURN_NONE;
-    }
-
-    // determine the current position of the cursor
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &currentPosition, 0,
-            OCI_ATTR_CURRENT_POSITION, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_Scroll(): get current position") < 0)
-        return NULL;
-
-    // reset buffer row index and row count
-    self->rowCount = currentPosition - self->bufferRowCount;
-    self->bufferMinRow = self->rowCount + 1;
-    self->bufferRowIndex = 0;
     Py_RETURN_NONE;
 }
 
@@ -2236,14 +1755,13 @@ static PyObject *Cursor_Scroll(
 // Cursor_SetInputSizes()
 //   Set the sizes of the bind variables.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_SetInputSizes(
-    udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Cursor_SetInputSizes(udt_Cursor *self, PyObject *args,
+        PyObject *keywordArgs)
 {
-    Py_ssize_t numPositionalArgs, i;
+    int numPositionalArgs;
     PyObject *key, *value;
     udt_Variable *var;
+    Py_ssize_t i;
 
     // only expect keyword arguments or positional arguments, not both
     numPositionalArgs = PyTuple_Size(args);
@@ -2258,7 +1776,7 @@ static PyObject *Cursor_SetInputSizes(
         return NULL;
 
     // eliminate existing bind variables
-    Py_XDECREF(self->bindVariables);
+    Py_CLEAR(self->bindVariables);
     if (keywordArgs)
         self->bindVariables = PyDict_New();
     else self->bindVariables = PyList_New(numPositionalArgs);
@@ -2304,17 +1822,14 @@ static PyObject *Cursor_SetInputSizes(
 // Cursor_SetOutputSize()
 //   Set the size of all of the long columns or just one of them.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_SetOutputSize(
-    udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args)                     // arguments
+static PyObject *Cursor_SetOutputSize(udt_Cursor *self, PyObject *args)
 {
     self->outputSizeColumn = -1;
     if (!PyArg_ParseTuple(args, "i|i", &self->outputSize,
             &self->outputSizeColumn))
         return NULL;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -2322,16 +1837,14 @@ static PyObject *Cursor_SetOutputSize(
 // Cursor_Var()
 //   Create a bind variable and return it.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Var(
-    udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *Cursor_Var(udt_Cursor *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "type", "size", "arraysize",
             "inconverter", "outconverter", "typename", NULL };
     PyObject *inConverter, *outConverter, *typeNameObj;
+    udt_ObjectType *objType = NULL;
     udt_VariableType *varType;
-    udt_ObjectVar *objectVar;
     int size, arraySize;
     udt_Variable *var;
     PyObject *type;
@@ -2349,31 +1862,23 @@ static PyObject *Cursor_Var(
     varType = Variable_TypeByPythonType(self, type);
     if (!varType)
         return NULL;
-    if (varType->isVariableLength && size == 0)
+    if (size == 0)
         size = varType->size;
-    if (type == (PyObject*) &g_ObjectVarType && !typeNameObj) {
-        PyErr_SetString(PyExc_TypeError,
-                "expecting type name for object variables");
-        return NULL;
+    if (typeNameObj) {
+        objType = ObjectType_NewByName(self->connection, typeNameObj);
+        if (!objType)
+            return NULL;
     }
 
     // create the variable
-    var = Variable_New(self, arraySize, varType, size);
+    var = Variable_New(self, arraySize, varType, size, 0, objType);
+    Py_XDECREF(objType);
     if (!var)
         return NULL;
     Py_XINCREF(inConverter);
     var->inConverter = inConverter;
     Py_XINCREF(outConverter);
     var->outConverter = outConverter;
-
-    // define the object type if needed
-    if (type == (PyObject*) &g_ObjectVarType) {
-        objectVar = (udt_ObjectVar*) var;
-        if (ObjectVar_SetType(objectVar, typeNameObj) < 0) {
-            Py_DECREF(var);
-            return NULL;
-        }
-    }
 
     return (PyObject*) var;
 }
@@ -2383,13 +1888,11 @@ static PyObject *Cursor_Var(
 // Cursor_ArrayVar()
 //   Create an array bind variable and return it.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_ArrayVar(
-    udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args)                     // arguments
+static PyObject *Cursor_ArrayVar(udt_Cursor *self, PyObject *args)
 {
-    Py_ssize_t size, numElements;
     udt_VariableType *varType;
     PyObject *type, *value;
+    int size, numElements;
     udt_Variable *var;
 
     // parse arguments
@@ -2401,7 +1904,7 @@ static PyObject *Cursor_ArrayVar(
     varType = Variable_TypeByPythonType(self, type);
     if (!varType)
         return NULL;
-    if (varType->isVariableLength && size == 0)
+    if (size == 0)
         size = varType->size;
 
     // determine the number of elements to create
@@ -2418,13 +1921,9 @@ static PyObject *Cursor_ArrayVar(
     }
 
     // create the variable
-    var = Variable_New(self, (unsigned) numElements, varType, (ub4) size);
+    var = Variable_New(self, numElements, varType, size, 1, NULL);
     if (!var)
         return NULL;
-    if (Variable_MakeArray(var) < 0) {
-        Py_DECREF(var);
-        return NULL;
-    }
 
     // set the value, if applicable
     if (PyList_Check(value)) {
@@ -2440,24 +1939,64 @@ static PyObject *Cursor_ArrayVar(
 // Cursor_BindNames()
 //   Return a list of bind variable names.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_BindNames(
-    udt_Cursor *self,                   // cursor to fetch from
-    PyObject *args)                     // arguments
+static PyObject *Cursor_BindNames(udt_Cursor *self, PyObject *args)
 {
-    PyObject *names;
-    int result;
+    uint32_t numBinds, *nameLengths, i;
+    PyObject *namesList, *temp;
+    const char **names;
 
     // make sure the cursor is open
     if (Cursor_IsOpen(self) < 0)
         return NULL;
 
-    // return result
-    result = Cursor_GetBindNames(self, 8, &names);
-    if (result < 0)
+    // ensure that a statement has already been prepared
+    if (!self->statement) {
+        PyErr_SetString(g_ProgrammingErrorException,
+                "statement must be prepared first");
         return NULL;
-    if (!names && Cursor_GetBindNames(self, result, &names) < 0)
-        return NULL;
-    return names;
+    }
+
+    // determine the number of binds
+    if (dpiStmt_getBindCount(self->handle, &numBinds) < 0)
+        return Error_RaiseAndReturnNull();
+
+    // if the number of binds is zero, nothing to do
+    if (numBinds == 0)
+        return PyList_New(0);
+
+    // allocate memory for the bind names and their lengths
+    names = (const char**) PyMem_Malloc(numBinds * sizeof(char*));
+    if (!names)
+        return PyErr_NoMemory();
+    nameLengths = (uint32_t*) PyMem_Malloc(numBinds * sizeof(uint32_t));
+    if (!nameLengths) {
+        PyMem_Free(names);
+        return PyErr_NoMemory();
+    }
+
+    // get the bind names
+    if (dpiStmt_getBindNames(self->handle, numBinds, names, nameLengths) < 0) {
+        PyMem_Free(names);
+        PyMem_Free(nameLengths);
+        return Error_RaiseAndReturnNull();
+    }
+
+    // populate list with the results
+    namesList = PyList_New(numBinds);
+    if (namesList) {
+        for (i = 0; i < numBinds; i++) {
+            temp = cxString_FromEncodedString(names[i], nameLengths[i],
+                    self->connection->encodingInfo.encoding);
+            if (!temp) {
+                Py_CLEAR(namesList);
+                break;
+            }
+            PyList_SET_ITEM(namesList, i, temp);
+        }
+    }
+    PyMem_Free(names);
+    PyMem_Free(nameLengths);
+    return namesList;
 }
 
 
@@ -2465,8 +2004,7 @@ static PyObject *Cursor_BindNames(
 // Cursor_GetIter()
 //   Return a reference to the cursor which supports the iterator protocol.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_GetIter(
-    udt_Cursor *self)                   // cursor
+static PyObject *Cursor_GetIter(udt_Cursor *self)
 {
     if (Cursor_VerifyFetch(self) < 0)
         return NULL;
@@ -2479,18 +2017,17 @@ static PyObject *Cursor_GetIter(
 // Cursor_GetNext()
 //   Return a reference to the cursor which supports the iterator protocol.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_GetNext(
-    udt_Cursor *self)                   // cursor
+static PyObject *Cursor_GetNext(udt_Cursor *self)
 {
-    int status;
+    uint32_t bufferRowIndex = 0;
+    int found = 0;
 
     if (Cursor_VerifyFetch(self) < 0)
         return NULL;
-    status = Cursor_MoreRows(self);
-    if (status < 0)
+    if (Cursor_FetchRow(self, &found, &bufferRowIndex) < 0)
         return NULL;
-    else if (status > 0)
-        return Cursor_CreateRow(self);
+    if (found)
+        return Cursor_CreateRow(self, bufferRowIndex);
 
     // no more rows, return NULL without setting an exception
     return NULL;
@@ -2498,143 +2035,70 @@ static PyObject *Cursor_GetNext(
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetBatchErrorsHelper()
-//    Populates the list with the error objects.
-//-----------------------------------------------------------------------------
-static int Cursor_GetBatchErrorsHelper(
-    udt_Cursor *self,                   // cursor object
-    PyObject *listObj,                  // list object to populate
-    ub4 numBatchErrors,                 // number of batch errors
-    OCIError *errorHandle,              // first error handle
-    OCIError *localErrorHandle)         // second (local) error handle
-{
-    udt_Error *errorObj;
-    sb4 rowOffset;
-    sword status;
-    ub4 i;
-
-    for (i = 0; i < numBatchErrors; i++) {
-
-        // fetch batch error for iteration
-        status = OCIParamGet(self->environment->errorHandle, OCI_HTYPE_ERROR,
-                errorHandle, (void **) &localErrorHandle, i);
-        if (Error_Check(self->environment, status, 
-                "Cursor_GetBatchErrorsHelper(): get parameter",
-                errorHandle) < 0)
-            return -1;
-
-        // determine row offset
-        status = OCIAttrGet(localErrorHandle, OCI_HTYPE_ERROR, &rowOffset, 0,
-                OCI_ATTR_DML_ROW_OFFSET, errorHandle);
-        if (Error_Check(self->environment, status, 
-                "Cursor_GetBatchErrorsHelper(): get row offset",
-                errorHandle) < 0)
-            return -1;
-
-        // determine error object
-        errorObj = Error_InternalNew(self->environment, "Batch Error",
-                OCI_HTYPE_ERROR, localErrorHandle);
-        if (!errorObj)
-            return -1;
-        errorObj->offset = rowOffset;
-
-        // populate list
-        PyList_SET_ITEM(listObj, i, (PyObject*) errorObj);
-
-    }
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
 // Cursor_GetBatchErrors()
 //    Returns a list of batch error objects.
 //-----------------------------------------------------------------------------
-static PyObject* Cursor_GetBatchErrors(
-    udt_Cursor *self)
+static PyObject* Cursor_GetBatchErrors(udt_Cursor *self)
 {
-    OCIError *errorHandle, *localErrorHandle;
-    ub4 numBatchErrors;
+    uint32_t numErrors, i;
+    dpiErrorInfo *errors;
     PyObject *result;
-    sword status;
+    udt_Error *error;
 
     // determine the number of errors
-    status = OCIAttrGet(self->handle, (ub4) OCI_HTYPE_STMT,
-            (ub4 *) &numBatchErrors, 0, OCI_ATTR_NUM_DML_ERRORS,
-            self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_GetBatchErrors(): get number of errors") < 0)
-        return NULL;
+    if (dpiStmt_getBatchErrorCount(self->handle, &numErrors) < 0)
+        return Error_RaiseAndReturnNull();
+    if (numErrors == 0)
+        return PyList_New(0);
 
-    // create list and if no errors, simply return immediately
-    result = PyList_New(numBatchErrors);
-    if (!result)
-        return NULL;
-    if (numBatchErrors == 0)
-        return result;
+    // allocate memory for the errors
+    errors = PyMem_Malloc(numErrors * sizeof(dpiErrorInfo));
+    if (!errors)
+        return PyErr_NoMemory();
 
-    // allocate first error handle
-    status = OCIHandleAlloc((void *) self->environment->handle,
-            (void **) &errorHandle, (ub4) OCI_HTYPE_ERROR, 0, (void *) 0);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_GetBatchErrors(): allocate first error handle") < 0) {
-        Py_DECREF(result);
-        return NULL;
+    // get error information
+    if (dpiStmt_getBatchErrors(self->handle, numErrors, errors) < 0) {
+        PyMem_Free(errors);
+        return Error_RaiseAndReturnNull();
     }
 
-    // allocate second (local) error handle
-    status = OCIHandleAlloc((void *) self->environment->handle,
-            (void **) &localErrorHandle, (ub4) OCI_HTYPE_ERROR, 0, (void *) 0);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_GetBatchErrors(): allocate second error handle") < 0) {
-        Py_DECREF(result);
-        OCIHandleFree(errorHandle, OCI_HTYPE_ERROR);
-        return NULL;
+    // create result
+    result = PyList_New(numErrors);
+    if (result) {
+        for (i = 0; i < numErrors; i++) {
+            error = Error_InternalNew(&errors[i]);
+            if (!error) {
+                Py_CLEAR(result);
+                break;
+            }
+            PyList_SET_ITEM(result, i, (PyObject*) error);
+        }
     }
-
-    // create error objects
-    if (Cursor_GetBatchErrorsHelper(self, result, numBatchErrors, errorHandle,
-            localErrorHandle) < 0) {
-        Py_DECREF(result);
-        result = NULL;
-    }
-
-    // cleanup and return result
-    OCIHandleFree(errorHandle, OCI_HTYPE_ERROR);
-    OCIHandleFree(localErrorHandle, OCI_HTYPE_ERROR);
+    PyMem_Free(errors);
     return result;
 }
 
 
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12,1)
 //-----------------------------------------------------------------------------
 // Cursor_GetArrayDMLRowCounts
-//    Populates the array dml row count list. Raises error for failure.
+//    Populates the array dml row count list.
 //-----------------------------------------------------------------------------
-static PyObject* Cursor_GetArrayDMLRowCounts(
-    udt_Cursor *self)                   // cursor object
+static PyObject* Cursor_GetArrayDMLRowCounts(udt_Cursor *self)
 {
     PyObject *result, *element;
-    ub4 rowCountArraySize, i;
-    ub8 *arrayDMLRowCount;
-    sword status;
- 
-    // get number of iterations 
-    status = OCIAttrGet(self->handle, (ub4) OCI_HTYPE_STMT,
-            (ub8 *) &arrayDMLRowCount, &rowCountArraySize,
-            OCI_ATTR_DML_ROW_COUNT_ARRAY, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_GetArrayDMLRowCounts(): row count") < 0)
-        return NULL;
+    uint32_t numRowCounts, i;
+    uint64_t *rowCounts;
+
+    // get row counts from DPI
+    if (dpiStmt_getRowCounts(self->handle, &numRowCounts, &rowCounts) < 0)
+        return Error_RaiseAndReturnNull();
 
     // return array
-    result = PyList_New(rowCountArraySize);
+    result = PyList_New(numRowCounts);
     if (!result)
         return NULL;
-    for (i = 0; i < rowCountArraySize; i++) {
-        element = PyLong_FromUnsignedLong(
-                (unsigned long) arrayDMLRowCount[i]);
+    for (i = 0; i < numRowCounts; i++) {
+        element = PyLong_FromUnsignedLong(rowCounts[i]);
         if (!element) {
             Py_DECREF(result);
             return NULL;
@@ -2651,13 +2115,11 @@ static PyObject* Cursor_GetArrayDMLRowCounts(
 //   Return a list of cursors available implicitly after execution of a PL/SQL
 // block or stored procedure. If none are available, an empty list is returned.
 //-----------------------------------------------------------------------------
-static PyObject * Cursor_GetImplicitResults(
-    udt_Cursor *self)                   // cursor object
+static PyObject * Cursor_GetImplicitResults(udt_Cursor *self)
 {
-    ub4 i, numImplicitResults, returnType;
     udt_Cursor *childCursor;
+    dpiStmt *childStmt;
     PyObject *result;
-    sword status;
 
     // make sure the cursor is open
     if (Cursor_IsOpen(self) < 0)
@@ -2669,44 +2131,32 @@ static PyObject * Cursor_GetImplicitResults(
         return NULL;
     }
 
-    // determine the number of implicit results that are available
-    status = OCIAttrGet(self->handle, OCI_HTYPE_STMT, &numImplicitResults, 0,
-            OCI_ATTR_IMPLICIT_RESULT_COUNT, self->environment->errorHandle);
-    if (Environment_CheckForError(self->environment, status,
-            "Cursor_GetImplicitResults(): get number of implicit results") < 0)
-        return NULL;
-
-    // create the list
-    result = PyList_New(numImplicitResults);
+    // create result
+    result = PyList_New(0);
     if (!result)
         return NULL;
-
-    // populate it with the implicit results
-    for (i = 0; i < numImplicitResults; i++) {
-        childCursor = (udt_Cursor*) Connection_NewCursor(self->connection,
-                NULL, NULL);
+    while (1) {
+        if (dpiStmt_getImplicitResult(self->handle, &childStmt) < 0)
+            return Error_RaiseAndReturnNull();
+        if (!childStmt)
+            break;
+        childCursor = (udt_Cursor*) PyObject_CallMethod(
+                (PyObject*) self->connection, "cursor", NULL);
         if (!childCursor) {
+            dpiStmt_release(childStmt);
             Py_DECREF(result);
             return NULL;
         }
-        PyList_SET_ITEM(result, i, (PyObject*) childCursor);
-        status = OCIStmtGetNextResult(self->handle,
-                self->environment->errorHandle, (dvoid**) &childCursor->handle,
-                &returnType, OCI_DEFAULT);
-        if (Environment_CheckForError(self->environment, status,
-                "Cursor_GetImplicitResults(): get next result") < 0) {
+        childCursor->handle = childStmt;
+        childCursor->fixupRefCursor = 1;
+        if (PyList_Append(result, (PyObject*) childCursor) < 0) {
             Py_DECREF(result);
+            Py_DECREF(childCursor);
             return NULL;
         }
-        if (returnType != OCI_RESULT_TYPE_SELECT) {
-            PyErr_SetString(g_InternalErrorException,
-                    "Cursor_GetImplicitResults(): unexpected result type");
-            Py_DECREF(result);
-            return NULL; 
-        }
+        Py_DECREF(childCursor);
     }
 
     return result;
 }
-#endif
 

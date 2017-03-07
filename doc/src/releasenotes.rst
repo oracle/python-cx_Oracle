@@ -1,12 +1,45 @@
 Release notes
 =============
 
-5.x releases
+6.x releases
 ############
 
 
-Version 5.next
---------------
+Version 6.0 (TBD)
+-----------------
+
+1)  Added attribute :attr:`SessionPool.stmtcachesize` to support getting and
+    setting the default statement cache size for connections in the pool.
+2)  Added attribute :attr:`Connection.dbop` to support setting the database
+    operation that is to be monitored.
+3)  Added attribute :attr:`Connection.handle` to facilitate testing the
+    creation of a connection using a OCI service context handle.
+4)  Added parameters tag and matchanytag to the :meth:`cx_Oracle.connect`
+    and :meth:`SessionPool.acquire` methods and added parameters tag and retag
+    to the :meth:`SessionPool.release` method in order to support session
+    tagging.
+5)  Added parameter edition to the :meth:`cx_Oracle.SessionPool` method.
+6)  Added support for universal rowids.
+7)  Added support for DML returning of multiple rows.
+8)  Added sharding parameters region, sharding_key and super_sharding_key to
+    the :meth:`cx_Oracle.makedsn()` method.
+9)  Removed restriction on fetching LOBs across round trips to the database
+    (LOB variable no longer valid after subsequent fetch).
+10) Removed requirement for specifying a maximum size when fetching LONG or
+    LONG raw columns. This also allows CLOB, NCLOB, BLOB and BFILE columns to
+    be fetched without needing to specify a maximum size.
+11) Dropped deprecated parameters twophase, action, module and clientinfo from
+    the :meth:`cx_Oracle.connect` method.
+12) Dropped deprecated attribute numbersAsString from
+    :ref:`cursor objects <cursorobj>`. Use an output type handler instead.
+13) Dropped deprecated attributes cqqos and rowids from
+    :ref:`subscription objects <subscrobj>`. Use the qos attribute instead.
+14) Dropped deprecated parameters cqqos and rowids from the
+    :meth:`Connection.subscribe()` method.
+
+
+5.x releases
+############
 
 
 Version 5.3 (March 2017)

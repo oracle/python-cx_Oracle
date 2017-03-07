@@ -76,7 +76,7 @@ class TestLobVar(BaseTestCase):
 
     def __ValidateQuery(self, rows, lobType):
         longString = ""
-        for row in self.cursor:
+        for row in rows:
             integerValue, lob = row
             if integerValue == 0:
                 self.assertEqual(lob.size(), 0)

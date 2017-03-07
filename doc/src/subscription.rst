@@ -21,15 +21,6 @@ Subscription Object
    the subscription when it was created.
 
 
-.. attribute:: Subscription.cqqos
-
-   This read-only attribute returns the quality of service flags used to
-   register the subscription when it was created.
-
-   .. deprecated:: 5.3
-      Use the qos attribute instead.
-
-
 .. attribute:: Subscription.id
 
    This read-only attribute returns the registration ID returned by the
@@ -75,16 +66,6 @@ Subscription Object
    If the qos parameter included the flag cx_Oracle.SUBSCR_QOS_QUERY when
    the subscription was created, then the ID for the registered query is
    returned; otherwise, None is returned.
-
-
-.. attribute:: Subscription.rowids
-
-   This read-only attribute returns True or False specifying if rowids will be
-   included in notifications sent using this subscription.
-
-   .. deprecated:: 5.3
-      Use :data:`~cx_Oracle.SUBSCR_QOS_ROWIDS` masked with the qos attribute
-      instead.
 
 
 .. attribute:: Subscription.timeout

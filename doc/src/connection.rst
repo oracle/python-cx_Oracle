@@ -135,6 +135,17 @@ Connection Object
    Return a new :ref:`cursor object <cursorobj>` using the connection.
 
 
+.. attribute:: Connection.dbop
+
+   This write-only attribute sets the database operation that is to be
+   monitored. This can be viewed in the DBOP_NAME column of the V$SQL_MONITOR
+   table.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
+
+
 .. method:: Connection.deq(name, options, msgproperties, payload)
 
    Returns a message id after successfully dequeuing a message. The options
@@ -245,6 +256,17 @@ Connection Object
    .. note::
 
          This method is an extension to the DB API definition.
+
+
+.. attribute:: Connection.handle
+
+   This read-only attribute returns the OCI service context handle for the
+   connection. It is primarily provided to facilitate testing the creation of a
+   connection using the OCI service context handle.
+
+   .. note::
+
+      This attribute is an extension to the DB API definition.
 
 
 .. attribute:: Connection.inputtypehandler
@@ -430,7 +452,7 @@ Connection Object
       This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, rowids=False, port=0, qos=0, cqqos=0)
+.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0)
 
    Return a new :ref:`subscription object <subscrobj>` using the connection.
    Currently the namespace and protocol arguments cannot have any other
@@ -448,11 +470,6 @@ Connection Object
    (insert, update, delete). The default value will send notifications for all
    operations.
 
-   The rowids flag specifies whether the rowids of affected rows should be
-   included in the messages that are sent. This argument is deprecated and
-   will be removed in a future version of cx_Oracle. Use the value
-   :data:`~cx_Oracle.SUBSCR_QOS_ROWIDS` for the qos argument instead.
-
    The port specifies the listening port for callback notifications from the
    database server. If not specified, an unused port will be selected by the
    database.
@@ -464,9 +481,6 @@ Connection Object
    :data:`cx_Oracle.SUBSCR_QOS_ROWIDS`,
    :data:`cx_Oracle.SUBSCR_QOS_QUERY`,
    :data:`cx_Oracle.SUBSCR_QOS_BEST_EFFORT`.
-
-   The cqqos argument is deprecated and will be removed in a future version of
-   cx_Oracle. The qos argument should be used instead.
 
    .. note::
 

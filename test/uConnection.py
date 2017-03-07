@@ -49,7 +49,7 @@ class TestConnection(TestCase):
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
         connection.close()
-        self.assertRaises(cx_Oracle.InterfaceError, connection.rollback)
+        self.assertRaises(cx_Oracle.DatabaseError, connection.rollback)
 
     def testMakeDSN(self):
         "test making a data source name from host, port and sid"

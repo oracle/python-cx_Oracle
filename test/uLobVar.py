@@ -124,13 +124,6 @@ class TestLobVar(BaseTestCase):
         "test trimming a CLOB"
         self.__TestTrim("CLOB")
 
-    def testMultipleFetch(self):
-        "test retrieving data from a CLOB after multiple fetches"
-        self.cursor.arraysize = 1
-        self.cursor.execute(u"select CLOBCol from TestCLOBS")
-        rows = self.cursor.fetchall()
-        self.assertRaises(cx_Oracle.ProgrammingError, rows[1][0].read)
-
     def testNCLOBCursorDescription(self):
         "test cursor description is accurate for NCLOBs"
         self.cursor.execute(u"select * from TestNCLOBs")

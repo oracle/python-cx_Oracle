@@ -13,93 +13,59 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// DateTime type
-//-----------------------------------------------------------------------------
-typedef struct {
-    Variable_HEAD
-    OCIDate *data;
-} udt_DateTimeVar;
-
-
-//-----------------------------------------------------------------------------
 // Declaration of date/time variable functions.
 //-----------------------------------------------------------------------------
-static int DateTimeVar_SetValue(udt_DateTimeVar*, unsigned, PyObject*);
-static PyObject *DateTimeVar_GetValue(udt_DateTimeVar*, unsigned);
+static int DateTimeVar_SetValue(udt_Variable*, uint32_t, dpiData*, PyObject*);
+static PyObject *DateTimeVar_GetValue(udt_Variable*, dpiData*);
 
 
 //-----------------------------------------------------------------------------
 // Python type declarations
 //-----------------------------------------------------------------------------
-static PyTypeObject g_DateTimeVarType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.DATETIME",               // tp_name
-    sizeof(udt_DateTimeVar),            // tp_basicsize
-    0,                                  // tp_itemsize
-    0,                                  // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0                                   // tp_doc
-};
+DECLARE_VARIABLE_TYPE(g_DateTimeVarType, DATETIME)
+DECLARE_VARIABLE_TYPE(g_TimestampVarType, TIMESTAMP)
 
 
 //-----------------------------------------------------------------------------
 // variable type declarations
 //-----------------------------------------------------------------------------
 static udt_VariableType vt_DateTime = {
-    (InitializeProc) NULL,
-    (FinalizeProc) NULL,
-    (PreDefineProc) NULL,
-    (PostDefineProc) NULL,
-    (PostBindProc) NULL,
-    (PreFetchProc) NULL,
-    (IsNullProc) NULL,
     (SetValueProc) DateTimeVar_SetValue,
     (GetValueProc) DateTimeVar_GetValue,
-    (GetBufferSizeProc) NULL,
     &g_DateTimeVarType,                 // Python type
-    SQLT_ODT,                           // Oracle type
-    SQLCS_IMPLICIT,                     // charset form
-    sizeof(OCIDate),                    // element length (default)
-    0,                                  // is character data
-    0,                                  // is variable length
-    1,                                  // can be copied
-    1                                   // can be in array
+    DPI_ORACLE_TYPE_DATE,               // Oracle type
+    DPI_NATIVE_TYPE_TIMESTAMP,          // native type
+    0                                   // element length
 };
 
 
 static udt_VariableType vt_Date = {
-    (InitializeProc) NULL,
-    (FinalizeProc) NULL,
-    (PreDefineProc) NULL,
-    (PostDefineProc) NULL,
-    (PostBindProc) NULL,
-    (PreFetchProc) NULL,
-    (IsNullProc) NULL,
     (SetValueProc) DateTimeVar_SetValue,
     (GetValueProc) DateTimeVar_GetValue,
-    (GetBufferSizeProc) NULL,
     &g_DateTimeVarType,                 // Python type
-    SQLT_ODT,                           // Oracle type
-    SQLCS_IMPLICIT,                     // charset form
-    sizeof(OCIDate),                    // element length (default)
-    0,                                  // is character data
-    0,                                  // is variable length
-    1,                                  // can be copied
-    1                                   // can be in array
+    DPI_ORACLE_TYPE_DATE,               // Oracle type
+    DPI_NATIVE_TYPE_TIMESTAMP,          // native type
+    0                                   // element length
+};
+
+
+static udt_VariableType vt_Timestamp = {
+    (SetValueProc) DateTimeVar_SetValue,
+    (GetValueProc) DateTimeVar_GetValue,
+    &g_TimestampVarType,                // Python type
+    DPI_ORACLE_TYPE_TIMESTAMP,          // Oracle type
+    DPI_NATIVE_TYPE_TIMESTAMP,          // native type
+    0                                   // element length
+};
+
+
+static udt_VariableType vt_TimestampLTZ = {
+    (SetValueProc) DateTimeVar_SetValue,
+    (GetValueProc) DateTimeVar_GetValue,
+    &g_TimestampVarType,                // Python type
+    DPI_ORACLE_TYPE_TIMESTAMP_LTZ,      // Oracle type
+    DPI_NATIVE_TYPE_TIMESTAMP,          // native type
+    0                                   // element length
 };
 
 
@@ -107,12 +73,33 @@ static udt_VariableType vt_Date = {
 // DateTimeVar_SetValue()
 //   Set the value of the variable.
 //-----------------------------------------------------------------------------
-static int DateTimeVar_SetValue(
-    udt_DateTimeVar *var,               // variable to set value for
-    unsigned pos,                       // array position to set
-    PyObject *value)                    // value to set
+static int DateTimeVar_SetValue(udt_Variable *var, uint32_t pos, dpiData *data,
+        PyObject *value)
 {
-    return PythonDateToOracleDate(value, &var->data[pos]);
+    dpiTimestamp *timestamp;
+
+    timestamp = &data->value.asTimestamp;
+    if (PyDateTime_Check(value)) {
+        timestamp->year = PyDateTime_GET_YEAR(value);
+        timestamp->month = PyDateTime_GET_MONTH(value);
+        timestamp->day = PyDateTime_GET_DAY(value);
+        timestamp->hour = PyDateTime_DATE_GET_HOUR(value);
+        timestamp->minute = PyDateTime_DATE_GET_MINUTE(value);
+        timestamp->second = PyDateTime_DATE_GET_SECOND(value);
+        timestamp->fsecond = PyDateTime_DATE_GET_MICROSECOND(value) * 1000;
+    } else if (PyDate_Check(value)) {
+        timestamp->year = PyDateTime_GET_YEAR(value);
+        timestamp->month = PyDateTime_GET_MONTH(value);
+        timestamp->day = PyDateTime_GET_DAY(value);
+        timestamp->hour = 0;
+        timestamp->minute = 0;
+        timestamp->second = 0;
+        timestamp->fsecond = 0;
+    } else {
+        PyErr_SetString(PyExc_TypeError, "expecting date data");
+        return -1;
+    }
+    return 0;
 }
 
 
@@ -120,10 +107,16 @@ static int DateTimeVar_SetValue(
 // DateTimeVar_GetValue()
 //   Returns the value stored at the given array position.
 //-----------------------------------------------------------------------------
-static PyObject *DateTimeVar_GetValue(
-    udt_DateTimeVar *var,               // variable to determine value for
-    unsigned pos)                       // array position
+static PyObject *DateTimeVar_GetValue(udt_Variable *var, dpiData *data)
 {
-    return OracleDateToPythonDate(var->type, &var->data[pos]);
+    dpiTimestamp *timestamp;
+
+    timestamp = &data->value.asTimestamp;
+    if (var->type == &vt_Date)
+        return PyDate_FromDate(timestamp->year, timestamp->month,
+                timestamp->day);
+    return PyDateTime_FromDateAndTime(timestamp->year, timestamp->month,
+            timestamp->day, timestamp->hour, timestamp->minute,
+            timestamp->second, timestamp->fsecond / 1000);
 }
 

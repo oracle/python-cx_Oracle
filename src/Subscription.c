@@ -17,24 +17,22 @@
 //-----------------------------------------------------------------------------
 typedef struct {
     PyObject_HEAD
-    OCISubscription *handle;
+    dpiSubscr *handle;
     udt_Connection *connection;
     PyObject *callback;
-    ub4 namespace;
-    ub4 protocol;
-    ub4 port;
-    ub4 timeout;
-    ub4 operations;
-    ub4 qos;
-    ub4 cqqos;
-    ub4 rowids;
-    ub4 id;
+    uint32_t namespace;
+    uint32_t protocol;
+    uint32_t port;
+    uint32_t timeout;
+    uint32_t operations;
+    uint32_t qos;
+    uint32_t id;
 } udt_Subscription;
 
 typedef struct {
     PyObject_HEAD
     udt_Subscription *subscription;
-    ub4 type;
+    dpiEventType type;
     PyObject *dbname;
     PyObject *tables;
     PyObject *queries;
@@ -44,19 +42,19 @@ typedef struct {
     PyObject_HEAD
     PyObject *name;
     PyObject *rows;
-    ub4 operation;
+    dpiOpCode operation;
 } udt_MessageTable;
 
 typedef struct {
     PyObject_HEAD
     PyObject *rowid;
-    ub4 operation;
+    dpiOpCode operation;
 } udt_MessageRow;
 
 typedef struct {
     PyObject_HEAD
-    ub8 id;
-    ub4 operation;
+    uint64_t id;
+    dpiOpCode operation;
     PyObject *tables;
 } udt_MessageQuery;
 
@@ -85,8 +83,6 @@ static PyMemberDef g_SubscriptionTypeMembers[] = {
     { "timeout", T_INT, offsetof(udt_Subscription, timeout), READONLY },
     { "operations", T_INT, offsetof(udt_Subscription, operations), READONLY },
     { "qos", T_INT, offsetof(udt_Subscription, qos), READONLY },
-    { "cqqos", T_INT, offsetof(udt_Subscription, cqqos), READONLY },
-    { "rowids", T_BOOL, offsetof(udt_Subscription, rowids), READONLY },
     { "id", T_INT, offsetof(udt_Subscription, id), READONLY },
     { NULL }
 };
@@ -362,30 +358,12 @@ static PyTypeObject g_MessageQueryType = {
 // MessageRow_Initialize()
 //   Initialize a new message row with the information from the descriptor.
 //-----------------------------------------------------------------------------
-static int MessageRow_Initialize(
-    udt_MessageRow *self,               // object to initialize
-    udt_Environment *env,               // environment to use
-    dvoid *descriptor)                  // descriptor to get information from
+static int MessageRow_Initialize(udt_MessageRow *self, const char *encoding,
+        dpiSubscrMessageRow *row)
 {
-    ub4 rowidLength;
-    sword status;
-    char *rowid;
-
-    // determine operation
-    status = OCIAttrGet(descriptor, OCI_DTYPE_ROW_CHDES, &self->operation,
-            NULL, OCI_ATTR_CHDES_ROW_OPFLAGS, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "MessageRow_Initialize(): get operation") < 0)
-        return -1;
-
-    // determine table name
-    status = OCIAttrGet(descriptor, OCI_DTYPE_ROW_CHDES, &rowid, &rowidLength,
-            OCI_ATTR_CHDES_ROW_ROWID, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "MessageRow_Initialize(): get rowid") < 0)
-        return -1;
-    self->rowid = cxString_FromEncodedString(rowid, rowidLength,
-            env->encoding);
+    self->operation = row->operation;
+    self->rowid = cxString_FromEncodedString(row->rowid, row->rowidLength,
+            encoding);
     if (!self->rowid)
         return -1;
 
@@ -397,70 +375,25 @@ static int MessageRow_Initialize(
 // MessageTable_Initialize()
 //   Initialize a new message table with the information from the descriptor.
 //-----------------------------------------------------------------------------
-static int MessageTable_Initialize(
-    udt_MessageTable *self,             // object to initialize
-    udt_Environment *env,               // environment to use
-    dvoid *descriptor)                  // descriptor to get information from
+static int MessageTable_Initialize(udt_MessageTable *self,
+        const char *encoding, dpiSubscrMessageTable *table)
 {
-    dvoid **rowDescriptor, *indicator;
     udt_MessageRow *row;
-    ub4 nameLength;
-    boolean exists;
-    sb4 numRows, i;
-    OCIColl *rows;
-    sword status;
-    char *name;
+    uint32_t i;
 
-    // determine operation
-    status = OCIAttrGet(descriptor, OCI_DTYPE_TABLE_CHDES, &self->operation,
-            NULL, OCI_ATTR_CHDES_TABLE_OPFLAGS, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "MessageTable_Initialize(): get operation") < 0)
-        return -1;
-
-    // determine table name
-    status = OCIAttrGet(descriptor, OCI_DTYPE_TABLE_CHDES, &name, &nameLength,
-            OCI_ATTR_CHDES_TABLE_NAME, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "MessageTable_Initialize(): get table name") < 0)
-        return -1;
-    self->name = cxString_FromEncodedString(name, nameLength, env->encoding);
-    if (!self->name)
-        return -1;
-
-    // if change invalidated all rows, nothing to do
-    if (self->operation & OCI_OPCODE_ALLROWS)
-        return 0;
-
-    // determine rows collection
-    status = OCIAttrGet(descriptor, OCI_DTYPE_TABLE_CHDES, &rows, NULL,
-            OCI_ATTR_CHDES_TABLE_ROW_CHANGES, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "MessageTable_Initialize(): get rows collection") < 0)
-        return -1;
-
-    // determine number of rows in collection
-    status = OCICollSize(env->handle, env->errorHandle, rows, &numRows);
-    if (Environment_CheckForError(env, status,
-            "MessageTable_Initialize(): get size of rows collection") < 0)
-        return -1;
-
-    // populate the rows attribute
-    self->rows = PyList_New(numRows);
+    self->operation = table->operation;
+    self->name = cxString_FromEncodedString(table->name, table->nameLength,
+            encoding);
+    self->rows = PyList_New(table->numRows);
     if (!self->rows)
         return -1;
-    for (i = 0; i < numRows; i++) {
-        status = OCICollGetElem(env->handle, env->errorHandle, rows, i,
-                &exists, (dvoid*) &rowDescriptor, &indicator);
-        if (Environment_CheckForError(env, status,
-                "MessageTable_Initialize(): get element from collection") < 0)
-            return -1;
+    for (i = 0; i < table->numRows; i++) {
         row = (udt_MessageRow*)
                 g_MessageRowType.tp_alloc(&g_MessageRowType, 0);
         if (!row)
             return -1;
         PyList_SET_ITEM(self->rows, i, (PyObject*) row);
-        if (MessageRow_Initialize(row, env, *rowDescriptor) < 0)
+        if (MessageRow_Initialize(row, encoding, &table->rows[i]) < 0)
             return -1;
     }
 
@@ -472,68 +405,24 @@ static int MessageTable_Initialize(
 // MessageQuery_Initialize()
 //   Initialize a new message query with the information from the descriptor.
 //-----------------------------------------------------------------------------
-static int MessageQuery_Initialize(
-    udt_MessageQuery *self,             // object to initialize
-    udt_Environment *env,               // environment to use
-    dvoid *descriptor)                  // descriptor to get information from
+static int MessageQuery_Initialize(udt_MessageQuery *self,
+        const char *encoding, dpiSubscrMessageQuery *query)
 {
-    dvoid **tableDescriptor, *indicator;
     udt_MessageTable *table;
-    sb4 numTables, i;
-    OCIColl *tables;
-    boolean exists;
-    sword status;
+    uint32_t i;
 
-    // determine query id
-    status = OCIAttrGet(descriptor, OCI_DTYPE_CQDES, &self->id,
-            NULL, OCI_ATTR_CQDES_QUERYID, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "MessageQuery_Initialize(): get query id") < 0)
-        return -1;
-
-    // determine operation
-    status = OCIAttrGet(descriptor, OCI_DTYPE_CQDES, &self->operation,
-            NULL, OCI_ATTR_CQDES_OPERATION, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "MessageQuery_Initialize(): get operation") < 0)
-        return -1;
-
-    // determine table collection
-    status = OCIAttrGet(descriptor, OCI_DTYPE_CQDES, &tables, NULL,
-            OCI_ATTR_CQDES_TABLE_CHANGES, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "MessageQuery_Initialize(): get tables collection") < 0)
-        return -1;
-
-    // determine number of tables
-    if (!tables)
-        numTables = 0;
-    else {
-        status = OCICollSize(env->handle, env->errorHandle, tables,
-                &numTables);
-        if (Environment_CheckForError(env, status,
-                "MessageQuery_Initialize(): get size of collection") < 0)
-            return -1;
-    }
-
-    // create list to hold results
-    self->tables = PyList_New(numTables);
+    self->id = query->id;
+    self->operation = query->operation;
+    self->tables = PyList_New(query->numTables);
     if (!self->tables)
         return -1;
-
-    // populate each entry with a message table instance
-    for (i = 0; i < numTables; i++) {
-        status = OCICollGetElem(env->handle, env->errorHandle, tables, i,
-                &exists, (dvoid*) &tableDescriptor, &indicator);
-        if (Environment_CheckForError(env, status,
-                "MessageQuery_Initialize(): get element from collection") < 0)
-            return -1;
+    for (i = 0; i < query->numTables; i++) {
         table = (udt_MessageTable*)
                 g_MessageTableType.tp_alloc(&g_MessageTableType, 0);
         if (!table)
             return -1;
         PyList_SET_ITEM(self->tables, i, (PyObject*) table);
-        if (MessageTable_Initialize(table, env, *tableDescriptor) < 0)
+        if (MessageTable_Initialize(table, encoding, &query->tables[i]) < 0)
             return -1;
     }
 
@@ -545,124 +434,55 @@ static int MessageQuery_Initialize(
 // Message_Initialize()
 //   Initialize a new message with the information from the descriptor.
 //-----------------------------------------------------------------------------
-static int Message_Initialize(
-    udt_Message *self,                  // object to initialize
-    udt_Environment *env,               // environment to use
-    udt_Subscription *subscription,     // associated subscription for message
-    dvoid *descriptor)                  // descriptor to get information from
+static int Message_Initialize(udt_Message *self,
+        udt_Subscription *subscription, dpiSubscrMessage *message)
 {
-    dvoid **tableDescriptor, *indicator, **queryDescriptor;
-    sb4 numTables, numQueries, i;
-    OCIColl *tables, *queries;
     udt_MessageTable *table;
     udt_MessageQuery *query;
-    ub4 dbnameLength;
-    boolean exists;
-    char *dbname;
-    sword status;
+    const char *encoding;
+    uint32_t i;
 
-    // assign reference to associated subscription
     Py_INCREF(subscription);
     self->subscription = subscription;
-
-    // determine type
-    status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &self->type, NULL,
-            OCI_ATTR_CHDES_NFYTYPE, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "Message_Initialize(): get type") < 0)
-        return -1;
-
-    // determine database name
-    status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &dbname, &dbnameLength,
-            OCI_ATTR_CHDES_DBNAME, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "Message_Initialize(): get database name") < 0)
-        return -1;
-    self->dbname = cxString_FromEncodedString(dbname, dbnameLength,
-            env->encoding);
+    encoding = subscription->connection->encodingInfo.encoding;
+    self->type = message->eventType;
+    self->dbname = cxString_FromEncodedString(message->dbName,
+            message->dbNameLength, encoding);
     if (!self->dbname)
         return -1;
-
-    if (self->type == OCI_EVENT_OBJCHANGE) {
-        // determine table collection
-        status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &tables, NULL,
-                OCI_ATTR_CHDES_TABLE_CHANGES, env->errorHandle);
-        if (Environment_CheckForError(env, status,
-                "Message_Initialize(): get tables collection") < 0)
-            return -1;
-
-        // determine number of tables
-        if (!tables)
-            numTables = 0;
-        else {
-            status = OCICollSize(env->handle, env->errorHandle, tables,
-                    &numTables);
-            if (Environment_CheckForError(env, status,
-                    "Message_Initialize(): get size of collection") < 0)
+    switch (message->eventType) {
+        case DPI_EVENT_OBJCHANGE:
+            self->tables = PyList_New(message->numTables);
+            if (!self->tables)
                 return -1;
-        }
-
-        // create list to hold results
-        self->tables = PyList_New(numTables);
-        if (!self->tables)
-            return -1;
-
-        // populate each entry with a message table instance
-        for (i = 0; i < numTables; i++) {
-            status = OCICollGetElem(env->handle, env->errorHandle, tables, i,
-                    &exists, (dvoid*) &tableDescriptor, &indicator);
-            if (Environment_CheckForError(env, status,
-                    "Message_Initialize(): get element from collection") < 0)
+            for (i = 0; i < message->numTables; i++) {
+                table = (udt_MessageTable*)
+                        g_MessageTableType.tp_alloc(&g_MessageTableType, 0);
+                if (!table)
+                    return -1;
+                PyList_SET_ITEM(self->tables, i, (PyObject*) table);
+                if (MessageTable_Initialize(table, encoding,
+                        &message->tables[i]) < 0)
+                    return -1;
+            }
+            break;
+        case DPI_EVENT_QUERYCHANGE:
+            self->queries = PyList_New(message->numQueries);
+            if (!self->queries)
                 return -1;
-            table = (udt_MessageTable*)
-                    g_MessageTableType.tp_alloc(&g_MessageTableType, 0);
-            if (!table)
-                return -1;
-            PyList_SET_ITEM(self->tables, i, (PyObject*) table);
-            if (MessageTable_Initialize(table, env, *tableDescriptor) < 0)
-                return -1;
-        }
-    }
-
-    if (self->type == OCI_EVENT_QUERYCHANGE) {
-        // determine query collection
-        status = OCIAttrGet(descriptor, OCI_DTYPE_CHDES, &queries, NULL,
-                OCI_ATTR_CHDES_QUERIES, env->errorHandle);
-        if (Environment_CheckForError(env, status,
-                "Message_Initialize(): get queries collection") < 0)
-            return -1;
-
-        // determine number of queries
-        if (!queries)
-            numQueries = 0;
-        else {
-            status = OCICollSize(env->handle, env->errorHandle, queries,
-                    &numQueries);
-            if (Environment_CheckForError(env, status,
-                    "Message_Initialize(): get size of collection") < 0)
-                return -1;
-        }
-
-        // create list to hold results
-        self->queries = PyList_New(numQueries);
-        if (!self->queries)
-            return -1;
-
-        // populate each entry with a message query instance
-        for (i = 0; i < numQueries; i++) {
-            status = OCICollGetElem(env->handle, env->errorHandle, queries, i,
-                    &exists, (dvoid*) &queryDescriptor, &indicator);
-            if (Environment_CheckForError(env, status,
-                    "Message_Initialize(): get element from collection") < 0)
-                return -1;
-            query = (udt_MessageQuery*)
-                    g_MessageQueryType.tp_alloc(&g_MessageQueryType, 0);
-            if (!query)
-                return -1;
-            PyList_SET_ITEM(self->queries, i, (PyObject*) query);
-            if (MessageQuery_Initialize(query, env, *queryDescriptor) < 0)
-                return -1;
-        }
+            for (i = 0; i < message->numQueries; i++) {
+                query = (udt_MessageQuery*)
+                        g_MessageQueryType.tp_alloc(&g_MessageQueryType, 0);
+                if (!query)
+                    return -1;
+                PyList_SET_ITEM(self->queries, i, (PyObject*) query);
+                if (MessageQuery_Initialize(query, encoding,
+                        &message->queries[i]) < 0)
+                    return -1;
+            }
+            break;
+        default:
+            break;
     }
 
     return 0;
@@ -673,26 +493,24 @@ static int Message_Initialize(
 // Subscription_CallbackHandler()
 //   Routine that performs the actual call.
 //-----------------------------------------------------------------------------
-static int Subscription_CallbackHandler(
-    udt_Subscription *self,             // subscription object
-    udt_Environment *env,               // environment to use
-    dvoid *descriptor)                  // descriptor to get information from
+static int Subscription_CallbackHandler(udt_Subscription *self,
+        dpiSubscrMessage *message)
 {
     PyObject *result, *args;
-    udt_Message *message;
+    udt_Message *messageObj;
 
     // create the message
-    message = (udt_Message*) g_MessageType.tp_alloc(&g_MessageType, 0);
-    if (!message)
+    messageObj = (udt_Message*) g_MessageType.tp_alloc(&g_MessageType, 0);
+    if (!messageObj)
         return -1;
-    if (Message_Initialize(message, env, self, descriptor) < 0) {
-        Py_DECREF(message);
+    if (Message_Initialize(messageObj, self, message) < 0) {
+        Py_DECREF(messageObj);
         return -1;
     }
 
     // create the arguments for the call
-    args = PyTuple_Pack(1, message);
-    Py_DECREF(message);
+    args = PyTuple_Pack(1, messageObj);
+    Py_DECREF(messageObj);
     if (!args)
         return -1;
 
@@ -711,30 +529,19 @@ static int Subscription_CallbackHandler(
 // Subscription_Callback()
 //   Routine that is called when a callback needs to be invoked.
 //-----------------------------------------------------------------------------
-static void Subscription_Callback(
-    udt_Subscription *self,             // subscription object
-    OCISubscription *handle,            // subscription handle
-    dvoid *payload,                     // payload
-    ub4 *payloadLength,                 // payload length
-    dvoid *descriptor,                  // descriptor
-    ub4 mode)                           // mode used
+static void Subscription_Callback(udt_Subscription *self,
+        dpiSubscrMessage *message)
 {
 #ifdef WITH_THREAD
     PyGILState_STATE gstate = PyGILState_Ensure();
 #endif
-    udt_Environment *env;
 
-    // perform the call
-    env = Environment_NewFromScratch(0, 0, NULL, NULL);
-    if (!env)
+    if (message->errorInfo) {
+        Error_RaiseFromInfo(message->errorInfo);
         PyErr_Print();
-    else {
-        if (Subscription_CallbackHandler(self, env, descriptor) < 0)
-            PyErr_Print();
-        Py_DECREF(env);
-    }
+    } else if (Subscription_CallbackHandler(self, message) < 0)
+        PyErr_Print();
 
-    // restore thread state, if necessary
 #ifdef WITH_THREAD
     PyGILState_Release(gstate);
 #endif
@@ -742,161 +549,15 @@ static void Subscription_Callback(
 
 
 //-----------------------------------------------------------------------------
-// Subscription_Register()
-//   Register the subscription.
-//-----------------------------------------------------------------------------
-static int Subscription_Register(
-    udt_Subscription *self)             // subscription to register
-{
-    udt_Environment *env;
-    ub4 qosFlags;
-    sword status;
-
-    // create the subscription handle
-    env = self->connection->environment;
-    status = OCIHandleAlloc(env->handle, (dvoid**) &self->handle,
-            OCI_HTYPE_SUBSCRIPTION, 0, 0);
-    if (Environment_CheckForError(env, status,
-            "Subscription_Register(): allocate handle") < 0)
-        return -1;
-
-    // set the namespace
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-            (dvoid*) &self->namespace, sizeof(ub4), OCI_ATTR_SUBSCR_NAMESPACE,
-            env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "Subscription_Register(): set namespace") < 0)
-        return -1;
-
-    // set the protocol
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-            (dvoid*) &self->protocol, sizeof(ub4), OCI_ATTR_SUBSCR_RECPTPROTO,
-            env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "Subscription_Register(): set protocol") < 0)
-        return -1;
-
-    // set the timeout
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-            (dvoid*) &self->timeout, sizeof(ub4), OCI_ATTR_SUBSCR_TIMEOUT,
-            env->errorHandle);
-    if (Environment_CheckForError(env, status,
-            "Subscription_Register(): set timeout") < 0)
-        return -1;
-
-    // set the TCP port used on client to listen for callback from DB server
-    if (self->port > 0) {
-        status = OCIAttrSet(env->handle, OCI_HTYPE_ENV,
-                (dvoid*) &(self->port), (ub4) 0, OCI_ATTR_SUBSCR_PORTNO,
-                env->errorHandle);
-        if (Environment_CheckForError(env, status,
-                "Subscription_Register(): set port") < 0)
-            return -1;
-    }
-
-    // set the context for the callback
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-            (dvoid*) self, 0, OCI_ATTR_SUBSCR_CTX, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-                "Subscription_Register(): set context") < 0)
-        return -1;
-
-    // set the callback, if applicable
-    if (self->callback) {
-        status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-                (dvoid*) Subscription_Callback, 0, OCI_ATTR_SUBSCR_CALLBACK,
-                env->errorHandle);
-        if (Environment_CheckForError(env, status,
-                    "Subscription_Register(): set callback") < 0)
-            return -1;
-    }
-
-    // set suscription QOS
-    qosFlags = 0;
-    if (self->qos & CX_SUBSCR_QOS_RELIABLE)
-        qosFlags |= OCI_SUBSCR_QOS_RELIABLE;
-    if (self->qos & CX_SUBSCR_QOS_DEREG_NFY)
-        qosFlags |= OCI_SUBSCR_QOS_PURGE_ON_NTFN;
-    if (qosFlags) {
-        status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-                (dvoid*) &qosFlags, sizeof(ub4), OCI_ATTR_SUBSCR_QOSFLAGS,
-                env->errorHandle);
-        if (Environment_CheckForError(env, status,
-                    "Subscription_Register(): set qos flags") < 0)
-            return -1;
-    }
-
-    // set subscription change notification QOS flags
-    qosFlags = 0;
-    if (self->qos & CX_SUBSCR_QOS_QUERY)
-        qosFlags |= OCI_SUBSCR_CQ_QOS_QUERY;
-    if (self->qos & CX_SUBSCR_QOS_BEST_EFFORT)
-        qosFlags |= OCI_SUBSCR_CQ_QOS_BEST_EFFORT;
-    if (qosFlags) {
-        status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-                (dvoid*) &qosFlags, sizeof(ub4), OCI_ATTR_SUBSCR_CQ_QOSFLAGS,
-                env->errorHandle);
-        if (Environment_CheckForError(env, status,
-                    "Subscription_Register(): set cq qos flags") < 0)
-            return -1;
-    }
-
-    // set whether or not rowids are desired
-    if (self->qos & CX_SUBSCR_QOS_ROWIDS) {
-        self->rowids = 1;
-        status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-                (dvoid*) &self->rowids, sizeof(ub4), OCI_ATTR_CHNF_ROWIDS,
-                env->errorHandle);
-        if (Environment_CheckForError(env, status,
-                    "Subscription_Register(): set rowids") < 0)
-            return -1;
-    }
-
-    // set which operations are desired
-    status = OCIAttrSet(self->handle, OCI_HTYPE_SUBSCRIPTION,
-            (dvoid*) &self->operations, sizeof(ub4), OCI_ATTR_CHNF_OPERATIONS,
-            env->errorHandle);
-    if (Environment_CheckForError(env, status,
-                "Subscription_Register(): set operations") < 0)
-        return -1;
-
-    // register the subscription
-    Py_BEGIN_ALLOW_THREADS
-    status = OCISubscriptionRegister(self->connection->handle,
-            &self->handle, 1, env->errorHandle, OCI_DEFAULT);
-    Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(env, status,
-                "Subscription_Register(): register") < 0)
-        return -1;
-
-    // get the registration id
-    status = OCIAttrGet(self->handle, OCI_HTYPE_SUBSCRIPTION, &self->id,
-              NULL, OCI_ATTR_SUBSCR_CQ_REGID, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-                "Subscription_Register(): get registration id") < 0) {
-        return -1;
-    }
-
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
 // Subscription_New()
 //   Allocate a new subscription object.
 //-----------------------------------------------------------------------------
-static udt_Subscription *Subscription_New(
-    udt_Connection *connection,         // connection object
-    ub4 namespace,                      // namespace to use
-    ub4 protocol,                       // protocol to use
-    ub4 port,                           // client port for callbacks
-    PyObject *callback,                 // callback routine
-    ub4 timeout,                        // timeout (in seconds)
-    ub4 operations,                     // operations to notify
-    ub4 qos,                            // QOS flags
-    ub4 cqqos,                          // change notification QOS flags
-    int rowids)                         // retrieve rowids?
+static udt_Subscription *Subscription_New(udt_Connection *connection,
+        uint32_t namespace, uint32_t protocol, uint32_t port,
+        PyObject *callback, uint32_t timeout, uint32_t operations,
+        uint32_t qos)
 {
+    dpiSubscrCreateParams params;
     udt_Subscription *self;
 
     self = (udt_Subscription*)
@@ -911,15 +572,26 @@ static udt_Subscription *Subscription_New(
     self->protocol = protocol;
     self->port = port;
     self->timeout = timeout;
-    self->rowids = rowids;
     self->operations = operations;
-    self->qos = qos | cqqos;
-    if (rowids)
-        self->qos |= CX_SUBSCR_QOS_ROWIDS;
-    else if (qos & CX_SUBSCR_QOS_ROWIDS)
-        self->rowids = 1;
-    self->cqqos = cqqos;
-    if (Subscription_Register(self) < 0) {
+    self->qos = qos;
+
+    if (dpiContext_initSubscrCreateParams(g_DpiContext, &params) < 0) {
+        Error_RaiseAndReturnNull();
+        return NULL;
+    }
+    params.subscrNamespace = namespace;
+    params.protocol = protocol;
+    params.portNumber = port;
+    if (callback) {
+        params.callback = (dpiSubscrCallback) Subscription_Callback;
+        params.callbackContext = self;
+    }
+    params.timeout = timeout;
+    params.operations = operations;
+    params.qos = qos;
+    if (dpiConn_newSubscription(connection->handle, &params, &self->handle,
+            &self->id) < 0) {
+        Error_RaiseAndReturnNull();
         Py_DECREF(self);
         return NULL;
     }
@@ -932,13 +604,12 @@ static udt_Subscription *Subscription_New(
 // Subscription_Free()
 //   Free the memory associated with a subscription.
 //-----------------------------------------------------------------------------
-static void Subscription_Free(
-    udt_Subscription *self)               // subscription to free
+static void Subscription_Free(udt_Subscription *self)
 {
-    if (self->handle)
-        OCISubscriptionUnRegister(self->connection->handle,
-                self->handle, self->connection->environment->errorHandle,
-                OCI_DEFAULT);
+    if (self->handle) {
+        dpiSubscr_release(self->handle);
+        self->handle = NULL;
+    }
     Py_CLEAR(self->connection);
     Py_CLEAR(self->callback);
     Py_TYPE(self)->tp_free((PyObject*) self);
@@ -949,8 +620,7 @@ static void Subscription_Free(
 // Subscription_Repr()
 //   Return a string representation of the subscription.
 //-----------------------------------------------------------------------------
-static PyObject *Subscription_Repr(
-    udt_Subscription *subscription)     // subscription to repr
+static PyObject *Subscription_Repr(udt_Subscription *subscription)
 {
     PyObject *connectionRepr, *module, *name, *result, *format, *formatArgs;
 
@@ -986,16 +656,15 @@ static PyObject *Subscription_Repr(
 // Subscription_RegisterQuery()
 //   Register a query for database change notification.
 //-----------------------------------------------------------------------------
-static PyObject *Subscription_RegisterQuery(
-    udt_Subscription *self,             // subscription to use
-    PyObject *args)                     // arguments
+static PyObject *Subscription_RegisterQuery(udt_Subscription *self,
+        PyObject *args)
 {
     PyObject *statement, *executeArgs;
     udt_Buffer statementBuffer;
-    udt_Environment *env;
+    uint32_t numQueryColumns;
     udt_Cursor *cursor;
-    sword status;
-    ub8 queryid;
+    uint64_t queryId;
+    int status;
 
     // parse arguments
     executeArgs = NULL;
@@ -1011,29 +680,22 @@ static PyObject *Subscription_RegisterQuery(
     }
 
     // create cursor to perform query
-    env = self->connection->environment;
-    cursor = (udt_Cursor*) Connection_NewCursor(self->connection, NULL, NULL);
+    cursor = (udt_Cursor*) PyObject_CallMethod((PyObject*) self->connection,
+            "cursor", NULL);
     if (!cursor)
         return NULL;
 
-    // allocate the handle so the subscription handle can be set
-    if (Cursor_AllocateHandle(cursor) < 0) {
-        Py_DECREF(cursor);
-        return NULL;
-    }
-
     // prepare the statement for execution
     if (cxBuffer_FromObject(&statementBuffer, statement,
-            env->encoding) < 0) {
+            self->connection->encodingInfo.encoding) < 0) {
         Py_DECREF(cursor);
         return NULL;
     }
-    status = OCIStmtPrepare(cursor->handle, env->errorHandle,
-            (text*) statementBuffer.ptr, (ub4) statementBuffer.size,
-            OCI_NTV_SYNTAX, OCI_DEFAULT);
+    status = dpiSubscr_prepareStmt(self->handle, statementBuffer.ptr,
+            statementBuffer.size, &cursor->handle);
     cxBuffer_Clear(&statementBuffer);
-    if (Environment_CheckForError(env, status,
-            "Subscription_RegisterQuery(): prepare statement") < 0) {
+    if (status < 0) {
+        Error_RaiseAndReturnNull();
         Py_DECREF(cursor);
         return NULL;
     }
@@ -1049,56 +711,30 @@ static PyObject *Subscription_RegisterQuery(
         return NULL;
     }
 
-    // parse the query in order to get the defined variables
+    // perform the execute (which registers the query)
     Py_BEGIN_ALLOW_THREADS
-    status = OCIStmtExecute(self->connection->handle, cursor->handle,
-            env->errorHandle, 0, 0, 0, 0, OCI_DESCRIBE_ONLY);
+    status = dpiStmt_execute(cursor->handle, DPI_MODE_EXEC_DEFAULT,
+            &numQueryColumns);
     Py_END_ALLOW_THREADS
-    if (Environment_CheckForError(env, status,
-            "Subscription_RegisterQuery(): parse statement") < 0) {
+    if (status < 0) {
+        Error_RaiseAndReturnNull();
         Py_DECREF(cursor);
         return NULL;
     }
 
-    // perform define as needed
-    if (Cursor_PerformDefine(cursor) < 0) {
-        Py_DECREF(cursor);
-        return NULL;
-    }
-
-    // set the subscription handle
-    status = OCIAttrSet(cursor->handle, OCI_HTYPE_STMT, self->handle, 0,
-            OCI_ATTR_CHNF_REGHANDLE, env->errorHandle);
-    if (Environment_CheckForError(env, status,
-                "Subscription_RegisterQuery(): set subscription handle") < 0) {
-        Py_DECREF(cursor);
-        return NULL;
-    }
-
-    // execute the query which registers it
-    if (Cursor_InternalExecute(cursor, 0, 0) < 0) {
-        Py_DECREF(cursor);
-        return NULL;
-    }
-
-    if (self->cqqos & OCI_SUBSCR_CQ_QOS_QUERY) {
-        // get the query id
-        status = OCIAttrGet(cursor->handle, OCI_HTYPE_STMT, &queryid, NULL,
-                OCI_ATTR_CQ_QUERYID, env->errorHandle);
-        if (Environment_CheckForError(env, status,
-                    "Subscription_RegisterQuery(): get query id") < 0) {
+    // return the query id, if applicable
+    if (self->qos & DPI_SUBSCR_QOS_QUERY) {
+        if (dpiStmt_getSubscrQueryId(cursor->handle, &queryId) < 0) {
+            Error_RaiseAndReturnNull();
             Py_DECREF(cursor);
             return NULL;
         }
+        Py_DECREF(cursor);
+        return PyInt_FromLong(queryId);
     }
 
     Py_DECREF(cursor);
-
-    if (self->cqqos & OCI_SUBSCR_CQ_QOS_QUERY)
-        return PyInt_FromLong( (long) queryid);
-
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -1106,8 +742,7 @@ static PyObject *Subscription_RegisterQuery(
 // Message_Free()
 //   Free the memory associated with a message.
 //-----------------------------------------------------------------------------
-static void Message_Free(
-    udt_Message *self)                  // object to free
+static void Message_Free(udt_Message *self)
 {
     Py_CLEAR(self->subscription);
     Py_CLEAR(self->dbname);
@@ -1121,8 +756,7 @@ static void Message_Free(
 // MessageTable_Free()
 //   Free the memory associated with a table in a message.
 //-----------------------------------------------------------------------------
-static void MessageTable_Free(
-    udt_MessageTable *self)             // object to free
+static void MessageTable_Free(udt_MessageTable *self)
 {
     Py_CLEAR(self->name);
     Py_CLEAR(self->rows);
@@ -1134,8 +768,7 @@ static void MessageTable_Free(
 // MessageRow_Free()
 //   Free the memory associated with a row in a message.
 //-----------------------------------------------------------------------------
-static void MessageRow_Free(
-    udt_MessageRow *self)               // object to free
+static void MessageRow_Free(udt_MessageRow *self)
 {
     Py_CLEAR(self->rowid);
     Py_TYPE(self)->tp_free((PyObject*) self);
@@ -1146,8 +779,7 @@ static void MessageRow_Free(
 // MessageQuery_Free()
 //   Free the memory associated with a query in a message.
 //-----------------------------------------------------------------------------
-static void MessageQuery_Free(
-    udt_MessageQuery *self)               // object to free
+static void MessageQuery_Free(udt_MessageQuery *self)
 {
     Py_CLEAR(self->tables);
     Py_TYPE(self)->tp_free((PyObject*) self);

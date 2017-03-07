@@ -19,7 +19,6 @@ class TestError(BaseTestCase):
         self.assertTrue("Test!" in errorObj.message)
         self.assertEqual(errorObj.code, 20101)
         self.assertEqual(errorObj.offset, 0)
-        self.assertEqual(errorObj.context, "Cursor_InternalExecute()")
         self.assertTrue(isinstance(errorObj.isrecoverable, bool))
         pickledData = pickle.dumps(errorObj)
         newErrorObj = pickle.loads(pickledData)

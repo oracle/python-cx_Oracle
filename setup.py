@@ -38,7 +38,7 @@ except:
     from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "5.3"
+BUILD_VERSION = "6.0"
 
 # define the list of files to be included as documentation for Windows
 dataFiles = None
@@ -224,6 +224,10 @@ else:
         if not includeDirs:
             raise DistutilsSetupError("cannot locate Oracle include files")
 
+# include the ODPI-C header and source file locations
+includeDirs.append("odpi/include")
+includeDirs.append("odpi/src")
+
 # NOTE: on HP-UX Itanium with Oracle 10g you need to add the library "ttsh10"
 # to the list of libraries along with "clntsh"; since I am unable to test, I'll
 # leave this as a comment until someone can verify when this is required
@@ -361,13 +365,13 @@ extension = Extension(
         extra_compile_args = extraCompileArgs,
         extra_link_args = extraLinkArgs,
         sources = ["src/cx_Oracle.c"],
-        depends = ["src/AQ.c", "src/Buffer.c", "src/Connection.c",
+        depends = ["src/BooleanVar.c", "src/Buffer.c", "src/Connection.c",
                 "src/Cursor.c", "src/CursorVar.c", "src/DateTimeVar.c",
-                "src/Environment.c", "src/Error.c", "src/ExternalLobVar.c",
-                "src/IntervalVar.c", "src/LobVar.c", "src/LongVar.c",
-                "src/NumberVar.c", "src/Object.c", "src/ObjectType.c",
-                "src/ObjectVar.c", "src/SessionPool.c", "src/StringVar.c",
-                "src/Subscription.c", "src/TimestampVar.c", "src/Transforms.c",
+                "src/DeqOptions.c", "src/EnqOptions.c", "src/Error.c",
+                "src/IntervalVar.c", "src/LOB.c", "src/LobVar.c",
+                "src/LongVar.c", "src/MsgProps.c", "src/NumberVar.c",
+                "src/Object.c", "src/ObjectType.c", "src/ObjectVar.c",
+                "src/SessionPool.c", "src/StringVar.c", "src/Subscription.c",
                 "src/Variable.c"])
 
 # perform the setup

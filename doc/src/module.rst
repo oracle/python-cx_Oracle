@@ -22,18 +22,18 @@ Module Interface
       This method is an extension to the DB API definition.
 
 
-.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition, appcontext])
-              connect([user, password, dsn, mode, handle, pool, threaded, twophase, events, cclass, purity, newpassword, encoding, nencoding, module, action, clientinfo, edition, appcontext])
+.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, events, cclass, purity, newpassword, encoding, nencoding, edition, appcontext, tag, matchanytag])
+              connect([user, password, dsn, mode, handle, pool, threaded, events, cclass, purity, newpassword, encoding, nencoding, edition, appcontext, tag, matchanytag])
 
    Constructor for creating a connection to the database. Return a
    :ref:`connection object <connobj>`. All arguments are optional and can be
    specified as keyword parameters.
   
    The dsn (data source name) is the TNS entry (from the Oracle names server or
-   tnsnames.ora file) or is a string like the one returned from makedsn(). If
-   only one parameter is passed, a connect string is assumed which is to be of
-   the format ``user/password@dsn``, the same format accepted by Oracle
-   applications such as SQL\*Plus.
+   tnsnames.ora file) or is a string like the one returned from
+   :meth:`~cx_Oracle.makedsn()`. If only one parameter is passed, a connect
+   string is assumed which is to be of the format ``user/password@dsn``, the
+   same format accepted by Oracle applications such as SQL\*Plus.
   
    If the mode is specified, it must be one of :data:`~cx_Oracle.SYSDBA`,
    :data:`~cx_Oracle.SYSASM` or :data:`~cx_Oracle.SYSOPER` which are defined at
@@ -51,13 +51,6 @@ Module Interface
    mutex. Doing so in single threaded applications imposes a performance
    penalty of about 10-15% which is why the default is False.
   
-   The twophase argument is expected to be a boolean expression which
-   indicates whether or not the external_name and internal_name attributes
-   should be set on the connection object to allow for two phase commit. The
-   default for this value is False. Use of this argument is deprecated and will
-   be removed in a future release of cx_Oracle. Instead, the application should
-   set these attributes itself to an appropriate value for the application.
-
    The events argument is expected to be a boolean expression which indicates
    whether or not to initialize Oracle in events mode.
 
@@ -77,13 +70,6 @@ Module Interface
    The nencoding argument is expected to be a string if specified and sets the
    national encoding to use for national character set database strings.
 
-   The module, action and clientinfo arguments are expected to be strings, if
-   specified, and set the module, action and client_info attributes on the
-   connection respectively. These arguments are deprecated and will be removed
-   in a future version of cx_Oracle since Oracle does not support their use
-   during the creation of a connection. Instead, application context (see
-   below) should be used.
-
    The edition argument is expected to be a string if specified and sets the
    edition to use for the session. It is only relevant if both the client and
    the server are at least Oracle Database 11.2.
@@ -94,6 +80,15 @@ Module Interface
    can be used within a logon trigger as well as any other PL/SQL procedures.
    Each entry in the list is expected to contain three strings: the namespace,
    the name and the value.
+
+   The tag argument, if specified, is expected to be a string and will limit
+   the sessions that can be returned from a session pool unless the matchanytag
+   argument is set to True. In that case sessions with the specified tag will
+   be preferred over others, but if no such sessions are available a session
+   with a different tag may be returned instead. In any case, untagged sessions
+   will always be returned if no sessions with the specified tag are available.
+   Sessions are tagged when they are :meth:`released <SessionPool.release>`
+   back to the pool.
 
 
 .. function:: Cursor(connection)
@@ -118,21 +113,18 @@ Module Interface
    time module for details).
 
 
-.. function:: makedsn(host, port, sid, [service_name])
+.. function:: makedsn(host, port, sid=None, service_name=None, region=None, sharding_key=None, super_sharding_key=None)
 
    Return a string suitable for use as the dsn argument for
    :meth:`~cx_Oracle.connect()`. This string is identical to the strings that
    are defined by the Oracle names server or defined in the tnsnames.ora file.
-   If you wish to use the service name instead of the sid, do not include a
-   value for the parameter sid and use the keyword parameter service_name
-   instead.
 
    .. note::
 
       This method is an extension to the DB API definition.
 
 
-.. function:: SessionPool(user, password, database, min, max, increment, [connectiontype, threaded, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True, externalauth=True, encoding=None, nencoding=None])
+.. function:: SessionPool(user, password, database, min, max, increment, [connectiontype, threaded, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True, externalauth=True, encoding=None, nencoding=None, edition=None])
 
    Create and return a :ref:`session pool object <sesspool>`. This
    allows for very fast connections to the database and is of primary use in a
@@ -150,6 +142,10 @@ Module Interface
 
    The nencoding argument is expected to be a string if specified and sets the
    national encoding to use for national character set database strings.
+
+   The edition argument is expected to be a string, if specified, and sets the
+   edition to use for the sessions in the pool. It is only relevant if both the
+   client and the server are at least Oracle Database 11.2.
 
    .. note::
 

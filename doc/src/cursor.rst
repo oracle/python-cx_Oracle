@@ -337,24 +337,6 @@ Cursor Object
       mentioned in PEP 249 as an optional extension.
 
 
-.. attribute:: Cursor.numbersAsStrings
-
-   This integer attribute defines whether or not numbers should be returned as
-   strings rather than integers or floating point numbers. This is useful to
-   get around the fact that Oracle floating point numbers have considerably
-   greater precision than C floating point numbers and not require a change to
-   the SQL being executed.
-
-   .. deprecated:: 5.3
-
-      Use one of the attributes :attr:`Connection.outputtypehandler` or
-      :attr:`~Cursor.outputtypehandler` instead.
-
-   .. note::
-
-      The DB API definition does not define this attribute.
-
-
 .. attribute:: Cursor.outputtypehandler
 
    This read-write attribute specifies a method called for each column that is

@@ -17,34 +17,34 @@
 //-----------------------------------------------------------------------------
 typedef struct {
     PyObject_HEAD
-    udt_Connection *connection;
-    OCIType *tdo;
+    dpiObjectType *handle;
     PyObject *schema;
     PyObject *name;
     PyObject *attributes;
     PyObject *attributesByName;
-    OCITypeCode typeCode;
-    OCITypeCode collectionTypeCode;
-    OCITypeCode elementTypeCode;
+    const char *encoding;
+    dpiNativeTypeNum elementNativeTypeNum;
     PyObject *elementType;
-    boolean isCollection;
+    char isCollection;
 } udt_ObjectType;
 
 typedef struct {
     PyObject_HEAD
     PyObject *name;
-    OCITypeCode typeCode;
-    udt_ObjectType *subType;
+    dpiObjectAttr *handle;
+    dpiNativeTypeNum nativeTypeNum;
+    udt_ObjectType *type;
 } udt_ObjectAttribute;
 
 //-----------------------------------------------------------------------------
-// Declaration of type variable functions.
+// Declaration of functions
 //-----------------------------------------------------------------------------
-static udt_ObjectType *ObjectType_New(udt_Connection*, OCIParam*, ub4);
+static udt_ObjectType *ObjectType_New(udt_Connection*, dpiObjectType*);
 static void ObjectType_Free(udt_ObjectType*);
 static PyObject *ObjectType_Repr(udt_ObjectType*);
 static PyObject *ObjectType_NewObject(udt_ObjectType*, PyObject*, PyObject*);
-static udt_ObjectAttribute *ObjectAttribute_New(udt_Connection*, OCIParam*);
+static udt_ObjectAttribute *ObjectAttribute_New(udt_Connection*,
+        dpiObjectAttr*);
 static void ObjectAttribute_Free(udt_ObjectAttribute*);
 static PyObject *ObjectAttribute_Repr(udt_ObjectAttribute*);
 
@@ -178,194 +178,71 @@ static PyTypeObject g_ObjectAttributeType = {
 
 
 //-----------------------------------------------------------------------------
-// ObjectType_Describe()
-//   Describe the type and store information about it as needed.
+// ObjectType_Initialize()
+//   Initialize the object type with the information that is required.
 //-----------------------------------------------------------------------------
-static int ObjectType_Describe(
-    udt_ObjectType *self,               // type to populate
-    OCIDescribe *describeHandle)        // describe handle
+static int ObjectType_Initialize(udt_ObjectType *self,
+        udt_Connection *connection)
 {
-    OCIParam *topLevelParam, *attributeListParam, *attributeParam;
-    udt_ObjectAttribute *attribute;
-    OCIParam *collectionParam;
-    ub2 numAttributes;
-    sword status;
-    int i;
+    dpiObjectAttr **attributes;
+    udt_ObjectAttribute *attr;
+    dpiObjectTypeInfo info;
+    uint16_t i;
 
-    // describe the type
-    status = OCIDescribeAny(self->connection->handle,
-            self->connection->environment->errorHandle, (dvoid*) self->tdo, 0,
-            OCI_OTYPE_PTR, OCI_DEFAULT, OCI_PTYPE_TYPE, describeHandle);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Describe(): describe type") < 0)
+    // get object type information
+    self->encoding = connection->encodingInfo.encoding;
+    if (dpiObjectType_getInfo(self->handle, &info) < 0)
+        return Error_RaiseAndReturnInt();
+    self->schema = cxString_FromEncodedString(info.schema, info.schemaLength,
+            self->encoding);
+    if (!self->schema)
         return -1;
-
-    // get top level parameter descriptor
-    status = OCIAttrGet(describeHandle, OCI_HTYPE_DESCRIBE, &topLevelParam, 0,
-            OCI_ATTR_PARAM, self->connection->environment->errorHandle);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Describe(): get top level parameter descriptor") < 0)
+    self->name = cxString_FromEncodedString(info.name, info.nameLength,
+            self->encoding);
+    if (!self->name)
         return -1;
-
-    // determine type of type
-    status = OCIAttrGet(topLevelParam, OCI_DTYPE_PARAM, &self->typeCode, 0,
-            OCI_ATTR_TYPECODE, self->connection->environment->errorHandle);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Describe(): get type code") < 0)
-        return -1;
-
-    // if a collection, need to determine the sub type
-    if (self->typeCode == OCI_TYPECODE_NAMEDCOLLECTION) {
-        self->isCollection = 1;
-
-        // determine type of collection
-        status = OCIAttrGet(topLevelParam, OCI_DTYPE_PARAM,
-                &self->collectionTypeCode, 0, OCI_ATTR_COLLECTION_TYPECODE,
-                self->connection->environment->errorHandle);
-        if (Environment_CheckForError(self->connection->environment, status,
-                "ObjectType_Describe(): get collection type code") < 0)
+    self->isCollection = info.isCollection;
+    self->elementNativeTypeNum = info.elementDefaultNativeTypeNum;
+    if (info.elementObjectType) {
+        self->elementType = (PyObject*) ObjectType_New(connection,
+                info.elementObjectType);
+        if (!self->elementType)
             return -1;
-
-        // acquire collection parameter descriptor
-        status = OCIAttrGet(topLevelParam, OCI_DTYPE_PARAM, &collectionParam,
-                0, OCI_ATTR_COLLECTION_ELEMENT,
-                self->connection->environment->errorHandle);
-        if (Environment_CheckForError(self->connection->environment, status,
-                "ObjectType_Describe(): get collection descriptor") < 0)
-            return -1;
-
-        // determine type of element
-        status = OCIAttrGet(collectionParam, OCI_DTYPE_PARAM,
-                &self->elementTypeCode, 0, OCI_ATTR_TYPECODE,
-                self->connection->environment->errorHandle);
-        if (Environment_CheckForError(self->connection->environment, status,
-                "ObjectType_Describe(): get element type code") < 0)
-            return -1;
-
-        // if element type is an object type get its type
-        if (self->elementTypeCode == OCI_TYPECODE_OBJECT) {
-            self->elementType = (PyObject*)
-                    ObjectType_New(self->connection, collectionParam,
-                            OCI_ATTR_TYPE_NAME);
-            if (!self->elementType)
-                return -1;
-        }
-
     }
 
-    // determine the number of attributes
-    status = OCIAttrGet(topLevelParam, OCI_DTYPE_PARAM,
-            (dvoid*) &numAttributes, 0, OCI_ATTR_NUM_TYPE_ATTRS,
-            self->connection->environment->errorHandle);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Describe(): get number of attributes") < 0)
-        return -1;
-
-    // allocate the attribute list and dictionary
-    self->attributes = PyList_New(numAttributes);
+    // allocate the attribute list (temporary and permanent) and dictionary
+    self->attributes = PyList_New(info.numAttributes);
     if (!self->attributes)
         return -1;
     self->attributesByName = PyDict_New();
     if (!self->attributesByName)
         return -1;
 
-    // acquire the list parameter descriptor
-    status = OCIAttrGet(topLevelParam, OCI_DTYPE_PARAM,
-            (dvoid*) &attributeListParam, 0, OCI_ATTR_LIST_TYPE_ATTRS,
-            self->connection->environment->errorHandle);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Describe(): get list parameter descriptor") < 0)
+    // get the list of attributes from DPI
+    attributes = PyMem_Malloc(sizeof(dpiObjectAttr*) * info.numAttributes);
+    if (!attributes) {
+        PyErr_NoMemory();
         return -1;
-
-    // create attribute information for each attribute
-    for (i = 0; i < numAttributes; i++) {
-        status = OCIParamGet(attributeListParam, OCI_DTYPE_PARAM,
-                self->connection->environment->errorHandle,
-                (dvoid**) &attributeParam, (ub4) i + 1);
-        if (Environment_CheckForError(self->connection->environment, status,
-                "ObjectType_Describe(): get attribute param descriptor") < 0)
-            return -1;
-        attribute = ObjectAttribute_New(self->connection, attributeParam);
-        if (!attribute)
-            return -1;
-        PyList_SET_ITEM(self->attributes, i, (PyObject*) attribute);
-        if (PyDict_SetItem(self->attributesByName, attribute->name,
-                (PyObject*) attribute) < 0)
-            return -1;
+    }
+    if (dpiObjectType_getAttributes(self->handle, info.numAttributes,
+            attributes) < 0) {
+        PyMem_Free(attributes);
+        return Error_RaiseAndReturnInt();
     }
 
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// ObjectType_Initialize()
-//   Initialize the object type with the information that is required.
-//-----------------------------------------------------------------------------
-static int ObjectType_Initialize(
-    udt_ObjectType *self,               // type to initialize
-    OCIParam *param,                    // parameter descriptor
-    ub4 nameAttribute)                  // value for the name attribute
-{
-    OCIDescribe *describeHandle;
-    OCIRef *tdoReference;
-    sword status;
-    char *name;
-    ub4 size;
-
-    // determine the schema of the type
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &name, &size,
-            OCI_ATTR_SCHEMA_NAME, self->connection->environment->errorHandle);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Initialize(): get schema name") < 0)
-        return -1;
-    self->schema = cxString_FromEncodedString(name, size,
-            self->connection->environment->encoding);
-    if (!self->schema)
-        return -1;
-
-    // determine the name of the type
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &name, &size,
-            nameAttribute, self->connection->environment->errorHandle);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Initialize(): get name") < 0)
-        return -1;
-    self->name = cxString_FromEncodedString(name, size,
-            self->connection->environment->encoding);
-    if (!self->name)
-        return -1;
-
-    // retrieve TDO of the parameter
-    status = OCIAttrGet(param, OCI_HTYPE_DESCRIBE, (dvoid*) &tdoReference, 0,
-            OCI_ATTR_REF_TDO, self->connection->environment->errorHandle);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Initialize(): get TDO reference") < 0)
-        return -1;
-    status = OCIObjectPin(self->connection->environment->handle,
-            self->connection->environment->errorHandle, tdoReference, NULL,
-            OCI_PIN_ANY, OCI_DURATION_SESSION, OCI_LOCK_NONE,
-            (dvoid**) &self->tdo);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Initialize(): pin TDO reference") < 0)
-        return -1;
-
-    // acquire a describe handle
-    status = OCIHandleAlloc(self->connection->environment->handle,
-            (dvoid**) &describeHandle, OCI_HTYPE_DESCRIBE, 0, 0);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Initialize(): allocate describe handle") < 0)
-        return -1;
-
-    // describe the type
-    if (ObjectType_Describe(self, describeHandle) < 0)
-        return -1;
-
-    // free the describe handle
-    status = OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
-    if (Environment_CheckForError(self->connection->environment, status,
-            "ObjectType_Initialize(): free describe handle") < 0)
-        return -1;
-
+    // create attribute information for each attribute
+    for (i = 0; i < info.numAttributes; i++) {
+        attr = ObjectAttribute_New(connection, attributes[i]);
+        if (!attr) {
+            PyMem_Free(attributes);
+            return -1;
+        }
+        PyList_SET_ITEM(self->attributes, i, (PyObject*) attr);
+        if (PyDict_SetItem(self->attributesByName, attr->name,
+                (PyObject*) attr) < 0)
+            return -1;
+    }
+    PyMem_Free(attributes);
     return 0;
 }
 
@@ -374,19 +251,21 @@ static int ObjectType_Initialize(
 // ObjectType_New()
 //   Allocate a new object type.
 //-----------------------------------------------------------------------------
-static udt_ObjectType *ObjectType_New(
-    udt_Connection *connection,         // connection for type information
-    OCIParam *param,                    // parameter descriptor
-    ub4 nameAttribute)                  // value for the name attribute
+static udt_ObjectType *ObjectType_New(udt_Connection *connection,
+        dpiObjectType *handle)
 {
     udt_ObjectType *self;
 
     self = (udt_ObjectType*) g_ObjectTypeType.tp_alloc(&g_ObjectTypeType, 0);
     if (!self)
         return NULL;
-    Py_INCREF(connection);
-    self->connection = connection;
-    if (ObjectType_Initialize(self, param, nameAttribute) < 0) {
+    if (dpiObjectType_addRef(handle) < 0) {
+        Py_DECREF(self);
+        Error_RaiseAndReturnNull();
+        return NULL;
+    }
+    self->handle = handle;
+    if (ObjectType_Initialize(self, connection) < 0) {
         Py_DECREF(self);
         return NULL;
     }
@@ -399,87 +278,25 @@ static udt_ObjectType *ObjectType_New(
 // ObjectType_NewByName()
 //   Create a new object type given its name.
 //-----------------------------------------------------------------------------
-static udt_ObjectType *ObjectType_NewByName(
-    udt_Connection *connection,         // connection for type information
-    PyObject *name)                     // name of object type to describe
+static udt_ObjectType *ObjectType_NewByName(udt_Connection *connection,
+        PyObject *name)
 {
-    OCIDescribe *describeHandle;
-    udt_ObjectType *result;
+    udt_ObjectType *objType;
+    dpiObjectType *handle;
     udt_Buffer buffer;
-    OCIParam *param;
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
-    OCIType *tdo;
-#endif
-    sword status;
+    int status;
 
-    // allocate describe handle
-    status = OCIHandleAlloc(connection->environment->handle,
-            (dvoid**) &describeHandle, OCI_HTYPE_DESCRIBE, 0, 0);
-    if (Environment_CheckForError(connection->environment, status,
-            "ObjectType_NewByName(): allocate describe handle") < 0)
-        return NULL;
-
-    // describe the object
     if (cxBuffer_FromObject(&buffer, name,
-            connection->environment->encoding) < 0) {
-        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
+            connection->encodingInfo.encoding) < 0)
         return NULL;
-    }
-#if ORACLE_VERSION_HEX >= ORACLE_VERSION(12, 1)
-    status = OCITypeByFullName(connection->environment->handle,
-            connection->environment->errorHandle, connection->handle,
-            buffer.ptr, (ub4) buffer.size, NULL, 0, OCI_DURATION_SESSION,
-            OCI_TYPEGET_ALL, &tdo);
+    status = dpiConn_getObjectType(connection->handle, buffer.ptr,
+            buffer.size, &handle);
     cxBuffer_Clear(&buffer);
-    if (Environment_CheckForError(connection->environment, status,
-            "ObjectType_NewByName(): get type by full name") < 0) {
-        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
-        return NULL;
-    }
-    status = OCIDescribeAny(connection->handle,
-            connection->environment->errorHandle, (dvoid*) tdo, 0,
-            OCI_OTYPE_PTR, 0, OCI_PTYPE_TYPE, describeHandle);
-    if (Environment_CheckForError(connection->environment, status,
-            "ObjectType_NewByName(): describe type") < 0) {
-        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
-        return NULL;
-    }
-#else
-    status = OCIDescribeAny(connection->handle,
-            connection->environment->errorHandle, (dvoid*) buffer.ptr,
-            (ub4) buffer.size, OCI_OTYPE_NAME, 0, OCI_PTYPE_TYPE,
-            describeHandle);
-    cxBuffer_Clear(&buffer);
-    if (Environment_CheckForError(connection->environment, status,
-            "ObjectType_NewByName(): describe type") < 0) {
-        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
-        return NULL;
-    }
-#endif
-
-    // get the parameter handle
-    status = OCIAttrGet(describeHandle, OCI_HTYPE_DESCRIBE, &param, 0,
-            OCI_ATTR_PARAM, connection->environment->errorHandle);
-    if (Environment_CheckForError(connection->environment, status,
-            "ObjectType_NewByName(): get parameter handle") < 0) {
-        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
-        return NULL;
-    }
-
-    // get object type
-    result = ObjectType_New(connection, param, OCI_ATTR_NAME);
-    if (!result) {
-        OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
-        return NULL;
-    }
-
-    // free the describe handle
-    status = OCIHandleFree(describeHandle, OCI_HTYPE_DESCRIBE);
-    if (Environment_CheckForError(connection->environment, status,
-            "ObjectType_NewByName(): free describe handle") < 0)
-        return NULL;
-
-    return result;
+    if (status < 0)
+        return (udt_ObjectType*) Error_RaiseAndReturnNull();
+    objType = ObjectType_New(connection, handle);
+    dpiObjectType_release(handle);
+    return objType;
 }
 
 
@@ -487,13 +304,12 @@ static udt_ObjectType *ObjectType_NewByName(
 // ObjectType_Free()
 //   Free the memory associated with an object type.
 //-----------------------------------------------------------------------------
-static void ObjectType_Free(
-    udt_ObjectType *self)               // object type to free
+static void ObjectType_Free(udt_ObjectType *self)
 {
-    if (self->tdo)
-        OCIObjectUnpin(self->connection->environment->handle,
-                self->connection->environment->errorHandle, self->tdo);
-    Py_CLEAR(self->connection);
+    if (self->handle) {
+        dpiObjectType_release(self->handle);
+        self->handle = NULL;
+    }
     Py_CLEAR(self->schema);
     Py_CLEAR(self->name);
     Py_CLEAR(self->attributes);
@@ -507,8 +323,7 @@ static void ObjectType_Free(
 // ObjectType_Repr()
 //   Return a string representation of the object type.
 //-----------------------------------------------------------------------------
-static PyObject *ObjectType_Repr(
-    udt_ObjectType *self)               // object type to return the string for
+static PyObject *ObjectType_Repr(udt_ObjectType *self)
 {
     PyObject *module, *name, *result, *format, *formatArgs;
 
@@ -538,13 +353,12 @@ static PyObject *ObjectType_Repr(
 // ObjectType_NewObject()
 //   Factory function for creating objects of the type which can be bound.
 //-----------------------------------------------------------------------------
-static PyObject *ObjectType_NewObject(
-    udt_ObjectType *self,               // object type to return the string for
-    PyObject *args,                     // arguments
-    PyObject *keywordArgs)              // keyword arguments
+static PyObject *ObjectType_NewObject(udt_ObjectType *self, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "value", NULL };
     PyObject *initialValue;
+    dpiObject *handle;
     udt_Object *obj;
 
     // parse arguments
@@ -553,8 +367,12 @@ static PyObject *ObjectType_NewObject(
             &initialValue))
         return NULL;
 
+    // get handle to newly created object
+    if (dpiObjectType_createObject(self->handle, &handle) < 0)
+        return Error_RaiseAndReturnNull();
+
     // create the object
-    obj = Object_Create(self);
+    obj = (udt_Object*) Object_New(self, handle, 0);
     if (!obj)
         return NULL;
 
@@ -574,43 +392,23 @@ static PyObject *ObjectType_NewObject(
 // ObjectAttribute_Initialize()
 //   Initialize the new object attribute.
 //-----------------------------------------------------------------------------
-static int ObjectAttribute_Initialize(
-    udt_ObjectAttribute *self,          // object attribute to initialize
-    udt_Connection *connection,         // connection in use
-    OCIParam *param)                    // parameter descriptor
+static int ObjectAttribute_Initialize(udt_ObjectAttribute *self,
+        udt_Connection *connection)
 {
-    sword status;
-    char *name;
-    ub4 size;
+    dpiObjectAttrInfo info;
 
-    // determine the name of the attribute
-    status = OCIAttrGet(param, OCI_DTYPE_PARAM, (dvoid*) &name, &size,
-            OCI_ATTR_NAME, connection->environment->errorHandle);
-    if (Environment_CheckForError(connection->environment, status,
-            "ObjectAttribute_Initialize(): get name") < 0)
-        return -1;
-    self->name = cxString_FromEncodedString(name, size,
-            connection->environment->encoding);
+    if (dpiObjectAttr_getInfo(self->handle, &info) < 0)
+        return Error_RaiseAndReturnInt();
+    self->nativeTypeNum = info.defaultNativeTypeNum;
+    self->name = cxString_FromEncodedString(info.name, info.nameLength,
+            connection->encodingInfo.encoding);
     if (!self->name)
         return -1;
-
-    // determine the type of the attribute
-    status = OCIAttrGet(param, OCI_DTYPE_PARAM, (dvoid*) &self->typeCode, 0,
-            OCI_ATTR_TYPECODE, connection->environment->errorHandle);
-    if (Environment_CheckForError(connection->environment, status,
-            "ObjectAttribute_Initialize(): get type code") < 0)
-        return -1;
-
-    // if the type of the attribute is object, recurse
-    switch (self->typeCode) {
-        case OCI_TYPECODE_NAMEDCOLLECTION:
-        case OCI_TYPECODE_OBJECT:
-            self->subType = ObjectType_New(connection, param,
-                    OCI_ATTR_TYPE_NAME);
-            if (!self->subType)
-                return -1;
-            break;
-    };
+    if (info.objectType) {
+        self->type = ObjectType_New(connection, info.objectType);
+        if (!self->type)
+            return -1;
+    }
 
     return 0;
 }
@@ -620,17 +418,19 @@ static int ObjectAttribute_Initialize(
 // ObjectAttribute_New()
 //   Allocate a new object attribute.
 //-----------------------------------------------------------------------------
-static udt_ObjectAttribute *ObjectAttribute_New(
-    udt_Connection *connection,         // connection information
-    OCIParam *param)                    // parameter descriptor
+static udt_ObjectAttribute *ObjectAttribute_New(udt_Connection *connection,
+        dpiObjectAttr *handle)
 {
     udt_ObjectAttribute *self;
 
     self = (udt_ObjectAttribute*)
             g_ObjectAttributeType.tp_alloc(&g_ObjectAttributeType, 0);
-    if (!self)
+    if (!self) {
+        dpiObjectAttr_release(handle);
         return NULL;
-    if (ObjectAttribute_Initialize(self, connection, param) < 0) {
+    }
+    self->handle = handle;
+    if (ObjectAttribute_Initialize(self, connection) < 0) {
         Py_DECREF(self);
         return NULL;
     }
@@ -643,11 +443,14 @@ static udt_ObjectAttribute *ObjectAttribute_New(
 // ObjectAttribute_Free()
 //   Free the memory associated with an object attribute.
 //-----------------------------------------------------------------------------
-static void ObjectAttribute_Free(
-    udt_ObjectAttribute *self)          // object attribute to free
+static void ObjectAttribute_Free(udt_ObjectAttribute *self)
 {
+    if (self->handle) {
+        dpiObjectAttr_release(self->handle);
+        self->handle = NULL;
+    }
     Py_CLEAR(self->name);
-    Py_CLEAR(self->subType);
+    Py_CLEAR(self->type);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
@@ -656,8 +459,7 @@ static void ObjectAttribute_Free(
 // ObjectAttribute_Repr()
 //   Return a string representation of the object attribute.
 //-----------------------------------------------------------------------------
-static PyObject *ObjectAttribute_Repr(
-    udt_ObjectAttribute *self)          // attribute to return the string for
+static PyObject *ObjectAttribute_Repr(udt_ObjectAttribute *self)
 {
     PyObject *module, *name, *result, *format, *formatArgs;
 
