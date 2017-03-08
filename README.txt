@@ -43,7 +43,7 @@ commands instead
     python setup.py build
     python setup.py install
 
-This module has been built with Oracle client 11.1, 12.1 and 12.2 on Linux and
+This module has been built with Oracle client 11.2, 12.1 and 12.2 on Linux and
 Windows. Others have reported success with other platforms such as macOS.
 
 See BUILD.txt for additional information.
