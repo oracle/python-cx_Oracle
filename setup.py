@@ -384,8 +384,8 @@ setup(
         cmdclass = commandClasses,
         options = dict(bdist_rpm = dict(doc_files = docFiles)),
         long_description = \
-            "Python interface to Oracle conforming to the Python DB API 2.0 "
-            "specification.\n"
+            "Python interface to Oracle Database conforming to the Python DB "
+            "API 2.0 specification.\n"
             "See http://www.python.org/topics/database/DatabaseAPI-2.0.html.",
         author = "Anthony Tuininga",
         author_email = "anthony.tuininga@gmail.com",
