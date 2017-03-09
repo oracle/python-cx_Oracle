@@ -1,4 +1,13 @@
 #------------------------------------------------------------------------------
+# Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+#
+# Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
+#
+# Portions Copyright 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta,
+# Canada. All rights reserved.
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
 # TypeHandlers.py
 #   This script demonstrates the use of input and output type handlers as well
 # as variable input and output converters. These methods can be used to extend

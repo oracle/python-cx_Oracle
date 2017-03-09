@@ -1,3 +1,12 @@
+#------------------------------------------------------------------------------
+# Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+#
+# Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
+#
+# Portions Copyright 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta,
+# Canada. All rights reserved.
+#------------------------------------------------------------------------------
+
 """Driver specific portion of the DB API test suite provided by Stuart Bishop
    available at http://stuartbishop.net/Software/DBAPI20TestSuite/"""
 
