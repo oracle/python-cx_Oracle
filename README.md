@@ -1,4 +1,4 @@
-#Open Source Python/Oracle Utility - cx_Oracle
+# Open Source Python/Oracle Utility - cx_Oracle
 
 cx_Oracle is a Python extension module that enables access to Oracle Database
 and conforms to the Python database API 2.0 specifications with a considerable
@@ -15,17 +15,25 @@ capabilities.
 
 cx_Oracle is licensed under a BSD license which you can find [here][3].
 
+cx_Oracle has been tested with Python version 2.7, and with versions 3.4 and
+higher. You can use cx_Oracle with Oracle 11.2, 12.1 and 12.2 client libraries,
+allowing connection to multiple Oracle Database versions. Oracle's standard
+client-server version interoperability allows connection to both older and
+newer databases, for example Oracle 11.2 client libraries can connect to Oracle
+Database 10.2 or later.
+
 Please note that an Oracle client (or server) installation is required in order
 to use cx_Oracle. If you do not require the tools that come with a full client
 installation, it is recommended to install the [Instant Client][4].
 which is far easier to install.
 
-For feedback or patches, contact Anthony Tuininga at
-anthony.tuininga@gmail.com. For help or to ask questions, please use the
-[mailing list][5].
+## Help
+
+Issues and questions can be raised with the cx_Oracle community on
+[GitHub][9] or on the [mailing list][5].
 
 
-#Installation
+## Installation
 
 Binaries for some platforms and Oracle versions are available at
 [PyPI][6]. If you prefer to build your own you can use this command
@@ -42,10 +50,10 @@ commands instead
 This module has been built with Oracle client 11.2, 12.1 and 12.2 on Linux and
 Windows. Others have reported success with other platforms such as macOS.
 
-See BUILD.txt for additional information.
+See [BUILD.txt][10] for additional information.
 
 
-#Usage Example
+## Usage Example
 
 
 ```python
@@ -77,10 +85,12 @@ samples in the samples directory. You can also look at the scripts in the
 
 [1]: https://www.python.org/dev/peps/pep-0249
 [2]: http://cx-oracle.readthedocs.io
-[3]: http://cx-oracle.readthedocs.io/en/latest/license.html
+[3]: https://github.com/oracle/python-cx_Oracle/blob/master/LICENSE.txt
 [4]: http://www.oracle.com/technetwork/database/features/instant-client/index.html
 [5]: http://lists.sourceforge.net/lists/listinfo/cx-oracle-users
 [6]: https://pypi.python.org/pypi/cx_Oracle
 [7]: http://cx-oracletools.sourceforge.net
 [8]: http://cx-pyoraclelib.sourceforge.net
+[9]: https://github.com/oracle/python-cx_Oracle/issues
+[10]: https://github.com/oracle/python-cx_Oracle/blob/master/BUILD.txt
 
