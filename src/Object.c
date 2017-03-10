@@ -424,6 +424,7 @@ static PyObject *Object_ConvertToPython(
                     * (OCIString**) value);
             return cxString_FromEncodedString( (char*) stringValue,
                     stringSize, environment->encoding);
+        case OCI_TYPECODE_SMALLINT:
         case OCI_TYPECODE_INTEGER:
             return OracleNumberToPythonInteger(environment,
                     (OCINumber*) value);
