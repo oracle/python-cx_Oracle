@@ -1,4 +1,4 @@
-#Open Source Python/Oracle Utility - cx_Oracle
+# Open Source Python/Oracle Utility - cx_Oracle
 
 cx_Oracle is a Python extension module that enables access to Oracle Database
 and conforms to the Python database API 2.0 specifications with a considerable
@@ -20,12 +20,13 @@ to use cx_Oracle. If you do not require the tools that come with a full client
 installation, it is recommended to install the [Instant Client][4].
 which is far easier to install.
 
-For feedback or patches, contact Anthony Tuininga at
-anthony.tuininga@gmail.com. For help or to ask questions, please use the
-[mailing list][5].
+## Help
+
+Issues and questions can be raised with the cx_Oracle community on
+[GitHub][9] or on the [mailing list][5].
 
 
-#Installation
+## Installation
 
 Binaries for some platforms and Oracle versions are available at
 [PyPI][6]. If you prefer to build your own you can use this command
@@ -45,7 +46,7 @@ Windows. Others have reported success with other platforms such as macOS.
 See BUILD.txt for additional information.
 
 
-#Usage Example
+## Usage Example
 
 
 ```python
@@ -83,4 +84,5 @@ samples in the samples directory. You can also look at the scripts in the
 [6]: https://pypi.python.org/pypi/cx_Oracle
 [7]: http://cx-oracletools.sourceforge.net
 [8]: http://cx-pyoraclelib.sourceforge.net
+[9]: https://github.com/oracle/python-cx_Oracle/issues
 
