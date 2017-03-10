@@ -385,7 +385,7 @@ setup(
             "See http://www.python.org/topics/database/DatabaseAPI-2.0.html.",
         author = "Anthony Tuininga",
         author_email = "anthony.tuininga@gmail.com",
-        url = "http://cx-oracle.sourceforge.net",
+        url = "https://oracle.github.io/python-cx_Oracle",
         ext_modules = [extension],
         keywords = "Oracle",
         license = "BSD License",
