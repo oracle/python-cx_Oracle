@@ -12,6 +12,8 @@
 #   This script demonstrates how to use scrollable cursors. These allow moving
 # forward and backward in the result set but incur additional overhead on the
 # server to retain this information.
+#
+# This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function

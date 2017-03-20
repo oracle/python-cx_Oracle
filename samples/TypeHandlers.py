@@ -13,6 +13,8 @@
 # as variable input and output converters. These methods can be used to extend
 # cx_Oracle in many ways. This script demonstrates the binding and querying of
 # SQL objects as Python objects.
+#
+# This script requires cx_Oracle 5.0 and higher.
 #------------------------------------------------------------------------------
 
 

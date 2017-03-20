@@ -24,6 +24,8 @@
 #
 # There is no difference in how a connection is used once it has been
 # established.
+#
+# This script requires cx_Oracle 5.0 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function

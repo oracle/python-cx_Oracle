@@ -12,6 +12,8 @@
 #   This script demonstrates the use of the 12.1 feature that allows PL/SQL
 # procedures to return result sets implicitly, without having to explicitly
 # define them.
+#
+# This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function

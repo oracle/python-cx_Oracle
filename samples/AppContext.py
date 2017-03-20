@@ -12,6 +12,8 @@
 #   This script demonstrates the use of application context. Application
 # context is available within logon triggers and can be retrieved by using the
 # function sys_context().
+#
+# This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function

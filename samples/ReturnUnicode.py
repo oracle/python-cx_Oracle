@@ -11,6 +11,8 @@
 # ReturnUnicode.py
 #   Returns all strings as unicode. This also demonstrates the use of an output
 # type handler to change the way in which data is returned from a cursor.
+#
+# This script requires cx_Oracle 5.0 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function

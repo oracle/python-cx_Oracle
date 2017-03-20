@@ -11,6 +11,8 @@
 # AdvancedQueuing.py
 #   This script demonstrates how to use advanced queuing using cx_Oracle. It
 # creates a simple type and enqueues and dequeues a few objects.
+#
+# This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function

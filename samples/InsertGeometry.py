@@ -11,6 +11,8 @@
 # InsertGeometry.py
 #   This script demonstrates the ability to create Oracle objects (this example
 # uses SDO_GEOMETRY) and insert them into a table.
+#
+# This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function

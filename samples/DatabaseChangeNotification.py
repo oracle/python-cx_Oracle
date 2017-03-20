@@ -13,6 +13,8 @@
 # feature that is available in Oracle 10g Release 2. Once this script is
 # running, use another session to insert, update or delete rows from the table
 # cx_Oracle.TestTempTable and you will see the notification of that change.
+#
+# This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function

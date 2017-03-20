@@ -13,6 +13,8 @@
 # Database 11.2 and higher. See the Oracle documentation on the subject for
 # additional information. Adjust the contants at the top of the script for
 # your own database as needed.
+#
+# This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function

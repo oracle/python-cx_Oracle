@@ -13,6 +13,8 @@
 # is only useful if the lengths of the CLOB and BLOB values are well known but
 # it can improve performance because there is no need to return to the database
 # to get the actual values.
+#
+# This script requires cx_Oracle 5.0 and higher.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
