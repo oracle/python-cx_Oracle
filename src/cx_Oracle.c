@@ -22,13 +22,13 @@
 
 // define integer macros/methods for Python 3.x
 #ifndef PyInt_Check
-#define PyInt_Check             PyLong_Check
-#define PyInt_FromLong          PyLong_FromLong
-#define PyInt_FromUnsignedLong  PyLong_FromUnsignedLong
-#define PyInt_AsLong            PyLong_AsLong
-#define PyInt_AsUnsignedLong    PyLong_AsUnsignedLong
-#define PyInt_Type              PyLong_Type
-#define PyNumber_Int            PyNumber_Long
+#define PyInt_Check                     PyLong_Check
+#define PyInt_FromLong                  PyLong_FromLong
+#define PyInt_FromUnsignedLong          PyLong_FromUnsignedLong
+#define PyInt_AsLong                    PyLong_AsLong
+#define PyInt_AsUnsignedLong            PyLong_AsUnsignedLong
+#define PyInt_Type                      PyLong_Type
+#define PyNumber_Int                    PyNumber_Long
 #endif
 
 // use the bytes methods in cx_Oracle and define them as the equivalent string
