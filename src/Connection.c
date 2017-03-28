@@ -268,7 +268,7 @@ static int ConnectionParams_ProcessContext(udt_ConnectionParams *params,
                 "appcontext should be a list of 3-tuples");
         return -1;
     }
-    numEntries = PyList_GET_SIZE(context);
+    numEntries = (uint32_t) PyList_GET_SIZE(context);
     if (numEntries == 0)
         return 0;
 
@@ -565,7 +565,8 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
     if (dpiContext_initCommonCreateParams(g_DpiContext, &dpiCommonParams) < 0)
         return Error_RaiseAndReturnInt();
     dpiCommonParams.driverName = DRIVER_NAME;
-    dpiCommonParams.driverNameLength = strlen(dpiCommonParams.driverName);
+    dpiCommonParams.driverNameLength =
+            (uint32_t) strlen(dpiCommonParams.driverName);
     if (dpiContext_initConnCreateParams(g_DpiContext, &dpiCreateParams) < 0)
         return Error_RaiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,

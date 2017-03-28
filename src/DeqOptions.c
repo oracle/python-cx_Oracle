@@ -393,7 +393,8 @@ static int DeqOptions_SetMsgId(udt_DeqOptions *self, PyObject *valueObj,
 
     if (PyBytes_AsStringAndSize(valueObj, &value, &valueLength) < 0)
         return -1;
-    if (dpiDeqOptions_setMsgId(self->handle, value, valueLength) < 0)
+    if (dpiDeqOptions_setMsgId(self->handle, value,
+            (uint32_t) valueLength) < 0)
         return Error_RaiseAndReturnInt();
     return 0;
 }

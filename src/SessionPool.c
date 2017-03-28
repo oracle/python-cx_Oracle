@@ -201,7 +201,8 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
     if (dpiContext_initCommonCreateParams(g_DpiContext, &dpiCommonParams) < 0)
         return Error_RaiseAndReturnInt();
     dpiCommonParams.driverName = DRIVER_NAME;
-    dpiCommonParams.driverNameLength = strlen(dpiCommonParams.driverName);
+    dpiCommonParams.driverNameLength =
+            (uint32_t) strlen(dpiCommonParams.driverName);
     if (dpiContext_initPoolCreateParams(g_DpiContext, &dpiCreateParams) < 0)
         return Error_RaiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O!O!iii|OObOOOssO",

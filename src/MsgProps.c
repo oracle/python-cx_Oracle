@@ -394,7 +394,8 @@ static int MsgProps_SetOriginalMsgId(udt_MsgProps *self, PyObject *valueObj,
 
     if (PyBytes_AsStringAndSize(valueObj, &value, &valueLength) < 0)
         return -1;
-    if (dpiMsgProps_setOriginalMsgId(self->handle, value, valueLength) < 0)
+    if (dpiMsgProps_setOriginalMsgId(self->handle, value,
+            (uint32_t) valueLength) < 0)
         return Error_RaiseAndReturnInt();
     return 0;
 }

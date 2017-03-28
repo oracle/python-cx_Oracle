@@ -17,8 +17,8 @@
 // define structure for abstracting string buffers
 typedef struct {
     const char *ptr;
-    Py_ssize_t numCharacters;
-    Py_ssize_t size;
+    uint32_t numCharacters;
+    uint32_t size;
     PyObject *obj;
 } udt_Buffer;
 
@@ -52,24 +52,25 @@ static int cxBuffer_FromObject(udt_Buffer *buf, PyObject *obj,
         if (!buf->obj)
             return -1;
         buf->ptr = PyBytes_AS_STRING(buf->obj);
-        buf->size = PyBytes_GET_SIZE(buf->obj);
+        buf->size = (uint32_t) PyBytes_GET_SIZE(buf->obj);
 #if PY_MAJOR_VERSION < 3
-        buf->numCharacters = PyUnicode_GET_SIZE(obj);
+        buf->numCharacters = (uint32_t) PyUnicode_GET_SIZE(obj);
 #else
-        buf->numCharacters = PyUnicode_GET_LENGTH(obj);
+        buf->numCharacters = (uint32_t) PyUnicode_GET_LENGTH(obj);
 #endif
     } else if (PyBytes_Check(obj)) {
         Py_INCREF(obj);
         buf->obj = obj;
         buf->ptr = PyBytes_AS_STRING(buf->obj);
-        buf->size = buf->numCharacters = PyBytes_GET_SIZE(buf->obj);
+        buf->size = buf->numCharacters = (uint32_t) PyBytes_GET_SIZE(buf->obj);
 #if PY_MAJOR_VERSION < 3
     } else if (PyBuffer_Check(obj)) {
-        if (PyObject_AsReadBuffer(obj, (void*) &buf->ptr, &buf->size) < 0)
+        Py_ssize_t temp;
+        if (PyObject_AsReadBuffer(obj, (void*) &buf->ptr, &temp) < 0)
             return -1;
         Py_INCREF(obj);
         buf->obj = obj;
-        buf->numCharacters = buf->size;
+        buf->numCharacters = buf->size = (uint32_t) temp;
 #endif
     } else {
         PyErr_SetString(PyExc_TypeError, CXORA_TYPE_ERROR);

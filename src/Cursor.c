@@ -750,7 +750,7 @@ static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
 static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
         unsigned numElements, unsigned arrayPos, int deferTypeAssignment)
 {
-    int i, origBoundByPos, origNumParams, boundByPos, numParams;
+    uint32_t i, origBoundByPos, origNumParams, boundByPos, numParams;
     PyObject *key, *value, *origVar;
     udt_Variable *newVar;
     Py_ssize_t pos;
@@ -759,7 +759,7 @@ static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
     origNumParams = numParams = 0;
     boundByPos = PySequence_Check(parameters);
     if (boundByPos) {
-        numParams = PySequence_Size(parameters);
+        numParams = (uint32_t) PySequence_Size(parameters);
         if (numParams < 0)
             return -1;
     }
@@ -771,7 +771,7 @@ static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
             return -1;
         }
         if (origBoundByPos)
-            origNumParams = PyList_GET_SIZE(self->bindVariables);
+            origNumParams = (uint32_t) PyList_GET_SIZE(self->bindVariables);
 
     // otherwise, create the list or dictionary if needed
     } else {
@@ -891,7 +891,7 @@ static int Cursor_PerformBind(udt_Cursor *self)
 static PyObject *Cursor_CreateRow(udt_Cursor *self, uint32_t pos)
 {
     PyObject *tuple, *item, *result;
-    int numItems, i;
+    Py_ssize_t numItems, i;
     udt_Variable *var;
 
     // bump row count as a new row has been found
@@ -1073,7 +1073,7 @@ static PyObject *Cursor_Prepare(udt_Cursor *self, PyObject *args)
 static int Cursor_CallCalculateSize(PyObject *name, udt_Variable *returnValue,
         PyObject *listOfArguments, PyObject *keywordArguments, int *size)
 {
-    int numPositionalArgs, numKeywordArgs;
+    Py_ssize_t numPositionalArgs, numKeywordArgs;
 
     // set base size without any arguments
     *size = 17;
@@ -1090,7 +1090,7 @@ static int Cursor_CallCalculateSize(PyObject *name, udt_Variable *returnValue,
         numPositionalArgs = PySequence_Size(listOfArguments);
         if (numPositionalArgs < 0)
             return -1;
-        *size += numPositionalArgs * 9;
+        *size += (int) (numPositionalArgs * 9);
     }
 
     // assume up to 15 characters for each keyword argument
@@ -1101,7 +1101,7 @@ static int Cursor_CallCalculateSize(PyObject *name, udt_Variable *returnValue,
         numKeywordArgs = PyDict_Size(keywordArguments);
         if (numKeywordArgs < 0)
             return -1;
-        *size += numKeywordArgs * 15;
+        *size += (int) (numKeywordArgs * 15);
     }
 
     // the above assume a maximum of 10,000 arguments; check and raise an
@@ -1127,7 +1127,7 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
 {
     int versionNum, releaseNum, updateNum, portReleaseNum, portUpdateNum;
     PyObject *key, *value, *format, *formatArgs, *positionalArgs, *temp;
-    int i, argNum, numPositionalArgs;
+    uint32_t i, argNum, numPositionalArgs;
     Py_ssize_t pos;
     char *ptr;
 
@@ -1178,7 +1178,7 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
             Py_DECREF(formatArgs);
             return -1;
         }
-        numPositionalArgs = PySequence_Size(listOfArguments);
+        numPositionalArgs = (uint32_t) PySequence_Size(listOfArguments);
         for (i = 0; i < numPositionalArgs; i++) {
             if (i > 0)
                 *ptr++ = ',';
@@ -1343,7 +1343,7 @@ static PyObject *Cursor_CallProc(udt_Cursor *self, PyObject *args,
     static char *keywordList[] = { "name", "parameters", "keywordParameters",
             NULL };
     PyObject *listOfArguments, *keywordArguments, *results, *var, *temp, *name;
-    int numArgs, i;
+    Py_ssize_t numArgs, i;
 
     // parse arguments
     listOfArguments = keywordArguments = NULL;
@@ -1468,9 +1468,9 @@ static PyObject *Cursor_ExecuteMany(udt_Cursor *self, PyObject *args,
 {
     static char *keywordList[] = { "statement", "parameters", "batcherrors",
             "arraydmlrowcounts", NULL };
-    int i, numRows, arrayDMLRowCountsEnabled = 0, batchErrorsEnabled = 0;
+    int arrayDMLRowCountsEnabled = 0, batchErrorsEnabled = 0;
     PyObject *arguments, *listOfArguments, *statement;
-    uint32_t mode;
+    uint32_t mode, i, numRows;
     int status;
 
     // expect statement text (optional) plus list of sequences/mappings
@@ -1496,7 +1496,7 @@ static PyObject *Cursor_ExecuteMany(udt_Cursor *self, PyObject *args,
         return NULL;
 
     // perform binds
-    numRows = PyList_GET_SIZE(listOfArguments);
+    numRows = (uint32_t) PyList_GET_SIZE(listOfArguments);
     for (i = 0; i < numRows; i++) {
         arguments = PyList_GET_ITEM(listOfArguments, i);
         if (!PyDict_Check(arguments) && !PySequence_Check(arguments)) {
@@ -1735,7 +1735,7 @@ static PyObject *Cursor_Scroll(udt_Cursor *self, PyObject *args,
     // perform scroll and get new row count and number of rows in buffer
     Py_BEGIN_ALLOW_THREADS
     status = dpiStmt_scroll(self->handle, mode, offset,
-            -self->numRowsInFetchBuffer);
+            0 - self->numRowsInFetchBuffer);
     if (status == 0)
         status = dpiStmt_fetchRows(self->handle, self->fetchArraySize,
                 &self->fetchBufferRowIndex, &self->numRowsInFetchBuffer,
@@ -1758,10 +1758,9 @@ static PyObject *Cursor_Scroll(udt_Cursor *self, PyObject *args,
 static PyObject *Cursor_SetInputSizes(udt_Cursor *self, PyObject *args,
         PyObject *keywordArgs)
 {
-    int numPositionalArgs;
+    Py_ssize_t numPositionalArgs, i;
     PyObject *key, *value;
     udt_Variable *var;
-    Py_ssize_t i;
 
     // only expect keyword arguments or positional arguments, not both
     numPositionalArgs = PyTuple_Size(args);
@@ -1890,9 +1889,9 @@ static PyObject *Cursor_Var(udt_Cursor *self, PyObject *args,
 //-----------------------------------------------------------------------------
 static PyObject *Cursor_ArrayVar(udt_Cursor *self, PyObject *args)
 {
+    uint32_t size, numElements;
     udt_VariableType *varType;
     PyObject *type, *value;
-    int size, numElements;
     udt_Variable *var;
 
     // parse arguments
@@ -1909,9 +1908,9 @@ static PyObject *Cursor_ArrayVar(udt_Cursor *self, PyObject *args)
 
     // determine the number of elements to create
     if (PyList_Check(value))
-        numElements = PyList_GET_SIZE(value);
+        numElements = (uint32_t) PyList_GET_SIZE(value);
     else if (PyInt_Check(value)) {
-        numElements = PyInt_AsLong(value);
+        numElements = (uint32_t) PyInt_AsLong(value);
         if (PyErr_Occurred())
             return NULL;
     } else {
@@ -1970,13 +1969,13 @@ static PyObject *Cursor_BindNames(udt_Cursor *self, PyObject *args)
         return PyErr_NoMemory();
     nameLengths = (uint32_t*) PyMem_Malloc(numBinds * sizeof(uint32_t));
     if (!nameLengths) {
-        PyMem_Free(names);
+        PyMem_Free((void*) names);
         return PyErr_NoMemory();
     }
 
     // get the bind names
     if (dpiStmt_getBindNames(self->handle, numBinds, names, nameLengths) < 0) {
-        PyMem_Free(names);
+        PyMem_Free((void*) names);
         PyMem_Free(nameLengths);
         return Error_RaiseAndReturnNull();
     }
@@ -1994,7 +1993,7 @@ static PyObject *Cursor_BindNames(udt_Cursor *self, PyObject *args)
             PyList_SET_ITEM(namesList, i, temp);
         }
     }
-    PyMem_Free(names);
+    PyMem_Free((void*) names);
     PyMem_Free(nameLengths);
     return namesList;
 }
@@ -2098,7 +2097,7 @@ static PyObject* Cursor_GetArrayDMLRowCounts(udt_Cursor *self)
     if (!result)
         return NULL;
     for (i = 0; i < numRowCounts; i++) {
-        element = PyLong_FromUnsignedLong(rowCounts[i]);
+        element = PyLong_FromUnsignedLong((unsigned long) rowCounts[i]);
         if (!element) {
             Py_DECREF(result);
             return NULL;

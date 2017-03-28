@@ -274,10 +274,11 @@ static PyObject *Object_ConvertToPython(udt_Object *obj,
     // convert other values as required
     switch (nativeTypeNum) {
         case DPI_NATIVE_TYPE_INT64:
-            return PyInt_FromLong(data->value.asInt64);
+            return PyInt_FromLong((long) data->value.asInt64);
 #if PY_MAJOR_VERSION >= 3
         case DPI_NATIVE_TYPE_UINT64:
-            return PyInt_FromUnsignedLong(data->value.asUint64);
+            return PyInt_FromUnsignedLong(
+                    (unsigned long) data->value.asUint64);
 #endif
         case DPI_NATIVE_TYPE_FLOAT:
         case DPI_NATIVE_TYPE_DOUBLE:

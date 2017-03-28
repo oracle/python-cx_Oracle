@@ -407,21 +407,21 @@ static udt_VariableType *Variable_TypeByValue(PyObject* value, uint32_t* size,
         return &vt_String;
     }
     if (cxString_Check(value)) {
-        *size = cxString_GetSize(value);
+        *size = (uint32_t) cxString_GetSize(value);
         return &vt_String;
     }
     if (PyBool_Check(value))
         return &vt_Boolean;
 #if PY_MAJOR_VERSION < 3
     if (PyUnicode_Check(value)) {
-        *size = PyUnicode_GET_SIZE(value);
+        *size = (uint32_t) PyUnicode_GET_SIZE(value);
         return &vt_NationalCharString;
     }
     if (PyInt_Check(value))
         return &vt_NumberAsInteger;
 #else
     if (PyBytes_Check(value)) {
-        *size = PyBytes_GET_SIZE(value);
+        *size = (uint32_t) PyBytes_GET_SIZE(value);
         return &vt_Binary;
     }
 #endif
@@ -466,7 +466,7 @@ static udt_VariableType *Variable_TypeByValue(PyObject* value, uint32_t* size,
         varType = Variable_TypeByValue(elementValue, size, numElements);
         if (!varType)
             return NULL;
-        *numElements = PyList_GET_SIZE(value);
+        *numElements = (uint32_t) PyList_GET_SIZE(value);
         *size = varType->size;
         return varType;
     }
@@ -769,7 +769,7 @@ static int Variable_SetArrayValue(udt_Variable *var, PyObject *value)
     }
 
     // set the number of actual elements
-    numElements = PyList_GET_SIZE(value);
+    numElements = (uint32_t) PyList_GET_SIZE(value);
     if (dpiVar_setNumElementsInArray(var->handle, numElements) < 0)
         return Error_RaiseAndReturnInt();
 

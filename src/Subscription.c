@@ -730,7 +730,7 @@ static PyObject *Subscription_RegisterQuery(udt_Subscription *self,
             return NULL;
         }
         Py_DECREF(cursor);
-        return PyInt_FromLong(queryId);
+        return PyInt_FromLong((long) queryId);
     }
 
     Py_DECREF(cursor);

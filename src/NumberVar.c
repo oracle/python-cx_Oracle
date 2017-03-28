@@ -138,7 +138,7 @@ static PyObject *NumberVar_GetValueFloat(udt_Variable *var, dpiData *data)
 //-----------------------------------------------------------------------------
 static PyObject *NumberVar_GetValueInteger(udt_Variable *var, dpiData *data)
 {
-    return PyInt_FromLong(data->value.asInt64);
+    return PyInt_FromLong((long) data->value.asInt64);
 }
 
 
