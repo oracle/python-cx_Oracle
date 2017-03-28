@@ -726,6 +726,7 @@ void initcx_Oracle(void)
 #include "dpiObject.c"
 #include "dpiObjectAttr.c"
 #include "dpiObjectType.c"
+#include "dpiOci.c"
 #include "dpiOracleType.c"
 #include "dpiPool.c"
 #include "dpiRowid.c"
