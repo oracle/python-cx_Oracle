@@ -35,10 +35,10 @@ Issues and questions can be raised with the cx_Oracle community on
 
 ## Installation
 
-Binaries for some platforms and Oracle versions are available at
-[PyPI][6]. If you prefer to build your own you can use this command
+Binaries for some platforms are available at [PyPI][6]. If you prefer to build
+your own you can use this command
 
-    pip install cx_Oracle
+    python -m pip install cx_Oracle
 
 which will download the source package, build and install it. Otherwise, you
 can download the source package directly from PyPI, extract it and run these
@@ -47,10 +47,9 @@ commands instead
     python setup.py build
     python setup.py install
 
-This module has been built with Oracle client 11.2, 12.1 and 12.2 on Linux and
-Windows. Others have reported success with other platforms such as macOS.
-
-See [BUILD.txt][10] for additional information.
+This module is built with [ODPI-C][10] which supports versions 11.2, 12.1 and
+12.2 of the Oracle Client libraries on Linux, Windows and macOS. Others have
+reported success with other platforms.
 
 
 ## Usage Example
@@ -92,5 +91,5 @@ samples in the samples directory. You can also look at the scripts in the
 [7]: http://cx-oracletools.sourceforge.net
 [8]: http://cx-pyoraclelib.sourceforge.net
 [9]: https://github.com/oracle/python-cx_Oracle/issues
-[10]: https://github.com/oracle/python-cx_Oracle/blob/master/BUILD.txt
+[10]: https://oracle.github.io/odpi
 

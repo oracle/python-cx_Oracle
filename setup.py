@@ -26,8 +26,7 @@ BUILD_VERSION = "6.0"
 dataFiles = None
 if sys.platform in ("win32", "cygwin"):
     baseName = "cx_Oracle-doc"
-    dataFiles = [ (baseName,
-            [ "BUILD.txt", "LICENSE.txt", "README.txt"]) ]
+    dataFiles = [ (baseName, [ "LICENSE.txt", "README.txt"]) ]
     for dir in ("samples", "test"):
         files = []
         fullDirName = "%s/%s" % (baseName, dir)
@@ -41,7 +40,7 @@ if sys.platform in ("win32", "cygwin"):
         dataFiles.append((fullDirName, files))
 
 # define the list of files to be included as documentation for bdist_rpm
-docFiles = "README.txt LICENSE.txt BUILD.txt samples test"
+docFiles = "README.txt LICENSE.txt samples test"
 
 # NOTE: on HP-UX Itanium with Oracle 10g you need to add the library "ttsh10"
 # to the list of libraries along with "clntsh"; since I am unable to test, I'll
