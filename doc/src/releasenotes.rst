@@ -38,6 +38,8 @@ Version 6.0 (TBD)
     :ref:`subscription objects <subscrobj>`. Use the qos attribute instead.
 15) Dropped deprecated parameters cqqos and rowids from the
     :meth:`Connection.subscribe()` method.
+16) Added support for smallint and float data types in Oracle objects, as
+    requested (https://github.com/oracle/python-cx_Oracle/issues/4).
 
 
 5.x releases

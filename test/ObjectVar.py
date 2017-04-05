@@ -111,14 +111,14 @@ class TestObjectVar(BaseTestCase):
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
                   ('OBJECTCOL', cx_Oracle.OBJECT, None, None, None, None, 1),
                   ('ARRAYCOL', cx_Oracle.OBJECT, None, None, None, None, 1) ])
-        self.__TestData(1, (1, 'First row', 'First     ',
+        self.__TestData(1, (1, 'First row', 'First     ', 2, 5, 12.5,
                 cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0),
                 cx_Oracle.Timestamp(2008, 9, 12, 16, 40),
                 (11, 'Sub object 1'),
                 [(5, 'first element'), (6, 'second element')]),
                 [5, 10, None, 20])
         self.__TestData(2, None, [3, None, 9, 12, 15])
-        self.__TestData(3, (3, 'Third row', 'Third     ',
+        self.__TestData(3, (3, 'Third row', 'Third     ', 4, 10, 43.25,
                 cx_Oracle.Timestamp(2007, 6, 21, 0, 0, 0),
                 cx_Oracle.Timestamp(2007, 12, 13, 7, 30, 45),
                 (13, 'Sub object 3'),
@@ -132,8 +132,9 @@ class TestObjectVar(BaseTestCase):
         self.assertEqual(typeObj.schema, self.connection.username.upper())
         self.assertEqual(typeObj.name, "UDT_OBJECT")
         expectedAttributeNames = ["NUMBERVALUE", "STRINGVALUE",
-                "FIXEDCHARVALUE", "DATEVALUE", "TIMESTAMPVALUE",
-                "SUBOBJECTVALUE", "SUBOBJECTARRAY"]
+                "FIXEDCHARVALUE", "INTVALUE", "SMALLINTVALUE", "FLOATVALUE",
+                "DATEVALUE", "TIMESTAMPVALUE", "SUBOBJECTVALUE",
+                "SUBOBJECTARRAY"]
         actualAttributeNames = [a.name for a in typeObj.attributes]
         self.assertEqual(actualAttributeNames, expectedAttributeNames)
         typeObj = self.connection.gettype("UDT_OBJECTARRAY")
