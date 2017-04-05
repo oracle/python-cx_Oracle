@@ -8,6 +8,12 @@ Release notes
 Version 5.next
 --------------
 
+Version 5.3.1 (TBD)
+-------------------
+
+1) Added support for smallint and float data types in Oracle objects, as
+   requested (https://github.com/oracle/python-cx_Oracle/issues/4).
+
 
 Version 5.3 (March 2017)
 ------------------------

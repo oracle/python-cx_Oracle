@@ -425,9 +425,11 @@ static PyObject *Object_ConvertToPython(
             return cxString_FromEncodedString( (char*) stringValue,
                     stringSize, environment->encoding);
         case OCI_TYPECODE_INTEGER:
+        case OCI_TYPECODE_SMALLINT:
             return OracleNumberToPythonInteger(environment,
                     (OCINumber*) value);
         case OCI_TYPECODE_NUMBER:
+        case OCI_TYPECODE_FLOAT:
             return OracleNumberToPythonFloat(environment, (OCINumber*) value);
         case OCI_TYPECODE_DATE:
             return OracleDateToPythonDate(&vt_DateTime, (OCIDate*) value);
