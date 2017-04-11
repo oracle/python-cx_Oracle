@@ -80,6 +80,7 @@ static PyObject* Cursor_GetBatchErrors(udt_Cursor*);
 static PyObject *Cursor_GetArrayDMLRowCounts(udt_Cursor*);
 static PyObject *Cursor_GetImplicitResults(udt_Cursor*);
 static int Cursor_PerformDefine(udt_Cursor*, uint32_t);
+static int Cursor_GetVarData(udt_Cursor*);
 
 
 //-----------------------------------------------------------------------------
@@ -1453,7 +1454,11 @@ static PyObject *Cursor_Execute(udt_Cursor *self, PyObject *args,
         return (PyObject*) self;
     }
 
-    // for all other statements, simply return None
+    // for returning statements, get the variable data for each bound variable
+    if (self->stmtInfo.isReturning && Cursor_GetVarData(self) < 0)
+        return NULL;
+
+    // for statements other than queries, simply return None
     Py_RETURN_NONE;
 }
 
@@ -2031,6 +2036,49 @@ static PyObject *Cursor_GetNext(udt_Cursor *self)
     // no more rows, return NULL without setting an exception
     return NULL;
 }
+
+
+//-----------------------------------------------------------------------------
+// Cursor_GetVarData()
+//   Get the data for all variables bound to the cursor. This is needed for a
+// returning statement which may have changed the number of elements in the
+// variable and the location of the variable data.
+//-----------------------------------------------------------------------------
+static int Cursor_GetVarData(udt_Cursor *self)
+{
+    Py_ssize_t i, size, pos;
+    PyObject *key, *value;
+    udt_Variable *var;
+
+    // if there are no bind variables, nothing to do
+    if (!self->bindVariables)
+        return 0;
+
+    // handle bind by position
+    if (PyList_Check(self->bindVariables)) {
+        size = PyList_GET_SIZE(self->bindVariables);
+        for (i = 0; i < size; i++) {
+            var = (udt_Variable*) PyList_GET_ITEM(self->bindVariables, i);
+            if (dpiVar_getData(var->handle, &var->allocatedElements,
+                    &var->data) < 0)
+                return Error_RaiseAndReturnInt();
+        }
+
+    // handle bind by name
+    } else {
+        pos = 0;
+        while (PyDict_Next(self->bindVariables, &pos, &key, &value)) {
+            var = (udt_Variable*) value;
+            if (dpiVar_getData(var->handle, &var->allocatedElements,
+                    &var->data) < 0)
+                return Error_RaiseAndReturnInt();
+        }
+    }
+
+    return 0;
+}
+
+
 
 
 //-----------------------------------------------------------------------------

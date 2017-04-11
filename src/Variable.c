@@ -29,7 +29,6 @@ typedef struct {
     uint32_t size;
     uint32_t bufferSize;
     int isArray;
-    int alwaysGetData;
     struct _udt_VariableType *type;
 } udt_Variable;
 
@@ -643,8 +642,6 @@ static int Variable_Bind(udt_Variable *var, udt_Cursor *cursor, PyObject *name,
     }
     if (status < 0)
         return Error_RaiseAndReturnInt();
-    if (cursor->stmtInfo.isReturning)
-        var->alwaysGetData = 1;
 
     return 0;
 }
@@ -707,12 +704,6 @@ static PyObject *Variable_GetArrayValue(udt_Variable *var,
 static PyObject *Variable_GetValue(udt_Variable *var, uint32_t arrayPos)
 {
     uint32_t numElements;
-
-    if (var->alwaysGetData) {
-        if (dpiVar_getData(var->handle, &var->allocatedElements,
-                &var->data) < 0)
-            return Error_RaiseAndReturnNull();
-    }
 
     if (var->isArray) {
         if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
@@ -869,12 +860,6 @@ static PyObject *Variable_Repr(udt_Variable *var)
 {
     PyObject *value, *module, *name, *result, *format, *formatArgs;
     uint32_t numElements;
-
-    if (var->alwaysGetData) {
-        if (dpiVar_getData(var->handle, &var->allocatedElements,
-                &var->data) < 0)
-            return Error_RaiseAndReturnNull();
-    }
 
     if (var->isArray) {
         if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
