@@ -10,6 +10,8 @@
 
 """Module for testing string variables."""
 
+import datetime
+
 class TestStringVar(BaseTestCase):
 
     def setUp(self):
@@ -156,6 +158,33 @@ class TestStringVar(BaseTestCase):
                 where rowid = :value""",
                 value = rowid)
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
+
+    def testBindAndFetchUniversalRowids(self):
+        "test binding (and fetching) universal rowids"
+        self.cursor.execute("truncate table TestUniversalRowids")
+        data = [
+            (1, "ABC" * 75, datetime.datetime(2017, 4, 11)),
+            (2, "DEF" * 80, datetime.datetime(2017, 4, 12))
+        ]
+        for row in data:
+            self.cursor.execute("""
+                    insert into TestUniversalRowids
+                    values (:1, :2, :3)""", row)
+        self.connection.commit()
+        self.cursor.execute("""
+                select rowid
+                from TestUniversalRowIds
+                order by IntCol""")
+        rowids = [r for r, in self.cursor]
+        fetchedData = []
+        for rowid in rowids:
+            self.cursor.execute("""
+                    select *
+                    from TestUniversalRowids
+                    where rowid = :rid""",
+                    rid = rowid)
+            fetchedData.extend(self.cursor.fetchall())
+        self.assertEqual(fetchedData, data)
 
     def testBindNull(self):
         "test binding in a null"

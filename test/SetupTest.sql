@@ -168,6 +168,13 @@ create table cx_Oracle.TestIntervals (
   NullableCol           interval day to second
 );
 
+create table cx_Oracle.TestUniversalRowids (
+  IntCol                number(9) not null,
+  StringCol             varchar2(250) not null,
+  DateCol               date not null,
+  constraint TestUniversalRowids_pk primary key (IntCol, StringCol, DateCol)
+) organization index;
+
 create table cx_Oracle.TestBuildings (
     BuildingId number(9) not null,
     BuildingObj cx_Oracle.udt_Building not null
