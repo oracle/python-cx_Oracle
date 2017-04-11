@@ -296,3 +296,12 @@ class TestStringVar(BaseTestCase):
         value, = self.cursor.fetchone()
         self.assertEqual(value, supplementalChars)
 
+    def testBindTwiceWithLargeStringSecond(self):
+        "test binding twice with a larger string the second time"
+        self.cursor.execute("truncate table TestTempTable")
+        self.cursor.execute("insert into TestTempTable values (:1, :2)",
+                (1, "short string"))
+        self.cursor.execute("insert into TestTempTable values (:1, :2)",
+                (2, "long string " * 30))
+        self.connection.commit()
+

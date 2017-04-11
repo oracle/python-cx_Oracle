@@ -263,6 +263,8 @@ static void Variable_Free(udt_Variable *self)
 static int Variable_SetValueBytes(udt_Variable *var, uint32_t pos,
         dpiData *data, PyObject *value)
 {
+    dpiVar *tempVarHandle;
+    dpiData *tempVarData;
     udt_Buffer buffer;
     int status;
 
@@ -270,15 +272,22 @@ static int Variable_SetValueBytes(udt_Variable *var, uint32_t pos,
             var->connection->encodingInfo.encoding) < 0)
         return -1;
     if (var->type->size > 0 && buffer.size > var->bufferSize) {
-        if (dpiVar_resize(var->handle, buffer.size) < 0) {
+        if (dpiConn_newVar(var->connection->handle, var->type->oracleTypeNum,
+                var->type->nativeTypeNum, var->allocatedElements,
+                buffer.size, 0, var->isArray, NULL, &tempVarHandle,
+                &tempVarData) < 0) {
             cxBuffer_Clear(&buffer);
-            return -1;
+            return Error_RaiseAndReturnInt();
         }
-        var->bufferSize = buffer.size;
+        dpiVar_release(var->handle);
+        var->handle = tempVarHandle;
+        var->data = tempVarData;
     }
     status = dpiVar_setFromBytes(var->handle, pos, buffer.ptr, buffer.size);
     cxBuffer_Clear(&buffer);
-    return status;
+    if (status < 0)
+        return Error_RaiseAndReturnInt();
+    return 0;
 }
 
 
