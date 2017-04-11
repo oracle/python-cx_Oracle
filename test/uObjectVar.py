@@ -54,14 +54,14 @@ class TestObjectVar(BaseTestCase):
                 [ (u'INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
                   (u'OBJECTCOL', cx_Oracle.OBJECT, None, None, None, None, 1),
                   (u'ARRAYCOL', cx_Oracle.OBJECT, None, None, None, None, 1) ])
-        self.__TestData(1, (1, u'First row', u'First     ',
+        self.__TestData(1, (1, u'First row', u'First     ', 2, 5, 12.5,
                 cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0),
                 cx_Oracle.Timestamp(2008, 9, 12, 16, 40),
                 (11, 'Sub object 1'),
                 [(5, 'first element'), (6, 'second element')]),
                 [5, 10, None, 20])
         self.__TestData(2, None, [3, None, 9, 12, 15])
-        self.__TestData(3, (3, u'Third row', u'Third     ',
+        self.__TestData(3, (3, u'Third row', u'Third     ', 4, 10, 43.25,
                 cx_Oracle.Timestamp(2007, 6, 21, 0, 0, 0),
                 cx_Oracle.Timestamp(2007, 12, 13, 7, 30, 45),
                 (13, 'Sub object 3'),
