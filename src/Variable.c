@@ -64,6 +64,8 @@ static PyObject *Variable_ExternalCopy(udt_Variable *, PyObject *);
 static PyObject *Variable_ExternalSetValue(udt_Variable *, PyObject *);
 static PyObject *Variable_ExternalGetValue(udt_Variable *, PyObject *,
         PyObject *);
+static PyObject *Variable_ExternalGetActualElements(udt_Variable*, void*);
+static PyObject *Variable_ExternalGetValues(udt_Variable*, void*);
 
 
 //-----------------------------------------------------------------------------
@@ -77,6 +79,16 @@ static PyMemberDef g_VariableMembers[] = {
     { "outconverter", T_OBJECT, offsetof(udt_Variable, outConverter), 0 },
     { "size", T_INT, offsetof(udt_Variable, size), READONLY },
     { "type", T_OBJECT, offsetof(udt_Variable, objectType), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members for variables
+//-----------------------------------------------------------------------------
+static PyGetSetDef g_VariableCalcMembers[] = {
+    { "actualElements", (getter) Variable_ExternalGetActualElements, 0, 0, 0 },
+    { "values", (getter) Variable_ExternalGetValues, 0, 0, 0 },
     { NULL }
 };
 
@@ -849,6 +861,35 @@ static PyObject *Variable_ExternalGetValue(udt_Variable *var, PyObject *args,
             &pos))
         return NULL;
     return Variable_GetValue(var, pos);
+}
+
+
+//-----------------------------------------------------------------------------
+// Variable_ExternalGetActualElements()
+//   Return the values of the variable at all positions as a list.
+//-----------------------------------------------------------------------------
+static PyObject *Variable_ExternalGetActualElements(udt_Variable *var,
+        void *unused)
+{
+    uint32_t numElements;
+
+    if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
+        return Error_RaiseAndReturnNull();
+    return PyInt_FromLong(numElements);
+}
+
+
+//-----------------------------------------------------------------------------
+// Variable_ExternalGetValues()
+//   Return the values of the variable at all positions as a list.
+//-----------------------------------------------------------------------------
+static PyObject *Variable_ExternalGetValues(udt_Variable *var, void *unused)
+{
+    uint32_t numElements;
+
+    if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
+        return Error_RaiseAndReturnNull();
+    return Variable_GetArrayValue(var, numElements);
 }
 
 

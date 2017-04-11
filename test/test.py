@@ -34,6 +34,7 @@ else:
             "Cursor",
             "CursorVar",
             "DateTimeVar",
+            "DMLReturning",
             "Error",
             "IntervalVar",
             "LobVar",

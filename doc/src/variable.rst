@@ -9,6 +9,16 @@ Variable Objects
    The DB API definition does not define this object.
 
 
+.. attribute:: Variable.actualElements
+
+   This read-only attribute returns the actual number of elements in the
+   variable. This corresponds to the number of elements in a PL/SQL index-by
+   table for variables that are created using the method
+   :func:`Cursor.arrayvar()`. For output variables in a DML returning statement
+   this value corresponds to the number of rows returned. For all other
+   variables this value will be identical to the attribute
+   :attr:`~Variable.numElements`.
+
 .. attribute:: Variable.bufferSize
 
    This read-only attribute returns the size of the buffer allocated for each
@@ -60,4 +70,11 @@ Variable Objects
    This read-only attribute returns the type of the variable for those
    variables that bind Oracle objects (it is not present for any other type of
    variable).
+
+
+.. attribute:: Variable.values
+
+   This read-only attribute returns a copy of the value of all actual positions
+   in the variable as a list. The number of items in the list will correspond
+   to the value of the :attr:`~Variable.actualElements` attribute.
 

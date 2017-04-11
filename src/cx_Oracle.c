@@ -124,7 +124,8 @@
         0,                                  /* tp_iter */ \
         0,                                  /* tp_iternext */ \
         g_VariableMethods,                  /* tp_methods */ \
-        g_VariableMembers                   /* tp_members */ \
+        g_VariableMembers,                  /* tp_members */ \
+        g_VariableCalcMembers               /* tp_getset */ \
     };
 
 #define MAKE_TYPE_READY(type) \
