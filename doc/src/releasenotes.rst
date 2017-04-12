@@ -5,11 +5,14 @@ Release notes
 ############
 
 
-Version 6.0 (TBD)
------------------
+Version 6.0 beta 1 (TBD)
+------------------------
 
 1)  Simplify building cx_Oracle considerably by use of
-    `ODPI-C <https://oracle.github.io/odpi>`__.
+    `ODPI-C <https://oracle.github.io/odpi>`__. This means that cx_Oracle can
+    now be built without Oracle Client header files or libraries and that at
+    runtime cx_Oracle can adapt to Oracle Client 11.2, 12.1 or 12.2 libraries
+    without needing to be rebuilt.
 2)  Added attribute :attr:`SessionPool.stmtcachesize` to support getting and
     setting the default statement cache size for connections in the pool.
 3)  Added attribute :attr:`Connection.dbop` to support setting the database
@@ -21,25 +24,36 @@ Version 6.0 (TBD)
     to the :meth:`SessionPool.release` method in order to support session
     tagging.
 6)  Added parameter edition to the :meth:`cx_Oracle.SessionPool` method.
-7)  Added support for universal rowids.
-8)  Added support for DML returning of multiple rows.
-9)  Added sharding parameters region, sharding_key and super_sharding_key to
-    the :meth:`cx_Oracle.makedsn()` method.
-10) Removed restriction on fetching LOBs across round trips to the database
+7)  Added support for
+    `universal rowids <https://github.com/oracle/python-cx_Oracle/blob/master/
+    samples/UniversalRowids.py>`__.
+8)  Added support for `DML returning of multiple rows
+    <https://github.com/oracle/python-cx_Oracle/blob/master/samples/
+    DMLReturningMultipleRows.py>`__.
+9)  Added attributes :attr:`Variable.actualElements` and
+    :attr:`Variable.values` to variables.
+10) Added parameters region, sharding_key and super_sharding_key to the
+    :meth:`cx_Oracle.makedsn()` method to support connecting to a sharded
+    database.
+11) Added support for smallint and float data types in Oracle objects, as
+    requested (https://github.com/oracle/python-cx_Oracle/issues/4).
+12) Removed restriction on fetching LOBs across round trips to the database
     (LOB variable no longer valid after subsequent fetch).
-11) Removed requirement for specifying a maximum size when fetching LONG or
+13) Removed requirement for specifying a maximum size when fetching LONG or
     LONG raw columns. This also allows CLOB, NCLOB, BLOB and BFILE columns to
     be fetched without needing to specify a maximum size.
-12) Dropped deprecated parameters twophase, action, module and clientinfo from
-    the :meth:`cx_Oracle.connect` method.
-13) Dropped deprecated attribute numbersAsString from
+14) Dropped deprecated parameter twophase from the :meth:`cx_Oracle.connect`
+    method. Applications should set the internal_name and external_name
+    attributes directly to a value appropriate to the application.
+15) Dropped deprecated parameters action, module and clientinfo from the
+    :meth:`cx_Oracle.connect` method. The appcontext parameter should be used
+    instead.
+16) Dropped deprecated attribute numbersAsString from
     :ref:`cursor objects <cursorobj>`. Use an output type handler instead.
-14) Dropped deprecated attributes cqqos and rowids from
+17) Dropped deprecated attributes cqqos and rowids from
     :ref:`subscription objects <subscrobj>`. Use the qos attribute instead.
-15) Dropped deprecated parameters cqqos and rowids from the
-    :meth:`Connection.subscribe()` method.
-16) Added support for smallint and float data types in Oracle objects, as
-    requested (https://github.com/oracle/python-cx_Oracle/issues/4).
+18) Dropped deprecated parameters cqqos and rowids from the
+    :meth:`Connection.subscribe()` method. Use the qos parameter instead.
 
 
 5.x releases
