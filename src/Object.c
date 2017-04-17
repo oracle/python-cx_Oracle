@@ -462,9 +462,10 @@ static PyObject *Object_Append(udt_Object *self, PyObject *args)
 //-----------------------------------------------------------------------------
 static PyObject *Object_AsList(udt_Object *self, PyObject *args)
 {
-    int32_t index, nextIndex, exists;
     PyObject *list, *elementValue;
+    int32_t index, nextIndex;
     dpiData data;
+    int exists;
 
     // create the result list
     list = PyList_New(0);
@@ -472,11 +473,10 @@ static PyObject *Object_AsList(udt_Object *self, PyObject *args)
         return NULL;
 
     // populate it with each of the elements in the list
-    if (dpiObject_getFirstIndex(self->handle, &index) < 0) {
+    if (dpiObject_getFirstIndex(self->handle, &index, &exists) < 0) {
         Py_DECREF(list);
         return Error_RaiseAndReturnNull();
     }
-    exists = 1;
     while (exists) {
         if (dpiObject_getElementValueByIndex(self->handle, index,
                 self->objectType->elementNativeTypeNum, &data) < 0) {
@@ -600,10 +600,13 @@ static PyObject *Object_GetElement(udt_Object *self, PyObject *args)
 static PyObject *Object_GetFirstIndex(udt_Object *self, PyObject *args)
 {
     int32_t index;
+    int exists;
 
-    if (dpiObject_getFirstIndex(self->handle, &index) < 0)
+    if (dpiObject_getFirstIndex(self->handle, &index, &exists) < 0)
         return Error_RaiseAndReturnNull();
-    return PyInt_FromLong(index);
+    if (exists)
+        return PyInt_FromLong(index);
+    Py_RETURN_NONE;
 }
 
 
@@ -614,10 +617,13 @@ static PyObject *Object_GetFirstIndex(udt_Object *self, PyObject *args)
 static PyObject *Object_GetLastIndex(udt_Object *self, PyObject *args)
 {
     int32_t index;
+    int exists;
 
-    if (dpiObject_getLastIndex(self->handle, &index) < 0)
+    if (dpiObject_getLastIndex(self->handle, &index, &exists) < 0)
         return Error_RaiseAndReturnNull();
-    return PyInt_FromLong(index);
+    if (exists)
+        return PyInt_FromLong(index);
+    Py_RETURN_NONE;
 }
 
 

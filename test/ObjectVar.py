@@ -98,6 +98,13 @@ class TestObjectVar(BaseTestCase):
         self.assertEqual(obj.DATEVALUE, copiedObj.DATEVALUE)
         self.assertEqual(obj.TIMESTAMPVALUE, copiedObj.TIMESTAMPVALUE)
 
+    def testEmptyCollectionAsList(self):
+        "test getting an empty collection as a list"
+        typeName = "PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST"
+        typeObj = self.connection.gettype(typeName)
+        obj = typeObj.newobject()
+        self.assertEqual(obj.aslist(), [])
+
     def testFetchData(self):
         "test fetching objects"
         self.cursor.execute("""
