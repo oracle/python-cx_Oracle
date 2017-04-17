@@ -36,24 +36,32 @@ Version 6.0 beta 1 (TBD)
     :meth:`cx_Oracle.makedsn()` method to support connecting to a sharded
     database (new in Oracle Database 12.2).
 11) Added support for smallint and float data types in Oracle objects, as
-    requested (https://github.com/oracle/python-cx_Oracle/issues/4).
+    `requested <https://github.com/oracle/python-cx_Oracle/issues/4>`__.
 12) Removed restriction on fetching LOBs across round trips to the database
-    (LOB variable no longer valid after subsequent fetch).
+    (eliminates error "LOB variable no longer valid after subsequent fetch").
 13) Removed requirement for specifying a maximum size when fetching LONG or
     LONG raw columns. This also allows CLOB, NCLOB, BLOB and BFILE columns to
-    be fetched without needing to specify a maximum size.
+    be fetched as strings or bytes without needing to specify a maximum size.
 14) Dropped deprecated parameter twophase from the :meth:`cx_Oracle.connect`
-    method. Applications should set the internal_name and external_name
-    attributes directly to a value appropriate to the application.
+    method. Applications should set the :attr:`Connection.internal_name` and
+    :attr:`Connection.external_name` attributes instead to a value appropriate
+    to the application.
 15) Dropped deprecated parameters action, module and clientinfo from the
     :meth:`cx_Oracle.connect` method. The appcontext parameter should be used
-    instead.
+    instead as shown in this `sample <https://github.com/oracle/
+    python-cx_Oracle/blob/master/samples/AppContext.py>`__.
 16) Dropped deprecated attribute numbersAsString from
-    :ref:`cursor objects <cursorobj>`. Use an output type handler instead.
+    :ref:`cursor objects <cursorobj>`. Use an output type handler instead as
+    shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
+    master/samples/ReturnNumbersAsDecimals.py>`__.
 17) Dropped deprecated attributes cqqos and rowids from
-    :ref:`subscription objects <subscrobj>`. Use the qos attribute instead.
+    :ref:`subscription objects <subscrobj>`. Use the qos attribute instead as
+    shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
+    master/samples/QueryChangeNotification.py>`__.
 18) Dropped deprecated parameters cqqos and rowids from the
-    :meth:`Connection.subscribe()` method. Use the qos parameter instead.
+    :meth:`Connection.subscribe()` method. Use the qos parameter instead as
+    shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
+    master/samples/QueryChangeNotification.py>`__.
 
 
 5.x releases
