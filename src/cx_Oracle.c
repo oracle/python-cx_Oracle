@@ -331,13 +331,13 @@ static PyObject* MakeDSN(PyObject* self, PyObject* args, PyObject* keywordArgs)
 //-----------------------------------------------------------------------------
 static PyObject* ClientVersion(PyObject* self, PyObject* args)
 {
-    int versionNum, releaseNum, updateNum, portReleaseNum, portUpdateNum;
+    dpiVersionInfo versionInfo;
 
-    if (dpiContext_getClientVersion(g_DpiContext, &versionNum, &releaseNum,
-            &updateNum, &portReleaseNum, &portUpdateNum) < 0)
+    if (dpiContext_getClientVersion(g_DpiContext, &versionInfo) < 0)
         return Error_RaiseAndReturnNull();
-    return Py_BuildValue("(iiiii)", versionNum, releaseNum, updateNum,
-            portReleaseNum, portUpdateNum);
+    return Py_BuildValue("(iiiii)", versionInfo.versionNum,
+            versionInfo.releaseNum, versionInfo.updateNum,
+            versionInfo.portReleaseNum, versionInfo.portUpdateNum);
 }
 
 

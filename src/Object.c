@@ -478,7 +478,7 @@ static PyObject *Object_AsList(udt_Object *self, PyObject *args)
     }
     exists = 1;
     while (exists) {
-        if (dpiObject_getElementValue(self->handle, index,
+        if (dpiObject_getElementValueByIndex(self->handle, index,
                 self->objectType->elementNativeTypeNum, &data) < 0) {
             Py_DECREF(list);
             return Error_RaiseAndReturnNull();
@@ -532,7 +532,7 @@ static PyObject *Object_Delete(udt_Object *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "i", &index))
         return NULL;
-    if (dpiObject_deleteElement(self->handle, index) < 0)
+    if (dpiObject_deleteElementByIndex(self->handle, index) < 0)
         return Error_RaiseAndReturnNull();
     Py_RETURN_NONE;
 }
@@ -550,7 +550,7 @@ static PyObject *Object_Exists(udt_Object *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "i", &index))
         return NULL;
-    if (dpiObject_getElementExists(self->handle, index, &exists) < 0)
+    if (dpiObject_getElementExistsByIndex(self->handle, index, &exists) < 0)
         return Error_RaiseAndReturnNull();
     if (exists)
         Py_RETURN_TRUE;
@@ -585,7 +585,7 @@ static PyObject *Object_GetElement(udt_Object *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "i", &index))
         return NULL;
-    if (dpiObject_getElementValue(self->handle, index,
+    if (dpiObject_getElementValueByIndex(self->handle, index,
             self->objectType->elementNativeTypeNum, &data) < 0)
         return Error_RaiseAndReturnNull();
     return Object_ConvertToPython(self, self->objectType->elementNativeTypeNum,
@@ -695,8 +695,8 @@ static PyObject *Object_SetElement(udt_Object *self, PyObject *args)
     if (Object_ConvertFromPython(self, value, &nativeTypeNum, &data,
             &buffer) < 0)
         return NULL;
-    status = dpiObject_setElementValue(self->handle, index, nativeTypeNum,
-            &data);
+    status = dpiObject_setElementValueByIndex(self->handle, index,
+            nativeTypeNum, &data);
     cxBuffer_Clear(&buffer);
     if (status < 0)
         return Error_RaiseAndReturnNull();

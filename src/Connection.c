@@ -794,17 +794,17 @@ static PyObject *Connection_GetType(udt_Connection *self, PyObject *args)
 //-----------------------------------------------------------------------------
 static PyObject *Connection_GetVersion(udt_Connection *self, void *unused)
 {
-    int versionNum, releaseNum, updateNum, portReleaseNum, portUpdateNum;
-    const char *releaseString;
     uint32_t releaseStringLength;
+    dpiVersionInfo versionInfo;
+    const char *releaseString;
     char buffer[25];
 
     if (dpiConn_getServerVersion(self->handle, &releaseString,
-            &releaseStringLength, &versionNum, &releaseNum, &updateNum,
-            &portReleaseNum, &portUpdateNum) < 0)
+            &releaseStringLength, &versionInfo) < 0)
         return Error_RaiseAndReturnNull();
-    snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d.%d", versionNum, releaseNum,
-            updateNum, portReleaseNum, portUpdateNum);
+    snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d.%d", versionInfo.versionNum,
+            versionInfo.releaseNum, versionInfo.updateNum,
+            versionInfo.portReleaseNum, versionInfo.portUpdateNum);
     return cxString_FromAscii(buffer);
 }
 
