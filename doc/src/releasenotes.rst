@@ -34,7 +34,7 @@ Version 6.0 beta 1 (TBD)
     :attr:`Variable.values` to variables.
 10) Added parameters region, sharding_key and super_sharding_key to the
     :meth:`cx_Oracle.makedsn()` method to support connecting to a sharded
-    database.
+    database (new in Oracle Database 12.2).
 11) Added support for smallint and float data types in Oracle objects, as
     requested (https://github.com/oracle/python-cx_Oracle/issues/4).
 12) Removed restriction on fetching LOBs across round trips to the database
