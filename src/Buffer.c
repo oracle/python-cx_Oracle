@@ -45,8 +45,9 @@ static int cxBuffer_Init(udt_Buffer *buf)
 static int cxBuffer_FromObject(udt_Buffer *buf, PyObject *obj,
         const char *encoding)
 {
+    cxBuffer_Init(buf);
     if (!obj)
-        return cxBuffer_Init(buf);
+        return 0;
     if (PyUnicode_Check(obj)) {
         buf->obj = PyUnicode_AsEncodedString(obj, encoding, NULL);
         if (!buf->obj)

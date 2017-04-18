@@ -754,15 +754,16 @@ static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
     uint32_t i, origBoundByPos, origNumParams, boundByPos, numParams;
     PyObject *key, *value, *origVar;
     udt_Variable *newVar;
-    Py_ssize_t pos;
+    Py_ssize_t pos, temp;
 
     // make sure positional and named binds are not being intermixed
     origNumParams = numParams = 0;
     boundByPos = PySequence_Check(parameters);
     if (boundByPos) {
-        numParams = (uint32_t) PySequence_Size(parameters);
-        if (numParams < 0)
+        temp = PySequence_Size(parameters);
+        if (temp < 0)
             return -1;
+        numParams = (uint32_t) temp;
     }
     if (self->bindVariables) {
         origBoundByPos = PyList_Check(self->bindVariables);
