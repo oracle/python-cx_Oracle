@@ -100,7 +100,7 @@ class TestObjectVar(BaseTestCase):
 
     def testEmptyCollectionAsList(self):
         "test getting an empty collection as a list"
-        typeName = "PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST"
+        typeName = "UDT_ARRAY"
         typeObj = self.connection.gettype(typeName)
         obj = typeObj.newobject()
         self.assertEqual(obj.aslist(), [])
