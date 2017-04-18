@@ -42,11 +42,6 @@ if sys.platform in ("win32", "cygwin"):
 # define the list of files to be included as documentation for bdist_rpm
 docFiles = "README.txt LICENSE.txt samples test"
 
-# NOTE: on HP-UX Itanium with Oracle 10g you need to add the library "ttsh10"
-# to the list of libraries along with "clntsh"; since I am unable to test, I'll
-# leave this as a comment until someone can verify when this is required
-# without making other cases where sys.platform == "hp-ux11" stop working
-
 # setup extra link and compile args
 extraLinkArgs = []
 extraCompileArgs = ["-DBUILD_VERSION=%s" % BUILD_VERSION]
