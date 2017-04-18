@@ -5,8 +5,8 @@ Release notes
 ############
 
 
-Version 6.0 beta 1 (TBD)
-------------------------
+Version 6.0 beta 1 (April 2017)
+-------------------------------
 
 1)  Simplify building cx_Oracle considerably by use of
     `ODPI-C <https://oracle.github.io/odpi>`__. This means that cx_Oracle can
