@@ -3,8 +3,8 @@ Welcome to cx_Oracle's documentation!
 =====================================
 
 **cx_Oracle** is a module that enables access to Oracle Database and conforms
-to the Python database API specification. This module is currently built
-against Oracle 11.2 and 12.1 and works for both Python 2.x and 3.x.
+to the Python database API specification. This module is currently tested
+against Oracle Client 11.2, 12.1 and 12.2 and Python 2.7, 3.4, 3.5 and 3.6.
 
 **cx_Oracle** is distributed under an open-source :ref:`license <license>`
 (the BSD license).
