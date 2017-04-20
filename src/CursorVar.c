@@ -20,6 +20,7 @@ typedef struct {
     OCIStmt **data;
     udt_Connection *connection;
     PyObject *cursors;
+    int createCursors;
 } udt_CursorVar;
 
 
@@ -30,6 +31,7 @@ static int CursorVar_Initialize(udt_CursorVar*, udt_Cursor*);
 static void CursorVar_Finalize(udt_CursorVar*);
 static int CursorVar_SetValue(udt_CursorVar*, unsigned, PyObject*);
 static PyObject *CursorVar_GetValue(udt_CursorVar*, unsigned);
+static int CursorVar_PreFetch(udt_CursorVar*);
 
 
 //-----------------------------------------------------------------------------
@@ -69,7 +71,7 @@ static udt_VariableType vt_Cursor = {
     (PreDefineProc) NULL,
     (PostDefineProc) NULL,
     (PostBindProc) NULL,
-    (PreFetchProc) NULL,
+    (PreFetchProc) CursorVar_PreFetch,
     (IsNullProc) NULL,
     (SetValueProc) CursorVar_SetValue,
     (GetValueProc) CursorVar_GetValue,
@@ -99,6 +101,7 @@ static int CursorVar_Initialize(
     Py_INCREF(cursor->connection);
     var->connection = cursor->connection;
     var->cursors = PyList_New(var->allocatedElements);
+    var->createCursors = 0;
     if (!var->cursors)
         return -1;
     for (i = 0; i < var->allocatedElements; i++) {
@@ -127,8 +130,8 @@ static int CursorVar_Initialize(
 static void CursorVar_Finalize(
     udt_CursorVar *var)                 // variable to free
 {
-    Py_DECREF(var->connection);
-    Py_XDECREF(var->cursors);
+    Py_CLEAR(var->connection);
+    Py_CLEAR(var->cursors);
 }
 
 
@@ -179,5 +182,43 @@ static PyObject *CursorVar_GetValue(
     ((udt_Cursor*) cursor)->statementType = -1;
     Py_INCREF(cursor);
     return cursor;
+}
+
+
+//-----------------------------------------------------------------------------
+// CursorVar_PreFetch()
+//   Clear cursors and create new ones in preparation for next fetch.
+//-----------------------------------------------------------------------------
+static int CursorVar_PreFetch(
+    udt_CursorVar *var)                 // variable to free
+{
+    udt_Cursor *tempCursor;
+    ub4 i;
+
+    // do not clear cursors the first time (already created by initialize)
+    if (!var->createCursors) {
+        var->createCursors = 1;
+        return 0;
+    }
+
+    // clear original cursors and create new ones
+    for (i = 0; i < var->allocatedElements; i++) {
+
+        // clear original cursor, if applicable
+        Py_CLEAR(PyList_GET_ITEM(var->cursors, i));
+        var->data[i] = NULL;
+
+        // create new cursor
+        tempCursor = (udt_Cursor*) Connection_NewCursor(var->connection, NULL,
+                NULL);
+        if (!tempCursor)
+            return -1;
+        PyList_SET_ITEM(var->cursors, i, (PyObject*) tempCursor);
+        if (Cursor_AllocateHandle(tempCursor) < 0)
+            return -1;
+        var->data[i] = tempCursor->handle;
+    }
+
+    return 0;
 }
 
