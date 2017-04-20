@@ -100,7 +100,7 @@ Object Objects
 .. method:: Object.first()
 
    Return the index of the first element in the collection. If the collection
-   is empty, an exception is raised.
+   is empty, None is returned.
 
 
 .. method:: Object.getelement(index)
@@ -112,7 +112,7 @@ Object Objects
 .. method:: Object.last()
 
    Return the index of the last element in the collection. If the collection
-   is empty, an exception is raised.
+   is empty, None is returned.
 
 
 .. method:: Object.next(index)

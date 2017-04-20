@@ -4,6 +4,14 @@ Release notes
 6.x releases
 ############
 
+Version 6.0 (TBD)
+-----------------
+
+#)  Update documentation to show that methods :meth:`Object.first()` and
+    :meth:`Object.last()` do not raise an exception when the collection is
+    empty. They now return the value None to be consistent with the
+    methods :meth:`Object.next()` and :meth:`Object.prev()`.
+
 
 Version 6.0 beta 1 (April 2017)
 -------------------------------
