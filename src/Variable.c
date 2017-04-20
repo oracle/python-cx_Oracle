@@ -468,8 +468,6 @@ static udt_VariableType *Variable_TypeByValue(PyObject* value, uint32_t* size,
         return NULL;
     if (result)
         return &vt_Cursor;
-    if (Py_TYPE(value) == g_DateTimeType)
-        return &vt_DateTime;
     if (Py_TYPE(value) == g_DecimalType)
         return &vt_NumberAsDecimal;
     if (Py_TYPE(value) == &g_ObjectType)

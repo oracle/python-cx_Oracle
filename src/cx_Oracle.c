@@ -153,7 +153,6 @@ static PyObject *g_IntegrityErrorException = NULL;
 static PyObject *g_InternalErrorException = NULL;
 static PyObject *g_ProgrammingErrorException = NULL;
 static PyObject *g_NotSupportedErrorException = NULL;
-static PyTypeObject *g_DateTimeType = NULL;
 static PyTypeObject *g_DecimalType = NULL;
 static dpiContext *g_DpiContext = NULL;
 
