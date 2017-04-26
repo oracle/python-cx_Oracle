@@ -263,9 +263,10 @@ static void Variable_Free(udt_Variable *self)
 static int Variable_SetValueBytes(udt_Variable *var, uint32_t pos,
         dpiData *data, PyObject *value)
 {
+    dpiData *tempVarData, *sourceData;
     dpiVar *tempVarHandle;
-    dpiData *tempVarData;
     udt_Buffer buffer;
+    uint32_t i;
     int status;
 
     if (cxBuffer_FromObject(&buffer, value,
@@ -279,9 +280,22 @@ static int Variable_SetValueBytes(udt_Variable *var, uint32_t pos,
             cxBuffer_Clear(&buffer);
             return Error_RaiseAndReturnInt();
         }
+        for (i = 0; i < var->allocatedElements; i++) {
+            sourceData = &var->data[i];
+            if (i == pos || sourceData->isNull)
+                continue;
+            if (dpiVar_setFromBytes(tempVarHandle, i,
+                    sourceData->value.asBytes.ptr,
+                    sourceData->value.asBytes.length) < 0) {
+                cxBuffer_Clear(&buffer);
+                dpiVar_release(tempVarHandle);
+                return Error_RaiseAndReturnInt();
+            }
+        }
         dpiVar_release(var->handle);
         var->handle = tempVarHandle;
         var->data = tempVarData;
+        var->bufferSize = buffer.size;
     }
     status = dpiVar_setFromBytes(var->handle, pos, buffer.ptr, buffer.size);
     cxBuffer_Clear(&buffer);

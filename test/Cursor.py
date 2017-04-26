@@ -154,17 +154,15 @@ class TestCursor(BaseTestCase):
                  ( 4, "Fourth" ),
                  ( 5, "Fifth" ),
                  ( 6, "Sixth" ),
-                 ( 7, "Seventh" ) ]
-        self.cursor.bindarraysize = 5
-        self.cursor.setinputsizes(int, 100)
+                 ( 7, "Seventh and the longest one" ) ]
         sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
         self.cursor.executemany(sql, rows)
-        var = self.cursor.bindvars[1]
-        self.cursor.execute("select count(*) from TestTempTable")
-        count, = self.cursor.fetchone()
-        self.assertEqual(count, len(rows))
-        self.assertEqual(var.bufferSize,
-                100 * self.connection.maxBytesPerCharacter)
+        self.cursor.execute("""
+                select IntCol, StringCol
+                from TestTempTable
+                order by IntCol""")
+        fetchedRows = self.cursor.fetchall()
+        self.assertEqual(fetchedRows, rows)
 
     def testExecuteManyWithExecption(self):
         """test executing a statement multiple times (with exception)"""
