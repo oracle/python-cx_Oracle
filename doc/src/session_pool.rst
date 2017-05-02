@@ -9,10 +9,20 @@ SessionPool Object
    This object is an extension to the DB API.
 
 
-.. method:: SessionPool.acquire()
+.. method:: SessionPool.acquire(user=None, password=None, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT)
 
    Acquire a connection from the session pool and return a
    :ref:`connection object <connobj>`.
+
+   The user and password arguments may not be specified if the pool is
+   homogeneous. In that case an exception will be raised.
+
+   The cclass argument, if specified, should be a string corresponding to the
+   connection class for database resident connection pooling (DRCP).
+
+   The purity argument is expected to be one of
+   :data:`~cx_Oracle.ATTR_PURITY_NEW`, :data:`~cx_Oracle.ATTR_PURITY_SELF`, or
+   :data:`~cx_Oracle.ATTR_PURITY_DEFAULT`.
 
 
 .. attribute:: SessionPool.busy
