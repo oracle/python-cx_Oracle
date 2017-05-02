@@ -47,9 +47,10 @@ commands instead
     python setup.py build
     python setup.py install
 
-This module is built with [ODPI-C][10] which supports versions 11.2, 12.1 and
-12.2 of the Oracle Client libraries on Linux, Windows and macOS. Others have
-reported success with other platforms.
+This module has been built with Oracle client 11.2, 12.1 and 12.2 on Linux and
+Windows. Others have reported success with other platforms such as macOS.
+
+See [BUILD.txt][10] for additional information.
 
 
 ## Usage Example
@@ -91,5 +92,5 @@ samples in the samples directory. You can also look at the scripts in the
 [7]: http://cx-oracletools.sourceforge.net
 [8]: http://cx-pyoraclelib.sourceforge.net
 [9]: https://github.com/oracle/python-cx_Oracle/issues
-[10]: https://oracle.github.io/odpi
+[10]: https://github.com/oracle/python-cx_Oracle/blob/master/BUILD.txt
 
