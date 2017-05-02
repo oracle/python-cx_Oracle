@@ -132,18 +132,21 @@ Module Interface
       This method is an extension to the DB API definition.
 
 
-.. function:: SessionPool(user, password, database, min, max, increment, [connectiontype, threaded, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True, externalauth=True, encoding=None, nencoding=None])
+.. function:: SessionPool(user, password, database, min, max, increment, [connectiontype=cx_Oracle.Connection, threaded=False, getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True, externalauth=False, encoding=None, nencoding=None])
 
    Create and return a :ref:`session pool object <sesspool>`. This
    allows for very fast connections to the database and is of primary use in a
    server where the same connection is being made multiple times in rapid
-   succession (a web server, for example). If the connection type is specified,
-   all calls to acquire() will create connection objects of that type, rather
-   than the base type defined at the module level. The threaded attribute is
-   expected to be a boolean expression which indicates whether Oracle should
-   wrap accesses to connections with a mutex. Doing so in single threaded
-   applications imposes a performance penalty of about 10-15% which is why the
-   default is False.
+   succession (a web server, for example).
+
+   If the connection type is specified, all calls to acquire() will create
+   connection objects of that type, rather than the base type defined at the
+   module level.
+
+   The threaded attribute is expected to be a boolean expression which
+   indicates whether Oracle should wrap accesses to connections with a mutex.
+   Doing so in single threaded applications imposes a performance penalty of
+   about 10-15% which is why the default is False.
 
    The encoding argument is expected to be a string if specified and sets the
    encoding to use for regular database strings.
