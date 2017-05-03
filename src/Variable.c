@@ -142,8 +142,9 @@ static udt_VariableType *VarType_FromQueryInfo(dpiQueryInfo *info)
         case DPI_ORACLE_TYPE_NATIVE_DOUBLE:
             return &vt_NativeFloat;
         case DPI_ORACLE_TYPE_NUMBER:
-            if (info->scale == 0 && info->precision > 0) {
-                if (info->precision <= DPI_MAX_INT64_PRECISION)
+            if (info->scale == 0) {
+                if (info->precision > 0 &&
+                        info->precision <= DPI_MAX_INT64_PRECISION)
                     return &vt_NumberAsInteger;
                 return &vt_NumberAsLongInteger;
             }
@@ -460,7 +461,7 @@ static udt_VariableType *Variable_TypeByValue(PyObject* value, uint32_t* size,
     }
 #endif
     if (PyLong_Check(value))
-        return &vt_NumberAsInteger;
+        return &vt_NumberAsLongInteger;
     if (PyFloat_Check(value))
         return &vt_NumberAsFloat;
     if (cxBinary_Check(value)) {

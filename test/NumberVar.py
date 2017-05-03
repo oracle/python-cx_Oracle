@@ -69,8 +69,8 @@ class TestNumberVar(BaseTestCase):
                 value = long(3))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
 
-    def testBindLargeLong(self):
-        "test binding in a large long integer"
+    def testBindLargeLongAsOracleNumber(self):
+        "test binding in a large long integer as Oracle number"
         valueVar = self.cursor.var(cx_Oracle.NUMBER)
         valueVar.setvalue(0, 6088343244)
         self.cursor.execute("""
@@ -80,6 +80,13 @@ class TestNumberVar(BaseTestCase):
                 value = valueVar)
         value = valueVar.getvalue()
         self.assertEqual(value, 6088343249)
+
+    def testBindLargeLongAsInteger(self):
+        "test binding in a large long integer as Python integer"
+        longValue = -9999999999999999999
+        self.cursor.execute("select :value from dual", value = longValue)
+        result, = self.cursor.fetchone()
+        self.assertEqual(result, longValue)
 
     def testBindIntegerAfterString(self):
         "test binding in an number after setting input sizes to a string"
