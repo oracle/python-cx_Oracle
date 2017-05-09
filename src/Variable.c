@@ -296,6 +296,7 @@ static int Variable_SetValueBytes(udt_Variable *var, uint32_t pos,
         dpiVar_release(var->handle);
         var->handle = tempVarHandle;
         var->data = tempVarData;
+        var->size = buffer.numCharacters;
         var->bufferSize = buffer.size;
     }
     status = dpiVar_setFromBytes(var->handle, pos, buffer.ptr, buffer.size);
