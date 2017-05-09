@@ -191,6 +191,7 @@ static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
     dpiTimestamp *timestamp;
     udt_Object *otherObj;
     dpiBytes *bytes;
+    udt_LOB *lob;
 
     // None is treated as null
     if (value == Py_None) {
@@ -201,7 +202,8 @@ static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
     // convert the different Python types
     data->isNull = 0;
     if (PyUnicode_Check(value) || PyBytes_Check(value)) {
-        if (cxBuffer_FromObject(buffer, value, obj->objectType->encoding) < 0)
+        if (cxBuffer_FromObject(buffer, value,
+                obj->objectType->connection->encodingInfo.encoding) < 0)
             return -1;
         *nativeTypeNum = DPI_NATIVE_TYPE_BYTES;
         bytes = &data->value.asBytes;
@@ -245,6 +247,10 @@ static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
         *nativeTypeNum = DPI_NATIVE_TYPE_OBJECT;
         otherObj = (udt_Object*) value;
         data->value.asObject = otherObj->handle;
+    } else if (Py_TYPE(value) == &g_LOBType) {
+        *nativeTypeNum = DPI_NATIVE_TYPE_LOB;
+        lob = (udt_LOB*) value;
+        data->value.asLOB = lob->handle;
     } else {
         PyErr_Format(g_NotSupportedErrorException,
                 "Object_ConvertFromPython(): unhandled value type");
@@ -260,7 +266,8 @@ static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
 //   Convert an Oracle value to a Python value.
 //-----------------------------------------------------------------------------
 static PyObject *Object_ConvertToPython(udt_Object *obj,
-        dpiNativeTypeNum nativeTypeNum, dpiData *data, udt_ObjectType *objType)
+        dpiOracleTypeNum oracleTypeNum, dpiNativeTypeNum nativeTypeNum,
+        dpiData *data, udt_ObjectType *objType)
 {
     dpiIntervalDS *intervalDS;
     dpiTimestamp *timestamp;
@@ -281,6 +288,7 @@ static PyObject *Object_ConvertToPython(udt_Object *obj,
                     (unsigned long) data->value.asUint64);
 #endif
         case DPI_NATIVE_TYPE_FLOAT:
+            return PyFloat_FromDouble(data->value.asFloat);
         case DPI_NATIVE_TYPE_DOUBLE:
             return PyFloat_FromDouble(data->value.asDouble);
         case DPI_NATIVE_TYPE_BYTES:
@@ -305,6 +313,9 @@ static PyObject *Object_ConvertToPython(udt_Object *obj,
             if (data->value.asBoolean)
                 Py_RETURN_TRUE;
             Py_RETURN_FALSE;
+        case DPI_NATIVE_TYPE_LOB:
+            return LOB_New(obj->objectType->connection, oracleTypeNum,
+                    data->value.asLOB);
         default:
             break;
     }
@@ -326,8 +337,8 @@ static PyObject *Object_GetAttributeValue(udt_Object *self,
     if (dpiObject_getAttributeValue(self->handle, attribute->handle,
             attribute->nativeTypeNum, &data) < 0)
         return Error_RaiseAndReturnNull();
-    return Object_ConvertToPython(self, attribute->nativeTypeNum, &data,
-            attribute->type);
+    return Object_ConvertToPython(self, attribute->oracleTypeNum,
+            attribute->nativeTypeNum, &data, attribute->type);
 }
 
 
@@ -484,6 +495,7 @@ static PyObject *Object_AsList(udt_Object *self, PyObject *args)
             return Error_RaiseAndReturnNull();
         }
         elementValue = Object_ConvertToPython(self,
+                self->objectType->elementOracleTypeNum,
                 self->objectType->elementNativeTypeNum, &data,
                 (udt_ObjectType*) self->objectType->elementType);
         if (!elementValue) {
@@ -588,8 +600,9 @@ static PyObject *Object_GetElement(udt_Object *self, PyObject *args)
     if (dpiObject_getElementValueByIndex(self->handle, index,
             self->objectType->elementNativeTypeNum, &data) < 0)
         return Error_RaiseAndReturnNull();
-    return Object_ConvertToPython(self, self->objectType->elementNativeTypeNum,
-            &data, (udt_ObjectType*) self->objectType->elementType);
+    return Object_ConvertToPython(self, self->objectType->elementOracleTypeNum,
+            self->objectType->elementNativeTypeNum, &data,
+            (udt_ObjectType*) self->objectType->elementType);
 }
 
 

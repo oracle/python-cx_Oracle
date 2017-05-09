@@ -22,7 +22,8 @@ typedef struct {
     PyObject *name;
     PyObject *attributes;
     PyObject *attributesByName;
-    const char *encoding;
+    udt_Connection *connection;
+    dpiOracleTypeNum elementOracleTypeNum;
     dpiNativeTypeNum elementNativeTypeNum;
     PyObject *elementType;
     char isCollection;
@@ -32,6 +33,7 @@ typedef struct {
     PyObject_HEAD
     PyObject *name;
     dpiObjectAttr *handle;
+    dpiOracleTypeNum oracleTypeNum;
     dpiNativeTypeNum nativeTypeNum;
     udt_ObjectType *type;
 } udt_ObjectAttribute;
@@ -190,18 +192,20 @@ static int ObjectType_Initialize(udt_ObjectType *self,
     uint16_t i;
 
     // get object type information
-    self->encoding = connection->encodingInfo.encoding;
     if (dpiObjectType_getInfo(self->handle, &info) < 0)
         return Error_RaiseAndReturnInt();
+    Py_INCREF(connection);
+    self->connection = connection;
     self->schema = cxString_FromEncodedString(info.schema, info.schemaLength,
-            self->encoding);
+            connection->encodingInfo.encoding);
     if (!self->schema)
         return -1;
     self->name = cxString_FromEncodedString(info.name, info.nameLength,
-            self->encoding);
+            connection->encodingInfo.encoding);
     if (!self->name)
         return -1;
     self->isCollection = info.isCollection;
+    self->elementOracleTypeNum = info.elementOracleTypeNum;
     self->elementNativeTypeNum = info.elementDefaultNativeTypeNum;
     if (info.elementObjectType) {
         self->elementType = (PyObject*) ObjectType_New(connection,
@@ -310,6 +314,7 @@ static void ObjectType_Free(udt_ObjectType *self)
         dpiObjectType_release(self->handle);
         self->handle = NULL;
     }
+    Py_CLEAR(self->connection);
     Py_CLEAR(self->schema);
     Py_CLEAR(self->name);
     Py_CLEAR(self->attributes);
@@ -399,6 +404,7 @@ static int ObjectAttribute_Initialize(udt_ObjectAttribute *self,
 
     if (dpiObjectAttr_getInfo(self->handle, &info) < 0)
         return Error_RaiseAndReturnInt();
+    self->oracleTypeNum = info.oracleTypeNum;
     self->nativeTypeNum = info.defaultNativeTypeNum;
     self->name = cxString_FromEncodedString(info.name, info.nameLength,
             connection->encodingInfo.encoding);

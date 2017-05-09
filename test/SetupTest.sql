@@ -56,11 +56,18 @@ create type cx_Oracle.udt_Object as object (
   NumberValue           number,
   StringValue           varchar2(60),
   FixedCharValue        char(10),
+  NStringValue          nvarchar2(60),
+  NFixedCharValue       nchar(10),
   IntValue              integer,
   SmallIntValue         smallint,
   FloatValue            float,
+  BinaryFloatValue      binary_float,
+  BinaryDoubleValue     binary_double,
   DateValue             date,
   TimestampValue        timestamp,
+  CLOBValue             clob,
+  NCLOBValue            nclob,
+  BLOBValue             blob,
   SubObjectValue        cx_Oracle.udt_SubObject,
   SubObjectArray        cx_Oracle.udt_ObjectArray
 );
@@ -282,9 +289,11 @@ end;
 /
 
 insert into cx_Oracle.TestObjects values (1,
-    cx_Oracle.udt_Object(1, 'First row', 'First', 2, 5, 12.5,
-        to_date(20070306, 'YYYYMMDD'),
+    cx_Oracle.udt_Object(1, 'First row', 'First', 'N First Row', 'N First',
+        2, 5, 12.5, 25.25, 50.125, to_date(20070306, 'YYYYMMDD'),
         to_timestamp('20080912 16:40:00', 'YYYYMMDD HH24:MI:SS'),
+        'Short CLOB value', 'Short NCLOB Value',
+        utl_raw.cast_to_raw('Short BLOB value'),
         cx_Oracle.udt_SubObject(11, 'Sub object 1'),
         cx_Oracle.udt_ObjectArray(
                 cx_Oracle.udt_SubObject(5, 'first element'),
@@ -295,9 +304,11 @@ insert into cx_Oracle.TestObjects values (2, null,
     cx_Oracle.udt_Array(3, null, 9, 12, 15));
 
 insert into cx_Oracle.TestObjects values (3,
-    cx_Oracle.udt_Object(3, 'Third row', 'Third', 4, 10, 43.25,
-        to_date(20070621, 'YYYYMMDD'),
+    cx_Oracle.udt_Object(3, 'Third row', 'Third', 'N Third Row', 'N Third',
+        4, 10, 43.25, 86.5, 192.125, to_date(20070621, 'YYYYMMDD'),
         to_timestamp('20071213 07:30:45', 'YYYYMMDD HH24:MI:SS'),
+        'Another short CLOB value', 'Another short NCLOB Value',
+        utl_raw.cast_to_raw('Yet another short BLOB value'),
         cx_Oracle.udt_SubObject(13, 'Sub object 3'),
         cx_Oracle.udt_ObjectArray(
                 cx_Oracle.udt_SubObject(10, 'element #1'),

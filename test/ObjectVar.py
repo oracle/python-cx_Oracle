@@ -28,6 +28,8 @@ class TestObjectVar(BaseTestCase):
                             v = self.__GetObjectAsTuple(v)
                         subValue.append(v)
                     value = subValue
+            elif isinstance(value, cx_Oracle.LOB):
+                value = value.read()
             attributeValues.append(value)
         return tuple(attributeValues)
 
@@ -118,16 +120,21 @@ class TestObjectVar(BaseTestCase):
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
                   ('OBJECTCOL', cx_Oracle.OBJECT, None, None, None, None, 1),
                   ('ARRAYCOL', cx_Oracle.OBJECT, None, None, None, None, 1) ])
-        self.__TestData(1, (1, 'First row', 'First     ', 2, 5, 12.5,
+        self.__TestData(1, (1, 'First row', 'First     ', 'N First Row',
+                'N First   ', 2, 5, 12.5, 25.25, 50.125,
                 cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0),
                 cx_Oracle.Timestamp(2008, 9, 12, 16, 40),
+                'Short CLOB value', 'Short NCLOB Value', b'Short BLOB value',
                 (11, 'Sub object 1'),
                 [(5, 'first element'), (6, 'second element')]),
                 [5, 10, None, 20])
         self.__TestData(2, None, [3, None, 9, 12, 15])
-        self.__TestData(3, (3, 'Third row', 'Third     ', 4, 10, 43.25,
+        self.__TestData(3, (3, 'Third row', 'Third     ', 'N Third Row',
+                'N Third   ', 4, 10, 43.25, 86.5, 192.125,
                 cx_Oracle.Timestamp(2007, 6, 21, 0, 0, 0),
                 cx_Oracle.Timestamp(2007, 12, 13, 7, 30, 45),
+                'Another short CLOB value', 'Another short NCLOB Value',
+                b'Yet another short BLOB value',
                 (13, 'Sub object 3'),
                 [(10, 'element #1'), (20, 'element #2'),
                  (30, 'element #3'), (40, 'element #4')]), None)
@@ -139,8 +146,10 @@ class TestObjectVar(BaseTestCase):
         self.assertEqual(typeObj.schema, self.connection.username.upper())
         self.assertEqual(typeObj.name, "UDT_OBJECT")
         expectedAttributeNames = ["NUMBERVALUE", "STRINGVALUE",
-                "FIXEDCHARVALUE", "INTVALUE", "SMALLINTVALUE", "FLOATVALUE",
-                "DATEVALUE", "TIMESTAMPVALUE", "SUBOBJECTVALUE",
+                "FIXEDCHARVALUE", "NSTRINGVALUE", "NFIXEDCHARVALUE",
+                "INTVALUE", "SMALLINTVALUE", "FLOATVALUE", "BINARYFLOATVALUE",
+                "BINARYDOUBLEVALUE", "DATEVALUE", "TIMESTAMPVALUE",
+                "CLOBVALUE", "NCLOBVALUE", "BLOBVALUE", "SUBOBJECTVALUE",
                 "SUBOBJECTARRAY"]
         actualAttributeNames = [a.name for a in typeObj.attributes]
         self.assertEqual(actualAttributeNames, expectedAttributeNames)
@@ -160,4 +169,58 @@ class TestObjectVar(BaseTestCase):
                 self.connection.username.upper())
         self.assertEqual(objValue.type.name, "UDT_OBJECT")
         self.assertEqual(objValue.type.attributes[0].name, "NUMBERVALUE")
+
+    def testRoundTripObject(self):
+        "test inserting and then querying object with all data types"
+        self.cursor.execute("truncate table TestClobs")
+        self.cursor.execute("truncate table TestNClobs")
+        self.cursor.execute("truncate table TestBlobs")
+        self.cursor.execute("insert into TestClobs values " \
+                "(1, 'A short CLOB')")
+        self.cursor.execute("insert into TestNClobs values " \
+                "(1, 'A short NCLOB')")
+        self.cursor.execute("insert into TestBlobs values " \
+                "(1, utl_raw.cast_to_raw('A short BLOB'))")
+        self.connection.commit()
+        self.cursor.execute("select CLOBCol from TestClobs")
+        clob, = self.cursor.fetchone()
+        self.cursor.execute("select NCLOBCol from TestNClobs")
+        nclob, = self.cursor.fetchone()
+        self.cursor.execute("select BLOBCol from TestBlobs")
+        blob, = self.cursor.fetchone()
+        typeObj = self.connection.gettype("UDT_OBJECT")
+        obj = typeObj.newobject()
+        obj.NUMBERVALUE = 5
+        obj.STRINGVALUE = "A string"
+        obj.FIXEDCHARVALUE = "Fixed str"
+        obj.NSTRINGVALUE = "A NCHAR string"
+        obj.NFIXEDCHARVALUE = "Fixed N"
+        obj.INTVALUE = 27
+        obj.SMALLINTVALUE = 13
+        obj.FLOATVALUE = 23.75
+        obj.DATEVALUE = datetime.date(2017, 5, 9)
+        obj.TIMESTAMPVALUE = datetime.datetime(2017, 5, 9, 9, 41, 13)
+        obj.BINARYFLOATVALUE = 14.25
+        obj.BINARYDOUBLEVALUE = 29.1625
+        obj.CLOBVALUE = clob
+        obj.NCLOBVALUE = nclob
+        obj.BLOBVALUE = blob
+        subTypeObj = self.connection.gettype("UDT_SUBOBJECT")
+        subObj = subTypeObj.newobject()
+        subObj.SUBNUMBERVALUE = 23
+        subObj.SUBSTRINGVALUE = "Substring value"
+        obj.SUBOBJECTVALUE = subObj
+        self.cursor.execute("insert into TestObjects (IntCol, ObjectCol) " \
+                "values (4, :obj)", obj = obj)
+        self.cursor.execute("""
+                select IntCol, ObjectCol, ArrayCol
+                from TestObjects
+                where IntCol = 4""")
+        self.__TestData(4, (5, 'A string', 'Fixed str ', 'A NCHAR string',
+                'Fixed N   ', 27, 13, 23.75, 14.25, 29.1625,
+                cx_Oracle.Timestamp(2017, 5, 9, 0, 0, 0),
+                cx_Oracle.Timestamp(2017, 5, 9, 9, 41, 13),
+                'A short CLOB', 'A short NCLOB', b'A short BLOB',
+                (23, 'Substring value'), None), None)
+        self.connection.rollback()
 

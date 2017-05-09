@@ -70,9 +70,6 @@ static udt_VariableType vt_BFILE = {
 };
 
 
-#include "LOB.c"
-
-
 //-----------------------------------------------------------------------------
 // LobVar_SetValue()
 //   Set the value of the variable.
@@ -106,6 +103,7 @@ static int LobVar_SetValue(udt_Variable *var, uint32_t pos, dpiData *data,
 //-----------------------------------------------------------------------------
 static PyObject *LobVar_GetValue(udt_Variable *var, dpiData *data)
 {
-    return LOB_New(var, data->value.asLOB);
+    return LOB_New(var->connection, var->type->oracleTypeNum,
+            data->value.asLOB);
 }
 

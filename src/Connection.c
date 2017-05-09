@@ -472,6 +472,7 @@ static PyObject *Connection_ChangePassword(udt_Connection *self,
 }
 
 
+#include "LOB.c"
 #include "Cursor.c"
 #include "Subscription.c"
 #include "DeqOptions.c"

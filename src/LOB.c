@@ -17,13 +17,14 @@
 //-----------------------------------------------------------------------------
 typedef struct {
     PyObject_HEAD
-    udt_Variable *var;
+    udt_Connection *connection;
+    dpiOracleTypeNum oracleTypeNum;
     dpiLob *handle;
 } udt_LOB;
 
 
 //-----------------------------------------------------------------------------
-// Declaration of external LOB variable functions.
+// Declaration of external LOB functions.
 //-----------------------------------------------------------------------------
 static void LOB_Free(udt_LOB*);
 static PyObject *LOB_Str(udt_LOB*);
@@ -42,7 +43,7 @@ static PyObject *LOB_Reduce(udt_LOB*);
 
 
 //-----------------------------------------------------------------------------
-// declaration of methods for Python type "ExternalLOBVar"
+// declaration of methods for Python type "LOB"
 //-----------------------------------------------------------------------------
 static PyMethodDef g_LOBMethods[] = {
     { "size", (PyCFunction) LOB_Size, METH_NOARGS },
@@ -111,9 +112,10 @@ static PyTypeObject g_LOBType = {
 
 //-----------------------------------------------------------------------------
 // LOB_New()
-//   Create a new external LOB variable.
+//   Create a new LOB.
 //-----------------------------------------------------------------------------
-PyObject *LOB_New(udt_Variable *var, dpiLob *handle)
+PyObject *LOB_New(udt_Connection *connection, dpiOracleTypeNum oracleTypeNum,
+        dpiLob *handle)
 {
     udt_LOB *self;
 
@@ -125,15 +127,16 @@ PyObject *LOB_New(udt_Variable *var, dpiLob *handle)
         return NULL;
     }
     self->handle = handle;
-    Py_INCREF(var);
-    self->var = var;
+    self->oracleTypeNum = oracleTypeNum;
+    Py_INCREF(connection);
+    self->connection = connection;
     return (PyObject*) self;
 }
 
 
 //-----------------------------------------------------------------------------
 // LOB_Free()
-//   Free an external LOB variable.
+//   Free a LOB.
 //-----------------------------------------------------------------------------
 static void LOB_Free(udt_LOB *self)
 {
@@ -141,7 +144,7 @@ static void LOB_Free(udt_LOB *self)
         dpiLob_release(self->handle);
         self->handle = NULL;
     }
-    Py_CLEAR(self->var);
+    Py_CLEAR(self->connection);
     Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
@@ -185,12 +188,12 @@ static PyObject *LOB_InternalRead(udt_LOB *self, uint64_t offset,
     }
 
     // return the result
-    if (self->var->type == &vt_CLOB)
+    if (self->oracleTypeNum == DPI_ORACLE_TYPE_CLOB)
         result = PyUnicode_Decode(buffer, bufferSize,
-                self->var->connection->encodingInfo.encoding, NULL);
-    else if (self->var->type == &vt_NCLOB)
+                self->connection->encodingInfo.encoding, NULL);
+    else if (self->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
         result = cxString_FromEncodedString(buffer, bufferSize,
-                self->var->connection->encodingInfo.nencoding);
+                self->connection->encodingInfo.nencoding);
     else result = PyBytes_FromStringAndSize(buffer, bufferSize);
     PyMem_Free(buffer);
     return result;
@@ -207,9 +210,9 @@ static int LOB_InternalWrite(udt_LOB *self, PyObject *dataObj, uint64_t offset)
     udt_Buffer buffer;
     int status;
 
-    if (self->var->type == &vt_NCLOB)
-        encoding = self->var->connection->encodingInfo.nencoding;
-    else encoding = self->var->connection->encodingInfo.encoding;
+    if (self->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
+        encoding = self->connection->encodingInfo.nencoding;
+    else encoding = self->connection->encodingInfo.encoding;
     if (cxBuffer_FromObject(&buffer, dataObj, encoding) < 0)
         return -1;
     Py_BEGIN_ALLOW_THREADS
@@ -225,7 +228,7 @@ static int LOB_InternalWrite(udt_LOB *self, PyObject *dataObj, uint64_t offset)
 
 //-----------------------------------------------------------------------------
 // LOB_Size()
-//   Return the size of the data in the LOB variable.
+//   Return the size of the data in the LOB.
 //-----------------------------------------------------------------------------
 static PyObject *LOB_Size(udt_LOB *self, PyObject *args)
 {
@@ -273,7 +276,7 @@ static PyObject *LOB_Close(udt_LOB *self, PyObject *args)
 
 //-----------------------------------------------------------------------------
 // LOB_Read()
-//   Return a portion (or all) of the data in the external LOB variable.
+//   Return a portion (or all) of the data in the LOB.
 //-----------------------------------------------------------------------------
 static PyObject *LOB_Read(udt_LOB *self, PyObject *args, PyObject *keywordArgs)
 {
@@ -292,7 +295,7 @@ static PyObject *LOB_Read(udt_LOB *self, PyObject *args, PyObject *keywordArgs)
 
 //-----------------------------------------------------------------------------
 // LOB_Str()
-//   Return all of the data in the external LOB variable.
+//   Return all of the data in the LOB.
 //-----------------------------------------------------------------------------
 static PyObject *LOB_Str(udt_LOB *self)
 {
@@ -302,7 +305,7 @@ static PyObject *LOB_Str(udt_LOB *self)
 
 //-----------------------------------------------------------------------------
 // LOB_Write()
-//   Write a value to the LOB variable; return the number of bytes written.
+//   Write a value to the LOB.
 //-----------------------------------------------------------------------------
 static PyObject *LOB_Write(udt_LOB *self, PyObject *args,
         PyObject *keywordArgs)
@@ -323,7 +326,7 @@ static PyObject *LOB_Write(udt_LOB *self, PyObject *args,
 
 //-----------------------------------------------------------------------------
 // LOB_Trim()
-//   Trim the LOB variable to the specified length.
+//   Trim the LOB to the specified length.
 //-----------------------------------------------------------------------------
 static PyObject *LOB_Trim(udt_LOB *self, PyObject *args, PyObject *keywordArgs)
 {
@@ -346,7 +349,7 @@ static PyObject *LOB_Trim(udt_LOB *self, PyObject *args, PyObject *keywordArgs)
 
 //-----------------------------------------------------------------------------
 // LOB_Reduce()
-//   Method provided for pickling/unpickling of LOB variables.
+//   Method provided for pickling/unpickling of LOBs.
 //-----------------------------------------------------------------------------
 static PyObject *LOB_Reduce(udt_LOB *self)
 {
@@ -417,14 +420,14 @@ static PyObject *LOB_GetFileName(udt_LOB *self, PyObject *args)
     if (!result)
         return NULL;
     temp = cxString_FromEncodedString(directoryAlias, directoryAliasLength,
-            self->var->connection->encodingInfo.encoding);
+            self->connection->encodingInfo.encoding);
     if (!temp) {
         Py_DECREF(result);
         return NULL;
     }
     PyTuple_SET_ITEM(result, 0, temp);
     temp = cxString_FromEncodedString(fileName, fileNameLength,
-            self->var->connection->encodingInfo.encoding);
+            self->connection->encodingInfo.encoding);
     if (!temp) {
         Py_DECREF(result);
         return NULL;
@@ -449,10 +452,10 @@ static PyObject *LOB_SetFileName(udt_LOB *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO", &directoryAliasObj, &fileNameObj))
         return NULL;
     if (cxBuffer_FromObject(&directoryAliasBuffer, directoryAliasObj,
-            self->var->connection->encodingInfo.encoding) < 0)
+            self->connection->encodingInfo.encoding) < 0)
         return NULL;
     if (cxBuffer_FromObject(&fileNameBuffer, fileNameObj,
-            self->var->connection->encodingInfo.encoding) < 0) {
+            self->connection->encodingInfo.encoding) < 0) {
         cxBuffer_Clear(&directoryAliasBuffer);
         return NULL;
     }
