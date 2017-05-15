@@ -334,6 +334,9 @@ static int Cursor_VerifyFetch(udt_Cursor *self)
 
     // fixup REF cursor, if applicable
     if (self->fixupRefCursor) {
+        self->fetchArraySize = self->arraySize;
+        if (dpiStmt_setFetchArraySize(self->handle, self->fetchArraySize) < 0)
+            return Error_RaiseAndReturnInt();
         if (dpiStmt_getNumQueryColumns(self->handle, &numQueryColumns) < 0)
             return Error_RaiseAndReturnInt();
         if (Cursor_PerformDefine(self, numQueryColumns) < 0)
