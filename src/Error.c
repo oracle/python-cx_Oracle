@@ -234,6 +234,8 @@ static int Error_RaiseFromInfo(dpiErrorInfo *errorInfo)
     udt_Error *self;
 
     self = Error_InternalNew(errorInfo);
+    if (!self)
+        return -1;
     switch (errorInfo->code) {
         case 1:
         case 1400:
