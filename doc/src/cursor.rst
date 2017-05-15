@@ -87,7 +87,7 @@ Cursor Object
       refers to the return value of the function.
 
 
-.. method:: Cursor.callproc(name, parameters=[], keyewordParameters={})
+.. method:: Cursor.callproc(name, parameters=[], keywordParameters={})
 
    Call a procedure with the given name. The sequence of parameters must
    contain one entry for each argument that the procedure expects. The result
