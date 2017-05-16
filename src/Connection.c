@@ -1643,7 +1643,7 @@ static PyObject *Connection_NewCursor(
     PyObject *args,                     // arguments
     PyObject *keywordArgs)              // keyword arguments
 {
-    PyObject *createArgs, *result;
+    PyObject *createArgs, *result, *arg;
     Py_ssize_t numArgs = 0, i;
 
     if (args)
@@ -1653,8 +1653,11 @@ static PyObject *Connection_NewCursor(
         return NULL;
     Py_INCREF(self);
     PyTuple_SET_ITEM(createArgs, 0, (PyObject*) self);
-    for (i = 0; i < numArgs; i++)
-        PyTuple_SET_ITEM(createArgs, i + 1, PyTuple_GET_ITEM(args, i));
+    for (i = 0; i < numArgs; i++) {
+        arg = PyTuple_GET_ITEM(args, i);
+        Py_INCREF(arg);
+        PyTuple_SET_ITEM(createArgs, i + 1, arg);
+    }
     result = PyObject_Call( (PyObject*) &g_CursorType, createArgs,
             keywordArgs);
     Py_DECREF(createArgs);
