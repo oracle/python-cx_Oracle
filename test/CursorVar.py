@@ -37,6 +37,17 @@ class TestCursorVar(BaseTestCase):
         self.assertEqual(cursor.fetchall(),
                 [ (1, 'String 1'), (2, 'String 2') ])
 
+    def testBindSelf(self):
+        "test that binding the cursor itself is not supported"
+        cursor = self.connection.cursor()
+        sql = """
+                begin
+                    open :pcursor for
+                        select 1 from dual;
+                end;"""
+        self.assertRaises(cx_Oracle.DatabaseError, cursor.execute, sql,
+                pcursor = cursor)
+
     def testFetchCursor(self):
         "test fetching a cursor"
         self.cursor.execute("""
