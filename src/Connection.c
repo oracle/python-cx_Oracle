@@ -1003,7 +1003,7 @@ static PyObject *Connection_Rollback(udt_Connection *self, PyObject *args)
 static PyObject *Connection_NewCursor(udt_Connection *self, PyObject *args,
         PyObject *keywordArgs)
 {
-    PyObject *createArgs, *result;
+    PyObject *createArgs, *result, *arg;
     Py_ssize_t numArgs = 0, i;
 
     if (args)
@@ -1013,8 +1013,11 @@ static PyObject *Connection_NewCursor(udt_Connection *self, PyObject *args,
         return NULL;
     Py_INCREF(self);
     PyTuple_SET_ITEM(createArgs, 0, (PyObject*) self);
-    for (i = 0; i < numArgs; i++)
-        PyTuple_SET_ITEM(createArgs, i + 1, PyTuple_GET_ITEM(args, i));
+    for (i = 0; i < numArgs; i++) {
+        arg = PyTuple_GET_ITEM(args, i);
+        Py_INCREF(arg);
+        PyTuple_SET_ITEM(createArgs, i + 1, arg);
+    }
     result = PyObject_Call( (PyObject*) &g_CursorType, createArgs,
             keywordArgs);
     Py_DECREF(createArgs);
