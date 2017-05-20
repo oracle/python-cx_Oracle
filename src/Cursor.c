@@ -1982,7 +1982,8 @@ static PyObject *Cursor_BindNames(udt_Cursor *self, PyObject *args)
     }
 
     // get the bind names
-    if (dpiStmt_getBindNames(self->handle, numBinds, names, nameLengths) < 0) {
+    if (dpiStmt_getBindNames(self->handle, &numBinds, names,
+            nameLengths) < 0) {
         PyMem_Free((void*) names);
         PyMem_Free(nameLengths);
         return Error_RaiseAndReturnNull();

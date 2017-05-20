@@ -238,6 +238,8 @@ class TestCursor(BaseTestCase):
                 ":h + :i + :j + :k + :l; end;")
         self.assertEqual(self.cursor.bindnames(),
                 ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"])
+        self.cursor.prepare("select :a * :a + :b * :b from dual")
+        self.assertEqual(self.cursor.bindnames(), ["A", "B"])
 
     def testBadPrepare(self):
         """test that subsequent executes succeed after bad prepare"""
