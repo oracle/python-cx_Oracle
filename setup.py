@@ -54,6 +54,12 @@ elif sys.platform == "cygwin":
 elif sys.platform == "darwin":
     extraLinkArgs.append("-shared-libgcc")
 
+# setup ODPI-C debugging, if desirable
+defines = []
+debugLevelName = "DPI_DEBUG_LEVEL"
+if debugLevelName in os.environ:
+    defines = [(debugLevelName, os.environ[debugLevelName])]
+
 class test(distutils.core.Command):
     description = "run the test suite for the extension"
     user_options = []
@@ -92,6 +98,7 @@ extension = Extension(
         include_dirs = ["odpi/include", "odpi/src"],
         extra_compile_args = extraCompileArgs,
         extra_link_args = extraLinkArgs,
+        define_macros = defines,
         sources = ["src/cx_Oracle.c"],
         depends = ["src/BooleanVar.c", "src/Buffer.c", "src/Connection.c",
                 "src/Cursor.c", "src/CursorVar.c", "src/DateTimeVar.c",
