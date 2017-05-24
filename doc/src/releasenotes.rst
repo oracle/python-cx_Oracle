@@ -7,10 +7,35 @@ Release notes
 Version 6.0 (TBD)
 -----------------
 
-#)  Update documentation to show that methods :meth:`Object.first()` and
-    :meth:`Object.last()` do not raise an exception when the collection is
-    empty. They now return the value None to be consistent with the
-    methods :meth:`Object.next()` and :meth:`Object.prev()`.
+Version 6.0 beta 2 (May 2017)
+-----------------------------
+
+#)  Added support for getting/setting attributes of objects or element values
+    in collections that contain LOBs, BINARY_FLOAT values, BINARY_DOUBLE values
+    and NCHAR and NVARCHAR2 values. The error message for any types that are
+    not supported has been improved as well.
+#)  Enable temporary LOB caching in order to avoid disk I/O as
+    `suggested <https://github.com/oracle/odpi/issues/10>`__.
+#)  Added support for setting the debug level in ODPI-C, if desirable, by
+    setting environment variable DPI_DEBUG_LEVEL prior to building cx_Oracle.
+#)  Correct processing of strings in :meth:`Cursor.executemany` when a
+    larger string is found after a shorter string in the list of data bound to
+    the statement.
+#)  Correct handling of long Python integers that cannot fit inside a 64-bit C
+    integer (`issue 18
+    <https://github.com/oracle/python-cx_Oracle/issues/18>`__).
+#)  Correct creation of pool using external authentication.
+#)  Handle edge case when an odd number of zeroes trail the decimal point in a
+    value that is effectively zero (`issue 22
+    <https://github.com/oracle/python-cx_Oracle/issues/22>`__).
+#)  Prevent segfault under load when the attempt to create an error fails.
+#)  Eliminate resource leak when a standalone connection or pool is freed.
+#)  Correct `typo <https://github.com/oracle/python-cx_Oracle/issues/24>`__.
+#)  Correct handling of REF cursors when the array size is manipulated.
+#)  Prevent attempts from binding the cursor being executed to itself.
+#)  Correct reference count handling of parameters when creating a cursor.
+#)  Correct determination of the names of the bind variables in prepared SQL
+    statements (which behaves a little differently from PL/SQL statements).
 
 
 Version 6.0 beta 1 (April 2017)
@@ -45,6 +70,10 @@ Version 6.0 beta 1 (April 2017)
     database (new in Oracle Database 12.2).
 #)  Added support for smallint and float data types in Oracle objects, as
     `requested <https://github.com/oracle/python-cx_Oracle/issues/4>`__.
+#)  An exception is no longer raised when a collection is empty for methods
+    :meth:`Object.first()` and :meth:`Object.last()`. Instead, the value None
+    is returned to be consistent with the methods :meth:`Object.next()` and
+    :meth:`Object.prev()`.
 #)  Removed restriction on fetching LOBs across round trips to the database
     (eliminates error "LOB variable no longer valid after subsequent fetch").
 #)  Removed requirement for specifying a maximum size when fetching LONG or
