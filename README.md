@@ -32,25 +32,40 @@ which is far easier to install.
 Issues and questions can be raised with the cx_Oracle community on
 [GitHub][9] or on the [mailing list][5].
 
+## Documentation
+
+See the [cx_Oracle Documentation][2].
 
 ## Installation
 
-Binaries for some platforms are available at [PyPI][6]. If you prefer to build
-your own you can use this command
+The simplest way to install cx_Oracle 6 Beta is with pip:
 
-    python -m pip install cx_Oracle
+    python -m pip install cx_Oracle --pre
 
-which will download the source package, build and install it. Otherwise, you
-can download the source package directly from PyPI, extract it and run these
-commands instead
+If a binary wheel package is not available on [PyPI][6] for your
+platform, the source package will be used.
+
+If you prefer, the source package can be downloaded manually from [PyPI][6] and
+extracted, after which the following commands should be run:
 
     python setup.py build
     python setup.py install
 
-This module is built with [ODPI-C][10] which supports versions 11.2, 12.1 and
-12.2 of the Oracle Client libraries on Linux, Windows and macOS. Others have
-reported success with other platforms.
+Note that if you download a source zip file directly from GitHub that
+you will also need to download an [ODPI-C][10] source zip file and
+extract it inside a directory called "odpi".
 
+After cx_Oracle is installed, Oracle client libraries must also be
+installed and configured.  If you need the libraries, you can download
+and unzip the [Oracle Instant Client][4] 'Basic' package for your
+platform and set PATH, LD_LIBRARY_PATH, or similar platform-specific
+library path loading environment.  See the
+[installation notes for ODPI-C][13] for help with installing and configuring an
+Oracle client.
+
+Versions 11.2, 12.1 and 12.2 of the Oracle Client libraries on Linux,
+Windows and macOS are supported.  Users have also reported success
+with other platforms.
 
 ## Usage Example
 
@@ -78,9 +93,88 @@ for column_1, column_2, column_3 in cursor:
 ```
 
 
-For more examples, please see the test suite in the test directory and the
-samples in the samples directory. You can also look at the scripts in the
-[cx_OracleTools][7] and the modules in the [cx_PyOracleLib][8] projects.
+For more examples, please see the [test suite][11] and the
+[samples][12]. You can also look at the scripts in the [cx_OracleTools][7] and
+the modules in the [cx_PyOracleLib][8] projects.
+
+## Features
+
+- Easily installed from PyPI.
+
+- Support for Python 2 and 3.
+
+- Support for Oracle Client 11.2, 12.1 and 12.2.  Oracle's standard
+  cross-version interoperability, allows easy upgrades and
+  connectivity to different Oracle Database versions.
+
+- Connect to Oracle Database 9.2, 10, 11 or 12 (depending on the
+  Oracle Client version used).
+
+- SQL and PL/SQL Execution, with full support for OCI features like
+  statement caching and statement caching auto-tuning.  Oracle OCI
+  (which is the database access layer used by cx_Oracle) has
+  significant optimizations, including compressed fetch, pre-fetching,
+  client and server result set caching, and statement caching.
+  cx_Oracle applications can additionally make full use of PL/SQL to
+  keep business logic near the data in the database, where it can be
+  processed without having to ship large volumes of data to the
+  application.
+
+- Full use of Oracle Network Service infrastructure, including
+  encrypted network traffic and security features.
+
+- Extensive Oracle data type support, including large object support (CLOB
+  and BLOB).
+
+- Direct binding to SQL objects.  One great use case is binding Python
+  objects to Oracle Spatial SDO objects.
+
+- Array operations for efficient INSERT and UPDATEs.
+
+- Array row counts and batch error handling for array operations.
+
+- Fetching of large result sets.
+
+- REF CURSOR support.
+
+- Support for scrollable cursors. Go back and forth through your query
+  results.
+
+- Fetch PL/SQL Implicit Results. Easily return query results from
+  PL/SQL.
+
+- Row Prefetching.  Efficient use of the network.
+
+- Client Result Caching.  Improve performance of frequently executed
+  look-up statements.
+
+- Support for Advanced Queuing. Use database notifications to build
+  micro-service applications.
+
+- Continuous Query Notification.  Get notified when data changes.
+
+- Support for Edition Based Redefinition.  Easily switch applications
+  to use updated PL/SQL logic.
+
+- Support for setting application context during the creation of a
+  connection, making application metadata more accessible to the
+  database, including in LOGON triggers.
+
+- End-to-end monitoring and tracing.
+
+- Transaction Management.
+
+- Session Pooling.
+
+- Database Resident Connection Pooling (DRCP).
+
+- Privileged Connections.
+
+- External Authentication.
+
+- Database startup and shutdown.
+
+- Oracle Database High Availability Features, such as FAN notifications and Transaction Guard support.
 
 [1]: https://www.python.org/dev/peps/pep-0249
 [2]: http://cx-oracle.readthedocs.io
@@ -92,4 +186,7 @@ samples in the samples directory. You can also look at the scripts in the
 [8]: http://cx-pyoraclelib.sourceforge.net
 [9]: https://github.com/oracle/python-cx_Oracle/issues
 [10]: https://oracle.github.io/odpi
+[11]: https://github.com/oracle/python-cx_Oracle/tree/master/test
+[12]: https://github.com/oracle/python-cx_Oracle/tree/master/samples
+[13]: https://oracle.github.io/odpi/doc/installation.html
 
