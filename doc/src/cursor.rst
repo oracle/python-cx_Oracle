@@ -137,7 +137,9 @@ Cursor Object
    dictionary, the values will be bound by name and if the arguments are a
    sequence the values will be bound by position. Note that if the values are
    bound by position, the order of the variables is from left to right as they
-   are encountered in the statement.
+   are encountered in the statement and SQL statements are processed
+   differently than PL/SQL statements. For this reason, it is generally
+   recommended to bind parameters by name instead of by position.
 
    A reference to the statement will be retained by the cursor. If None or the
    same string object is passed in again, the cursor will execute that
