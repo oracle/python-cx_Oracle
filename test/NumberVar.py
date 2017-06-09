@@ -283,9 +283,26 @@ class TestNumberVar(BaseTestCase):
         col, = self.cursor.fetchone()
         self.assertTrue(isinstance(col, long), "long integer not returned")
 
-    def testReturnAsFloat(self):
+    def testReturnConstantFloat(self):
         "test that fetching a floating point number returns such in Python"
         self.cursor.execute("select 1.25 from dual")
         result, = self.cursor.fetchone()
         self.assertEqual(result, 1.25)
+
+    def testReturnConstantInteger(self):
+        "test that fetching an integer returns such in Python"
+        self.cursor.execute("select 148 from dual")
+        result, = self.cursor.fetchone()
+        self.assertEqual(result, 148)
+        self.assertTrue(isinstance(result, int), "integer not returned")
+
+    def testReturnFloatFromDivision(self):
+        "test that fetching the result of division returns a float"
+        self.cursor.execute("""
+                select IntCol / 7
+                from TestNumbers
+                where IntCol = 1""")
+        result, = self.cursor.fetchone()
+        self.assertEqual(result, 1.0 / 7.0)
+        self.assertTrue(isinstance(result, float), "float not returned")
 

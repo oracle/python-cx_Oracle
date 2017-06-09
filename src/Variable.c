@@ -142,7 +142,8 @@ static udt_VariableType *VarType_FromQueryInfo(dpiQueryInfo *info)
         case DPI_ORACLE_TYPE_NATIVE_DOUBLE:
             return &vt_NativeFloat;
         case DPI_ORACLE_TYPE_NUMBER:
-            if (info->scale == 0) {
+            if (info->scale == 0 ||
+                    (info->scale == -127 && info->precision == 0)) {
                 if (info->precision > 0 &&
                         info->precision <= DPI_MAX_INT64_PRECISION)
                     return &vt_NumberAsInteger;

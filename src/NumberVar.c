@@ -159,6 +159,10 @@ static PyObject *NumberVar_GetValueLongInteger(udt_Variable *var,
     if (!stringObj)
         return NULL;
     result = PyNumber_Int(stringObj);
+    if (!result && PyErr_ExceptionMatches(PyExc_ValueError)) {
+        PyErr_Clear();
+        result = PyNumber_Float(stringObj);
+    }
     Py_DECREF(stringObj);
     return result;
 }
