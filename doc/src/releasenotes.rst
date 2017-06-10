@@ -74,6 +74,11 @@ Version 6.0 beta 1 (April 2017)
     :meth:`Object.first()` and :meth:`Object.last()`. Instead, the value None
     is returned to be consistent with the methods :meth:`Object.next()` and
     :meth:`Object.prev()`.
+#)  If the environment variables NLS_LANG and NLS_NCHAR are being used, they
+    must be set before the module is imported. Using the encoding and nencoding
+    parameters to the :meth:`cx_Oracle.connect` and
+    :meth:`cx_Oracle.SessionPool` methods is a simpler alternative to setting
+    these environment variables.
 #)  Removed restriction on fetching LOBs across round trips to the database
     (eliminates error "LOB variable no longer valid after subsequent fetch").
 #)  Removed requirement for specifying a maximum size when fetching LONG or
