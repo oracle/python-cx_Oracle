@@ -53,6 +53,21 @@ class TestConnection(TestCase):
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 self.username, self.password + "X", self.tnsentry)
 
+    def testEncodings(self):
+        "connection with only encoding or nencoding specified should work"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        encoding = connection.encoding
+        nencoding = connection.nencoding
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry, encoding = "UTF-8")
+        self.assertEqual(connection.encoding, "UTF-8")
+        self.assertEqual(connection.nencoding, nencoding)
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry, nencoding = "UTF-8")
+        self.assertEqual(connection.encoding, encoding)
+        self.assertEqual(connection.nencoding, "UTF-8")
+
     def testExceptionOnClose(self):
         "confirm an exception is raised after closing a connection"
         connection = cx_Oracle.connect(self.username, self.password,
