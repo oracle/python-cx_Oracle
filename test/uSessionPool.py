@@ -23,9 +23,10 @@ class TestConnection(TestCase):
 
     def testPool(self):
         """test that the pool is created and has the right attributes"""
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3)
-        self.assertEqual(pool.username, USERNAME, "user name differs")
-        self.assertEqual(pool.tnsentry, TNSENTRY, "tnsentry differs")
+        pool = cx_Oracle.SessionPool(unicode(USERNAME), unicode(PASSWORD),
+                unicode(TNSENTRY), 2, 8, 3)
+        self.assertEqual(pool.username, unicode(USERNAME), "user name differs")
+        self.assertEqual(pool.tnsentry, unicode(TNSENTRY), "tnsentry differs")
         self.assertEqual(pool.max, 8, "max differs")
         self.assertEqual(pool.min, 2, "min differs")
         self.assertEqual(pool.increment, 3, "increment differs")

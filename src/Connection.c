@@ -436,8 +436,7 @@ static PyObject *Connection_ChangePassword(udt_Connection *self,
     int status;
 
     // parse the arguments
-    if (!PyArg_ParseTuple(args, "O!O!", cxString_Type, &oldPasswordObj,
-            cxString_Type, &newPasswordObj))
+    if (!PyArg_ParseTuple(args, "OO", &oldPasswordObj, &newPasswordObj))
         return NULL;
 
     // populate buffers

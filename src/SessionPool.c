@@ -205,9 +205,8 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
             (uint32_t) strlen(dpiCommonParams.driverName);
     if (dpiContext_initPoolCreateParams(g_DpiContext, &dpiCreateParams) < 0)
         return Error_RaiseAndReturnInt();
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!O!O!iii|OObOOOssO",
-            keywordList, cxString_Type, &self->username,
-            cxString_Type, &passwordObj, cxString_Type, &self->dsn,
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OOOiii|OObOOOssO",
+            keywordList, &self->username, &passwordObj, &self->dsn,
             &minSessions, &maxSessions, &sessionIncrement, &connectionType,
             &threadedObj, &dpiCreateParams.getMode, &eventsObj,
             &homogeneousObj, &externalAuthObj, &dpiCommonParams.encoding,
