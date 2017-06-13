@@ -30,15 +30,17 @@ Review your output and logs.  **Google any errors**
 3. What is your version of the Oracle client (e.g. Instant Client)?  How was it
    installed?  Where is it installed?
 
-4. What is your OS and version?
+4. What is your version of the Oracle Database?
 
-5. What compiler version did you use?  For example, with GCC, run
+5. What is your OS and version?
+
+6. What compiler version did you use?  For example, with GCC, run
    `gcc --version`.
 
-6. What environment variables did you set?  How *exactly* did you set them?
+7. What environment variables did you set?  How *exactly* did you set them?
 
-7. What *exact* command caused the problem (e.g. what command did you try to
+8. What *exact* command caused the problem (e.g. what command did you try to
    install with)?  Who were you logged in as?
 
-8. What error(s) you are seeing?
+9. What error(s) you are seeing?
 
