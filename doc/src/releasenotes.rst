@@ -1,5 +1,5 @@
-Release notes
-=============
+cx_Oracle Release Notes
+=======================
 
 6.x releases
 ############

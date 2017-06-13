@@ -34,7 +34,7 @@ Issues and questions can be raised with the cx_Oracle community on
 
 ## Documentation
 
-See the [cx_Oracle Documentation][2].
+See the [cx_Oracle Documentation][2] and [Release Notes][14].
 
 ## Installation
 
@@ -189,4 +189,4 @@ the modules in the [cx_PyOracleLib][8] projects.
 [11]: https://github.com/oracle/python-cx_Oracle/tree/master/test
 [12]: https://github.com/oracle/python-cx_Oracle/tree/master/samples
 [13]: https://oracle.github.io/odpi/doc/installation.html
-
+[14]: http://cx-oracle.readthedocs.io/en/latest/releasenotes.html
