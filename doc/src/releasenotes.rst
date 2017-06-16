@@ -4,8 +4,30 @@ cx_Oracle Release Notes
 6.x releases
 ############
 
-Version 6.0 (TBD)
------------------
+Version 6.0 rc 1 (June 2017)
+----------------------------
+
+#)  Update to `ODPI-C rc 1 <https://oracle.github.io/odpi/doc/releasenotes.html
+    #version-2-0-0-rc-1-june-16-2017>`__.
+#)  The method :meth:`Cursor.setoutputsize` no longer needs to do anything,
+    since ODPI-C automatically manages buffer sizes of LONG and LONG RAW
+    columns.
+#)  Handle case when both precision and scale are zero, as occurs when
+    retrieving numeric expressions (`issue 34
+    <https://github.com/oracle/python-cx_Oracle/issues/34>`__).
+#)  OCI requires that both encoding and nencoding have values or that both
+    encoding and encoding do not have values. These parameters are used in
+    functions :meth:`cx_Oracle.connect` and :meth:`cx_Oracle.SessionPool`. The
+    missing value is set to its default value if one of the values is set and
+    the other is not (`issue 36
+    <https://github.com/oracle/python-cx_Oracle/issues/36>`__).
+#)  Permit use of both string and unicode for Python 2.7 for creating session
+    pools and for changing passwords (`issue 23
+    <https://github.com/oracle/python-cx_Oracle/issues/23>`__).
+#)  Corrected handling of BFILE LOBs.
+#)  Add script for dropping test schemas.
+#)  Documentation improvements.
+
 
 Version 6.0 beta 2 (May 2017)
 -----------------------------
