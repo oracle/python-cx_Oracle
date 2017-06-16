@@ -82,6 +82,17 @@ class BaseTestCase(unittest.TestCase):
         del self.connection
 
 
+# determine character set ratio in use in order to determine the buffer size
+# that will be reported in cursor.description; this depends on the database
+# character set and the client character set
+connection = cx_Oracle.connect(TestEnv.USERNAME, TestEnv.PASSWORD,
+        TestEnv.TNSENTRY, encoding = TestEnv.ENCODING,
+        nencoding = TestEnv.NENCODING)
+cursor = connection.cursor()
+cursor.execute("select 'X' from dual")
+col, = cursor.description
+csratio = col[3]
+
 loader = unittest.TestLoader()
 runner = unittest.TextTestRunner(verbosity = 2)
 failures = []
@@ -98,6 +109,7 @@ for name in moduleNames:
     setattr(module, "ENCODING", TestEnv.ENCODING)
     setattr(module, "NENCODING", TestEnv.NENCODING)
     setattr(module, "ARRAY_SIZE", TestEnv.ARRAY_SIZE)
+    setattr(module, "CS_RATIO", csratio)
     setattr(module, "TestCase", unittest.TestCase)
     setattr(module, "BaseTestCase", BaseTestCase)
     setattr(module, "cx_Oracle", cx_Oracle)

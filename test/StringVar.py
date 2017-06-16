@@ -279,11 +279,13 @@ class TestStringVar(BaseTestCase):
         self.cursor.execute("select * from TestStrings")
         self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('STRINGCOL', cx_Oracle.STRING, 20, 80, None, None, 0),
+                  ('STRINGCOL', cx_Oracle.STRING, 20, 20 * CS_RATIO, None,
+                    None, 0),
                   ('RAWCOL', cx_Oracle.BINARY, 30, 30, None, None, 0),
-                  ('FIXEDCHARCOL', cx_Oracle.FIXED_CHAR, 40, 160, None, None,
-                        0),
-                  ('NULLABLECOL', cx_Oracle.STRING, 50, 200, None, None, 1) ])
+                  ('FIXEDCHARCOL', cx_Oracle.FIXED_CHAR, 40, 40 * CS_RATIO,
+                    None, None, 0),
+                  ('NULLABLECOL', cx_Oracle.STRING, 50, 50 * CS_RATIO, None,
+                    None, 1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"

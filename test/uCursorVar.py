@@ -23,7 +23,8 @@ class TestCursorVar(BaseTestCase):
                 end;""",
                 cursor = cursor)
         self.assertEqual(cursor.description,
-                [ ('STRINGVALUE', cx_Oracle.FIXED_CHAR, 1, 4, None, None, 1) ])
+                [ ('STRINGVALUE', cx_Oracle.FIXED_CHAR, 1, CS_RATIO, None,
+                    None, 1) ])
         self.assertEqual(cursor.fetchall(), [('X',)])
 
     def testBindCursorInPackage(self):
@@ -33,7 +34,8 @@ class TestCursorVar(BaseTestCase):
         self.cursor.callproc(u"pkg_TestOutCursors.TestOutCursor", (2, cursor))
         self.assertEqual(cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('STRINGCOL', cx_Oracle.STRING, 20, 80, None, None, 0) ])
+                  ('STRINGCOL', cx_Oracle.STRING, 20, 20 * CS_RATIO, None,
+                    None, 0) ])
         self.assertEqual(cursor.fetchall(),
                 [ (1, 'String 1'), (2, 'String 2') ])
 
