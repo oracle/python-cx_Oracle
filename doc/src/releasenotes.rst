@@ -45,7 +45,8 @@ Version 6.0 beta 1 (April 2017)
     `ODPI-C <https://oracle.github.io/odpi>`__. This means that cx_Oracle can
     now be built without Oracle Client header files or libraries and that at
     runtime cx_Oracle can adapt to Oracle Client 11.2, 12.1 or 12.2 libraries
-    without needing to be rebuilt.
+    without needing to be rebuilt. This also means that wheels can now be
+    produced and installed via pip.
 #)  Added attribute :attr:`SessionPool.stmtcachesize` to support getting and
     setting the default statement cache size for connections in the pool.
 #)  Added attribute :attr:`Connection.dbop` to support setting the database
