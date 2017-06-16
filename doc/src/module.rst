@@ -65,10 +65,15 @@ Module Interface
    the password for the logon during the connection process.
 
    The encoding argument is expected to be a string if specified and sets the
-   encoding to use for regular database strings.
+   encoding to use for regular database strings. If not specified, the
+   environment variable NLS_LANG is used. If the environment variable NLS_LANG
+   is not set, ASCII is used.
 
    The nencoding argument is expected to be a string if specified and sets the
-   national encoding to use for national character set database strings.
+   encoding to use for national character set database strings. If not
+   specified, the environment variable NLS_NCHAR is used. If the environment
+   variable NLS_NCHAR is not used, the environment variable NLS_LANG is used
+   instead, and if the environment variable NLS_LANG is not set, ASCII is used.
 
    The edition argument is expected to be a string if specified and sets the
    edition to use for the session. It is only relevant if both the client and
@@ -141,10 +146,16 @@ Module Interface
    about 10-15% which is why the default is False.
 
    The encoding argument is expected to be a string if specified and sets the
-   encoding to use for regular database strings.
+   encoding to use for regular database strings. If not specified, the
+   environment variable NLS_LANG is used. If the environment variable NLS_LANG
+   is not set, ASCII is used.
 
    The nencoding argument is expected to be a string if specified and sets the
-   national encoding to use for national character set database strings.
+   encoding to use for national character set database strings. If not
+   specified, the environment variable NLS_NCHAR is used. If the environment
+   variable NLS_NCHAR is not used, the environment variable NLS_LANG is used
+   instead, and if the environment variable NLS_LANG is not set, ASCII is used.
+
 
    The edition argument is expected to be a string, if specified, and sets the
    edition to use for the sessions in the pool. It is only relevant if both the
