@@ -1,8 +1,20 @@
 /*-----------------------------------------------------------------------------
+ * Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
+ *
+ * Portions Copyright 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta,
+ * Canada. All rights reserved.
+ *---------------------------------------------------------------------------*/
+
+/*-----------------------------------------------------------------------------
  * SetupTest.sql
  *   Creates a user named "CX_ORACLE" and populates its schema with the tables
  * and packages necessary for performing the test suite. It also creates a user
  * named "CX_ORACLE_PROXY" for testing proxying.
+ *
+ * Run this like:
+ *   sqlplus / as sysdba @SetupTest
  *---------------------------------------------------------------------------*/
 
 whenever sqlerror exit failure
