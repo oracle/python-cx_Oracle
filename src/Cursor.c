@@ -31,8 +31,6 @@ typedef struct {
     uint32_t bindArraySize;
     uint32_t fetchArraySize;
     int setInputSizes;
-    int outputSize;
-    int outputSizeColumn;
     uint64_t rowCount;
     uint32_t fetchBufferRowIndex;
     uint32_t numRowsInFetchBuffer;
@@ -238,8 +236,6 @@ static int Cursor_Init(udt_Cursor *self, PyObject *args, PyObject *keywordArgs)
     self->arraySize = 100;
     self->fetchArraySize = 100;
     self->bindArraySize = 1;
-    self->outputSize = -1;
-    self->outputSizeColumn = -1;
     self->isOpen = 1;
 
     return 0;
@@ -434,13 +430,6 @@ static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
                     queryInfo.objectType);
             if (!objectType)
                 return -1;
-        }
-
-        // if setoutputsize() called, use its value instead
-        if (self->outputSize >= 0) {
-            if (self->outputSizeColumn < 0 ||
-                    (int) pos == self->outputSizeColumn)
-                size = self->outputSize;
         }
 
         // determine the default type 
@@ -1447,10 +1436,6 @@ static PyObject *Cursor_Execute(udt_Cursor *self, PyObject *args,
         }
     }
 
-    // reset the values of setoutputsize()
-    self->outputSize = -1;
-    self->outputSizeColumn = -1;
-
     // for queries, return the cursor for convenience
     if (numQueryColumns > 0) {
         Py_INCREF(self);
@@ -1827,15 +1812,15 @@ static PyObject *Cursor_SetInputSizes(udt_Cursor *self, PyObject *args,
 
 //-----------------------------------------------------------------------------
 // Cursor_SetOutputSize()
-//   Set the size of all of the long columns or just one of them.
+//   Does nothing as ODPI-C handles long columns dynamically without the need
+// to specify a maximum length.
 //-----------------------------------------------------------------------------
 static PyObject *Cursor_SetOutputSize(udt_Cursor *self, PyObject *args)
 {
-    self->outputSizeColumn = -1;
-    if (!PyArg_ParseTuple(args, "i|i", &self->outputSize,
-            &self->outputSizeColumn))
-        return NULL;
+    int outputSize, outputSizeColumn;
 
+    if (!PyArg_ParseTuple(args, "i|i", &outputSize, &outputSizeColumn))
+        return NULL;
     Py_RETURN_NONE;
 }
 

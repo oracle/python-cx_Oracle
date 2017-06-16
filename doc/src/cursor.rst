@@ -456,10 +456,9 @@ Cursor Object
 
 .. method:: Cursor.setoutputsize(size, [column])
 
-   This can be used before a call to :meth:`~Cursor.execute()` to predefine
-   memory areas for the long columns that will be fetched. The column is
-   specified as an index into the result sequence. Not specifying the column
-   will set the default size for all large columns in the cursor.
+   This method does nothing and is retained solely for compatibility with the
+   DB API. The module automatically allocates as much space as needed to fetch
+   LONG and LONG RAW columns (or CLOB as string and BLOB as bytes).
 
 
 .. attribute:: Cursor.statement

@@ -35,7 +35,6 @@ class TestLongVar(BaseTestCase):
                     integerValue = i,
                     longString = longString)
         self.connection.commit()
-        self.cursor.setoutputsize(250000, 2)
         self.cursor.execute(u"""
                 select *
                 from Test%ss
@@ -74,20 +73,6 @@ class TestLongVar(BaseTestCase):
                 [ (u'INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
                   (u'LONGRAWCOL', cx_Oracle.LONG_BINARY, None, None, None,
                         None, 0) ])
-
-    def testSetOutputSizesAll(self):
-        "test setoutputsizes is valid (all)"
-        self.cursor.setoutputsize(25000)
-        self.cursor.execute(u"select * from TestLongRaws")
-        longVar = self.cursor.fetchvars[1]
-        self.assertEqual(longVar.size, 25000)
-
-    def testSetOutputSizesWrongColumn(self):
-        "test setoutputsizes is valid (wrong column)"
-        self.cursor.setoutputsize(25000, 1)
-        self.cursor.execute(u"select * from TestLongRaws")
-        longVar = self.cursor.fetchvars[1]
-        self.assertEqual(longVar.size, 131072)
 
     def testArraySizeTooLarge(self):
         "test array size too large generates an exception"

@@ -78,27 +78,6 @@ class TestLongVar(BaseTestCase):
                   ('LONGRAWCOL', cx_Oracle.LONG_BINARY, None, None, None, None,
                         0) ])
 
-    def testSetOutputSizesAll(self):
-        "test setoutputsizes is valid (all)"
-        self.cursor.setoutputsize(25000)
-        self.cursor.execute("select * from TestLongRaws")
-        longVar = self.cursor.fetchvars[1]
-        self.assertEqual(longVar.size, 25000)
-
-    def testSetOutputSizesWrongColumn(self):
-        "test setoutputsizes is valid (wrong column)"
-        self.cursor.setoutputsize(25000, 1)
-        self.cursor.execute("select * from TestLongs")
-        longVar = self.cursor.fetchvars[1]
-        self.assertEqual(longVar.size, 131072)
-
-    def testSetOutputSizesRightColumn(self):
-        "test setoutputsizes is valid (right column)"
-        self.cursor.setoutputsize(35000, 2)
-        self.cursor.execute("select * from TestLongRaws")
-        longVar = self.cursor.fetchvars[1]
-        self.assertEqual(longVar.size, 35000)
-
     def testArraySizeTooLarge(self):
         "test array size too large generates an exception"
         self.cursor.arraysize = 268435456
