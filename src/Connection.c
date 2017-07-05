@@ -67,6 +67,7 @@ static PyObject *Connection_GetCurrentSchema(udt_Connection*, void*);
 static PyObject *Connection_GetEdition(udt_Connection*, void*);
 static PyObject *Connection_GetExternalName(udt_Connection*, void*);
 static PyObject *Connection_GetInternalName(udt_Connection*, void*);
+static PyObject *Connection_GetException(udt_Connection*, void*);
 static int Connection_SetStmtCacheSize(udt_Connection*, PyObject*, void*);
 static int Connection_SetAction(udt_Connection*, PyObject*, void*);
 static int Connection_SetClientIdentifier(udt_Connection*, PyObject*, void*);
@@ -153,6 +154,26 @@ static PyGetSetDef g_ConnectionCalcMembers[] = {
     { "edition", (getter) Connection_GetEdition, 0, 0, 0 },
     { "ltxid", (getter) Connection_GetLTXID, 0, 0, 0 },
     { "handle", (getter) Connection_GetHandle, 0, 0, 0 },
+    { "Error", (getter) Connection_GetException, NULL, NULL,
+            &g_ErrorException },
+    { "Warning", (getter) Connection_GetException, NULL, NULL,
+            &g_WarningException },
+    { "InterfaceError", (getter) Connection_GetException, NULL, NULL,
+            &g_InterfaceErrorException },
+    { "DatabaseError", (getter) Connection_GetException, NULL, NULL,
+            &g_DatabaseErrorException },
+    { "InternalError", (getter) Connection_GetException, NULL, NULL,
+            &g_InternalErrorException },
+    { "OperationalError", (getter) Connection_GetException, NULL, NULL,
+            &g_OperationalErrorException },
+    { "ProgrammingError", (getter) Connection_GetException, NULL, NULL,
+            &g_ProgrammingErrorException },
+    { "IntegrityError", (getter) Connection_GetException, NULL, NULL,
+            &g_IntegrityErrorException },
+    { "DataError", (getter) Connection_GetException, NULL, NULL,
+            &g_DataErrorException },
+    { "NotSupportedError", (getter) Connection_GetException, NULL, NULL,
+            &g_NotSupportedErrorException },
     { NULL }
 };
 
@@ -1351,6 +1372,19 @@ static PyObject *Connection_GetExternalName(udt_Connection* self, void* unused)
 static PyObject *Connection_GetInternalName(udt_Connection* self, void* unused)
 {
     return Connection_GetAttrText(self, dpiConn_getInternalName);
+}
+
+
+//-----------------------------------------------------------------------------
+// Connection_GetException()
+//   Return the requested exception.
+//-----------------------------------------------------------------------------
+static PyObject *Connection_GetException(udt_Connection *self, void *arg)
+{
+    PyObject *exc = * (PyObject**) arg;
+
+    Py_INCREF(exc);
+    return exc;
 }
 
 
