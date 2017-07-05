@@ -23,12 +23,12 @@ class TestSuite(dbapi20.DatabaseAPI20Test):
     connect_args = (TestEnv.USERNAME, TestEnv.PASSWORD, TestEnv.TNSENTRY)
     driver = cx_Oracle
 
-    # not implemented; use a string instead
-    def test_Binary(self):
+    # not implemented; see cx_Oracle specific test suite instead
+    def test_callproc(self):
         pass
 
     # not implemented; see cx_Oracle specific test suite instead
-    def test_callproc(self):
+    def test_fetchmany(self):
         pass
 
     # not implemented; Oracle does not support the concept
@@ -36,13 +36,20 @@ class TestSuite(dbapi20.DatabaseAPI20Test):
         pass
 
     # not implemented; see cx_Oracle specific test suite instead
-    def test_setinputsizes(self):
+    def test_rowcount(self):
         pass
 
     # not implemented; see cx_Oracle specific test suite instead
+    def test_setinputsizes(self):
+        pass
+
+    # not implemented; not used by cx_Oracle
     def test_setoutputsize(self):
         pass
 
+    # not implemented; Oracle does not support the concept
+    def test_Time(self):
+        pass
 
 if __name__ == "__main__":
     print("Testing cx_Oracle version", cx_Oracle.version)
