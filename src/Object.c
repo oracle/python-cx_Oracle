@@ -188,10 +188,12 @@ static PyObject *Object_Repr(udt_Object *self)
 static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
         dpiNativeTypeNum *nativeTypeNum, dpiData *data, udt_Buffer *buffer)
 {
+    PyObject *textValue, *valueType;
     dpiTimestamp *timestamp;
     udt_Object *otherObj;
     dpiBytes *bytes;
     udt_LOB *lob;
+    int status;
 
     // None is treated as null
     if (value == Py_None) {
@@ -201,10 +203,23 @@ static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
 
     // convert the different Python types
     data->isNull = 0;
-    if (PyUnicode_Check(value) || PyBytes_Check(value)) {
-        if (cxBuffer_FromObject(buffer, value,
-                obj->objectType->connection->encodingInfo.encoding) < 0)
-            return -1;
+    valueType = (PyObject*) Py_TYPE(value);
+    if (PyUnicode_Check(value) || PyBytes_Check(value) ||
+            valueType == (PyObject*) g_DecimalType) {
+        if (valueType == (PyObject*) g_DecimalType) {
+            textValue = PyObject_Str(value);
+            if (!textValue)
+                return -1;
+            status = cxBuffer_FromObject(buffer, textValue,
+                    obj->objectType->connection->encodingInfo.encoding);
+            Py_DECREF(textValue);
+            if (status < 0)
+                return -1;
+        } else {
+            if (cxBuffer_FromObject(buffer, value,
+                    obj->objectType->connection->encodingInfo.encoding) < 0)
+                return -1;
+        }
         *nativeTypeNum = DPI_NATIVE_TYPE_BYTES;
         bytes = &data->value.asBytes;
         bytes->ptr = (char*) buffer->ptr;

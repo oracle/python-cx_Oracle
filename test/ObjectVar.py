@@ -11,6 +11,7 @@
 
 import cx_Oracle
 import datetime
+import decimal
 
 class TestObjectVar(BaseTestCase):
 
@@ -77,14 +78,14 @@ class TestObjectVar(BaseTestCase):
         obj.TIMESTAMPVALUE = None
         subTypeObj = self.connection.gettype("UDT_SUBOBJECT")
         subObj = subTypeObj.newobject()
-        subObj.SUBNUMBERVALUE = 15
+        subObj.SUBNUMBERVALUE = decimal.Decimal("18.25")
         subObj.SUBSTRINGVALUE = "Sub String"
         obj.SUBOBJECTVALUE = subObj
         result = self.cursor.callfunc("pkg_TestBindObject.GetStringRep", str,
                 (obj,))
         self.assertEqual(result,
                 "udt_Object(null, 'Test With Dates', null, null, null, " \
-                "udt_SubObject(15, 'Sub String'), null)")
+                "udt_SubObject(18.25, 'Sub String'), null)")
 
     def testCopyObject(self):
         "test copying an object"
