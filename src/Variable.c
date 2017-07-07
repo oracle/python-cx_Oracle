@@ -267,12 +267,16 @@ static int Variable_SetValueBytes(udt_Variable *var, uint32_t pos,
 {
     dpiData *tempVarData, *sourceData;
     dpiVar *tempVarHandle;
+    const char *encoding;
     udt_Buffer buffer;
     uint32_t i;
     int status;
 
-    if (cxBuffer_FromObject(&buffer, value,
-            var->connection->encodingInfo.encoding) < 0)
+    if (var->type == &vt_FixedNationalChar ||
+            var->type == &vt_NationalCharString)
+        encoding = var->connection->encodingInfo.nencoding;
+    else encoding = var->connection->encodingInfo.encoding;
+    if (cxBuffer_FromObject(&buffer, value, encoding) < 0)
         return -1;
     if (var->type->size > 0 && buffer.size > var->bufferSize) {
         if (dpiConn_newVar(var->connection->handle, var->type->oracleTypeNum,

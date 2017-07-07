@@ -68,6 +68,17 @@ class TestConnection(TestCase):
         self.assertEqual(connection.encoding, encoding)
         self.assertEqual(connection.nencoding, "UTF-8")
 
+    def testDifferentEncodings(self):
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry, encoding = "UTF-8", nencoding = "UTF-16")
+        value = "\u03b4\u4e2a"
+        cursor = connection.cursor()
+        ncharVar = cursor.var(cx_Oracle.NCHAR, 100)
+        ncharVar.setvalue(0, value)
+        cursor.execute("select :value from dual", value = ncharVar)
+        result, = cursor.fetchone()
+        self.assertEqual(result, value)
+
     def testExceptionOnClose(self):
         "confirm an exception is raised after closing a connection"
         connection = cx_Oracle.connect(self.username, self.password,
