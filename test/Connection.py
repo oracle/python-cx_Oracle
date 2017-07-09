@@ -71,7 +71,7 @@ class TestConnection(TestCase):
     def testDifferentEncodings(self):
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry, encoding = "UTF-8", nencoding = "UTF-16")
-        value = "\u03b4\u4e2a"
+        value = u"\u03b4\u4e2a"
         cursor = connection.cursor()
         ncharVar = cursor.var(cx_Oracle.NCHAR, 100)
         ncharVar.setvalue(0, value)
