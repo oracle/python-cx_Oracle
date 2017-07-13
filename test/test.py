@@ -44,7 +44,8 @@ else:
             "ObjectVar",
             "SessionPool",
             "StringVar",
-            "TimestampVar"
+            "TimestampVar",
+            "AQ"
     ]
     if sys.version_info[0] < 3:
         moduleNames.extend([
