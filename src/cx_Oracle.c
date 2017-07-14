@@ -155,6 +155,7 @@ static PyObject *g_ProgrammingErrorException = NULL;
 static PyObject *g_NotSupportedErrorException = NULL;
 static PyTypeObject *g_DecimalType = NULL;
 static dpiContext *g_DpiContext = NULL;
+static dpiVersionInfo g_OracleClientVersionInfo;
 
 
 //-----------------------------------------------------------------------------
@@ -330,13 +331,11 @@ static PyObject* MakeDSN(PyObject* self, PyObject* args, PyObject* keywordArgs)
 //-----------------------------------------------------------------------------
 static PyObject* ClientVersion(PyObject* self, PyObject* args)
 {
-    dpiVersionInfo versionInfo;
-
-    if (dpiContext_getClientVersion(g_DpiContext, &versionInfo) < 0)
-        return Error_RaiseAndReturnNull();
-    return Py_BuildValue("(iiiii)", versionInfo.versionNum,
-            versionInfo.releaseNum, versionInfo.updateNum,
-            versionInfo.portReleaseNum, versionInfo.portUpdateNum);
+    return Py_BuildValue("(iiiii)", g_OracleClientVersionInfo.versionNum,
+            g_OracleClientVersionInfo.releaseNum,
+            g_OracleClientVersionInfo.updateNum,
+            g_OracleClientVersionInfo.portReleaseNum,
+            g_OracleClientVersionInfo.portUpdateNum);
 }
 
 
@@ -528,6 +527,9 @@ static PyObject *Module_Initialize(void)
         Error_RaiseFromInfo(&errorInfo);
         return NULL;
     }
+    if (dpiContext_getClientVersion(g_DpiContext,
+            &g_OracleClientVersionInfo) < 0)
+        return Error_RaiseAndReturnNull();
 
     // set up the types that are available
     ADD_TYPE_OBJECT("Binary", &cxBinary_Type)

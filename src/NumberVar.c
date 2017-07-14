@@ -218,6 +218,10 @@ static int NumberVar_SetValueInteger(udt_Variable *var, uint32_t pos,
         return 0;
     }
 #endif
+    if (PyBool_Check(value)) {
+        data->value.asInt64 = (value == Py_True);
+        return 0;
+    }
     if (!PyLong_Check(value)) {
         PyErr_SetString(PyExc_TypeError, "expecting integer");
         return -1;

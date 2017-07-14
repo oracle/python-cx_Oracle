@@ -451,8 +451,11 @@ static udt_VariableType *Variable_TypeByValue(PyObject* value, uint32_t* size,
         *size = (uint32_t) cxString_GetSize(value);
         return &vt_String;
     }
-    if (PyBool_Check(value))
+    if (PyBool_Check(value)) {
+        if (g_OracleClientVersionInfo.versionNum < 12)
+            return &vt_NumberAsInteger;
         return &vt_Boolean;
+    }
 #if PY_MAJOR_VERSION < 3
     if (PyUnicode_Check(value)) {
         *size = (uint32_t) PyUnicode_GET_SIZE(value);

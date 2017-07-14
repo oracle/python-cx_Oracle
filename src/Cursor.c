@@ -1121,7 +1121,6 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
 {
     PyObject *key, *value, *format, *formatArgs, *positionalArgs, *temp;
     uint32_t i, argNum, numPositionalArgs;
-    dpiVersionInfo versionInfo;
     Py_ssize_t pos;
     char *ptr;
 
@@ -1158,11 +1157,6 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
     ptr = statement + strlen(statement);
     *ptr++ = '(';
 
-    // determine the client version in use
-    // booleans are not supported until Oracle 12.1
-    if (dpiContext_getClientVersion(g_DpiContext, &versionInfo) < 0)
-        return Error_RaiseAndReturnInt();
-
     // include any positional arguments first
     if (listOfArguments) {
         positionalArgs = PySequence_Fast(listOfArguments,
@@ -1176,7 +1170,7 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
             if (i > 0)
                 *ptr++ = ',';
             ptr += sprintf(ptr, ":%d", argNum++);
-            if (versionInfo.versionNum < 12 &&
+            if (g_OracleClientVersionInfo.versionNum < 12 &&
                     PyBool_Check(PySequence_Fast_GET_ITEM(positionalArgs, i)))
                 ptr += sprintf(ptr, " = 1");
         }
@@ -1198,7 +1192,8 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
             if ((argNum > 1 && !returnValue) || (argNum > 2 && returnValue))
                 *ptr++ = ',';
             ptr += sprintf(ptr, "%%s => :%d", argNum++);
-            if (versionInfo.versionNum < 12 && PyBool_Check(value))
+            if (g_OracleClientVersionInfo.versionNum < 12 &&
+                    PyBool_Check(value))
                 ptr += sprintf(ptr, " = 1");
         }
     }

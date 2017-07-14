@@ -34,6 +34,12 @@ class TestNumberVar(BaseTestCase):
           self.rawData.append(dataTuple)
           self.dataByKey[i] = dataTuple
 
+    def testBindBoolean(self):
+        "test binding in a boolean"
+        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
+                (True,))
+        self.assertEqual(result, "TRUE")
+
     def testBindDecimal(self):
         "test binding in a decimal.Decimal"
         self.cursor.execute("""
