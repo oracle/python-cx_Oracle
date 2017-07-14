@@ -18,13 +18,14 @@ from __future__ import print_function
 
 import cx_Oracle
 import decimal
+import SampleEnv
 
 def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
     if defaultType == cx_Oracle.NUMBER:
         return cursor.var(str, size = 200, arraysize = cursor.arraysize,
                 outconverter = decimal.Decimal)
 
-connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
+connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
 connection.outputtypehandler = OutputTypeHandler
 cursor = connection.cursor()
 cursor.execute("select * from TestNumbers")

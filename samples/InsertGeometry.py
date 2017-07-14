@@ -18,9 +18,10 @@
 from __future__ import print_function
 
 import cx_Oracle
+import SampleEnv
 
 # create and populate Oracle objects
-connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
+connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
 typeObj = connection.gettype("MDSYS.SDO_GEOMETRY")
 elementInfoTypeObj = connection.gettype("MDSYS.SDO_ELEM_INFO_ARRAY")
 ordinateTypeObj = connection.gettype("MDSYS.SDO_ORDINATE_ARRAY")

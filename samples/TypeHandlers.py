@@ -22,8 +22,9 @@ from __future__ import print_function
 
 import cx_Oracle
 import datetime
+import SampleEnv
 
-con = cx_Oracle.connect("cx_Oracle/dev@localhost/orcl")
+con = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
 objType = con.gettype("UDT_BUILDING")
 
 class Building(object):

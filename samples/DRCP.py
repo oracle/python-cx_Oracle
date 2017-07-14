@@ -31,9 +31,10 @@
 from __future__ import print_function
 
 import cx_Oracle
+import SampleEnv
 
-conn = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl:pooled",
-        cclass = "PYCLASS", purity = cx_Oracle.ATTR_PURITY_SELF)
+conn = cx_Oracle.Connection(SampleEnv.DRCP_CONNECT_STRING, cclass = "PYCLASS",
+        purity = cx_Oracle.ATTR_PURITY_SELF)
 cursor = conn.cursor()
 print("Performing query using DRCP...")
 for row in cursor.execute("select * from TestNumbers order by IntCol"):

@@ -18,15 +18,16 @@
 from __future__ import print_function
 
 import cx_Oracle
+import SampleEnv
 
 def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
     if defaultType in (cx_Oracle.STRING, cx_Oracle.FIXED_CHAR):
         return cursor.var(unicode, size, cursor.arraysize)
 
-connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
+connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
 connection.outputtypehandler = OutputTypeHandler
 cursor = connection.cursor()
-cursor.execute("select * from teststrings")
+cursor.execute("select * from TestStrings")
 for row in cursor:
     print("Row:", row)
 

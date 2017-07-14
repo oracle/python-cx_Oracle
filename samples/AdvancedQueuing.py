@@ -17,16 +17,16 @@
 
 from __future__ import print_function
 
-CONNECT_STRING = "cx_Oracle/dev@localhost/orcl"
 BOOK_TYPE_NAME = "UDT_BOOK"
 QUEUE_NAME = "BOOKS"
 QUEUE_TABLE_NAME = "BOOK_QUEUE"
 
 import cx_Oracle
+import SampleEnv
 import decimal
 
 # connect to database
-connection = cx_Oracle.Connection(CONNECT_STRING)
+connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
 cursor = connection.cursor()
 
 # drop queue table, if present

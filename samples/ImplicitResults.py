@@ -19,12 +19,13 @@
 from __future__ import print_function
 
 import cx_Oracle
+import SampleEnv
 
-con = cx_Oracle.connect("cx_Oracle/dev@localhost/orcl")
-cur = con.cursor()
+connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
+cursor = connection.cursor()
 
 # use PL/SQL block to return two cursors
-cur.execute("""
+cursor.execute("""
         declare
             c1 sys_refcursor;
             c2 sys_refcursor;
@@ -43,7 +44,7 @@ cur.execute("""
         end;""")
 
 # display results
-for ix, resultSet in enumerate(cur.getimplicitresults()):
+for ix, resultSet in enumerate(cursor.getimplicitresults()):
     print("Result Set #" + str(ix + 1))
     for row in resultSet:
         print(row)

@@ -19,9 +19,10 @@ from __future__ import print_function
 
 import cx_Oracle
 import datetime
+import SampleEnv
 
 # truncate table first so that script can be rerun
-connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
+connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
 cursor = connection.cursor()
 print("Truncating table...")
 cursor.execute("truncate table TestTempTable")

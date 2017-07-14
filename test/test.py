@@ -15,16 +15,22 @@ import cx_Oracle
 import imp
 import os
 import sys
+import TestEnv
 import unittest
 
 inSetup = (os.path.basename(sys.argv[0]).lower() == "setup.py")
 
 print("Running tests for cx_Oracle version", cx_Oracle.version,
-        cx_Oracle.buildtime)
+        "built at", cx_Oracle.buildtime)
 print("File:", cx_Oracle.__file__)
+print("Client Version:", ".".join(str(i) for i in cx_Oracle.clientversion()))
 sys.stdout.flush()
 
-import TestEnv
+connection = cx_Oracle.Connection(TestEnv.MAIN_USER, TestEnv.MAIN_PASSWORD,
+        TestEnv.CONNECT_STRING, encoding = TestEnv.ENCODING,
+        nencoding = TestEnv.NENCODING)
+print("Server Version:", connection.version)
+sys.stdout.flush()
 
 if len(sys.argv) > 1 and not inSetup:
     moduleNames = [os.path.splitext(v)[0] for v in sys.argv[1:]]
@@ -72,8 +78,8 @@ class BaseTestCase(unittest.TestCase):
     def setUp(self):
         import cx_Oracle
         import TestEnv
-        self.connection = cx_Oracle.connect(TestEnv.USERNAME,
-                TestEnv.PASSWORD, TestEnv.TNSENTRY,
+        self.connection = cx_Oracle.Connection(TestEnv.MAIN_USER,
+                TestEnv.MAIN_PASSWORD, TestEnv.CONNECT_STRING,
                 encoding = TestEnv.ENCODING, nencoding = TestEnv.NENCODING)
         self.cursor = self.connection.cursor()
         self.cursor.arraysize = TestEnv.ARRAY_SIZE
@@ -86,9 +92,6 @@ class BaseTestCase(unittest.TestCase):
 # determine character set ratio in use in order to determine the buffer size
 # that will be reported in cursor.description; this depends on the database
 # character set and the client character set
-connection = cx_Oracle.connect(TestEnv.USERNAME, TestEnv.PASSWORD,
-        TestEnv.TNSENTRY, encoding = TestEnv.ENCODING,
-        nencoding = TestEnv.NENCODING)
 cursor = connection.cursor()
 cursor.execute("select 'X' from dual")
 col, = cursor.description
@@ -104,9 +107,9 @@ for name in moduleNames:
     if inSetup:
         fileName = os.path.join("test", fileName)
     module = imp.new_module(name)
-    setattr(module, "USERNAME", TestEnv.USERNAME)
-    setattr(module, "PASSWORD", TestEnv.PASSWORD)
-    setattr(module, "TNSENTRY", TestEnv.TNSENTRY)
+    setattr(module, "USERNAME", TestEnv.MAIN_USER)
+    setattr(module, "PASSWORD", TestEnv.MAIN_PASSWORD)
+    setattr(module, "TNSENTRY", TestEnv.CONNECT_STRING)
     setattr(module, "ENCODING", TestEnv.ENCODING)
     setattr(module, "NENCODING", TestEnv.NENCODING)
     setattr(module, "ARRAY_SIZE", TestEnv.ARRAY_SIZE)

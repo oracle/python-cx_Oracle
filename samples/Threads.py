@@ -16,10 +16,11 @@
 from __future__ import print_function
 
 import cx_Oracle
+import SampleEnv
 import threading
 
-pool = cx_Oracle.SessionPool("cx_Oracle", "dev", "localhost/orcl", 2, 5, 1,
-        threaded = True)
+pool = cx_Oracle.SessionPool(SampleEnv.MAIN_USER, SampleEnv.MAIN_PASSWORD,
+        SampleEnv.CONNECT_STRING, 2, 5, 1, threaded = True)
 
 def TheLongQuery():
     conn = pool.acquire()

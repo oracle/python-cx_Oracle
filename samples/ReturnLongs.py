@@ -20,23 +20,41 @@
 from __future__ import print_function
 
 import cx_Oracle
+import SampleEnv
 
 def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
     if defaultType == cx_Oracle.CLOB:
-        return cursor.var(cx_Oracle.LONG_STRING, 80000, cursor.arraysize)
+        return cursor.var(cx_Oracle.LONG_STRING, arraysize = cursor.arraysize)
     if defaultType == cx_Oracle.BLOB:
-        return cursor.var(cx_Oracle.LONG_BINARY, 100004, cursor.arraysize)
+        return cursor.var(cx_Oracle.LONG_BINARY, arraysize = cursor.arraysize)
 
-connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
+connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
 connection.outputtypehandler = OutputTypeHandler
 cursor = connection.cursor()
+
+# add some data to the tables
+print("Populating tables with data...")
+cursor.execute("truncate table TestClobs")
+cursor.execute("truncate table TestBlobs")
+longString = ""
+for i in range(10):
+    char = chr(ord('A') + i)
+    longString += char * 25000
+    cursor.setinputsizes(None, cx_Oracle.LONG_STRING)
+    cursor.execute("insert into TestClobs values (:1, :2)",
+            (i + 1, "STRING " + longString))
+    cursor.setinputsizes(None, cx_Oracle.LONG_BINARY)
+    cursor.execute("insert into TestBlobs values (:1, :2)",
+            (i + 1, longString.encode("ascii")))
+connection.commit()
+
+# fetch the data and show the results
 print("CLOBS returned as longs")
 cursor.execute("""
         select
           IntCol,
           ClobCol
         from TestClobs
-        where dbms_lob.getlength(ClobCol) <= 80000
         order by IntCol""")
 for intCol, value in cursor:
     print("Row:", intCol, "string of length", len(value))
@@ -47,7 +65,6 @@ cursor.execute("""
           IntCol,
           BlobCol
         from TestBlobs
-        where dbms_lob.getlength(BlobCol) <= 100000
         order by IntCol""")
 for intCol, value in cursor:
     print("Row:", intCol, "string of length", value and len(value) or 0)

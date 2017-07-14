@@ -19,6 +19,7 @@ from __future__ import print_function
 
 import cx_Oracle
 import datetime
+import SampleEnv
 
 DATA = [
     (1, "String #1", datetime.datetime(2017, 4, 4)),
@@ -27,7 +28,7 @@ DATA = [
 ]
 
 # truncate table so sample can be rerun
-connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
+connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
 cursor = connection.cursor()
 print("Truncating table...")
 cursor.execute("truncate table TestUniversalRowids")

@@ -20,6 +20,7 @@
 from __future__ import print_function
 
 import cx_Oracle
+import SampleEnv
 import threading
 import time
 
@@ -38,8 +39,7 @@ def callback(message):
                 print("-" * 60)
         print("=" * 60)
 
-connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl",
-        events = True)
+connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING, events = True)
 sub = connection.subscribe(callback = callback, timeout = 1800,
         qos = cx_Oracle.SUBSCR_QOS_ROWIDS)
 print("Subscription:", sub)
