@@ -60,18 +60,17 @@ class TestConnection(TestCase):
         self.assertEqual(pool.homogeneous, 1,
                 "homogeneous should be 1 by default")
         self.assertRaises(cx_Oracle.ProgrammingError, pool.acquire,
-                user = "proxyuser")
+                user = u"missing_proxyuser")
         pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
                 homogeneous = False, encoding = ENCODING,
                 nencoding = NENCODING)
         self.assertEqual(pool.homogeneous, 0,
                 "homogeneous should be 0 after setting it in the constructor")
-        user = "%s_proxy" % USERNAME
-        connection = pool.acquire(user = user)
+        connection = pool.acquire(user = PROXY_USERNAME)
         cursor = connection.cursor()
         cursor.execute('select user from dual')
         result, = cursor.fetchone()
-        self.assertEqual(result, user.upper())
+        self.assertEqual(result, PROXY_USERNAME.upper())
 
     def testRollbackOnDel(self):
         "connection rolls back before being destroyed"

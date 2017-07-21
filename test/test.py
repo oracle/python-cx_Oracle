@@ -53,21 +53,6 @@ else:
             "TimestampVar",
             "AQ"
     ]
-    if sys.version_info[0] < 3:
-        moduleNames.extend([
-                "uConnection",
-                "uCursor",
-                "uCursorVar",
-                "uDateTimeVar",
-                "uIntervalVar",
-                "uLobVar",
-                "uLongVar",
-                "uNumberVar",
-                "uObjectVar",
-                "uSessionPool",
-                "uStringVar",
-                "uTimestampVar"
-        ])
     clientVersion = cx_Oracle.clientversion()
     if clientVersion[:2] >= (12, 1):
         moduleNames.append("BooleanVar")
@@ -109,6 +94,7 @@ for name in moduleNames:
     module = imp.new_module(name)
     setattr(module, "USERNAME", TestEnv.MAIN_USER)
     setattr(module, "PASSWORD", TestEnv.MAIN_PASSWORD)
+    setattr(module, "PROXY_USERNAME", TestEnv.PROXY_USER)
     setattr(module, "TNSENTRY", TestEnv.CONNECT_STRING)
     setattr(module, "ENCODING", TestEnv.ENCODING)
     setattr(module, "NENCODING", TestEnv.NENCODING)

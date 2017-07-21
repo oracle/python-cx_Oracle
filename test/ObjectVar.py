@@ -168,7 +168,7 @@ class TestObjectVar(BaseTestCase):
         objValue, = self.cursor.fetchone()
         self.assertEqual(objValue.type.schema,
                 self.connection.username.upper())
-        self.assertEqual(objValue.type.name, "UDT_OBJECT")
+        self.assertEqual(objValue.type.name, u"UDT_OBJECT")
         self.assertEqual(objValue.type.attributes[0].name, "NUMBERVALUE")
 
     def testRoundTripObject(self):
@@ -189,7 +189,7 @@ class TestObjectVar(BaseTestCase):
         nclob, = self.cursor.fetchone()
         self.cursor.execute("select BLOBCol from TestBlobs")
         blob, = self.cursor.fetchone()
-        typeObj = self.connection.gettype("UDT_OBJECT")
+        typeObj = self.connection.gettype(u"UDT_OBJECT")
         obj = typeObj.newobject()
         obj.NUMBERVALUE = 5
         obj.STRINGVALUE = "A string"

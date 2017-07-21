@@ -18,7 +18,7 @@ class TestConnection(TestCase):
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry, threaded = True)
         cursor = connection.cursor()
-        cursor.execute("select count(*) from TestNumbers")
+        cursor.execute(u"select count(*) from TestNumbers")
         count, = cursor.fetchone()
         self.assertEqual(count, 10)
 
@@ -44,14 +44,14 @@ class TestConnection(TestCase):
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 self.username)
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
-                self.username + "@" + self.tnsentry)
+                self.username + u"@" + self.tnsentry)
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 self.username + "@" + self.tnsentry + "/" + self.password)
 
     def testBadPassword(self):
         "connection to database with bad password"
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
-                self.username, self.password + "X", self.tnsentry)
+                self.username, self.password + u"X", self.tnsentry)
 
     def testEncodings(self):
         "connection with only encoding or nencoding specified should work"
@@ -88,9 +88,12 @@ class TestConnection(TestCase):
 
     def testMakeDSN(self):
         "test making a data source name from host, port and sid"
-        formatString = "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)" + \
+        formatString = u"(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)" + \
                 "(HOST=%s)(PORT=%d))(CONNECT_DATA=(SID=%s)))"
         args = ("hostname", 1521, "TEST")
+        result = cx_Oracle.makedsn(*args)
+        self.assertEqual(result, formatString % args)
+        args = (u"hostname", 1521, u"TEST")
         result = cx_Oracle.makedsn(*args)
         self.assertEqual(result, formatString % args)
 

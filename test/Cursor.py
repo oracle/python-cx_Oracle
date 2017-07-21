@@ -59,6 +59,10 @@ class TestCursor(BaseTestCase):
         result = self.cursor.execute("begin :value := 10; end;", dictArg)
         self.assertEqual(result, None)
         self.assertEqual(simpleVar.getvalue(), 10)
+        dictArg = { u"value" : simpleVar }
+        result = self.cursor.execute("begin :value := 25; end;", dictArg)
+        self.assertEqual(result, None)
+        self.assertEqual(simpleVar.getvalue(), 25)
 
     def testExecuteMultipleMethod(self):
         """test executing a statement with both a dict arg and keyword args"""
@@ -81,13 +85,13 @@ class TestCursor(BaseTestCase):
 
     def testCallProcNoArgs(self):
         """test executing a stored procedure without any arguments"""
-        results = self.cursor.callproc("proc_TestNoArgs")
+        results = self.cursor.callproc(u"proc_TestNoArgs")
         self.assertEqual(results, [])
 
     def testCallFunc(self):
         """test executing a stored function"""
-        results = self.cursor.callfunc("func_Test", cx_Oracle.NUMBER,
-                ("hi", 5))
+        results = self.cursor.callfunc(u"func_Test", cx_Oracle.NUMBER,
+                (u"hi", 5))
         self.assertEqual(results, 7)
 
     def testCallFuncNoArgs(self):
@@ -98,7 +102,7 @@ class TestCursor(BaseTestCase):
     def testExecuteManyByName(self):
         """test executing a statement multiple times (named args)"""
         self.cursor.execute("truncate table TestTempTable")
-        rows = [ { "value" : n } for n in range(250) ]
+        rows = [ { u"value" : n } for n in range(250) ]
         self.cursor.arraysize = 100
         statement = "insert into TestTempTable (IntCol) values (:value)"
         self.cursor.executemany(statement, rows)
@@ -228,7 +232,7 @@ class TestCursor(BaseTestCase):
     def testBindNames(self):
         """test that bindnames() works correctly."""
         self.assertRaises(cx_Oracle.ProgrammingError, self.cursor.bindnames)
-        self.cursor.prepare("begin null; end;")
+        self.cursor.prepare(u"begin null; end;")
         self.assertEqual(self.cursor.bindnames(), [])
         self.cursor.prepare("begin :retval := :inval + 5; end;")
         self.assertEqual(self.cursor.bindnames(), ["RETVAL", "INVAL"])
@@ -442,5 +446,5 @@ class TestCursor(BaseTestCase):
                 begin
                   :1 := :2 || to_char(:3) || :4 || to_char(:5) || to_char(:6);
                 end;""", [var, 'test_', 5, '_second_', 3, 7])
-        self.assertEqual(var.getvalue(), "test_5_second_37")
+        self.assertEqual(var.getvalue(), u"test_5_second_37")
 
