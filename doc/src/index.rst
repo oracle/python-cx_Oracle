@@ -14,6 +14,7 @@ Contents:
 .. toctree::
     :maxdepth: 2
 
+    installation.rst
     module.rst
     connection.rst
     cursor.rst
