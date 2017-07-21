@@ -189,9 +189,7 @@ static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
         dpiNativeTypeNum *nativeTypeNum, dpiData *data, udt_Buffer *buffer)
 {
     PyObject *textValue, *valueType;
-    dpiTimestamp *timestamp;
     udt_Object *otherObj;
-    dpiBytes *bytes;
     udt_LOB *lob;
     int status;
 
@@ -221,51 +219,45 @@ static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
                 return -1;
         }
         *nativeTypeNum = DPI_NATIVE_TYPE_BYTES;
-        bytes = &data->value.asBytes;
-        bytes->ptr = (char*) buffer->ptr;
-        bytes->length = buffer->size;
+        dpiData_setBytes(data, (char*) buffer->ptr, buffer->size);
     } else if (PyBool_Check(value)) {
         *nativeTypeNum = DPI_NATIVE_TYPE_BOOLEAN;
-        data->value.asBoolean = (value == Py_True);
+        dpiData_setBool(data, (value == Py_True));
 #if PY_MAJOR_VERSION < 3
 
     } else if (PyInt_Check(value)) {
         *nativeTypeNum = DPI_NATIVE_TYPE_INT64;
-        data->value.asInt64 = PyInt_AS_LONG(value);
+        dpiData_setInt64(data, PyInt_AS_LONG(value));
 #endif
     } else if (PyLong_Check(value)) {
         *nativeTypeNum = DPI_NATIVE_TYPE_INT64;
-        data->value.asInt64 = PyLong_AsLong(value);
+        dpiData_setInt64(data, PyLong_AsLong(value));
         if (PyErr_Occurred())
             return -1;
     } else if (PyFloat_Check(value)) {
         *nativeTypeNum = DPI_NATIVE_TYPE_DOUBLE;
-        data->value.asDouble = PyFloat_AS_DOUBLE(value);
-    } else if (PyDateTime_Check(value) || PyDate_Check(value)) {
+        dpiData_setDouble(data, PyFloat_AS_DOUBLE(value));
+    } else if (PyDateTime_Check(value)) {
         *nativeTypeNum = DPI_NATIVE_TYPE_TIMESTAMP;
-        timestamp = &data->value.asTimestamp;
-        timestamp->year = PyDateTime_GET_YEAR(value);
-        timestamp->month = PyDateTime_GET_MONTH(value);
-        timestamp->day = PyDateTime_GET_DAY(value);
-        if (PyDateTime_Check(value)) {
-            timestamp->hour = PyDateTime_DATE_GET_HOUR(value);
-            timestamp->minute = PyDateTime_DATE_GET_MINUTE(value);
-            timestamp->second = PyDateTime_DATE_GET_SECOND(value);
-            timestamp->fsecond = PyDateTime_DATE_GET_MICROSECOND(value) * 1000;
-        } else {
-            timestamp->hour = 0;
-            timestamp->minute = 0;
-            timestamp->second = 0;
-            timestamp->fsecond = 0;
-        }
+        dpiData_setTimestamp(data, PyDateTime_GET_YEAR(value),
+                PyDateTime_GET_MONTH(value), PyDateTime_GET_DAY(value),
+                PyDateTime_DATE_GET_HOUR(value),
+                PyDateTime_DATE_GET_MINUTE(value),
+                PyDateTime_DATE_GET_SECOND(value),
+                PyDateTime_DATE_GET_MICROSECOND(value) * 1000, 0, 0);
+    } else if (PyDate_Check(value)) {
+        *nativeTypeNum = DPI_NATIVE_TYPE_TIMESTAMP;
+        dpiData_setTimestamp(data, PyDateTime_GET_YEAR(value),
+                PyDateTime_GET_MONTH(value), PyDateTime_GET_DAY(value),
+                0, 0, 0, 0, 0, 0);
     } else if (Py_TYPE(value) == &g_ObjectType) {
         *nativeTypeNum = DPI_NATIVE_TYPE_OBJECT;
         otherObj = (udt_Object*) value;
-        data->value.asObject = otherObj->handle;
+        dpiData_setObject(data, otherObj->handle);
     } else if (Py_TYPE(value) == &g_LOBType) {
         *nativeTypeNum = DPI_NATIVE_TYPE_LOB;
         lob = (udt_LOB*) value;
-        data->value.asLOB = lob->handle;
+        dpiData_setLOB(data, lob->handle);
     } else {
         PyErr_Format(g_NotSupportedErrorException,
                 "Object_ConvertFromPython(): unhandled value type");

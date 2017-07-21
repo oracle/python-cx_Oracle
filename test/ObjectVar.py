@@ -125,6 +125,8 @@ class TestObjectVar(BaseTestCase):
                 'N First   ', 2, 5, 12.5, 25.25, 50.125,
                 cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0),
                 cx_Oracle.Timestamp(2008, 9, 12, 16, 40),
+                cx_Oracle.Timestamp(2009, 10, 13, 17, 50),
+                cx_Oracle.Timestamp(2010, 11, 14, 18, 55),
                 'Short CLOB value', 'Short NCLOB Value', b'Short BLOB value',
                 (11, 'Sub object 1'),
                 [(5, 'first element'), (6, 'second element')]),
@@ -134,6 +136,8 @@ class TestObjectVar(BaseTestCase):
                 'N Third   ', 4, 10, 43.25, 86.5, 192.125,
                 cx_Oracle.Timestamp(2007, 6, 21, 0, 0, 0),
                 cx_Oracle.Timestamp(2007, 12, 13, 7, 30, 45),
+                cx_Oracle.Timestamp(2017, 6, 21, 23, 18, 45),
+                cx_Oracle.Timestamp(2017, 7, 21, 8, 27, 13),
                 'Another short CLOB value', 'Another short NCLOB Value',
                 b'Yet another short BLOB value',
                 (13, 'Sub object 3'),
@@ -150,8 +154,8 @@ class TestObjectVar(BaseTestCase):
                 "FIXEDCHARVALUE", "NSTRINGVALUE", "NFIXEDCHARVALUE",
                 "INTVALUE", "SMALLINTVALUE", "FLOATVALUE", "BINARYFLOATVALUE",
                 "BINARYDOUBLEVALUE", "DATEVALUE", "TIMESTAMPVALUE",
-                "CLOBVALUE", "NCLOBVALUE", "BLOBVALUE", "SUBOBJECTVALUE",
-                "SUBOBJECTARRAY"]
+                "TIMESTAMPTZVALUE", "TIMESTAMPLTZVALUE", "CLOBVALUE",
+                "NCLOBVALUE", "BLOBVALUE", "SUBOBJECTVALUE", "SUBOBJECTARRAY"]
         actualAttributeNames = [a.name for a in typeObj.attributes]
         self.assertEqual(actualAttributeNames, expectedAttributeNames)
         typeObj = self.connection.gettype("UDT_OBJECTARRAY")
@@ -201,6 +205,8 @@ class TestObjectVar(BaseTestCase):
         obj.FLOATVALUE = 23.75
         obj.DATEVALUE = datetime.date(2017, 5, 9)
         obj.TIMESTAMPVALUE = datetime.datetime(2017, 5, 9, 9, 41, 13)
+        obj.TIMESTAMPTZVALUE = datetime.datetime(1986, 8, 2, 15, 27, 38)
+        obj.TIMESTAMPLTZVALUE = datetime.datetime(1999, 11, 12, 23, 5, 2)
         obj.BINARYFLOATVALUE = 14.25
         obj.BINARYDOUBLEVALUE = 29.1625
         obj.CLOBVALUE = clob
@@ -221,6 +227,8 @@ class TestObjectVar(BaseTestCase):
                 'Fixed N   ', 27, 13, 23.75, 14.25, 29.1625,
                 cx_Oracle.Timestamp(2017, 5, 9, 0, 0, 0),
                 cx_Oracle.Timestamp(2017, 5, 9, 9, 41, 13),
+                cx_Oracle.Timestamp(1986, 8, 2, 15, 27, 38),
+                cx_Oracle.Timestamp(1999, 11, 12, 23, 5, 2),
                 'A short CLOB', 'A short NCLOB', b'A short BLOB',
                 (23, 'Substring value'), None), None)
         self.connection.rollback()
