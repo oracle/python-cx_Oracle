@@ -188,12 +188,12 @@ static PyObject *LOB_InternalRead(udt_LOB *self, uint64_t offset,
     }
 
     // return the result
-    if (self->oracleTypeNum == DPI_ORACLE_TYPE_CLOB)
+    if (self->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
         result = PyUnicode_Decode(buffer, bufferSize,
-                self->connection->encodingInfo.encoding, NULL);
-    else if (self->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
+                self->connection->encodingInfo.nencoding, NULL);
+    else if (self->oracleTypeNum == DPI_ORACLE_TYPE_CLOB)
         result = cxString_FromEncodedString(buffer, bufferSize,
-                self->connection->encodingInfo.nencoding);
+                self->connection->encodingInfo.encoding);
     else result = PyBytes_FromStringAndSize(buffer, bufferSize);
     PyMem_Free(buffer);
     return result;

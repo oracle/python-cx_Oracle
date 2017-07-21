@@ -169,6 +169,22 @@ class TestLobVar(BaseTestCase):
         "test binding and fetching NCLOB data (directly)"
         self.__PerformTest("NCLOB", cx_Oracle.NCLOB)
 
+    def testNCLOBDifferentEncodings(self):
+        "test binding and fetching NCLOB data (different encodings)"
+        connection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY,
+                encoding = "UTF-8", nencoding = "UTF-16")
+        value = u"\u03b4\u4e2a"
+        cursor = connection.cursor()
+        cursor.execute("truncate table TestNCLOBs")
+        cursor.execute("insert into TestNCLOBs values (1, :val)", val = value)
+        cursor.execute("select NCLOBCol from TestNCLOBs")
+        nclob, = cursor.fetchone()
+        cursor.execute("update TestNCLOBs set NCLOBCol = :val",
+                val = nclob.read() + value)
+        cursor.execute("select NCLOBCol from TestNCLOBs")
+        nclob, = cursor.fetchone()
+        self.assertEqual(nclob.read(), value + value)
+
     def testNCLOBsIndirect(self):
         "test binding and fetching NCLOB data (indirectly)"
         self.__PerformTest("NCLOB", cx_Oracle.LONG_STRING)
