@@ -49,6 +49,11 @@ class TestStringVar(BaseTestCase):
                 retval = retval_2)
         self.assertEqual(retval_2.getvalue(), "Called")
 
+    def testExceedsNumElements(self):
+        "test exceeding the number of elements returns IndexError"
+        var = self.cursor.var(str)
+        self.assertRaises(IndexError, var.getvalue, 1)
+
     def testBindStringAfterNumber(self):
         "test binding in a string after setting input sizes to a number"
         self.cursor.setinputsizes(value = cx_Oracle.NUMBER)

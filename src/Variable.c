@@ -699,6 +699,14 @@ static PyObject *Variable_GetSingleValue(udt_Variable *var, uint32_t arrayPos)
     PyObject *value, *result;
     dpiData *data;
 
+    // ensure we do not exceed the number of allocated elements
+    if (arrayPos >= var->allocatedElements) {
+        PyErr_SetString(PyExc_IndexError,
+                "Variable_GetSingleValue: array size exceeded");
+        return NULL;
+    }
+
+    // return the value
     data = &var->data[arrayPos];
     if (data->isNull)
         Py_RETURN_NONE;
