@@ -12,8 +12,8 @@ Before cx_Oracle can be installed, an installation of
 Python 3.4 and higher are supported.
 
 The simplest method of installation is to `Install Using Pip`_. You can also
-`Install Using GitHub`_. If you run into trouble, check out the section on
-`Troubleshooting`_.
+`Install Using GitHub`_ or `Install Using RPM`_. If you run into trouble, check
+out the section on `Troubleshooting`_.
 
 After cx_Oracle has been installed, you must also `Install Oracle Client`_, if
 that has not been done already. Oracle Client versions 12.2, 12.1 and 11.2
@@ -45,6 +45,21 @@ In order to install using the source on GitHub, use the following commands::
     git submodule init
     git submodule update
     python setup.py install
+
+
+Install Using RPM
+=================
+
+The RPMs that are provided on `PyPI <https://pypi.python.org/pypi/cx_Oracle>`_
+were created on Oracle Linux 6 (Python 2.6) and Oracle Linux 7 (Python 2.7 and
+3.5). They should work on Red Hat Enterprise Linux or CentOS as well but on
+other Linux platforms using RPMs (such as Fedora) the paths are different and
+you will need to adjust them after installation. The following command will
+install the RPM that you have downloaded::
+
+    rpm -Uvh <file_name>
+
+where <file_name> refers to the RPM that you downloaded.
 
 
 Install Oracle Client
@@ -137,7 +152,9 @@ If importing cx_Oracle fails:
     - Do you get the error "``DPI-1047: Oracle Client library cannot be
       loaded``"? Check the ``PATH`` environment variable on Windows or the
       ``LD_LIBRARY_PATH`` environment variable on Linux. On macOS, make sure
-      Oracle Instant Client is in `~/lib` or `/usr/local/lib`. Check that
+      Oracle Instant Client is in `~/lib` or `/usr/local/lib` and that you are
+      not using the bundled Python (use `Homebrew <https://brew.sh>`__ or
+      `Python.org <https://www.python.org/downloads>`__ instead). Check that
       Python, cx_Oracle and your Oracle Client libraries are all 64-bit or all
       32-bit. Check that the correct `Windows Redistributables
       <https://oracle.github.io/odpi/doc/installation.html#windows>`__ have been
