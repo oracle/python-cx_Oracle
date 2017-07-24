@@ -4,6 +4,38 @@ cx_Oracle Release Notes
 6.x releases
 ############
 
+Version 6.0 rc 2 (July 2017)
+----------------------------
+
+#)  Update to `ODPI-C rc 2 <https://oracle.github.io/odpi/doc/releasenotes.html
+    #version-2-0-0-rc-2-july-20-2017>`__.
+
+    -   Provide improved error message when OCI environment cannot be created,
+        such as when the oraaccess.xml file cannot be processed properly.
+    -   On Windows, convert system message to Unicode first, then to UTF-8;
+        otherwise, the error message returned could be in a mix of encodings
+        (`issue 40 <https://github.com/oracle/python-cx_Oracle/issues/40>`__).
+    -   Corrected support for binding decimal values in object attribute values
+        and collection element values.
+    -   Corrected support for binding PL/SQL boolean values to PL/SQL
+        procedures with Oracle client 11.2.
+
+#)  Define exception classes on the connection object in addition to at module
+    scope in order to simplify error handling in multi-connection environments,
+    as specified in the Python DB API.
+#)  Ensure the correct encoding is used for setting variable values.
+#)  Corrected handling of CLOB/NCLOB when using different encodings.
+#)  Corrected handling of timestamp with time zone attributes on objects.
+#)  Ensure that the array position passed to var.getvalue() does not exceed the
+    number of elements allocated in the array.
+#)  Reworked test suite and samples so that they are independent of each other
+    and so that the SQL scripts used to create/drop schemas are easily adjusted
+    to use different schema names, if desired.
+#)  Updated DB API test suite stub to support Python 3.
+#)  Added additional test cases and samples.
+#)  Documentation improvements.
+
+
 Version 6.0 rc 1 (June 2017)
 ----------------------------
 
