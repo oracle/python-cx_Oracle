@@ -449,6 +449,8 @@ static udt_VariableType *Variable_TypeByValue(PyObject* value, uint32_t* size,
     }
     if (cxString_Check(value)) {
         *size = (uint32_t) cxString_GetSize(value);
+        if (*size == 0)
+            *size = 1;
         return &vt_String;
     }
     if (PyBool_Check(value)) {
@@ -459,6 +461,8 @@ static udt_VariableType *Variable_TypeByValue(PyObject* value, uint32_t* size,
 #if PY_MAJOR_VERSION < 3
     if (PyUnicode_Check(value)) {
         *size = (uint32_t) PyUnicode_GET_SIZE(value);
+        if (*size == 0)
+            *size = 1;
         return &vt_NationalCharString;
     }
     if (PyInt_Check(value))

@@ -341,3 +341,33 @@ class TestStringVar(BaseTestCase):
                 (2, "long string " * 30))
         self.connection.commit()
 
+    def testIssue50(self):
+        "test issue 50 - avoid error ORA-24816"
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute("drop table issue_50 purge")
+        except cx_Oracle.DatabaseError:
+            pass
+        cursor.execute("""
+                create table issue_50 (
+                    Id          number(11) primary key,
+                    Str1        nvarchar2(256),
+                    Str2        nvarchar2(256),
+                    Str3        nvarchar2(256),
+                    NClob1      nclob,
+                    NClob2      nclob
+                )""")
+        idVar = cursor.var(cx_Oracle.NUMBER)
+        cursor.execute("""
+                insert into issue_50 (Id, Str2, Str3, NClob1, NClob2, Str1)
+                values (:arg0, :arg1, :arg2, :arg3, :arg4, :arg5)
+                returning id into :arg6""",
+                [1, '555a4c78', 'f319ef0e', '23009914', '', '', idVar])
+        cursor = self.connection.cursor()
+        cursor.execute("""
+                insert into issue_50 (Id, Str2, Str3, NClob1, NClob2, Str1)
+                values (:arg0, :arg1, :arg2, :arg3, :arg4, :arg5)
+                returning id into :arg6""",
+                [2, u'd5ff845a', u'94275767', u'bf161ff6', u'', u'', idVar])
+        cursor.execute("drop table issue_50 purge")
+
