@@ -19,6 +19,8 @@ After cx_Oracle has been installed, you must also `Install Oracle Client`_, if
 that has not been done already. Oracle Client versions 12.2, 12.1 and 11.2
 are supported.
 
+Note installation has changed from cx_Oracle 5.  When using Oracle
+Instant Client, you should not set ``ORACLE_HOME``.
 
 Install Using Pip
 =================
@@ -30,9 +32,13 @@ on all platforms is::
 
 This will download and install a pre-compiled binary matching your platform
 and architecture automatically, if one is available. Pre-compiled binaries are
-available for Windows and Linux. If a pre-compiled binary is not
-available, the source will be downloaded, compiled and the resulting binary
-installed.
+available for Windows and Linux.
+
+If a pre-compiled binary is not available, the source will be
+downloaded, compiled and the resulting binary installed.  On macOS,
+make you are not using the bundled Python - use `Homebrew
+<https://brew.sh>`__ or `Python.org
+<https://www.python.org/downloads>`__ instead.
 
 
 Install Using GitHub
@@ -44,6 +50,21 @@ In order to install using the source on GitHub, use the following commands::
     cd cx_Oracle
     git submodule init
     git submodule update
+    python setup.py install
+
+Note that if you download a source zip file directly from GitHub then
+you will also need to download an `ODPI-C
+<https://github.com/oracle/odpi>`__ source zip file and extract it
+inside the directory called "odpi".
+
+Install Using Source from PyPI
+==============================
+
+The source package can be downloaded manually from
+`PyPI <https://pypi.python.org/pypi/cx_Oracle>`__ and extracted, after
+which the following commands should be run:
+
+    python setup.py build
     python setup.py install
 
 
@@ -78,6 +99,14 @@ The simplest Oracle Client is the free `Oracle Instant Client
 index.html>`__. Only the "Basic" or "Basic Light" package is required. Oracle
 Client libraries are also available in any Oracle Database installation or
 full Oracle Client installation.
+
+On Windows, `Microsoft Windows Redistributables
+<https://oracle.github.io/odpi/doc/installation.html#windows>`__
+matching the version of the Oracle client libraries need to be
+installed.
+
+Oracle Database
+===============
 
 Oracle Client libraries allow connection to older and newer databases.
 In summary, Oracle Client 12.2 can connect to Oracle Database 11.2 or
@@ -146,7 +175,6 @@ If installation fails:
       subdirectory called "odpi" containing files. If missing, review the
       section on `Install Using GitHub`_.
 
-
 If importing cx_Oracle fails:
 
     - Do you get the error "``DPI-1047: Oracle Client library cannot be
@@ -160,3 +188,6 @@ If importing cx_Oracle fails:
       <https://oracle.github.io/odpi/doc/installation.html#windows>`__ have been
       installed.
 
+    - If you have both Python 2 and 3 installed, make sure you are
+      using the correct python and pip (or python3 and pip3)
+      executables.
