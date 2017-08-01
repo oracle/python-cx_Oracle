@@ -119,6 +119,7 @@ class TestConnection(TestCase):
                 self.tnsentry)
         otherCursor = otherConnection.cursor()
         otherCursor.execute("insert into TestTempTable (IntCol) values (1)")
+        otherCursor.close()
         otherConnection.close()
         cursor.execute("select count(*) from TestTempTable")
         count, = cursor.fetchone()

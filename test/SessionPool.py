@@ -96,6 +96,7 @@ class TestConnection(TestCase):
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
         cursor.execute("insert into TestTempTable (IntCol) values (1)")
+        cursor.close()
         pool.release(connection)
         pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3,
                 encoding = ENCODING, nencoding = NENCODING)
