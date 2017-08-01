@@ -138,8 +138,6 @@
 #define BUILD_VERSION_STRING    xstr(BUILD_VERSION)
 #define DRIVER_NAME             "cx_Oracle : "BUILD_VERSION_STRING
 
-#include "Buffer.c"
-
 //-----------------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------------
@@ -157,6 +155,8 @@ static PyTypeObject *g_DecimalType = NULL;
 static dpiContext *g_DpiContext = NULL;
 static dpiVersionInfo g_OracleClientVersionInfo;
 
+#include "Buffer.c"
+#include "Error.c"
 
 //-----------------------------------------------------------------------------
 // SetException()
@@ -234,7 +234,33 @@ static const char *GetAdjustedEncoding(const char *encoding)
 }
 
 
-#include "Error.c"
+//-----------------------------------------------------------------------------
+// InitializeDPI()
+//   Initialize the ODPI-C library. This is done when the first standalone
+// connection or session pool is created, rather than when the module is first
+// imported so that manipulating environment variables such as NLS_LANG will
+// work as expected. It also has the additional benefit of reducing the number
+// of errors that can take place when the module is imported.
+//-----------------------------------------------------------------------------
+static int InitializeDPI(void)
+{
+    dpiErrorInfo errorInfo;
+    dpiContext *context;
+
+    if (!g_DpiContext) {
+        if (dpiContext_create(DPI_MAJOR_VERSION, DPI_MINOR_VERSION,
+                &context, &errorInfo) < 0)
+            return Error_RaiseFromInfo(&errorInfo);
+        if (dpiContext_getClientVersion(context,
+                &g_OracleClientVersionInfo) < 0)
+            return Error_RaiseAndReturnInt();
+        g_DpiContext = context;
+    }
+
+    return 0;
+}
+
+
 #include "SessionPool.c"
 
 
@@ -331,6 +357,8 @@ static PyObject* MakeDSN(PyObject* self, PyObject* args, PyObject* keywordArgs)
 //-----------------------------------------------------------------------------
 static PyObject* ClientVersion(PyObject* self, PyObject* args)
 {
+    if (InitializeDPI() < 0)
+        return NULL;
     return Py_BuildValue("(iiiii)", g_OracleClientVersionInfo.versionNum,
             g_OracleClientVersionInfo.releaseNum,
             g_OracleClientVersionInfo.updateNum,
@@ -421,7 +449,6 @@ static struct PyModuleDef g_ModuleDef = {
 //-----------------------------------------------------------------------------
 static PyObject *Module_Initialize(void)
 {
-    dpiErrorInfo errorInfo;
     PyObject *module;
 
 #ifdef WITH_THREAD
@@ -520,16 +547,6 @@ static PyObject *Module_Initialize(void)
     if (SetException(module, &g_NotSupportedErrorException,
             "NotSupportedError", g_DatabaseErrorException) < 0)
         return NULL;
-
-    // initialize DPI library and create DPI context
-    if (dpiContext_create(DPI_MAJOR_VERSION, DPI_MINOR_VERSION, &g_DpiContext,
-            &errorInfo) < 0) {
-        Error_RaiseFromInfo(&errorInfo);
-        return NULL;
-    }
-    if (dpiContext_getClientVersion(g_DpiContext,
-            &g_OracleClientVersionInfo) < 0)
-        return Error_RaiseAndReturnNull();
 
     // set up the types that are available
     ADD_TYPE_OBJECT("Binary", &cxBinary_Type)

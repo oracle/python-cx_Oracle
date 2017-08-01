@@ -583,6 +583,8 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
     threadedObj = eventsObj = newPasswordObj = usernameObj = NULL;
     passwordObj = dsnObj = cclassObj = editionObj = tagObj = NULL;
     matchAnyTagObj = contextObj = NULL;
+    if (InitializeDPI() < 0)
+        return -1;
     if (dpiContext_initCommonCreateParams(g_DpiContext, &dpiCommonParams) < 0)
         return Error_RaiseAndReturnInt();
     dpiCommonParams.driverName = DRIVER_NAME;

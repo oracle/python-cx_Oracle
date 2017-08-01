@@ -198,6 +198,8 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
     externalAuthObj = editionObj = NULL;
     threadedObj = eventsObj = homogeneousObj = passwordObj = NULL;
     connectionType = &g_ConnectionType;
+    if (InitializeDPI() < 0)
+        return -1;
     if (dpiContext_initCommonCreateParams(g_DpiContext, &dpiCommonParams) < 0)
         return Error_RaiseAndReturnInt();
     dpiCommonParams.driverName = DRIVER_NAME;
