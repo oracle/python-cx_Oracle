@@ -1144,7 +1144,7 @@ This allows you to use the exceptions for example in the following way:
 
     import cx_Oracle
 
-    connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orcl")
+    connection = cx_Oracle.Connection("cx_Oracle/dev@localhost/orclpdb")
     cursor = connection.cursor()
 
     try:

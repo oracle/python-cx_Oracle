@@ -35,7 +35,7 @@
 #   [//]host_name[:port][/service_name][:server_type][/instance_name]
 #
 # Commonly just the host_name and service_name are needed
-# e.g. "localhost/orcl" or "localhost/XE"
+# e.g. "localhost/orclpdb" or "localhost/XE"
 #
 # If using a tnsnames.ora file, the file can be in a default
 # location such as $ORACLE_HOME/network/admin/tnsnames.ora or
@@ -50,7 +50,7 @@ DEFAULT_MAIN_USER = "cx_Oracle"
 DEFAULT_MAIN_PASSWORD = "welcome"
 DEFAULT_PROXY_USER = "cx_Oracle_proxy"
 DEFAULT_PROXY_PASSWORD = "welcome"
-DEFAULT_CONNECT_STRING = "localhost/orcl"
+DEFAULT_CONNECT_STRING = "localhost/orclpdb"
 DEFAULT_ENCODING = "UTF-8"
 DEFAULT_NENCODING = "UTF-8"
 DEFAULT_ARRAY_SIZE = 5
