@@ -25,6 +25,10 @@ Instant Client, you should not set ``ORACLE_HOME``.
 Install Using Pip
 =================
 
+Pip is the generic tool for installing Python packages. If you do not have pip,
+see the `pip installation documentation
+<http://pip.readthedocs.io/en/latest/installing/>`__.
+
 The command to install the current Release Candidate of cx_Oracle 6 using pip
 on all platforms is::
 
@@ -35,10 +39,14 @@ and architecture automatically, if one is available. Pre-compiled binaries are
 available for Windows and Linux.
 
 If a pre-compiled binary is not available, the source will be
-downloaded, compiled and the resulting binary installed.  On macOS,
-make you are not using the bundled Python - use `Homebrew
-<https://brew.sh>`__ or `Python.org
-<https://www.python.org/downloads>`__ instead.
+downloaded, compiled, and the resulting binary installed.  On Linux if
+cx_Oracle needs to be compiled for the default python package, you
+will need the ``python-devel`` package or equivalent, which provides
+the `Python.h` header file.
+
+On macOS make sure you are not using the bundled Python - use `Homebrew
+<https://brew.sh>`__ or `Python.org <https://www.python.org/downloads>`__
+instead.
 
 
 Install Using GitHub
