@@ -25,7 +25,7 @@ Version 6.0 rc 2 (July 2017)
     as specified in the Python DB API.
 #)  Ensure the correct encoding is used for setting variable values.
 #)  Corrected handling of CLOB/NCLOB when using different encodings.
-#)  Corrected handling of timestamp with time zone attributes on objects.
+#)  Corrected handling of TIMESTAMP WITH TIME ZONE attributes on objects.
 #)  Ensure that the array position passed to var.getvalue() does not exceed the
     number of elements allocated in the array.
 #)  Reworked test suite and samples so that they are independent of each other
