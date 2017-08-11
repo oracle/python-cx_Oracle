@@ -4,6 +4,44 @@ cx_Oracle Release Notes
 6.x releases
 ############
 
+Version 6.0 (August 2017)
+-------------------------
+
+#)  Update to `ODPI-C 2.0 <https://oracle.github.io/odpi/doc/releasenotes.html
+    #version-2-0-august-14-2017>`__.
+
+    -   Prevent closing the connection when there are any open statements or
+        LOBs and add new error "DPI-1054: connection cannot be closed when open
+        statements or LOBs exist" when this situation is detected; this is
+        needed to prevent crashes under certain conditions when statements or
+        LOBs are being acted upon while at the same time (in another thread) a
+        connection is being closed; it also prevents leaks of statements and
+        LOBs when a connection is returned to a session pool.
+    -   On platforms other than Windows, if the regular method for loading the
+        Oracle Client libraries fails, try using $ORACLE_HOME/lib/libclntsh.so
+        (`ODPI-C issue 20 <https://github.com/oracle/odpi/issues/20>`__).
+    -   Use the environment variable DPI_DEBUG_LEVEL at runtime, not compile
+        time.
+    -   Added support for DPI_DEBUG_LEVEL_ERRORS (reports errors and has the
+        value 8) and DPI_DEBUG_LEVEL_SQL (reports prepared SQL statement text
+        and has the value 16) in order to further improve the ability to debug
+        issues.
+    -   Correct processing of :meth:`Cursor.scroll()` in some circumstances.
+
+#)  Delay initialization of the ODPI-C library until the first standalone
+    connection or session pool is created so that manipulation of the
+    environment variable NLS_LANG can be performed after the module has been
+    imported; this also has the added benefit of reducing the number of errors
+    that can take place when the module is imported.
+#)  Prevent binding of null values from generating the exception "ORA-24816:
+    Expanded non LONG bind data supplied after actual LONG or LOB column" in
+    certain circumstances
+    (`issue 50 <https://github.com/oracle/python-cx_Oracle/issues/50>`__).
+#)  Added information on how to run the test suite
+    (`issue 33 <https://github.com/oracle/python-cx_Oracle/issues/33>`__).
+#)  Documentation improvements.
+
+
 Version 6.0 rc 2 (July 2017)
 ----------------------------
 

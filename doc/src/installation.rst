@@ -11,16 +11,33 @@ Before cx_Oracle can be installed, an installation of
 `Python <https://www.python.org/downloads>`__ is needed first. Python 2.7 and
 Python 3.4 and higher are supported.
 
-The simplest method of installation is to `Install Using Pip`_. You can also
-`Install Using GitHub`_. If you run into trouble, check out the section on
-`Troubleshooting`_.
+The simplest method of installing cx_Oracle is to `Install Using Pip`_. You
+can also `Install Using GitHub`_. If you run into trouble, check out the
+section on `Troubleshooting`_. cx_Oracle uses `ODPI-C
+<https://github.com/oracle/odpi>`__, which means that the `ODPI-C installation
+instructions <https://oracle.github.io/odpi/doc/installation.html>`__ can be
+useful to review.
 
 After cx_Oracle has been installed, you must also `Install Oracle Client`_, if
 that has not been done already. Oracle Client versions 12.2, 12.1 and 11.2
 are supported.
 
-Note installation has changed from cx_Oracle 5.  When using Oracle
-Instant Client, you should not set ``ORACLE_HOME``.
+Finally, you need an `Oracle Database`_ for Python to connect to. Oracle's
+standard client-server version interoperability allows cx_Oracle to connect to
+both older and newer databases. Python can be local or remote to the database.
+
+
+Upgrading from cx_Oracle 5
+==========================
+
+If you are upgrading from cx_Oracle 5 note these installation changes:
+
+    - When using Oracle Instant Client, you should not set ``ORACLE_HOME``.
+
+    - On Linux, cx_Oracle 6 no longer uses Instant Client RPMs automatically.
+      You must set ``LD_LIBRARY_PATH`` or use ``ldconfig`` to locate the Oracle
+      client library.
+
 
 Install Using Pip
 =================
@@ -29,17 +46,17 @@ Pip is the generic tool for installing Python packages. If you do not have pip,
 see the `pip installation documentation
 <http://pip.readthedocs.io/en/latest/installing/>`__.
 
-The command to install the current Release Candidate of cx_Oracle 6 using pip
-on all platforms is::
+The command to install cx_Oracle 6 using pip on all platforms is::
 
-    python -m pip install cx_Oracle --upgrade --pre
+    python -m pip install cx_Oracle --upgrade
 
 This will download and install a pre-compiled binary matching your platform
 and architecture automatically, if one is available. Pre-compiled binaries are
-available for Windows and Linux.
+available for Windows and Linux. See
+`PyPI <https://pypi.python.org/pypi/cx_Oracle>`__.
 
 If a pre-compiled binary is not available, the source will be
-downloaded, compiled, and the resulting binary installed.  On Linux if
+downloaded, compiled, and the resulting binary installed. On Linux if
 cx_Oracle needs to be compiled for the default python package, you
 will need the ``python-devel`` package or equivalent, which provides
 the `Python.h` header file.
@@ -106,13 +123,13 @@ Oracle Client libraries allow connection to older and newer databases.
 In summary, Oracle Client 12.2 can connect to Oracle Database 11.2 or
 greater. Oracle Client 12.1 can connect to Oracle Database 10.2 or
 greater. Oracle Client 11.2 can connect to Oracle Database 9.2 or
-greater.  For additional information on which Oracle Database releases
+greater. For additional information on which Oracle Database releases
 are supported by which Oracle client versions, please see `Doc ID 207303.1
 <https://support.oracle.com/epmos/faces/DocumentDisplay?id=207303.1>`__.
 
 Since a single cx_Oracle binary can use multiple client versions and access
 multiple database versions, it is important your application is tested in your
-intended release environments.  Newer Oracle clients support new features, such
+intended release environments. Newer Oracle clients support new features, such
 as the `oraaccess.xml <https://docs.oracle.com/database/122/LNOCI/
 more-oci-advanced-topics.htm#LNOCI73052>`__ external configuration file
 available with 12.1 or later clients, and `session pool enhancements
@@ -137,15 +154,6 @@ errors. These include:
 
     - when attempting to get array DML row counts with Oracle Client
       11.2 you will get the error "DPI-1013: not supported"
-
-cx_Oracle is an `ODPI-C <https://github.com/oracle/odpi>`__ application, which
-means that the installation instructions for
-`Linux <https://oracle.github.io/odpi/doc/installation.html#linux>`__,
-`Windows <https://oracle.github.io/odpi/doc/installation.html#windows>`__
-and `macOS <https://oracle.github.io/odpi/doc/installation.html#macos>`__
-are applicable. For other platforms like Solaris or AIX, follow the same
-general directions as for Linux.
-
 
 Troubleshooting
 ===============
