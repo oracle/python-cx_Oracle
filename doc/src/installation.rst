@@ -38,6 +38,8 @@ If you are upgrading from cx_Oracle 5 note these installation changes:
       You must set ``LD_LIBRARY_PATH`` or use ``ldconfig`` to locate the Oracle
       client library.
 
+    - PyPI no longer allows Windows installers or Linux RPMs to be
+      hosted.  Use the supplied cx_Oracle Wheels instead.
 
 Install Using Pip
 =================
@@ -111,10 +113,19 @@ index.html>`__. Only the "Basic" or "Basic Light" package is required. Oracle
 Client libraries are also available in any Oracle Database installation or
 full Oracle Client installation.
 
+Make sure your library loading path, such as ``PATH`` on Windows, or
+``LD_LIBRARY_PATH`` on Linux, is set to the location of the Oracle
+Client libraries.  On macOS the libraries should be in ``~/lib`` or
+``/usr/local/lib``.
+
 On Windows, `Microsoft Windows Redistributables
 <https://oracle.github.io/odpi/doc/installation.html#windows>`__
 matching the version of the Oracle client libraries need to be
 installed.
+
+See `ODPI-C installation instructions
+<https://oracle.github.io/odpi/doc/installation.html>`__ for details
+on configuration.
 
 Oracle Database
 ===============
@@ -186,8 +197,8 @@ If importing cx_Oracle fails:
         have restarted your command prompt if you have modified environment
         variables.
       - Check the ``LD_LIBRARY_PATH`` environment variable on Linux.
-      - On macOS, make sure Oracle Instant Client is in `~/lib` or
-        `/usr/local/lib` and that you are not using the bundled Python (use
+      - On macOS, make sure Oracle Instant Client is in ``~/lib`` or
+        ``/usr/local/lib`` and that you are not using the bundled Python (use
         `Homebrew <https://brew.sh>`__ or `Python.org
         <https://www.python.org/downloads>`__ instead).
       - Check that Python, cx_Oracle and your Oracle Client libraries are all
