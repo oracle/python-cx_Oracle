@@ -205,11 +205,11 @@ static int ObjectType_Initialize(udt_ObjectType *self,
     if (!self->name)
         return -1;
     self->isCollection = info.isCollection;
-    self->elementOracleTypeNum = info.elementOracleTypeNum;
-    self->elementNativeTypeNum = info.elementDefaultNativeTypeNum;
-    if (info.elementObjectType) {
+    self->elementOracleTypeNum = info.elementTypeInfo.oracleTypeNum;
+    self->elementNativeTypeNum = info.elementTypeInfo.defaultNativeTypeNum;
+    if (info.elementTypeInfo.objectType) {
         self->elementType = (PyObject*) ObjectType_New(connection,
-                info.elementObjectType);
+                info.elementTypeInfo.objectType);
         if (!self->elementType)
             return -1;
     }
@@ -404,14 +404,14 @@ static int ObjectAttribute_Initialize(udt_ObjectAttribute *self,
 
     if (dpiObjectAttr_getInfo(self->handle, &info) < 0)
         return Error_RaiseAndReturnInt();
-    self->oracleTypeNum = info.oracleTypeNum;
-    self->nativeTypeNum = info.defaultNativeTypeNum;
+    self->oracleTypeNum = info.typeInfo.oracleTypeNum;
+    self->nativeTypeNum = info.typeInfo.defaultNativeTypeNum;
     self->name = cxString_FromEncodedString(info.name, info.nameLength,
             connection->encodingInfo.encoding);
     if (!self->name)
         return -1;
-    if (info.objectType) {
-        self->type = ObjectType_New(connection, info.objectType);
+    if (info.typeInfo.objectType) {
+        self->type = ObjectType_New(connection, info.typeInfo.objectType);
         if (!self->type)
             return -1;
     }

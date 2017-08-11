@@ -419,21 +419,21 @@ static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
         // get query information for the column position
         if (dpiStmt_getQueryInfo(self->handle, pos, &queryInfo) < 0)
             return Error_RaiseAndReturnInt();
-        if (queryInfo.sizeInChars)
-            size = queryInfo.sizeInChars;
-        else size = queryInfo.clientSizeInBytes;
+        if (queryInfo.typeInfo.sizeInChars)
+            size = queryInfo.typeInfo.sizeInChars;
+        else size = queryInfo.typeInfo.clientSizeInBytes;
 
         // determine object type, if applicable
         objectType = NULL;
-        if (queryInfo.objectType) {
+        if (queryInfo.typeInfo.objectType) {
             objectType = ObjectType_New(self->connection,
-                    queryInfo.objectType);
+                    queryInfo.typeInfo.objectType);
             if (!objectType)
                 return -1;
         }
 
         // determine the default type 
-        varType = VarType_FromQueryInfo(&queryInfo);
+        varType = VarType_FromDataTypeInfo(&queryInfo.typeInfo);
         if (!varType)
             return -1;
 
@@ -450,8 +450,8 @@ static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
         if (outputTypeHandler) {
             result = PyObject_CallFunction(outputTypeHandler, "Os#Oiii",
                     self, queryInfo.name, queryInfo.nameLength,
-                    varType->pythonType, size, queryInfo.precision,
-                    queryInfo.scale);
+                    varType->pythonType, size, queryInfo.typeInfo.precision,
+                    queryInfo.typeInfo.scale);
             if (!result) {
                 Py_XDECREF(objectType);
                 return -1;
@@ -512,30 +512,30 @@ static PyObject *Cursor_ItemDescription(udt_Cursor *self, uint32_t pos)
     // get information about the column position
     if (dpiStmt_getQueryInfo(self->handle, pos, &queryInfo) < 0)
         return NULL;
-    varType = VarType_FromQueryInfo(&queryInfo);
+    varType = VarType_FromDataTypeInfo(&queryInfo.typeInfo);
     if (!varType)
         return NULL;
 
     // set display size based on data type
-    switch (queryInfo.oracleTypeNum) {
+    switch (queryInfo.typeInfo.oracleTypeNum) {
         case DPI_ORACLE_TYPE_VARCHAR:
         case DPI_ORACLE_TYPE_NVARCHAR:
         case DPI_ORACLE_TYPE_CHAR:
         case DPI_ORACLE_TYPE_NCHAR:
         case DPI_ORACLE_TYPE_ROWID:
-            displaySize = (int) queryInfo.sizeInChars;
+            displaySize = (int) queryInfo.typeInfo.sizeInChars;
             break;
         case DPI_ORACLE_TYPE_RAW:
-            displaySize = (int) queryInfo.clientSizeInBytes;
+            displaySize = (int) queryInfo.typeInfo.clientSizeInBytes;
             break;
         case DPI_ORACLE_TYPE_NATIVE_FLOAT:
         case DPI_ORACLE_TYPE_NATIVE_DOUBLE:
         case DPI_ORACLE_TYPE_NATIVE_INT:
         case DPI_ORACLE_TYPE_NUMBER:
-            if (queryInfo.precision) {
-                displaySize = queryInfo.precision + 1;
-                if (queryInfo.scale > 0)
-                    displaySize += queryInfo.scale + 1;
+            if (queryInfo.typeInfo.precision) {
+                displaySize = queryInfo.typeInfo.precision + 1;
+                if (queryInfo.typeInfo.scale > 0)
+                    displaySize += queryInfo.typeInfo.scale + 1;
             }
             else displaySize = 127;
             break;
@@ -563,16 +563,20 @@ static PyObject *Cursor_ItemDescription(udt_Cursor *self, uint32_t pos)
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 2, Py_None);
     }
-    if (queryInfo.clientSizeInBytes)
+    if (queryInfo.typeInfo.clientSizeInBytes)
         PyTuple_SET_ITEM(tuple, 3,
-                PyInt_FromLong(queryInfo.clientSizeInBytes));
+                PyInt_FromLong(queryInfo.typeInfo.clientSizeInBytes));
     else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 3, Py_None);
     }
-    if (queryInfo.precision || queryInfo.scale) {
-        PyTuple_SET_ITEM(tuple, 4, PyInt_FromLong(queryInfo.precision));
-        PyTuple_SET_ITEM(tuple, 5, PyInt_FromLong(queryInfo.scale));
+    if (queryInfo.typeInfo.precision || queryInfo.typeInfo.scale ||
+            queryInfo.typeInfo.fsPrecision) {
+        PyTuple_SET_ITEM(tuple, 4,
+                PyInt_FromLong(queryInfo.typeInfo.precision));
+        PyTuple_SET_ITEM(tuple, 5,
+                PyInt_FromLong(queryInfo.typeInfo.scale +
+                        queryInfo.typeInfo.fsPrecision));
     } else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 4, Py_None);

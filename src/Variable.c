@@ -117,11 +117,11 @@ static PyMethodDef g_VariableMethods[] = {
 
 
 //-----------------------------------------------------------------------------
-// VarType_FromQueryInfo()
+// VarType_FromDataTypeInfo()
 //   Return a variable type given query metadata, or NULL indicating that the
 // data indicated by the query metadata is not supported.
 //-----------------------------------------------------------------------------
-static udt_VariableType *VarType_FromQueryInfo(dpiQueryInfo *info)
+static udt_VariableType *VarType_FromDataTypeInfo(dpiDataTypeInfo *info)
 {
     char message[120];
 
