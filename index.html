@@ -14,36 +14,243 @@
     <h1>cx_Oracle - Python Interface for Oracle Database</h1>
 </div>
 <div id="menu">
-    <a href="http://cx-oracle.readthedocs.io/en/5.3/index.html">Documentation</a> ·
+    <a href="http://cx-oracle.readthedocs.io/en/latest/index.html">Documentation</a> ·
+    <a href="http://cx-oracle.readthedocs.io/en/latest/installation.html" >Installation</a> .
+    <a href="http://cx-oracle.readthedocs.io/en/latest/releasenotes.html">Release Notes</a> .
     <a href="https://github.com/oracle/python-cx_Oracle">Source code</a> ·
     <a href="http://lists.sourceforge.net/lists/listinfo/cx-oracle-users">Mailing list</a>
 </div>
 <div id="content">
-<img class="logo" src="logo.png"/>
-<div id="description"><h2>About cx_Oracle</h2>
-<!--Description-->
-<strong>cx_Oracle</strong> is a Python extension module that enables access to
-Oracle Database and conforms to the Python database API specification.
-This module is currently built against Oracle Client 11.2, 12.1 and 12.2 and
-Python 2.7, 3.4, 3.5 and 3.6. For more information on the database API
-specification, see
-<a href="http://www.python.org/topics/database/DatabaseAPI-2.0.html"> here</a>.
-</div>
+<img class="logo" alt="cx_Oracle logo" src="logo.png"/>
 
-<div id="downloads">
-<h2>Download/Install</h2>
+<div id="description">
+<h2>About cx_Oracle</h2>
 
-<p><b>Version 6.0rc2, released July, 2017</b></p>
+<p><strong>cx_Oracle</strong> is a Python extension module that
+enables access to Oracle Database.  It conforms to the Python
+database API 2.0 <a
+href="http://www.python.org/topics/database/DatabaseAPI-2.0.html">
+specification</a> with a considerable number of additions and a
+couple of exclusions.</p>
 
-<p>Install by issuing the command <pre>python -m pip install cx_Oracle --pre</pre> or download directly from <a href="https://pypi.python.org/pypi/cx_Oracle/6.0rc2">PyPI</a>.</p>
+<p>cx_Oracle is licensed under a BSD license which you can find <a
+href="https://github.com/oracle/python-cx_Oracle/blob/master/LICENSE.txt"
+>here</a>.</p>
 
-<p><b>Version 5.3, released March, 2017</b></p>
+<p>cx_Oracle 6 has been tested with Python version 2.7, and with
+versions 3.4 and higher. You can use cx_Oracle with Oracle 11.2, 12.1
+and 12.2 client libraries. Oracle's standard client-server version
+interoperability allows connection to both older and newer databases.
+For example Oracle 12.2 client libraries can connect to Oracle
+Database 11.2 or later.</p>
 
-<p>Install by issuing the command <pre>python -m pip install cx_Oracle</pre> (on platforms other than Windows) or download directly from <a href="https://pypi.python.org/pypi/cx_Oracle/5.3">PyPI</a>.</p>
+</div> <!-- /description -->
 
-<p>Older versions can be found in <a href="https://sourceforge.net/projects/cx-oracle/files/">the files section at Sourceforge.</a></p>
+<div id="features">
 
-</div> <!-- /downloads -->
+<h2>Features</h2>
+
+<ul>
+<li><p>Easily installed from PyPI.</p></li>
+
+<li><p>Support for Python 2 and 3.</p></li>
+
+<li><p>Support for Oracle Client 11.2, 12.1 and 12.2.  Oracle's
+standard cross-version interoperability, allows easy upgrades and
+connectivity to different Oracle Database versions.</p></li>
+
+<li><p>Connect to Oracle Database 9.2, 10, 11 or 12 (depending on the
+Oracle Client version used).</p></li>
+
+<li><p>SQL and PL/SQL Execution. The underlying Oracle Client
+libraries have significant optimizations including compressed fetch,
+pre-fetching, client and server result set caching, and statement
+caching with auto-tuning.</p></li>
+
+<li><p>Full use of Oracle Network Service infrastructure, including
+encrypted network traffic and security features.</p></li>
+
+<li><p>Extensive Oracle data type support, including large object
+support (CLOB and BLOB).</p></li>
+
+<li><p>Direct binding to SQL objects.  One great use case is binding
+Python objects to Oracle Spatial SDO objects.</p></li>
+
+<li><p>Array operations for efficient INSERT and UPDATEs.</p></li>
+
+<li><p>Array row counts and batch error handling for array operations.</p></li>
+
+<li><p>Fetching of large result sets.</p></li>
+
+<li><p>REF CURSOR support.</p></li>
+
+<li><p>Support for scrollable cursors. Go back and forth through your
+query results.</p></li>
+
+<li><p>Fetch PL/SQL Implicit Results. Easily return query results from
+PL/SQL.</p></li>
+
+<li><p>Row Prefetching.  Efficient use of the network.</p></li>
+
+<li><p>Client Result Caching.  Improve performance of frequently
+executed look-up statements.</p></li>
+
+<li><p>Support for Advanced Queuing. Use database notifications to
+build micro-service applications.</p></li>
+
+<li><p>Continuous Query Notification.  Get notified when data
+changes.</p></li>
+
+<li><p>Support for Edition Based Redefinition.  Easily switch
+applications to use updated PL/SQL logic.</p></li>
+
+<li><p>Support for setting application context during the creation of
+a connection, making application metadata more accessible to the
+database, including in LOGON triggers.</p></li>
+
+<li><p>End-to-end monitoring and tracing.</p></li>
+
+<li><p>Transaction Management.</p></li>
+
+<li><p>Session Pooling.</p></li>
+
+<li><p>Database Resident Connection Pooling (DRCP).</p></li>
+
+<li><p>Privileged Connections.</p></li>
+
+<li><p>External Authentication.</p></li>
+
+<li><p>Database startup and shutdown.</p></li>
+
+<li><p>Oracle Database High Availability Features, such as FAN
+notifications and Transaction Guard support.</p></li>
+
+</ul>
+
+<p>DB API specification exclusions: The time data type is not
+supported by Oracle and is therefore not implemented. The method
+<code>cursor.nextset()</code> is not implemented either as the DB API
+specification assumes an implementation of cursors that does not fit
+well with Oracle's implementation of cursors and implicit results. See
+the method
+<a href="http://cx-oracle.readthedocs.io/en/latest/cursor.html#Cursor.getimplicitresults">cursor.getimplicitresults()</a>
+for more information.
+</p>
+
+</div> <!-- /features -->
+
+<div id="installation">
+<h2>Installation</h2>
+
+See <a
+href="http://cx-oracle.readthedocs.io/en/latest/installation.html"
+>cx_Oracle Installation</a> for detailed instructions.
+
+<ul>
+
+<li>
+<p>The simplest way to install cx_Oracle is with pip:</p>
+<pre>
+    python -m pip install cx_Oracle --upgrade
+</pre>
+<p>If a binary wheel package is not available on <a
+href="https://pypi.python.org/pypi/cx_Oracle" >PyPI</a> for your
+platform, the source package will be used.</p>
+
+<p>Note that if you download a source zip file directly from GitHub
+then you will also need to download an <a
+href="https://oracle.github.io/odpi" >ODPI-C</a> source zip file and
+extract it inside the directory called "odpi".  </p>
+
+</li>
+
+<li>
+<p>After cx_Oracle is installed, Oracle client libraries must
+also be installed and configured. These can be from Oracle Instant
+Client, from a local Oracle Database, or from a full Oracle Client
+installation.</p>
+
+<p>If you need the libraries, download and unzip the <a
+href="http://www.oracle.com/technetwork/database/features/instant-client/index.html"
+>Oracle Instant Client</a> 'Basic' package for your platform and set
+PATH, LD_LIBRARY_PATH, or similar platform-specific library path
+loading environment.  See the <a
+href="https://oracle.github.io/odpi/doc/installation.html"
+>installation notes for ODPI-C</a> for help.</p>
+
+<p>Versions 11.2, 12.1 and 12.2 of the Oracle Client libraries on Linux,
+Windows and macOS are supported.  Users have also reported success
+with other platforms.</p>
+
+</li>
+</ul>
+
+<p>If you require cx_Oracle 5.3, download a Windows installer from <a
+href="https://pypi.python.org/pypi/cx_Oracle/5.3" >PyPI</a> or use
+<code>python -m pip install cx-oracle==5.3</code> to install from
+source.</p>
+
+<p>Very old versions of cx_Oracle can be found in the files section at
+<a
+href="https://sourceforge.net/projects/cx-oracle/files/">Sourceforge.</a></p>
+
+</div> <!-- /installation -->
+
+<div id="example">
+
+<h2>Example</h2>
+
+<pre>
+    from __future__ import print_function
+
+    import cx_Oracle
+
+    connection = cx_Oracle.connect("hr", "welcome", "localhost/orclpdb")
+
+    cursor = connection.cursor()
+    cursor.execute("""
+	    SELECT first_name, last_name
+	    FROM employees
+	    WHERE department_id = :did AND employee_id > :eid""",
+	    did = 50,
+	    eid = 190)
+    for fname, lname in cursor:
+	print("Values:", fname, lname)
+</pre>
+
+For more examples, please see the <a
+href="https://github.com/oracle/python-cx_Oracle/tree/master/samples"
+>samples</a> and the <a
+href="https://github.com/oracle/python-cx_Oracle/tree/master/test"
+>test suite</a>. You can also look at the scripts in <a
+href="http://cx-oracletools.sourceforge.net" >cx_OracleTools</a> and
+the modules in <a href="http://cx-pyoraclelib.sourceforge.net"
+>cx_PyOracleLib</a>.
+
+</div> <!-- /example -->
+
+<div id="documentation">
+<h2>Documentation</h2>
+
+See the <a href="http://cx-oracle.readthedocs.io" >cx_Oracle
+Documentation</a> and <a
+href="http://cx-oracle.readthedocs.io/en/latest/releasenotes.html"
+>Release Notes</a>.
+
+</div> <!-- /documentation -->
+
+<div id="help">
+<h2>Help</h2>
+
+<p>Issues and questions can be raised with the cx_Oracle community on
+<a href="https://github.com/oracle/python-cx_Oracle/issues"
+>GitHub</a> or on the <a
+href="http://lists.sourceforge.net/lists/listinfo/cx-oracle-users"
+>mailing list</a>.</p>
+
+</div> <!-- /help -->
+
+
 </div> <!-- /content -->
 </div> <!-- /container -->
 </body>
