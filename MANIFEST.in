@@ -5,5 +5,5 @@ recursive-include odpi *.h
 prune odpi/test
 prune odpi/samples
 recursive-include src *.c
-recursive-include samples *.py
+recursive-include samples *.py *.sql
 recursive-include test *.py *.sql
