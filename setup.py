@@ -22,26 +22,6 @@ except:
 # define build constants
 BUILD_VERSION = "6.0"
 
-# define the list of files to be included as documentation for Windows
-dataFiles = None
-if sys.platform in ("win32", "cygwin"):
-    baseName = "cx_Oracle-doc"
-    dataFiles = [ (baseName, [ "LICENSE.txt", "README.txt"]) ]
-    for dir in ("samples", "test"):
-        files = []
-        fullDirName = "%s/%s" % (baseName, dir)
-        for name in os.listdir(dir):
-            if name.startswith("."):
-                continue
-            if os.path.isdir(os.path.join(dir, name)):
-                continue
-            fullName = "%s/%s" % (dir, name)
-            files.append(fullName)
-        dataFiles.append((fullDirName, files))
-
-# define the list of files to be included as documentation for bdist_rpm
-docFiles = "README.txt LICENSE.txt samples test"
-
 # setup extra link and compile args
 extraLinkArgs = []
 extraCompileArgs = ["-DBUILD_VERSION=%s" % BUILD_VERSION]
@@ -118,9 +98,7 @@ setup(
         name = "cx_Oracle",
         version = BUILD_VERSION,
         description = "Python interface to Oracle",
-        data_files = dataFiles,
         cmdclass = dict(test = test),
-        options = dict(bdist_rpm = dict(doc_files = docFiles)),
         long_description = \
             "Python interface to Oracle Database conforming to the Python DB "
             "API 2.0 specification.\n"
