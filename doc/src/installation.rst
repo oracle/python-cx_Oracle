@@ -90,7 +90,7 @@ Install Using Source from PyPI
 
 The source package can be downloaded manually from
 `PyPI <https://pypi.python.org/pypi/cx_Oracle>`__ and extracted, after
-which the following commands should be run:
+which the following commands should be run::
 
     python setup.py build
     python setup.py install
