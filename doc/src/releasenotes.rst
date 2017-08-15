@@ -1,8 +1,12 @@
+.. _releasenotes:
+
 cx_Oracle Release Notes
 =======================
 
 6.x releases
 ############
+
+.. _releasenotes60:
 
 Version 6.0 (August 2017)
 -------------------------

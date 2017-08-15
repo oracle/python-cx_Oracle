@@ -24,6 +24,7 @@ Contents:
     lob.rst
     objecttype.rst
     aq.rst
+    whatsnew.rst
     releasenotes.rst
     license.rst
 
