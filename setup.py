@@ -20,7 +20,7 @@ except:
     from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "6.0"
+BUILD_VERSION = "6.0.1"
 
 # setup extra link and compile args
 extraLinkArgs = []
@@ -99,6 +99,7 @@ setup(
         version = BUILD_VERSION,
         description = "Python interface to Oracle",
         cmdclass = dict(test = test),
+        data_files = [ ("cx_Oracle-doc", ["LICENSE.txt", "README.txt"]) ],
         long_description = \
             "Python interface to Oracle Database conforming to the Python DB "
             "API 2.0 specification.\n"
