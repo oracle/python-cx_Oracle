@@ -749,26 +749,6 @@ These constants are extensions to the DB API definition. They are possible
 values for the qos parameter of the :meth:`Connection.subscribe()` method. One
 or more of these values can be OR'ed together.
 
-.. data:: SUBSCR_CQ_QOS_BEST_EFFORT
-
-   This constant is used to specify that best effort filtering for query result
-   set changes is acceptable. False positive notifications may be received.
-   This behaviour may be suitable for caching applications.
-
-   .. deprecated:: 5.3
-      Use :data:`~cx_Oracle.SUBSCR_QOS_BEST_EFFORT` instead.
-
-
-.. data:: SUBSCR_CQ_QOS_QUERY
-
-   This constant is used to specify that notifications should be sent if the
-   result set of the registered query changes. By default no false positive
-   notifications will be generated.
-
-   .. deprecated:: 5.3
-      Use :data:`~cx_Oracle.SUBSCR_QOS_QUERY` instead.
-
-
 .. data:: SUBSCR_QOS_BEST_EFFORT
 
    This constant is used to specify that best effort filtering for query result
@@ -780,15 +760,6 @@ or more of these values can be OR'ed together.
 
    This constant is used to specify that the subscription should be
    automatically unregistered after the first notification is received.
-
-
-.. data:: SUBSCR_QOS_PURGE_ON_NTFN
-
-   This constant is used to specify that the subscription should be
-   automatically unregistered after the first notification is received.
-
-   .. deprecated:: 5.3
-      Use :data:`~cx_Oracle.SUBSCR_QOS_DEREG_NFY` instead.
 
 
 .. data:: SUBSCR_QOS_QUERY
@@ -921,20 +892,6 @@ Types
 
    This type object is used to describe columns in a database that are long
    binary (in Oracle these are LONG RAW columns).
-
-   .. note::
-
-      This type is an extension to the DB API definition.
-
-
-.. data:: LONG_NCHAR
-
-   This type object is used to describe columns in a database that are long
-   NCHAR columns.  There is no direct support for this in Oracle but long
-   NCHAR strings are bound this way in order to avoid the "unimplemented or
-   unreasonable conversion requested" error.
-
-   .. deprecated:: 5.3
 
    .. note::
 
