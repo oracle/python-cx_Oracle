@@ -18,6 +18,12 @@ if sys.version_info > (3,):
 
 class TestNumberVar(BaseTestCase):
 
+    def outputTypeHandlerDecimal(self, cursor, name, defaultType, size,
+            precision, scale):
+        if defaultType == cx_Oracle.NUMBER:
+            return cursor.var(str, 255, outconverter = decimal.Decimal,
+                    arraysize = cursor.arraysize)
+
     def setUp(self):
       BaseTestCase.setUp(self)
       self.rawData = []
@@ -102,6 +108,17 @@ class TestNumberVar(BaseTestCase):
                 where IntCol = :value""",
                 value = 3)
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
+
+    def testBindDecimalAfterNumber(self):
+        "test binding in a decimal value after setting input sizes to a number"
+        cursor = self.connection.cursor()
+        value = decimal.Decimal("319438950232418390.273596")
+        cursor.setinputsizes(value = cx_Oracle.NUMBER)
+        cursor.outputtypehandler = self.outputTypeHandlerDecimal
+        cursor.execute("select :value from dual",
+                value = value)
+        outValue, = cursor.fetchone()
+        self.assertEqual(outValue, value)
 
     def testBindNull(self):
         "test binding in a null"
