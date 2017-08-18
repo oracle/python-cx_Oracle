@@ -8,6 +8,28 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.0.1 (August 2017)
+---------------------------
+
+#)  Update to `ODPI-C 2.0.1
+    <https://oracle.github.io/odpi/doc/releasenotes.html
+    #version-2-0-1-august-18-2017>`__.
+
+    - Ensure that queries registered via :meth:`Subscription.registerquery()`
+      do not prevent the associated connection from being closed
+      (`ODPI-C issue 27 <https://github.com/oracle/odpi/issues/27>`__).
+    - Deprecated attribute :attr:`Subscription.id` as it was never intended to
+      be exposed (`ODPI-C issue 28
+      <https://github.com/oracle/odpi/issues/28>`__). It will be dropped in
+      version 6.1.
+    - Add support for DML returning statements that require dynamically
+      allocated variable data (such as CLOBs being returned as strings).
+
+#)  Correct packaging of Python 2.7 UCS4 wheels on Linux
+    (`issue 64 <https://github.com/oracle/python-cx_Oracle/issues/64>`__).
+#)  Updated documentation.
+
+
 Version 6.0 (August 2017)
 -------------------------
 
