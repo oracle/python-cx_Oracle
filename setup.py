@@ -20,7 +20,7 @@ except:
     from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "6.0.1"
+BUILD_VERSION = "6.0.2"
 
 # setup extra link and compile args
 extraLinkArgs = []
