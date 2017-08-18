@@ -26,7 +26,7 @@ typedef struct {
     uint32_t timeout;
     uint32_t operations;
     uint32_t qos;
-    uint32_t id;
+    uint64_t id;
 } udt_Subscription;
 
 typedef struct {
@@ -83,7 +83,7 @@ static PyMemberDef g_SubscriptionTypeMembers[] = {
     { "timeout", T_INT, offsetof(udt_Subscription, timeout), READONLY },
     { "operations", T_INT, offsetof(udt_Subscription, operations), READONLY },
     { "qos", T_INT, offsetof(udt_Subscription, qos), READONLY },
-    { "id", T_INT, offsetof(udt_Subscription, id), READONLY },
+    { "id", T_ULONG, offsetof(udt_Subscription, id), READONLY },
     { NULL }
 };
 

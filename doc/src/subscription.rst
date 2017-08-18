@@ -26,6 +26,9 @@ Subscription Object
    This read-only attribute returns the registration ID returned by the
    database when the subscription was created.
 
+   .. deprecated:: 6.0
+      This attribute was never intended to be exposed.
+
 
 .. attribute:: Subscription.namespace
 
