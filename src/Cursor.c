@@ -1428,7 +1428,7 @@ static PyObject *Cursor_Execute(udt_Cursor *self, PyObject *args,
         return Error_RaiseAndReturnNull();
 
     // perform defines, if necessary
-    if (numQueryColumns > 0) {
+    if (numQueryColumns > 0 && !self->fetchVariables) {
         if (Cursor_PerformDefine(self, numQueryColumns) < 0) {
             Py_CLEAR(self->fetchVariables);
             return NULL;
