@@ -401,16 +401,22 @@ static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
     uint32_t pos, size;
     udt_Variable *var;
 
-    // create a list corresponding to the number of items
-    self->fetchVariables = PyList_New(numQueryColumns);
-    if (!self->fetchVariables)
-        return -1;
-
     // initialize fetching variables; these are used to reduce the number of
     // times that Py_BEGIN_ALLOW_THREADS/Py_END_ALLOW_THREADS is called as
     // there is a significant amount of overhead in making these calls
     self->numRowsInFetchBuffer = 0;
     self->moreRowsToFetch = 1;
+
+    // if fetch variables already exist, nothing more to do (we are executing
+    // the same statement and therefore all defines have already been
+    // performed)
+    if (self->fetchVariables)
+        return 0;
+
+    // create a list corresponding to the number of items
+    self->fetchVariables = PyList_New(numQueryColumns);
+    if (!self->fetchVariables)
+        return -1;
 
     // create a variable for each of the query columns
     self->fetchArraySize = self->arraySize;
@@ -1427,16 +1433,12 @@ static PyObject *Cursor_Execute(udt_Cursor *self, PyObject *args,
     if (dpiStmt_getRowCount(self->handle, &self->rowCount) < 0)
         return Error_RaiseAndReturnNull();
 
-    // perform defines, if necessary
-    if (numQueryColumns > 0 && !self->fetchVariables) {
+    // for queries, return the cursor for convenience
+    if (numQueryColumns > 0) {
         if (Cursor_PerformDefine(self, numQueryColumns) < 0) {
             Py_CLEAR(self->fetchVariables);
             return NULL;
         }
-    }
-
-    // for queries, return the cursor for convenience
-    if (numQueryColumns > 0) {
         Py_INCREF(self);
         return (PyObject*) self;
     }
