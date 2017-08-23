@@ -95,6 +95,7 @@ create or replace type &main_user..udt_Building as object (
 -- create tables
 create table &main_user..TestNumbers (
     IntCol                              number(9) not null,
+    LongIntCol                          number(16) not null,
     NumberCol                           number(9, 2) not null,
     FloatCol                            float not null,
     UnconstrainedCol                    number not null,
@@ -199,7 +200,7 @@ create table &main_user..TestBuildings (
 begin
     for i in 1..10 loop
         insert into &main_user..TestNumbers
-        values (i, i + i * 0.25, i + i * .75, i * i * i + i *.5,
+        values (i, power(38, i), i + i * 0.25, i + i * .75, i * i * i + i *.5,
                 decode(mod(i, 2), 0, null, power(143, i)));
     end loop;
 end;

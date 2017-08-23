@@ -25,20 +25,21 @@ class TestNumberVar(BaseTestCase):
                     arraysize = cursor.arraysize)
 
     def setUp(self):
-      BaseTestCase.setUp(self)
-      self.rawData = []
-      self.dataByKey = {}
-      for i in range(1, 11):
-          numberCol = i + i * 0.25
-          floatCol = i + i * 0.75
-          unconstrainedCol = i ** 3 + i * 0.5
-          if i % 2:
-              nullableCol = long(143) ** i
-          else:
-              nullableCol = None
-          dataTuple = (i, numberCol, floatCol, unconstrainedCol, nullableCol)
-          self.rawData.append(dataTuple)
-          self.dataByKey[i] = dataTuple
+        BaseTestCase.setUp(self)
+        self.rawData = []
+        self.dataByKey = {}
+        for i in range(1, 11):
+            numberCol = i + i * 0.25
+            floatCol = i + i * 0.75
+            unconstrainedCol = i ** 3 + i * 0.5
+            if i % 2:
+                nullableCol = long(143) ** i
+            else:
+                nullableCol = None
+            dataTuple = (i, long(38) ** i, numberCol, floatCol,
+                    unconstrainedCol, nullableCol)
+            self.rawData.append(dataTuple)
+            self.dataByKey[i] = dataTuple
 
     def testBindBoolean(self):
         "test binding in a boolean"
@@ -131,7 +132,7 @@ class TestNumberVar(BaseTestCase):
     def testBindNumberArrayDirect(self):
         "test binding in a number array"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        array = [r[1] for r in self.rawData]
+        array = [r[2] for r in self.rawData]
         statement = """
                 begin
                   :returnValue := pkg_TestNumberArrays.TestInArrays(
@@ -152,7 +153,7 @@ class TestNumberVar(BaseTestCase):
         "test binding in a number array (with setinputsizes)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
         self.cursor.setinputsizes(array = [cx_Oracle.NUMBER, 10])
-        array = [r[1] for r in self.rawData]
+        array = [r[2] for r in self.rawData]
         self.cursor.execute("""
                 begin
                   :returnValue := pkg_TestNumberArrays.TestInArrays(
@@ -167,8 +168,7 @@ class TestNumberVar(BaseTestCase):
         "test binding in a number array (with arrayvar)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
         array = self.cursor.arrayvar(cx_Oracle.NUMBER,
-                [r[1] for r in self.rawData])
-        array.setvalue(0, [r[1] for r in self.rawData])
+                [r[2] for r in self.rawData])
         self.cursor.execute("""
                 begin
                   :returnValue := pkg_TestNumberArrays.TestInArrays(
@@ -197,7 +197,7 @@ class TestNumberVar(BaseTestCase):
     def testBindInOutNumberArrayByVar(self):
         "test binding in/out a number array (with arrayvar)"
         array = self.cursor.arrayvar(cx_Oracle.NUMBER, 10)
-        originalData = [r[1] for r in self.rawData]
+        originalData = [r[2] for r in self.rawData]
         expectedData = [originalData[i - 1] * 10 for i in range(1, 6)] + \
                 originalData[5:]
         array.setvalue(0, originalData)
@@ -266,6 +266,7 @@ class TestNumberVar(BaseTestCase):
         self.cursor.execute("select * from TestNumbers")
         self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
+                  ('LONGINTCOL', cx_Oracle.NUMBER, 17, None, 16, 0, 0),
                   ('NUMBERCOL', cx_Oracle.NUMBER, 13, None, 9, 2, 0),
                   ('FLOATCOL', cx_Oracle.NUMBER, 127, None, 126, -127, 0),
                   ('UNCONSTRAINEDCOL', cx_Oracle.NUMBER, 127, None, 0, -127, 0),

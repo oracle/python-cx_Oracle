@@ -123,6 +123,7 @@ static PyMethodDef g_VariableMethods[] = {
 //-----------------------------------------------------------------------------
 static udt_VariableType *VarType_FromDataTypeInfo(dpiDataTypeInfo *info)
 {
+    static int maxLongSafeDigits = sizeof(long) >= 8 ? 18 : 9;
     char message[120];
 
     switch (info->oracleTypeNum) {
@@ -145,7 +146,7 @@ static udt_VariableType *VarType_FromDataTypeInfo(dpiDataTypeInfo *info)
             if (info->scale == 0 ||
                     (info->scale == -127 && info->precision == 0)) {
                 if (info->precision > 0 &&
-                        info->precision <= DPI_MAX_INT64_PRECISION)
+                        info->precision <= maxLongSafeDigits)
                     return &vt_NumberAsInteger;
                 return &vt_NumberAsLongInteger;
             }
