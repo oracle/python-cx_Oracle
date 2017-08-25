@@ -102,3 +102,19 @@ class TestDMLReturning(BaseTestCase):
                 "The final value of string 10"
         ])
 
+    def testInsertAndReturnObject(self):
+        "test inserting an object with DML returning"
+        typeObj = self.connection.gettype("UDT_OBJECT")
+        stringValue = "The string that will be verified"
+        obj = typeObj.newobject()
+        obj.STRINGVALUE = stringValue
+        outVar = self.cursor.var(cx_Oracle.OBJECT, typename = "UDT_OBJECT")
+        self.cursor.execute("""
+                insert into TestObjects (IntCol, ObjectCol)
+                values (4, :obj)
+                returning ObjectCol into :outObj""",
+                obj = obj, outObj = outVar)
+        result = outVar.getvalue()
+        self.assertEqual(result.STRINGVALUE, stringValue)
+        self.connection.rollback()
+
