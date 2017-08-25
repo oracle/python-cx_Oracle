@@ -20,7 +20,7 @@ except:
     from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "6.0.2"
+BUILD_VERSION = "6.1.0-dev"
 
 # setup extra link and compile args
 extraLinkArgs = []
@@ -82,16 +82,17 @@ extension = Extension(
                 "src/SessionPool.c", "src/StringVar.c", "src/Subscription.c",
                 "src/Variable.c", "odpi/include/dpi.h", "odpi/src/dpiImpl.h",
                 "odpi/src/dpiConn.c", "odpi/src/dpiContext.c",
-                "odpi/src/dpiData.c", "odpi/src/dpiDeqOptions.c",
-                "odpi/src/dpiEnqOptions.c", "odpi/src/dpiEnv.c",
-                "odpi/src/dpiError.c", "odpi/src/dpiGen.c",
-                "odpi/src/dpiGlobal.c", "odpi/src/dpiLob.c",
-                "odpi/src/dpiMsgProps.c", "odpi/src/dpiObject.c",
-                "odpi/src/dpiObjectAttr.c", "odpi/src/dpiObjectType.c",
-                "odpi/src/dpiOci.c", "odpi/src/dpiOracleType.c",
-                "odpi/src/dpiPool.c", "odpi/src/dpiRowid.c",
-                "odpi/src/dpiStmt.c", "odpi/src/dpiSubscr.c",
-                "odpi/src/dpiUtils.c", "odpi/src/dpiVar.c"])
+                "odpi/src/dpiData.c", "odpi/src/dpiDebug.c",
+                "odpi/src/dpiDeqOptions.c", "odpi/src/dpiEnqOptions.c",
+                "odpi/src/dpiEnv.c", "odpi/src/dpiError.c",
+                "odpi/src/dpiGen.c", "odpi/src/dpiGlobal.c",
+                "odpi/src/dpiLob.c", "odpi/src/dpiMsgProps.c",
+                "odpi/src/dpiObject.c", "odpi/src/dpiObjectAttr.c",
+                "odpi/src/dpiObjectType.c", "odpi/src/dpiOci.c",
+                "odpi/src/dpiOracleType.c", "odpi/src/dpiPool.c",
+                "odpi/src/dpiRowid.c", "odpi/src/dpiStmt.c",
+                "odpi/src/dpiSubscr.c", "odpi/src/dpiUtils.c",
+                "odpi/src/dpiVar.c"])
 
 # perform the setup
 setup(
