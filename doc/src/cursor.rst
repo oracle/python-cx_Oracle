@@ -60,7 +60,8 @@ Cursor Object
    This read-only attribute provides the bind variables used for the last
    execute. The value will be either a list or a dictionary depending on
    whether binding was done by position or name. Care should be taken when
-   referencing this attribute. In particular, elements should not be removed.
+   referencing this attribute. In particular, elements should not be removed
+   or replaced.
 
    .. note::
 
@@ -249,7 +250,8 @@ Cursor Object
 
    This read-only attribute specifies the list of variables created for the
    last query that was executed on the cursor.  Care should be taken when
-   referencing this attribute. In particular, elements should not be removed.
+   referencing this attribute. In particular, elements should not be removed
+   or replaced.
 
    .. note::
 
