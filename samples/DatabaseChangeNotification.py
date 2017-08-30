@@ -24,8 +24,15 @@ import SampleEnv
 import threading
 import time
 
+registered = True
+
 def callback(message):
+    global registered
     print("Message type:", message.type)
+    if message.type == cx_Oracle.EVENT_DEREG:
+        print("Deregistration has taken place...")
+        registered = False
+        return
     print("Message database name:", message.dbname)
     print("Message tables:")
     for table in message.tables:
@@ -52,7 +59,7 @@ print("--> Operations:", sub.operations)
 print("--> Rowids?:", bool(sub.qos & cx_Oracle.SUBSCR_QOS_ROWIDS))
 sub.registerquery("select * from TestTempTable")
 
-while True:
+while registered:
     print("Waiting for notifications....")
     time.sleep(5)
 
