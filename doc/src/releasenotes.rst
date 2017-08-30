@@ -8,6 +8,31 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.0.2 (August 2017)
+---------------------------
+
+#)  Update to `ODPI-C 2.0.2
+    <https://oracle.github.io/odpi/doc/releasenotes.html
+    #version-2-0-2-august-28-2017>`__.
+
+    - Don't prevent connection from being explicitly closed when a fatal error
+      has taken place (`issue 67
+      <https://github.com/oracle/python-cx_Oracle/issues/67>`__).
+    - Correct handling of objects when dynamic binding is performed.
+    - Process deregistration events without an error.
+    - Eliminate memory leak when creating objects.
+
+#)  Added missing type check to prevent coercion of decimal to float
+    (`issue 68 <https://github.com/oracle/python-cx_Oracle/issues/68>`__).
+#)  On Windows, sizeof(long) = 4, not 8, which meant that integers between 10
+    and 18 digits were not converted to Python correctly
+    (`issue 70 <https://github.com/oracle/python-cx_Oracle/issues/70>`__).
+#)  Eliminate memory leak when repeatedly executing the same query.
+#)  Eliminate segfault when attempting to reuse a REF cursor that has been
+    closed.
+#)  Updated documentation.
+
+
 Version 6.0.1 (August 2017)
 ---------------------------
 
