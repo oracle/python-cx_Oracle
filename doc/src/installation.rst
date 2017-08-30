@@ -193,19 +193,24 @@ If importing cx_Oracle fails:
     - Do you get the error "``DPI-1047: Oracle Client library cannot be
       loaded``"?
 
-      - On Windows, check the ``PATH`` environment variable. Ensure that you
-        have restarted your command prompt if you have modified environment
-        variables.
+      - Check that Python, cx_Oracle and your Oracle Client libraries
+        are all 64-bit or all 32-bit.  The ``DPI-1047`` message will
+        tell you whether the 64-bit or 32-bit Oracle Client is needed
+        for your Python.
+      - On Windows, restart your command prompt and use ``set PATH``
+        to check the environment variable has the correct Oracle
+        Client listed before any other Oracle directories.
+      - On Windows, use the ``DIR`` command on the directory set in
+        ``PATH``. Verify that ``OCI.DLL` exists there.
       - On Windows, check that the correct `Windows Redistributables
         <https://oracle.github.io/odpi/doc/installation.html#windows>`__ have
         been installed.
-      - On Linux, check the ``LD_LIBRARY_PATH`` environment variable.
+      - On Linux, check the ``LD_LIBRARY_PATH`` environment variable
+        contains the Oracle Client library directory.
       - On macOS, make sure Oracle Instant Client is in ``~/lib`` or
         ``/usr/local/lib`` and that you are not using the bundled Python (use
         `Homebrew <https://brew.sh>`__ or `Python.org
         <https://www.python.org/downloads>`__ instead).
-      - Check that Python, cx_Oracle and your Oracle Client libraries are all
-        64-bit or all 32-bit.
 
     - If you have both Python 2 and 3 installed, make sure you are
       using the correct python and pip (or python3 and pip3)
