@@ -201,7 +201,7 @@ If importing cx_Oracle fails:
         to check the environment variable has the correct Oracle
         Client listed before any other Oracle directories.
       - On Windows, use the ``DIR`` command on the directory set in
-        ``PATH``. Verify that ``OCI.DLL` exists there.
+        ``PATH``. Verify that ``OCI.DLL`` exists there.
       - On Windows, check that the correct `Windows Redistributables
         <https://oracle.github.io/odpi/doc/installation.html#windows>`__ have
         been installed.
