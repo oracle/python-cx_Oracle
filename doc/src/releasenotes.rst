@@ -13,7 +13,7 @@ Version 6.0.2 (August 2017)
 
 #)  Update to `ODPI-C 2.0.2
     <https://oracle.github.io/odpi/doc/releasenotes.html
-    #version-2-0-2-august-28-2017>`__.
+    #version-2-0-2-august-30-2017>`__.
 
     - Don't prevent connection from being explicitly closed when a fatal error
       has taken place (`issue 67
