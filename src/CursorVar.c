@@ -46,16 +46,27 @@ static int CursorVar_SetValue(udt_Variable *var, uint32_t pos, dpiData *data,
         PyObject *value)
 {
     udt_Cursor *cursor;
+    dpiStmtInfo info;
 
     if (!PyObject_IsInstance(value, (PyObject*) &g_CursorType)) {
         PyErr_SetString(PyExc_TypeError, "expecting cursor");
         return -1;
     }
+
+    // if the cursor already has a handle, use it directly
     cursor = (udt_Cursor *) value;
     if (cursor->handle) {
         if (dpiVar_setFromStmt(var->handle, pos, cursor->handle) < 0)
             return Error_RaiseAndReturnInt();
+
+    // otherwise, make use of the statement handle allocated by the variable
+    // BUT, make sure the statement handle is still valid as it may have been
+    // closed by some other code; the call to dpiStmt_getInfo() will ensure the
+    // statement is still open; if an error occurs, this bind will be discarded
+    // and a second attempt will be made with a new cursor
     } else {
+        if (dpiStmt_getInfo(data->value.asStmt, &info) < 0)
+            return Error_RaiseAndReturnInt();
         cursor->handle = data->value.asStmt;
         dpiStmt_addRef(cursor->handle);
     }

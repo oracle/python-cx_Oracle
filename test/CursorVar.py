@@ -50,6 +50,24 @@ class TestCursorVar(BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, cursor.execute, sql,
                 pcursor = cursor)
 
+    def testExecuteAfterClose(self):
+        "test executing a statement returning a ref cursor after closing it"
+        outCursor = self.connection.cursor()
+        sql = """
+                begin
+                    open :pcursor for
+                    select IntCol
+                    from TestNumbers
+                    order by IntCol;
+                end;"""
+        self.cursor.execute(sql, pcursor = outCursor)
+        rows = outCursor.fetchall()
+        outCursor.close()
+        outCursor = self.connection.cursor()
+        self.cursor.execute(sql, pcursor = outCursor)
+        rows2 = outCursor.fetchall()
+        self.assertEqual(rows, rows2)
+
     def testFetchCursor(self):
         "test fetching a cursor"
         self.cursor.execute("""
