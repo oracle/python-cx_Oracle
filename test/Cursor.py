@@ -10,6 +10,7 @@
 """Module for testing cursor objects."""
 
 import cx_Oracle
+import decimal
 import sys
 
 class TestCursor(BaseTestCase):
@@ -148,6 +149,12 @@ class TestCursor(BaseTestCase):
         self.cursor.execute("select count(*) from TestTempTable")
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
+
+    def testExecuteManyWithInputSizesWrong(self):
+        cursor = self.connection.cursor()
+        cursor.setinputsizes(cx_Oracle.NUMBER)
+        data = [[decimal.Decimal("25.8")], [decimal.Decimal("30.0")]]
+        cursor.executemany("declare t number; begin t := :1; end;", data)
 
     def testExecuteManyWithResize(self):
         """test executing a statement multiple times (with resize)"""
