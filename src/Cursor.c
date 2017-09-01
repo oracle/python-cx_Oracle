@@ -677,13 +677,15 @@ static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
         unsigned arrayPos, PyObject *value, udt_Variable *origVar,
         udt_Variable **newVar, int deferTypeAssignment)
 {
+    udt_Variable *varToSet;
     int isValueVar;
 
     // initialization
     *newVar = NULL;
     isValueVar = Variable_Check(value);
 
-    // handle case where variable is already bound
+    // handle case where variable is already bound, either from a prior
+    // execution or a call to setinputsizes()
     if (origVar) {
 
         // if the value is a variable object, rebind it if necessary
@@ -693,29 +695,39 @@ static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
                 *newVar = (udt_Variable*) value;
             }
 
-        // if the number of elements has changed, create a new variable
-        // this is only necessary for executemany() since execute() always
-        // passes a value of 1 for the number of elements
-        } else if (numElements > origVar->allocatedElements) {
-            *newVar = Variable_New(self, numElements, origVar->type,
-                    origVar->size, origVar->isArray, origVar->objectType);
-            if (!*newVar)
-                return -1;
-            if (Variable_SetValue(*newVar, arrayPos, value) < 0) {
-                Py_CLEAR(*newVar);
-                return -1;
+        // otherwise, attempt to set the value, but if this fails, simply
+        // ignore the original bind variable and create a new one; this is
+        // intended for cases where the type changes between executions of a
+        // statement or where setinputsizes() has been called with the wrong
+        // type (as mandated by the DB API)
+        } else {
+            varToSet = origVar;
+
+            // if the number of elements has changed, create a new variable
+            // this is only necessary for executemany() since execute() always
+            // passes a value of 1 for the number of elements
+            if (numElements > origVar->allocatedElements) {
+                *newVar = Variable_New(self, numElements, origVar->type,
+                        origVar->size, origVar->isArray, origVar->objectType);
+                if (!*newVar)
+                    return -1;
+                varToSet = *newVar;
             }
 
-        // otherwise, attempt to set the value
-        } else if (Variable_SetValue(origVar, arrayPos, value) < 0) {
+            // attempt to set the value
+            if (Variable_SetValue(varToSet, arrayPos, value) < 0) {
 
-            // executemany() should simply fail after the first element
-            if (arrayPos > 0)
-                return -1;
+                // executemany() should simply fail after the first element
+                if (arrayPos > 0)
+                    return -1;
 
-            // clear the exception and try to create a new variable
-            PyErr_Clear();
-            origVar = NULL;
+                // clear the exception and try to create a new variable
+                PyErr_Clear();
+                Py_CLEAR(*newVar);
+                origVar = NULL;
+
+            }
+
         }
 
     }
