@@ -155,6 +155,8 @@ the modules in [cx_PyOracleLib][8].
 
 - Database startup and shutdown.
 
+- Sharded Databases
+
 - Oracle Database High Availability Features, such as FAN notifications and Transaction Guard support.
 
 **DB API specification exclusions**: The time data type is not

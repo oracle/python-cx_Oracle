@@ -9,7 +9,7 @@ SessionPool Object
    This object is an extension to the DB API.
 
 
-.. method:: SessionPool.acquire(user=None, password=None, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, tag=None, matchanytag=False)
+.. method:: SessionPool.acquire(user=None, password=None, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, tag=None, matchanytag=False, shardingkey=[], supershardingkey=[])
 
    Acquire a connection from the session pool and return a
    :ref:`connection object <connobj>`.
@@ -33,6 +33,10 @@ SessionPool Object
    Sessions are tagged when they are :meth:`released <SessionPool.release>`
    back to the pool.
 
+   The shardingkey and supershardingkey arguments, if specified, are expected
+   to be a sequence of values which will be used to identify the database
+   shard to connect to. Currently only strings are supported for the key
+   values.
 
 .. attribute:: SessionPool.busy
 

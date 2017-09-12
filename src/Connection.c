@@ -231,6 +231,7 @@ static PyTypeObject g_ConnectionType = {
 // structure used to help in establishing a connection
 //-----------------------------------------------------------------------------
 typedef struct {
+    const char *encoding;
     udt_Buffer userNameBuffer;
     udt_Buffer passwordBuffer;
     udt_Buffer newPasswordBuffer;
@@ -243,6 +244,12 @@ typedef struct {
     udt_Buffer *ctxNamespaceBuffers;
     udt_Buffer *ctxNameBuffers;
     udt_Buffer *ctxValueBuffers;
+    dpiShardingKeyColumn *shardingKeyColumns;
+    udt_Buffer *shardingKeyBuffers;
+    uint32_t numShardingKeyColumns;
+    dpiShardingKeyColumn *superShardingKeyColumns;
+    uint32_t numSuperShardingKeyColumns;
+    udt_Buffer *superShardingKeyBuffers;
 } udt_ConnectionParams;
 
 
@@ -264,6 +271,12 @@ static void ConnectionParams_Initialize(udt_ConnectionParams *params)
     params->ctxNamespaceBuffers = NULL;
     params->ctxNameBuffers = NULL;
     params->ctxValueBuffers = NULL;
+    params->numShardingKeyColumns = 0;
+    params->shardingKeyColumns = NULL;
+    params->shardingKeyBuffers = NULL;
+    params->numSuperShardingKeyColumns = 0;
+    params->superShardingKeyColumns = NULL;
+    params->superShardingKeyBuffers = NULL;
 }
 
 
@@ -274,7 +287,7 @@ static void ConnectionParams_Initialize(udt_ConnectionParams *params)
 // populates the parametrs with buffers for each of these.
 //-----------------------------------------------------------------------------
 static int ConnectionParams_ProcessContext(udt_ConnectionParams *params,
-        PyObject *context, const char *encoding)
+        PyObject *context)
 {
     uint32_t numEntries, i;
     dpiAppContext *entry;
@@ -322,13 +335,13 @@ static int ConnectionParams_ProcessContext(udt_ConnectionParams *params,
             return -1;
         }
         if (cxBuffer_FromObject(&params->ctxNamespaceBuffers[i],
-                PyTuple_GET_ITEM(entryObj, 0), encoding) < 0)
+                PyTuple_GET_ITEM(entryObj, 0), params->encoding) < 0)
             return -1;
         if (cxBuffer_FromObject(&params->ctxNameBuffers[i],
-                PyTuple_GET_ITEM(entryObj, 1), encoding) < 0)
+                PyTuple_GET_ITEM(entryObj, 1), params->encoding) < 0)
             return -1;
         if (cxBuffer_FromObject(&params->ctxValueBuffers[i],
-                PyTuple_GET_ITEM(entryObj, 2), encoding) < 0)
+                PyTuple_GET_ITEM(entryObj, 2), params->encoding) < 0)
             return -1;
         entry = &params->appContext[i];
         entry->namespaceName = params->ctxNamespaceBuffers[i].ptr;
@@ -337,6 +350,145 @@ static int ConnectionParams_ProcessContext(udt_ConnectionParams *params,
         entry->nameLength = params->ctxNameBuffers[i].size;
         entry->value = params->ctxValueBuffers[i].ptr;
         entry->valueLength = params->ctxValueBuffers[i].size;
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// ConnectionParams_ProcessShardingKeyValue()
+//   Process a single sharding key value.
+//-----------------------------------------------------------------------------
+static int ConnectionParams_ProcessShardingKeyValue(
+        udt_ConnectionParams *params, PyObject *value,
+        dpiShardingKeyColumn *column, udt_Buffer *buffer)
+{
+    dpiTimestamp *timestamp;
+    PyObject *textValue;
+
+    if (cxString_Check(value) || PyUnicode_Check(value) ||
+            cxBinary_Check(value)) {
+        if (cxBuffer_FromObject(buffer, value, params->encoding) < 0)
+            return -1;
+        if (cxBinary_Check(value))
+            column->oracleTypeNum = DPI_ORACLE_TYPE_RAW;
+        else column->oracleTypeNum = DPI_ORACLE_TYPE_VARCHAR;
+        column->nativeTypeNum = DPI_NATIVE_TYPE_BYTES;
+        column->value.asBytes.ptr = (char*) buffer->ptr;
+        column->value.asBytes.length = buffer->size;
+    } else if (PyLong_Check(value) || Py_TYPE(value) == g_DecimalType) {
+        if (PyLong_Check(value)) {
+            column->oracleTypeNum = DPI_ORACLE_TYPE_NUMBER;
+            column->nativeTypeNum = DPI_NATIVE_TYPE_INT64;
+            column->value.asInt64 = PyLong_AsLong(value);
+            if (!PyErr_Occurred())
+                return 0;
+            PyErr_Clear();
+        }
+        textValue = PyObject_Str(value);
+        if (!textValue)
+            return -1;
+        if (cxBuffer_FromObject(buffer, textValue, params->encoding) < 0) {
+            Py_CLEAR(textValue);
+            return -1;
+        }
+        Py_CLEAR(textValue);
+        column->oracleTypeNum = DPI_ORACLE_TYPE_NUMBER;
+        column->nativeTypeNum = DPI_NATIVE_TYPE_BYTES;
+        column->value.asBytes.ptr = (char*) buffer->ptr;
+        column->value.asBytes.length = buffer->size;
+#if PY_MAJOR_VERSION < 3
+    } else if (PyInt_Check(value)) {
+        column->oracleTypeNum = DPI_ORACLE_TYPE_NUMBER;
+        column->nativeTypeNum = DPI_NATIVE_TYPE_INT64;
+        column->value.asInt64 = PyInt_AS_LONG(value);
+#endif
+    } else if (PyFloat_Check(value)) {
+        column->oracleTypeNum = DPI_ORACLE_TYPE_NUMBER;
+        column->nativeTypeNum = DPI_NATIVE_TYPE_DOUBLE;
+        column->value.asDouble = PyFloat_AS_DOUBLE(value);
+    } else if (PyDateTime_Check(value) || PyDate_Check(value)) {
+        column->oracleTypeNum = DPI_ORACLE_TYPE_DATE;
+        column->nativeTypeNum = DPI_NATIVE_TYPE_TIMESTAMP;
+        timestamp = &column->value.asTimestamp;
+        timestamp->year = PyDateTime_GET_YEAR(value);
+        timestamp->month = PyDateTime_GET_MONTH(value);
+        timestamp->day = PyDateTime_GET_DAY(value);
+        if (PyDateTime_Check(value)) {
+            timestamp->hour = PyDateTime_DATE_GET_HOUR(value);
+            timestamp->minute = PyDateTime_DATE_GET_MINUTE(value);
+            timestamp->second = PyDateTime_DATE_GET_SECOND(value);
+            timestamp->fsecond = PyDateTime_DATE_GET_MICROSECOND(value) * 1000;
+        } else {
+            timestamp->hour = 0;
+            timestamp->minute = 0;
+            timestamp->second = 0;
+            timestamp->fsecond = 0;
+        }
+        timestamp->tzHourOffset = 0;
+        timestamp->tzMinuteOffset = 0;
+    } else {
+        PyErr_SetString(g_NotSupportedErrorException,
+                "value not supported for sharding keys");
+        return -1;
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// ConnectionParams_ProcessShardingKey()
+//   Process either the sharding key or the super sharding key. A sharding key
+// is expected to be a sequence of values. A null value or a sequence of size
+// 0 is ignored.
+//-----------------------------------------------------------------------------
+static int ConnectionParams_ProcessShardingKey(udt_ConnectionParams *params,
+        PyObject *shardingKeyObj, int isSuperShardingKey)
+{
+    dpiShardingKeyColumn *columns;
+    uint32_t i, numColumns;
+    udt_Buffer *buffers;
+    PyObject *value;
+
+    // validate sharding key
+    if (!shardingKeyObj || shardingKeyObj == Py_None)
+        return 0;
+    if (!PySequence_Check(shardingKeyObj)) {
+        PyErr_SetString(PyExc_TypeError, "expecting a sequence");
+        return -1;
+    }
+    numColumns = (uint32_t) PySequence_Size(shardingKeyObj);
+    if (numColumns == 0)
+        return 0;
+
+    // allocate memory for the sharding key values
+    columns = PyMem_Malloc(numColumns * sizeof(dpiShardingKeyColumn));
+    buffers = PyMem_Malloc(numColumns * sizeof(udt_Buffer));
+    if (isSuperShardingKey) {
+        params->superShardingKeyColumns = columns;
+        params->superShardingKeyBuffers = buffers;
+        params->numSuperShardingKeyColumns = numColumns;
+    } else {
+        params->shardingKeyColumns = columns;
+        params->shardingKeyBuffers = buffers;
+        params->numShardingKeyColumns = numColumns;
+    }
+    if (!columns || !buffers) {
+        PyErr_NoMemory();
+        return -1;
+    }
+
+    // process each value
+    for (i = 0; i < numColumns; i++) {
+        cxBuffer_Init(&buffers[i]);
+        value = PySequence_GetItem(shardingKeyObj, i);
+        if (!value)
+            return -1;
+        if (ConnectionParams_ProcessShardingKeyValue(params, value,
+                &columns[i], &buffers[i]) < 0)
+            return -1;
     }
 
     return 0;
@@ -380,6 +532,26 @@ static int ConnectionParams_Finalize(udt_ConnectionParams *params)
     if (params->ctxValueBuffers) {
         PyMem_Free(params->ctxValueBuffers);
         params->ctxValueBuffers = NULL;
+    }
+    for (i = 0; i < params->numShardingKeyColumns; i++)
+        cxBuffer_Clear(&params->shardingKeyBuffers[i]);
+    if (params->shardingKeyColumns) {
+        PyMem_Free(params->shardingKeyColumns);
+        params->shardingKeyColumns = NULL;
+    }
+    if (params->shardingKeyBuffers) {
+        PyMem_Free(params->shardingKeyBuffers);
+        params->shardingKeyBuffers = NULL;
+    }
+    for (i = 0; i < params->numSuperShardingKeyColumns; i++)
+        cxBuffer_Clear(&params->superShardingKeyBuffers[i]);
+    if (params->superShardingKeyColumns) {
+        PyMem_Free(params->superShardingKeyColumns);
+        params->superShardingKeyColumns = NULL;
+    }
+    if (params->superShardingKeyBuffers) {
+        PyMem_Free(params->superShardingKeyBuffers);
+        params->superShardingKeyBuffers = NULL;
     }
     return -1;
 }
@@ -564,25 +736,25 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
 {
     PyObject *tagObj, *matchAnyTagObj, *threadedObj, *eventsObj, *contextObj;
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj, *editionObj;
+    PyObject *shardingKeyObj, *superShardingKeyObj;
     dpiCommonCreateParams dpiCommonParams;
     dpiConnCreateParams dpiCreateParams;
     udt_ConnectionParams params;
     PyObject *newPasswordObj;
     udt_SessionPool *pool;
-    const char *encoding;
     int status, temp;
 
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "mode",
             "handle", "pool", "threaded", "events", "cclass", "purity",
             "newpassword", "encoding", "nencoding", "edition", "appcontext",
-            "tag", "matchanytag", NULL };
+            "tag", "matchanytag", "shardingkey", "supershardingkey", NULL };
 
     // parse arguments
     pool = NULL;
     threadedObj = eventsObj = newPasswordObj = usernameObj = NULL;
     passwordObj = dsnObj = cclassObj = editionObj = tagObj = NULL;
-    matchAnyTagObj = contextObj = NULL;
+    matchAnyTagObj = contextObj = shardingKeyObj = superShardingKeyObj = NULL;
     if (InitializeDPI() < 0)
         return -1;
     if (dpiContext_initCommonCreateParams(g_DpiContext, &dpiCommonParams) < 0)
@@ -593,13 +765,13 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
     if (dpiContext_initConnCreateParams(g_DpiContext, &dpiCreateParams) < 0)
         return Error_RaiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOikO!OOOiOssOOOO", keywordList, &usernameObj, &passwordObj,
+            "|OOOikO!OOOiOssOOOOOO", keywordList, &usernameObj, &passwordObj,
             &dsnObj, &dpiCreateParams.authMode,
             &dpiCreateParams.externalHandle, &g_SessionPoolType, &pool,
             &threadedObj, &eventsObj, &cclassObj, &dpiCreateParams.purity,
             &newPasswordObj, &dpiCommonParams.encoding,
             &dpiCommonParams.nencoding, &editionObj, &contextObj, &tagObj,
-            &matchAnyTagObj))
+            &matchAnyTagObj, &shardingKeyObj, &superShardingKeyObj))
         return -1;
     if (GetBooleanValue(threadedObj, 0, &temp) < 0)
         return -1;
@@ -625,25 +797,32 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
         return -1;
 
     // setup parameters
+    ConnectionParams_Initialize(&params);
     if (pool) {
         dpiCreateParams.pool = pool->handle;
-        encoding = pool->encodingInfo.encoding;
-    } else encoding = GetAdjustedEncoding(dpiCommonParams.encoding);
-    ConnectionParams_Initialize(&params);
-    if (ConnectionParams_ProcessContext(&params, contextObj, encoding) < 0)
+        params.encoding = pool->encodingInfo.encoding;
+    } else params.encoding = GetAdjustedEncoding(dpiCommonParams.encoding);
+    if (ConnectionParams_ProcessContext(&params, contextObj) < 0)
+        return ConnectionParams_Finalize(&params);
+    if (ConnectionParams_ProcessShardingKey(&params, shardingKeyObj, 0) < 0)
+        return ConnectionParams_Finalize(&params);
+    if (ConnectionParams_ProcessShardingKey(&params, superShardingKeyObj,
+            1) < 0)
         return ConnectionParams_Finalize(&params);
     if (cxBuffer_FromObject(&params.userNameBuffer, self->username,
-                    encoding) < 0 ||
+                    params.encoding) < 0 ||
             cxBuffer_FromObject(&params.passwordBuffer, passwordObj,
-                    encoding) < 0 ||
-            cxBuffer_FromObject(&params.dsnBuffer, self->dsn, encoding) < 0 ||
+                    params.encoding) < 0 ||
+            cxBuffer_FromObject(&params.dsnBuffer, self->dsn,
+                    params.encoding) < 0 ||
             cxBuffer_FromObject(&params.connectionClassBuffer, cclassObj,
-                    encoding) < 0 ||
+                    params.encoding) < 0 ||
             cxBuffer_FromObject(&params.newPasswordBuffer, newPasswordObj,
-                    encoding) < 0 ||
+                    params.encoding) < 0 ||
             cxBuffer_FromObject(&params.editionBuffer, editionObj,
-                    encoding) < 0 ||
-            cxBuffer_FromObject(&params.tagBuffer, tagObj, encoding) < 0)
+                    params.encoding) < 0 ||
+            cxBuffer_FromObject(&params.tagBuffer, tagObj,
+                    params.encoding) < 0)
         return ConnectionParams_Finalize(&params);
     if (params.userNameBuffer.size == 0 && params.passwordBuffer.size == 0)
         dpiCreateParams.externalAuth = 1;
@@ -657,6 +836,11 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
     dpiCreateParams.tagLength = params.tagBuffer.size;
     dpiCreateParams.appContext = params.appContext;
     dpiCreateParams.numAppContext = params.numAppContext;
+    dpiCreateParams.shardingKeyColumns = params.shardingKeyColumns;
+    dpiCreateParams.numShardingKeyColumns = params.numShardingKeyColumns;
+    dpiCreateParams.superShardingKeyColumns = params.superShardingKeyColumns;
+    dpiCreateParams.numSuperShardingKeyColumns =
+            params.numSuperShardingKeyColumns;
     if (pool && !pool->homogeneous && pool->username && self->username) {
         temp = PyObject_RichCompareBool(self->username, pool->username, Py_EQ);
         if (temp < 0)

@@ -326,17 +326,19 @@ static PyObject *SessionPool_Acquire(udt_SessionPool *self, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "user", "password", "cclass", "purity",
-            "tag", "matchanytag", NULL };
+            "tag", "matchanytag", "shardingkey", "supershardingkey", NULL };
     PyObject *createKeywordArgs, *result, *cclassObj, *purityObj, *tagObj;
+    PyObject *shardingKeyObj, *superShardingKeyObj;
     unsigned usernameLength, passwordLength;
     char *username, *password;
     PyObject *matchAnyTagObj;
 
     // parse arguments
     username = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|s#s#OOOO",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|s#s#OOOOOO",
             keywordList, &username, &usernameLength, &password,
-            &passwordLength, &cclassObj, &purityObj, &tagObj, &matchAnyTagObj))
+            &passwordLength, &cclassObj, &purityObj, &tagObj, &matchAnyTagObj,
+            &shardingKeyObj, &superShardingKeyObj))
         return NULL;
     if (self->homogeneous && username) {
         PyErr_SetString(g_ProgrammingErrorException,

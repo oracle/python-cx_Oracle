@@ -22,8 +22,8 @@ Module Interface
       This method is an extension to the DB API definition.
 
 
-.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, events, cclass, purity, newpassword, encoding, nencoding, edition, appcontext, tag, matchanytag])
-              connect([user, password, dsn, mode, handle, pool, threaded, events, cclass, purity, newpassword, encoding, nencoding, edition, appcontext, tag, matchanytag])
+.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, events, cclass, purity, newpassword, encoding, nencoding, edition, appcontext, tag, matchanytag, shardingkey, supershardingkey])
+              connect([user, password, dsn, mode, handle, pool, threaded, events, cclass, purity, newpassword, encoding, nencoding, edition, appcontext, tag, matchanytag, shardingkey, supershardingkey])
 
    Constructor for creating a connection to the database. Return a
    :ref:`connection object <connobj>`. All arguments are optional and can be
@@ -94,6 +94,11 @@ Module Interface
    will always be returned if no sessions with the specified tag are available.
    Sessions are tagged when they are :meth:`released <SessionPool.release>`
    back to the pool.
+
+   The shardingkey and supershardingkey arguments, if specified, are expected
+   to be a sequence of values which will be used to identify the database
+   shard to connect to. Currently only strings are supported for the key
+   values.
 
 
 .. function:: Cursor(connection)
