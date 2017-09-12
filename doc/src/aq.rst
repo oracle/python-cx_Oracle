@@ -84,8 +84,8 @@ Dequeue Options
 .. attribute:: DeqOptions.visibility
 
    This attribute specifies the transactional behavior of the enqueue request.
-   It should be one of the values :data:`~cx_Oracle.ENQ_ON_COMMIT` (default) or
-   :data:`~cx_Oracle.ENQ_IMMEDIATE`. This attribute is ignored when using the
+   It should be one of the values :data:`~cx_Oracle.DEQ_ON_COMMIT` (default) or
+   :data:`~cx_Oracle.DEQ_IMMEDIATE`. This attribute is ignored when using the
    :data:`~cx_Oracle.DEQ_BROWSE` mode.
 
 
