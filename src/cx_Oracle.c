@@ -281,7 +281,7 @@ static PyObject* MakeDSN(PyObject* self, PyObject* args, PyObject* keywordArgs)
     // parse arguments
     for (i = 0; i < numConnectDataArgs; i++)
         connectDataArgs[i] = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO|OOOO0",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO|OOOOO",
             keywordList, &hostObj, &portObj, &connectDataArgs[0],
             &connectDataArgs[1], &connectDataArgs[2], &connectDataArgs[3],
             &connectDataArgs[4]))
