@@ -7,7 +7,7 @@
  *   Drops database objects used for cx_Oracle samples.
  *
  * Run this like:
- *   sqlplus / as sysdba @DropSamples <user>
+ *   sqlplus / as sysdba @DropSamples
  *
  * Note that the script SampleEnv.sql should be modified if you would like to
  * use something other than the default schemas and passwords.
