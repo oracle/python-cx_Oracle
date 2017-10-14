@@ -320,6 +320,13 @@ class TestStringVar(BaseTestCase):
 
     def testSupplementalCharacters(self):
         "test that binding and fetching supplemental charcters works correctly"
+        self.cursor.execute("""
+                select value
+                from nls_database_parameters
+                where parameter = 'NLS_CHARACTERSET'""")
+        charset, = self.cursor.fetchone()
+        if charset != "AL32UTF8":
+            self.skipTest("Database character set must be AL32UTF8")
         supplementalChars = "𠜎 𠜱 𠝹 𠱓 𠱸 𠲖 𠳏 𠳕 𠴕 𠵼 𠵿 𠸎 𠸏 𠹷 𠺝 " \
                 "𠺢 𠻗 𠻹 𠻺 𠼭 𠼮 𠽌 𠾴 𠾼 𠿪 𡁜 𡁯 𡁵 𡁶 𡁻 𡃁 𡃉 𡇙 𢃇 " \
                 "𢞵 𢫕 𢭃 𢯊 𢱑 𢱕 𢳂 𢴈 𢵌 𢵧 𢺳 𣲷 𤓓 𤶸 𤷪 𥄫 𦉘 𦟌 𦧲 " \

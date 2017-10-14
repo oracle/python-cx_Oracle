@@ -56,12 +56,14 @@ class TestLobVar(BaseTestCase):
                 order by IntCol""" % lobType)
         self.__ValidateQuery(self.cursor, lobType)
 
-    def __TestTrim(self, lobType):
+    def __TestLobOperations(self, lobType):
         self.cursor.execute("truncate table Test%ss" % lobType)
         self.cursor.setinputsizes(longString = getattr(cx_Oracle, lobType))
         longString = "X" * 75000
+        writeValue = "TEST"
         if lobType == "BLOB" and sys.version_info[0] >= 3:
             longString = longString.encode("ascii")
+            writeValue = writeValue.encode("ascii")
         self.cursor.execute("""
                 insert into Test%ss (
                   IntCol,
@@ -77,7 +79,17 @@ class TestLobVar(BaseTestCase):
                 from Test%ss
                 where IntCol = 1""" % (lobType, lobType))
         lob, = self.cursor.fetchone()
+        self.assertEqual(lob.isopen(), False)
+        lob.open()
+        self.assertEqual(lob.isopen(), True)
+        lob.close()
+        self.assertEqual(lob.isopen(), False)
         self.assertEqual(lob.size(), 75000)
+        lob.write(writeValue, 75001)
+        self.assertEqual(lob.size(), 75000 + len(writeValue))
+        self.assertEqual(lob.read(), longString + writeValue)
+        lob.write(writeValue, 1)
+        self.assertEqual(lob.read(), writeValue + longString[4:] + writeValue)
         lob.trim(25000)
         self.assertEqual(lob.size(), 25000)
         lob.trim()
@@ -128,9 +140,9 @@ class TestLobVar(BaseTestCase):
         "test binding and fetching BLOB data (indirectly)"
         self.__PerformTest("BLOB", cx_Oracle.LONG_BINARY)
 
-    def testBLOBTrim(self):
-        "test trimming a BLOB"
-        self.__TestTrim("BLOB")
+    def testBLOBOperations(self):
+        "test operations on BLOBs"
+        self.__TestLobOperations("BLOB")
 
     def testCLOBCursorDescription(self):
         "test cursor description is accurate for CLOBs"
@@ -147,9 +159,9 @@ class TestLobVar(BaseTestCase):
         "test binding and fetching CLOB data (indirectly)"
         self.__PerformTest("CLOB", cx_Oracle.LONG_STRING)
 
-    def testCLOBTrim(self):
-        "test trimming a CLOB"
-        self.__TestTrim("CLOB")
+    def testCLOBOperations(self):
+        "test operations on CLOBs"
+        self.__TestLobOperations("CLOB")
 
     def testMultipleFetch(self):
         "test retrieving data from a CLOB after multiple fetches"
@@ -189,9 +201,9 @@ class TestLobVar(BaseTestCase):
         "test binding and fetching NCLOB data (indirectly)"
         self.__PerformTest("NCLOB", cx_Oracle.LONG_STRING)
 
-    def testNCLOBTrim(self):
-        "test trimming a CLOB"
-        self.__TestTrim("CLOB")
+    def testNCLOBOperations(self):
+        "test operations on NCLOBs"
+        self.__TestLobOperations("NCLOB")
 
     def testTemporaryLobs(self):
         cursor = self.connection.cursor()
