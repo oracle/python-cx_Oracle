@@ -1,0 +1,2205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Python and Oracle Database 12c: Scripting for the Future</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+
+<link rel="stylesheet" href="resources/base.css" type="text/css"/>
+<link rel="shortcut icon" type="image/x-icon" href="resources/favicon.ico"/>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+
+  <h1>Python and Oracle Database 12c: Scripting for the Future</h1>
+
+  <img src="resources/community-py-200.png" alt="Python cx_Oracle logo">
+
+  <h2>Contents</h2>
+
+  <ul>
+    <li><a href="#preface" >Preface</a></li>
+    <li><a href="#overview" >Overview</a></li>
+    <li><a href="#lab" >Using Python cx_Oracle 6 with Oracle Database 12c</a></li>
+    <ul>
+      <li><a href="#connecting">1. Connecting to Oracle</a>
+        <ul>
+          <li>1.1 Creating a basic connection</li>
+          <li>1.2 Indentation indicates code structure</li>
+          <li>1.3 Executing a query</li>
+          <li>1.4 Closing connections</li>
+          <li>1.5 Checking versions</li>
+        </ul>
+      </li>
+      <li><a href="#pooling">2. Connection Pooling</a>
+        <ul>
+          <li>2.1 Session pooling</li>
+          <li>2.2 Session pool experiments</li>
+          <li>2.3 Creating a DRCP Connection</li>
+          <li>2.4 Session pooling and DRCP</li>
+          <li>2.5 More DRCP investigation</li>
+        </ul>
+      </li>
+      <li><a href="#fetching">3. Fetching Data</a>
+        <ul>
+          <li>3.1 A simple query</li>
+          <li>3.2 Using fetchone()</li>
+          <li>3.3 Using fetchmany()</li>
+          <li>3.4 Scrollable cursors</li>
+          <li>3.5 Tuning with arraysize</li>
+        </ul>
+      </li>
+      <li><a href="#binding">4. Binding Data</a>
+        <ul>
+          <li>4.1 Binding in queries</li>
+          <li>4.2 Binding in inserts</li>
+          <li>4.3 Batcherrors</li>
+          <li>4.4 Binding named objects</li>
+        </ul>
+      </li>
+      <li><a href="#plsql">5. PL/SQL</a>
+        <ul>
+          <li>5.1 PL/SQL functions</li>
+          <li>5.2 PL/SQL procedures</li>
+        </ul>
+      </li>
+      <li><a href="#handlers">6. Type Handlers</a>
+        <ul>
+          <li>6.1 Basic output type handler</li>
+          <li>6.2 Output type handlers and variable converters</li>
+          <li>6.3 Input type handlers</li>
+        </ul>
+      </li>
+      <li> <a href="#lobs">7. LOBs</a>
+        <ul>
+          <li>7.1 Fetching a CLOB using a locator</li>
+          <li>7.2 Fetching a CLOB as a string</li>
+        </ul>
+      </li>
+      <li> <a href="#rowfactory" >8. Rowfactory functions</a>
+        <ul>
+          <li>8.1 Rowfactory for mapping column names</li>
+        </ul>
+      </li>
+      <li><a href="#subclass" >9. Subclassing connections and cursors</a>
+        <ul>
+          <li>9.1 Subclassing connections</li>
+          <li>9.2 Subclassing cursors</li>
+        </ul>
+      </li>
+      <li><a href="#aq" >10. Advanced Queuing</a>
+        <ul>
+          <li>10.1 Message passing with Oracle Advanced Queuing</li>
+        </ul>
+      </li>
+    </ul>
+    <li><a href="#summary" >Summary</a></li>
+    <li><a href="#primer" >Appendix: Python Primer</a></li>
+    <li><a href="#resources" >Resources</a></li>
+  </ul>
+
+  <h2><a name="preface">Preface</a></h2>
+
+  <p>This tutorial was originally run as a 'Hands on Lab' at Oracle
+  OpenWorld 2017.  Attendees used a presupplied virtual machine
+  preconfigured with Oracle Database, Python 3.6, cx_Oracle 6.0, a
+  text editor, and access to a terminal console.</p>
+
+  <p>To set up a similar environment yourself, install:</p>
+
+  <ul>
+    <li>Python 3.6</li>
+    <li>cx_Oracle 6.0</li>
+    <li>Oracle Database 12c</li>
+  </ul>
+
+  <p>It is easist to have a local pluggable database with the service
+  'orclpdb' configured.  If your database is not local, or has a
+  different service, you will need to modify the connect string in all
+  samples.</p>
+
+  <p>To create the schema run:</p>
+
+<pre>
+sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
+</pre>
+
+  <p>The following sections may need adjusting, depending on how you
+  have set up your environment.</p>
+
+  <h2><a name="overview">Overview</a></h2>
+
+  <p>This tutorial is an introduction to using Python with Oracle
+  Database.  It contains beginner and advanced material.  Sections can
+  be done in any order.  Choose the content that interests you and
+  your skill level.</p>
+
+  <p>Follow the steps in this document.  The home directory has
+  scripts to run and modify.  The <code>solutions</code> directory has
+  scripts with the suggested code changes.</p>
+
+  <p>Use the Desktop icons to start editors and terminal windows.</p>
+
+  <p> A pre-created schema exists.  The username is "pythonhol" with
+  the password "welcome".  The connect string is "localhost/orclpdb".
+  See <code>sql/SampleEnv.sql</code>.</p>
+
+  <p>If you are new to Python review the <a href="#primer">Appendix:
+  Python Primer</a> to gain an understanding of the language. </p>
+
+  <h2><a name="lab">Using Python cx_Oracle 6 with Oracle Database 12c</a></h2>
+
+  <p>Python is a popular general purpose dynamic scripting language.
+  The cx_Oracle interface provides Python API to access Oracle
+  Database.</p>
+
+  <ul>
+    <li>
+      <h3><a name="connecting">1. Connecting to Oracle</a></h3>
+      <ul>
+        <li>
+          <h4>1.1 Creating a basic connection</h4>
+          <p>Review the code contained in <code>connect.py</code>:</p>
+          <pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+print("Database version:", con.version)
+</pre>
+
+          <p>The cx_Oracle module is imported to provide the API for
+          accessing the Oracle database. Many inbuilt and third party
+          modules can be included in this way in Python scripts.</p>
+
+          <p> The <code>connect()</code> method is passed the username
+          "pythonhol", the password "welcome" and the connection
+          string. In this case, Oracle's Easy Connect connection
+          string syntax is used. It consists of the hostname of your
+          machine, <code>localhost</code>, and the database service name
+          <code>orclpdb</code>. </p>
+
+          <p>Open a command terminal and run:</p>
+
+          <pre><strong>python connect.py</strong></pre>
+
+          <p>The version number of the database should be displayed. An
+          exception is raised if the connection fails. Adjust the username,
+          password or connect string parameters to invalid values to see the
+          exception.</p>
+
+          <p>cx_Oracle also supports "external authentication", which
+          allows connections without needing usernames and passwords
+          to be embedded in the code. Authentication will instead be
+          performed by, for example, LDAP.</p>
+
+        </li>
+
+        <li>
+          <h4>1.2 Indentation indicates code structure</h4>
+
+          <p>There are no statement terminators or begin/end keywords
+          or braces to indicate blocks of code.</p>
+
+          <p>Open <code>connect.py</code> in an editor. Indent the
+          print statement with some spaces and save the file:</p>
+
+          <pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+  print("Database version:", con.version)
+</pre>
+
+          <p>Run the script again:</p>
+
+          <pre><strong>python connect.py</strong> </pre>
+
+          <p>This raises an exception about the indentation. The
+          number of spaces or tabs must be consistent in each block;
+          otherwise, the Python interpreter will either raise an
+          exception or execute code unexpectedly.  </p>
+
+          <p> Python may not always be able to identify accidental
+          from deliberate indentation. <i>Check your indentation is
+          correct before running each example.  Make sure to indent
+          all statement blocks equally.</i> <b>Note the sample files
+          use spaces, not tabs.</b> </p>
+
+        </li>
+
+        <li>
+          <h4>1.3 Executing a query</h4>
+
+          <p>Open <code>query.py</code> in an editor.  It looks like:</p>
+
+          <pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+</pre>
+
+          <p>Edit the file and add the code shown in bold below:</p>
+
+          <pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+
+<strong>cur = con.cursor()
+cur.execute("select * from dept order by deptno")
+res = cur.fetchall()
+for row in res:
+    print(row)</strong>
+</pre>
+
+          <p><i>Make sure the <code>print(row)</code> line is indented.</i></p>
+
+          <p>The code executes a query and fetches all data.</p>
+
+          <p>Save the file and run it:</p>
+
+          <pre><strong>python query.py</strong></pre>
+
+          <p>In each loop iteration a new row is stored in
+          <code>row</code> as a Python "tuple" and is displayed.</p>
+
+          <p>Fetching data is described further in <a href="#fetching" >section 3</a>. </p>
+        </li>
+
+        <li>
+          <h4>1.4 Closing connections</h4>
+
+          <p>Connections and other resources used by cx_Oracle will
+          automatically be closed at the end of scope.  This is a common
+          programming style.</p>
+
+          <p>Resources can also be explicitly closed to free up
+          database resources if they are no longer needed.</p>
+
+          <p>Open <code>query.py</code> in an editor and add a call to
+          <code>close()</code> like:</p>
+
+          <pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+
+cur = con.cursor()
+cur.execute("select * from dept order by deptno")
+res = cur.fetchall()
+for row in res:
+    print(row)
+
+<strong>con.close()</strong>
+</pre>
+
+          <p>Run the script:</p>
+
+          <pre><strong>python query.py</strong></pre>
+
+          <p>This gives the error "cx_Oracle.DatabaseError: DPI-1054: connection cannot be closed when open statements or LOBs exist".</p>
+
+          <p>To fix this, edit the file and close the cursor:</p>
+
+          <pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+
+cur = con.cursor()
+cur.execute("select * from dept order by deptno")
+res = cur.fetchall()
+for row in res:
+    print(row)
+
+<strong>cur.close()</strong>
+con.close()
+</pre>
+
+          <p>If you run the script again, it will succeed without
+          error.</p>
+
+          <p>In your own applications, you may prefer to let cx_Oracle
+          automatically close resources at end of scope.</p>
+
+        </li>
+
+        <li>
+          <h4>1.5 Checking versions</h4>
+
+          <p>Review the code contained in <code>versions.py</code>:</p>
+
+          <pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+
+print(cx_Oracle.version)</pre>
+
+          <p>Run the script:</p>
+
+          <pre><strong>python versions.py</strong></pre>
+
+          <p>This gives the version of the cx_Oracle interface.</p>
+
+          <p>Edit the file to print the version of the database, and of the Oracle client libraries used by cx_Oracle:</p>
+
+          <pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+
+print(cx_Oracle.version)
+<strong>print("Database version:", con.version)
+print("Client version:", cx_Oracle.clientversion())</strong>
+</pre>
+
+          <p>When the script is run, it will display:</p>
+
+          <pre>
+6.0.2
+Database version: 12.2.0.1.0
+Client version: (12, 2, 0, 1, 0)
+</pre>
+
+          <p>Note the client version is a tuple.</p>
+
+          <p>An application can support multiple Oracle versions.  By
+          checking the Oracle Database and client versions numbers,
+          the application can make use of the best Oracle features
+          available.</p>
+
+        </li>
+
+      </ul>
+    </li>
+
+    <li><h3><a name="pooling">2. Connection Pooling</a></h3>
+
+      <ul>
+        <li>  <h4>2.1 Session pooling</h4>
+
+      <p>Review the code contained in <code>connect_pool.py</code>:</p>
+      <pre>
+import cx_Oracle
+import threading
+
+pool = cx_Oracle.<strong>SessionPool</strong>("pythonhol", "welcome", "localhost/orclpdb",
+                             min = 2, max = 5, increment = 1, threaded = True)
+
+def Query():
+    con = pool.<strong>acquire</strong>()
+    cur = con.cursor()
+    for i in range(4):
+        cur.execute("select myseq.nextval from dual")
+        seqval, = cur.fetchone()
+        print("Thread", threading.current_thread().name, "fetched sequence =", seqval)
+
+thread1 = threading.Thread(name='#1', target=Query)
+thread1.start()
+
+thread2 = threading.Thread(name='#2', target=Query)
+thread2.start()
+
+thread1.join()
+thread2.join()
+
+print("All done!")
+</pre>
+
+          <p>The <code>SessionPool()</code> function creates a pool of
+          Oracle "sessions" for the "pythonhol" user.  Sessions in the pool
+          can be used by cx_Oracle connections by calling
+          <code>pool.acquire()</code>.  The initial pool size is 2 sessions.
+          The maximum size is 5 sessions.  When the pool needs to grow, 1 new
+          session will be created at a time.  The pool can shrink back to the
+          minimum size of 2 when sessions are no longer in use.</p>
+
+          <p>The <code>def Query():</code> line creates a method that
+          is called by each thread.  </p>
+
+          <p>In the method, the <code>pool.acquire()</code> call gets
+          one session from the pool (as long as less than 5 are
+          already in use).  This session is used in a loop of 4
+          iterations to query the sequence <code>myseq</code>.  At the
+          end of the method, cx_Oracle will automatically close the
+          cursor and release the session back to the pool for
+          reuse.</p>
+
+          <p>The <code>seqval, = cur.fetchone()</code> line fetches a
+          row and puts the single value contained in the result tuple
+          into the variable <code>seqval</code>.  Without the comma,
+          the value in seqval would be a tuple like
+          "<code>(1,)</code>".</p>
+
+          <p>Two threads are created, each invoking the
+          <code>Query()</code> method.</p>
+
+          <p>In a command terminal, run:</p>
+
+          <pre><strong>python connect_pool.py</strong></pre>
+
+<p>The output shows interleaved query results as each thread fetches
+values independently.  The order of interleaving may vary from run to
+run.</p>
+
+</li>
+
+    <li>
+      <h4>2.2 Session pool experiments</h4>
+
+
+<p>Review <code>connect_pool2.py</code>, which has a loop for the number
+of threads:</p>
+
+<pre>
+import cx_Oracle
+import threading
+
+pool = cx_Oracle.SessionPool("pythonhol", "welcome", "localhost/orclpdb",
+                             min = 2, max = 5, increment = 1, threaded = True)
+
+def Query():
+    con = pool.acquire()
+    cur = con.cursor()
+    for i in range(4):
+        cur.execute("select myseq.nextval from dual")
+        seqval, = cur.fetchone()
+        print("Thread", threading.current_thread().name, "fetched sequence =", seqval)
+
+<strong>numberOfThreads = 2
+threadArray = []
+
+for i in range(numberOfThreads):
+    thread = threading.Thread(name = '#' + str(i), target = Query)
+    threadArray.append(thread)
+    thread.start()
+
+for t in threadArray:
+    t.join()</strong>
+
+print("All done!")
+</pre>
+
+<p>In a command terminal, run:</p>
+
+<pre><strong>python connect_pool2.py</strong></pre>
+
+<p>Experiment with different values of the pool parameters and
+<code>numberOfThreads</code>.  Larger initial pool sizes will make the
+pool creation slower, but the sessions will be available immediately
+when needed.  When <code>numberOfThreads</code> exceeds the maximum
+size of the pool, the <code>acquire()</code> call will generate an
+error.  Adding the additional argument <code>getmode =
+cx_Oracle.SPOOL_ATTRVAL_WAIT</code> to the
+<code>cx_Oracle.SessionPool()</code> call will prevent the exception
+from taking place, but will cause the thread to wait until a session
+is available.</p>
+
+</li>
+
+    <li>
+      <h4>2.3 Creating a DRCP Connection</h4>
+
+  <p>Database Resident Connection Pooling allows multiple Python
+  processes on multiple machines to share a small pool of database
+  server processes.</p>
+
+  <p>Below left is a diagram without DRCP. Every application
+  connection or session has its own 'dedicated' database server
+  process.  Application connect and close calls require the expensive
+  create and destroy of those database server processes.  To avoid these
+  costs, scripts may hold connections open even when not doing
+  database work: these idle server processes consumes database host
+  resources.  Below right is a diagram with DRCP.  Scripts can use
+  database servers from a precreated pool of servers and return them
+  when they are not in use.  </p>
+
+  <table cellspacing="0" cellpadding="30" border="0" >
+    <tr>
+      <td>
+        <img width="400" src="resources/python_nopool.png" >
+        <p><center><strong>Without DRCP</strong></center></p>
+      </td>
+      <td>
+        <img width="400" src="resources/python_pool.png" >
+        <p><center><strong>With DRCP</strong></center></p>
+      </td>
+    </tr>
+  </table>
+
+  <p>DRCP is useful when the database host machine does not have
+  enough memory to handled the number of database server processes
+  required.  However, if database host memory is large enough, then
+  the default, 'dedicated' server process model is generally
+  recommended.  If DRCP is enabled, it is best used in conjunction
+  with cx_Oracle session pooling.</p>
+
+  <p>Batch scripts doing long running jobs should generally use
+  dedicated connections. Both dedicated and DRCP servers can be used
+  in the same database for different applications.</p>
+
+  <p>Review the code contained in <code>connect_drcp.py</code>:</p>
+
+  <pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb<strong>:pooled</strong>",
+                        cclass=&quot;PYTHONHOL&quot;, purity=cx_Oracle.ATTR_PURITY_SELF)
+print("Database version:", con.version)
+</pre>
+
+  <p> This is similar to <code>connect.py</code> but
+  &quot;<code>:pooled</code>&quot; is appended to the connection
+  string, telling the database to use a pooled server. A Connection Class
+  "PYTHONHOL" is also passed into the <code>connect()</code> method to
+  allow grouping of database servers to applications.  </p>
+
+  <p> The &quot;purity&quot; of the connection is defined as the
+  <code>ATTR_PURITY_SELF</code> constant, meaning the session state
+  (such as the default date format) might be retained between
+  connection calls, giving performance benefits.  Session information
+  will be discarded if a pooled server is later reused by an
+  application with a different connection class name.</p>
+
+  <p>Applications that should never share session information should
+  use a different connection class and/or use
+  <code>ATTR_PURITY_NEW</code> to force creation of a new
+  session. This reduces overall scalability but prevents applications
+  mis-using session information.</p>
+
+  <p>Run <code>connect_drcp.py </code>in a terminal window.</p>
+
+  <pre><strong>python connect_drcp.py</strong></pre>
+
+  <p>The output is simply the version of the database.</p>
+
+  </li>
+
+    <li>
+      <h4>2.4 Session pooling and DRCP</h4>
+
+      <p>DRCP works well with session pooling.</p>
+
+  <p>Edit <code>connect_pool2.py</code> and modify it to use DRCP:</p>
+  <pre>
+import cx_Oracle
+import threading
+
+pool = cx_Oracle.SessionPool("pythonhol", "welcome", "localhost/orclpdb<strong>:pooled</strong>",
+                             min = 2, max = 5, increment = 1, threaded = True)
+
+def Query():
+    con = pool.acquire(<strong>cclass = "PYTHONHOL", purity = cx_Oracle.ATTR_PURITY_SELF</strong>)
+    cur = conn.cursor()
+    for i in range(4):
+        cur.execute("select myseq.nextval from dual")
+        seqval, = cur.fetchone()
+        print("Thread", threading.current_thread().name, "fetched sequence =", seqval)
+
+numberOfThreads = 2
+threadArray = []
+
+for i in range(numberOfThreads):
+    thread = threading.Thread(name = '#' + str(i), target = Query)
+    threadArray.append(thread)
+    thread.start()
+
+for t in threadArray:
+    t.join()
+
+print("All done!")
+</pre>
+
+      <p>The script logic does not need to be changed to benefit from
+      DRCP connection pooling.</p>
+
+      <p>Run the script:</p>
+
+      <pre><strong>python connect_pool2.py</strong></pre>
+
+      <p>Open a new a terminal window and invoke SQL*Plus:</p>
+
+      <pre><strong>sqlplus /nolog @drcp_query.sql</strong></pre>
+
+      <p>This shows the number of connection requests made to the pool
+      since the database was started ("NUM_REQUESTS"), how many of those
+      reused a pooled server's session ("NUM_HITS"), and how many had to
+      create new sessions ("NUM_MISSES").  Typically the goal is a low
+      number of misses.</p>
+
+      <p>To see the pool configuration you can query DBA_CPOOL_INFO.</p>
+    </li>
+
+    <li>
+      <h4>2.5 More DRCP investigation</h4>
+
+      <p>To explore the behaviors of session and DRCP pooling futher,
+      you could include the <code>time</code> module at the file
+      top:</p>
+
+      <pre>
+import time</pre>
+
+      <p>and add calls to <code>time.sleep(1)</code> in the code, for
+      example in the query loop.  Then use
+      <code>drcp_query.sql</code> to monitor pooled behavior.</p>
+
+      <p>Also try changing the purity to
+      <code>cx_Oracle.ATTR_PURITY_NEW</code> to see the effect on the
+      DRCP NUM_MISSES statistic.</p>
+
+    </li>
+  </ul>
+
+<li><h3><a name="fetching">3. Fetching Data</a> </h3>
+
+  <ul>
+  <li><h4>3.1 A simple query</h4>
+
+  <p>There are a number of functions you can use to query an Oracle
+  database, but the basics of querying are always the same:</p>
+
+  <p>1. Parse the statement for execution.<br />
+  2. Bind data values (optional).<br />
+  3. Execute the statement.<br />
+  4. Fetch the results from the database.</p>
+
+    <p>Review the code contained in <code>query2.py</code>:</p>
+
+<pre>
+import cx_Oracle
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+
+cur = con.cursor()
+cur.execute("select * from dept order by deptno")
+for deptno, dname, loc in cur:
+    print("Department number: ", deptno)
+    print("Department name: ", dname)
+    print("Department location:", loc)
+</pre>
+
+    <p>The <code>cursor()</code> method opens a cursor for statements to use.</p>
+
+    <p>The <code>execute()</code> method parses and executes the statement.</p>
+
+    <p>The loop fetches each row from the cursor and unpacks the returned
+    tuple into the variables <code>deptno</code>, <code>dname</code>,
+    <code>loc</code>, which are then printed.</p>
+
+    <p>Run the script in a terminal window:</p>
+
+    <pre><strong>python query2.py</strong></pre>
+
+  </li>
+
+<li><h4>3.2 Using fetchone()</h3>
+
+  <p>When the number of rows is large, the <code>fetchall()</code>
+  call may use too much memory.</p>
+
+  <p>Review the code contained in <code>query_one.py</code>:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+cur.execute("select * from dept order by deptno")
+row = cur.fetchone()
+print(row)
+
+row = cur.fetchone()
+print(row)
+</pre>
+
+  <p>This uses the <code>fetchone()</code> method to return just a single row as a
+  tuple. When called multiple time, consecutive rows are returned:</p>
+
+  <p>Run the script in a terminal window:</p>
+
+  <pre><strong>python query_one.py</strong></pre>
+
+  <p>The first two rows of the table are printed.</p>
+
+</li>
+
+<li><h4>3.3 Using fetchmany()</h4>
+
+  <p>Review the code contained in <code>query_many.py</code>:</p>
+
+  <pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+cur.execute("select * from dept order by deptno")
+res = cur.fetchmany(numRows = 3)
+print(res)
+</pre>
+
+  <p>The <code>fetchmany()</code> method returns a list of
+  tuples. By default the number of rows returned is specified by the
+  cursor attribute <code>arraysize</code>. Here the <code>numRows</code>
+  parameter specifies that three rows should be returned.</p>
+
+  <p>Run the script in a terminal window:</p>
+
+  <pre><strong>python query_many.py</strong></pre>
+
+  <p>The first three rows of the table are returned as a list
+  (Python's name for an array) of tuples.</p>
+
+  <p>You can access elements of the lists by position indexes.  To see this,
+  edit the file and add:</p>
+
+  <pre>
+<strong>print(res[0])</strong>    # first row
+<strong>print(res[0][1])</strong> # second element of first row
+</pre>
+
+  </li>
+
+  <li><h4>3.4 Scrollable cursors</h4>
+
+    <p>Scrollable cursors enable the application to move backwards as
+    well as forwards in query results.  They can be used to skip rows
+    as well as move to a particular row.</p>
+
+    <p>Review the code contained in <code>query_scroll.py</code>:</p>
+
+    <pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor(scrollable = True)
+
+cur.execute("select * from dept order by deptno")
+
+cur.scroll(2, mode = "absolute")  # go to second row
+print(cur.fetchone())
+
+cur.scroll(-1)                    # go back one row
+print(cur.fetchone())
+</pre>
+
+    <p>Run the script in a terminal window:</p>
+
+  <pre><strong>python query_scroll.py</strong></pre>
+
+    <p>Edit <code>query_scroll.py</code> and experiment with different
+    scroll options and orders, such as:</p>
+
+    <pre>cur.scroll(1)  # go to next row
+print(cur.fetchone())
+
+cur.scroll(mode = "first")  # go to first row
+print(cur.fetchone())
+</pre>
+
+    <p>Try some scroll options that go beyond the number of rows in
+    the resultset.</p>
+
+  </li>
+
+  <li><h4>3.5 Tuning with arraysize</h4>
+
+  <p>This section demonstrates a way to improve query performance by
+  increasing the number of rows returned in each batch from Oracle to
+  the Python program.</p>
+
+  <p>First, create a table with a large number of rows.
+  Review <code>query_arraysize.sql</code>:</p>
+
+<pre>
+create table bigtab (mycol varchar2(20));
+begin
+  for i in 1..20000
+  loop
+   insert into bigtab (mycol) values (dbms_random.string('A',20));
+  end loop;
+end;
+/
+show errors
+
+commit;
+</pre>
+
+    <p>In a terminal window run the script as:</p>
+
+    <pre><strong>sqlplus /nolog @query_arraysize.sql</strong></pre>
+
+
+    <p>Review the code contained in <code>query_arraysize.py</code>:</p>
+
+<pre>
+import cx_Oracle
+import time
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+
+start = time.time()
+
+cur = con.cursor()
+cur.arraysize = 10
+cur.execute("select * from bigtab")
+res = cur.fetchall()
+# print(res)  # uncomment to display the query results
+
+elapsed = (time.time() - start)
+print(elapsed, "seconds")
+</pre>
+
+    <p>This uses the 'time' module to measure elapsed time of the
+    query. The arraysize is set to 10. This causes batches of 10
+    records at a time to be returned from the database to a cache in
+    Python. This reduces the number of &quot;roundtrips&quot; made to
+    the database, often reducing network load and reducing the number
+    of context switches on the database server. The
+    <code>fetchone()</code>, <code>fetchmany()</code> and
+    <code>fetchall()</code> methods will read from the cache before
+    requesting more data from the database.</p>
+
+    <p>In a terminal window, run:</p>
+
+    <pre><strong>python query_arraysize.py</strong></pre>
+
+    <p>Reload a few times to see the average times.</p>
+
+    <p>Experiment with different arraysize values.  For example, edit
+    <code>query_arraysize.py</code> and change the arraysize to:</p>
+
+    <pre>cur.arraysize = <strong>2000</strong></pre>
+
+    <p>Rerun the script to compare the performance of different
+    arraysize settings.</p>
+
+    <p>In general, larger array sizes improve
+    performance.  Depending on how fast your system is, you may need
+    to use different arraysizes than those given here to see a
+    meaningful time difference.</p>
+
+    <p>The default arraysize used by cx_Oracle 6 is 100. There is a
+    time/space tradeoff for increasing the arraysize. Larger
+    arraysizes will require more memory in Python for buffering the
+    records.</p>
+
+    <p>If you know a query only returns a few records, consider
+    decreasing the arraysize from the default to reduce memory
+    usage.</p>
+
+  </ul>
+
+</li>
+
+<li><h3><a name="binding">4. Binding Data</a></h3>
+
+  <p>Bind variables enable you to re-execute statements with new data
+  values, without the overhead of reparsing the statement. Bind
+  variables improve code reusability, and can reduce the risk of SQL
+  injection attacks.</p>
+
+  <ul>
+
+    <li><h4>4.1 Binding in queries</h3>
+
+  <p>Review the code contained in <code>bind_query.py</code>:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+cur.prepare("select * from dept where deptno = :id order by deptno")
+
+cur.execute(None, id = 20)
+res = cur.fetchall()
+print(res)
+
+cur.execute(None, id = 10)
+res = cur.fetchall()
+print(res)
+</pre>
+
+      <p>The statement contains a bind variable "<code>:id</code>"
+      placeholder. The statement is only prepared once but executed
+      twice with different values for the <code>WHERE</code>
+      clause.</p>
+
+      <p> The special symbol "<code>None</code>" is used in place of
+      the statement text argument to <code>execute()</code> because
+      the <code>prepare()</code> method has already set the
+      statement. The second argument to the <code>execute()</code>
+      call can be a sequence (binding by position) or a dictionary (binding
+      by name) or an arbitrary number of named arguments (also binding by
+      name), which is what has been done in this example. In the first execute
+      call, this dictionary has the value 20 for the key of "id".  The second
+      execute uses the value 10. </p>
+
+      <p>From a terminal window, run:</p>
+
+      <pre><strong>python bind_query.py</strong></pre>
+
+      <p>The output shows the details for the two departments.</p>
+
+    </li>
+    <li><h4>4.2 Binding in inserts</h3>
+
+  <p>Review the code in <code>bind_insert.sql </code> creating a table
+  for inserting data:</p>
+
+<pre>
+create table mytab (id number, data varchar2(20), constraint my_pk primary key (id));
+</pre>
+
+  <p>Run the script as:</p>
+
+  <pre><strong>sqlplus /nolog @bind_insert.sql</strong></pre>
+
+<p>Review the code contained in <code>bind_insert.py</code>:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+rows = [ (1, &quot;First&quot; ), (2, &quot;Second&quot; ),
+         (3, &quot;Third&quot; ), (4, &quot;Fourth&quot; ),
+         (5, &quot;Fifth&quot; ), (6, &quot;Sixth&quot; ),
+         (7, &quot;Seventh&quot; ) ]
+
+cur.executemany(&quot;insert into mytab(id, data) values (:1, :2)", rows)
+
+# Now query the results back
+
+cur2 = con.cursor()
+cur2.execute('select * from mytab')
+res = cur2.fetchall()
+print(res)
+</pre>
+
+      <p>The '<code>rows</code>' array contains the data to be inserted.</p>
+
+      <p>The <code>executemany()</code> call inserts all rows.  This
+      calls allows "array binding", which is an efficient way to
+      insert multiple records.</p>
+
+      <p>The final part of the script queries the results back and displays them as a list of tuples.</p>
+
+      <p>From a terminal window, run:</p>
+
+      <pre><strong>python bind_insert.py</strong></pre>
+
+      <p>The new results are automatically rolled back at the end of
+      the script so re-running it will always show the same number of
+      rows in the table.</p>
+
+    </li>
+
+    <li><h4>4.3 Batcherrors</h3>
+
+      <p>The Batcherrors features allows invalid data to be identified
+      while allowing valid data to be inserted.</p>
+
+      <p>Edit the data values in <code>bind_insert.py</code> and
+      create a row with a duplicate key:</p>
+
+<pre>
+rows = [ (1, &quot;First&quot; ), (2, &quot;Second&quot; ),
+         (3, &quot;Third&quot; ), (4, &quot;Fourth&quot; ),
+         (5, &quot;Fifth&quot; ), (6, &quot;Sixth&quot; ),
+         <strong>(6, &quot;Duplicate&quot; ),</strong>
+         (7, &quot;Seventh&quot; ) ]
+
+</pre>
+
+      <p>From a terminal window, run:</p>
+
+      <pre><strong>python bind_insert.py</strong></pre>
+
+      <p>The duplicate generates the error "ORA-00001: unique
+      constraint (PYTHONHOL.MY_PK) violated".  The data is rolled back
+      and the query returns no rows.</p>
+
+      <p>Edit the file again and enable <code>batcherrors</code> like:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+rows = [ (1, &quot;First&quot; ), (2, &quot;Second&quot; ),
+         (3, &quot;Third&quot; ), (4, &quot;Fourth&quot; ),
+         (5, &quot;Fifth&quot; ), (6, &quot;Sixth&quot; ),
+         <strong>(6, &quot;Duplicate&quot; ),</strong>
+         (7, &quot;Seventh&quot; ) ]
+
+cur.executemany("insert into mytab(id, data) values (:1, :2)", rows<strong>, batcherrors = True</strong>)
+
+<strong>for error in cur.getbatcherrors():
+    print("Error", error.message.rstrip(), "at row offset", error.offset)</strong>
+
+# Now query the results back
+
+cur2 = con.cursor()
+cur2.execute('select * from mytab')
+res = cur2.fetchall()
+print(res)
+</pre>
+
+      <p>Run the file:</p>
+
+      <pre><strong>python bind_insert.py</strong></pre>
+
+      <p>The new code shows the offending duplicate row: "ORA-00001:
+      unique constraint (PYTHONHOL.MY_PK) violated at row offset
+      6"</p>
+
+      <p>The other data gets inserted and is queried back.</p>
+
+      <p>At the end of the script, cx_Oracle will rollback an uncommitted transaction. If you want to commit results, you can use:</p>
+
+<pre>con.commit()</pre>
+
+      <p>To force a rollback in cx_Oracle, use:</p>
+
+<pre>con.rollback()</pre>
+
+</li>
+
+<li><h4>4.4 Binding named objects</h3>
+
+  <p>cx_Oracle can fetch and bind named object types such as Oracle's
+  Spatial Data Objects (SDO).</p>
+
+  <p>In a terminal window, start SQL*Plus:</p>
+
+  <pre>
+sqlplus pythonhol/welcome@localhost/orclpdb
+</pre>
+
+  <p>Use the SQL*Plus DESCRIBE command to look at the SDO definition:</p>
+
+  <pre>
+desc MDSYS.SDO_GEOMETRY
+</pre>
+
+  <p>It contains various attributes and methods.  The top level description is:</p>
+
+<pre>
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ SDO_GTYPE                                          NUMBER
+ SDO_SRID                                           NUMBER
+ SDO_POINT                                          MDSYS.SDO_POINT_TYPE
+ SDO_ELEM_INFO                                      MDSYS.SDO_ELEM_INFO_ARRAY
+ SDO_ORDINATES                                      MDSYS.SDO_ORDINATE_ARRAY
+</pre>
+
+  <p>Review the code contained in <code>bind_sdo.py</code>:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+# Create table
+cur.execute("""begin
+                 execute immediate 'drop table testgeometry';
+                 exception when others then
+                   if sqlcode <> -942 then
+                     raise;
+                   end if;
+               end;""")
+cur.execute("""create table testgeometry (
+               id number(9) not null,
+               geometry MDSYS.SDO_GEOMETRY not null)""")
+
+# Create and populate Oracle objects
+typeObj = con.<strong>gettype</strong>("MDSYS.SDO_GEOMETRY")
+elementInfoTypeObj = con.<strong>gettype</strong>("MDSYS.SDO_ELEM_INFO_ARRAY")
+ordinateTypeObj = con.<strong>gettype</strong>("MDSYS.SDO_ORDINATE_ARRAY")
+obj = typeObj.<strong>newobject()</strong>
+obj.SDO_GTYPE = 2003
+obj.SDO_ELEM_INFO = elementInfoTypeObj.<strong>newobject()</strong>
+obj.SDO_ELEM_INFO.<strong>extend</strong>([1, 1003, 3])
+obj.SDO_ORDINATES = ordinateTypeObj.<strong>newobject()</strong>
+obj.SDO_ORDINATES.<strong>extend</strong>([1, 1, 5, 7])
+print("Created object", obj)
+
+# Add a new row
+print("Adding row to table...")
+cur.execute("insert into testgeometry values (1, :objbv)", objbv = obj)
+print("Row added!")
+
+# Query the row
+print("Querying row just inserted...")
+cur.execute("select id, geometry from testgeometry");
+for row in cur:
+    print(row)
+</pre>
+
+<p>This uses <code>gettype()</code> to get the database types of the
+SDO and its object attributes. The <code>newobject()</code> calls
+create Python representations of those objects. The python object
+atributes are then set.  Oracle VARRAY types such as
+SDO_ELEM_INFO_ARRAY are set with <code>extend()</code>.</p>
+
+<p>Run the file:</p>
+
+<pre><strong>python bind_sdo.py</strong></pre>
+
+<p>The new SDO is shown as an object, similar to:</p>
+
+<pre>(1, &lt;cx_Oracle.Object MDSYS.SDO_GEOMETRY at 0x104a76230&gt;)</pre>
+
+<p>To show the attribute values, edit the file so the query code
+(below the existing comment "<code># Query the row</code>") is
+like:</p>
+
+<pre>
+# Define a function to dump the contents of an Oracle object
+def dumpobject(obj, prefix = "  "):
+    if obj.type.iscollection:
+        print(prefix, "[")
+        for value in obj.aslist():
+            if isinstance(value, cx_Oracle.Object):
+                dumpobject(value, prefix + "  ")
+            else:
+                print(prefix + "  ", repr(value))
+        print(prefix, "]")
+    else:
+        print(prefix, "{")
+        for attr in obj.type.attributes:
+            value = getattr(obj, attr.name)
+            if isinstance(value, cx_Oracle.Object):
+                print(prefix + "  " + attr.name + " :")
+                dumpobject(value, prefix + "    ")
+            else:
+                print(prefix + "  " + attr.name + " :", repr(value))
+        print(prefix, "}")
+
+# Query the row
+print("Querying row just inserted...")
+cur.execute("select id, geometry from testgeometry")
+for id, obj in cur:
+    print("Id: ", id)
+    dumpobject(obj)
+</pre>
+
+<p>Run the file again:</p>
+
+<pre><strong>python bind_sdo.py</strong></pre>
+
+<p>This shows</p>
+<pre>
+Querying row just inserted...
+Id:  1
+   {
+    SDO_GTYPE : 2003.0
+    SDO_SRID : None
+    SDO_POINT : None
+    SDO_ELEM_INFO :
+       [
+         1.0
+         1003.0
+         3.0
+       ]
+    SDO_ORDINATES :
+       [
+         1.0
+         1.0
+         5.0
+         7.0
+       ]
+   }
+</pre>
+
+<p>To explore further, try setting the SDO attribute SDO_POINT, which
+is of type SDO_POINT_TYPE.</p>
+
+<p>The <code>gettype()</code> and <code>newobject()</code> methods can
+also be used to bind PL/SQL Records and Collections.</p>
+
+</li>
+</ul>
+
+</li>
+
+<li><h3><a name="plsql">5. PL/SQL</a></h3>
+
+  <p>PL/SQL is Oracle's procedural language extension to SQL. PL/SQL
+  procedures and functions are stored and run in the database. Using
+  PL/SQL lets all database applications reuse logic, no matter how the
+  application accesses the database. Many data-related operations can
+  be performed in PL/SQL faster than extracting the data into a
+  program (for example, Python) and then processing it.</p>
+
+  <ul>
+    <li><h4>5.1 PL/SQL functions</h3>
+
+      <p>Review <code>plsql_func.sql</code> which creates a PL/SQL
+      stored function <code>myfunc()</code> to insert a row into a new
+      table named <b>ptab</b> and return double the inserted
+      value:</p>
+
+      <pre>
+create table ptab (mydata varchar(20), myid number);
+
+create or replace function myfunc(d_p in varchar2, i_p in number) return number as
+  begin
+    insert into ptab (mydata, myid) values (d_p, i_p);
+    return (i_p * 2);
+  end;
+/
+</pre>
+
+      <p>Run the script using: </p>
+
+      <pre><strong>sqlplus /nolog @plsql_func.sql</strong></pre>
+
+      <p>Review the code contained in <code>plsql_func.py</code>:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+res = cur.callfunc('myfunc', int, ('abc', 2))
+print(res)
+</pre>
+
+      <p>This uses <code>callfunc()</code> to execute the function.
+      The second parameter is the type of the returned value. It should be one
+      of the types supported by cx_Oracle or one of the type constants defined
+      by cx_Oracle (such as cx_Oracle.NUMBER). The two PL/SQL function
+      parameters are passed as a tuple and bound to the function parameter
+      arguments.</p>
+
+      <p>From a terminal window, run:</p>
+
+      <pre><strong>python plsql_func.py</strong></pre>
+
+      <p>The output is a result of the PL/SQL function calculation.</p>
+
+    </li>
+
+    <li><h4>5.2 PL/SQL procedures</h3>
+
+<p>Review <code>plsql_proc.sql</code> which creates a PL/SQL procedure
+<code>myproc()</code> to accept two parameters. The second parameter
+contains an OUT return value. </p>
+
+<pre>
+create or replace procedure myproc(v1_p in number, v2_p out number) as
+begin
+  v2_p := v1_p * 2;
+end;
+/
+</pre>
+
+      <p>Run the script with:</p>
+
+<pre><strong>sqlplus /nolog @plsql_proc.sql</strong></pre>
+
+<p>Review the code contained in <code>plsql_proc.py</code>:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+myvar = cur.var(int)
+cur.callproc('myproc', (123, myvar))
+print(myvar.getvalue())
+</pre>
+
+      <p>This creates an integer variable <code>myvar</code> to hold
+      the value returned by the PL/SQL OUT parameter. The input number
+      123 and the output variable name are bound to the procedure call
+      parameters using a tuple.</p>
+
+      <p>To call the PL/SQL procedure, the <code>callproc()</code>
+      method is used.</p>
+
+      <p>In a terminal window, run:</p>
+
+<pre><strong>python plsql_proc.py</strong></pre>
+
+      <p>The <code>getvalue()</code> method displays the returned
+      value.</p>
+    </li>
+  </ul>
+</li>
+
+<li><h3><a name="handlers">6. Type Handlers</a></h3>
+
+  <ul>
+    <li>
+      <h4>6.1 Basic output type handler</h4>
+
+      <p>Output type handlers enable applications to change how data
+      is fetched from the database.  For example, numbers can be
+      returned as strings or decimal objects.  LOBs can be returned as
+      string or bytes.</p>
+
+      <p>A type handler is enabled by setting the
+      <code>outputtypehandler</code> attribute on either a cursor or
+      the connection. If set on a cursor it only affects queries executed
+      by that cursor. If set on a connection it affects all queries executed
+      on cursors created by that connection.</p>
+
+      <p>Review the code contained in <code>type_output.py</code>:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+print("Standard output...")
+for row in cur.execute("select * from dept"):
+    print(row)
+</pre>
+
+      <p>In a terminal window, run:</p>
+
+      <pre><strong>python type_output.py</strong></pre>
+
+      <p>This shows the department number represented as digits like
+      <code>10</code>.</p>
+
+      <p>Add an output type handler to the bottom of file:</p>
+
+<pre>
+<strong>def ReturnNumbersAsStrings(cursor, name, defaultType, size, precision, scale):
+    if defaultType == cx_Oracle.NUMBER:
+        return cursor.var(str, 9, cursor.arraysize)
+
+print("Output type handler output...")
+cur = con.cursor()
+cur.outputtypehandler = ReturnNumbersAsStrings
+for row in cur.execute("select * from dept"):
+    print(row)</strong>
+</pre>
+
+      <p>This type handler converts any number columns to strings with
+      maxium size 9.</p>
+
+      <p>Run the script again:</p>
+
+      <pre><strong>python type_output.py</strong></pre>
+
+      <p>The new output shows the department numbers are now strings
+      within quotes like <code>'10'</code>.</p>
+
+    </li>
+
+    <li><h4>6.2 Output type handlers and variable converters</h4>
+
+      <p>When numbers are fetched from the database, the conversion
+      from Oracle's decimal representation to Python's binary format
+      may need careful handling.  To avoid unexpected issues, the
+      general recommendation is to do number operations in SQL or
+      PL/SQL, or to use the decimal module in Python.</p>
+
+      <p>Output type handlers can be combined with variable converters
+      to change how data is fetched.</p>
+
+      <p>Review <code>type_converter.py</code>:</p>
+
+      <pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+for value, in cur.execute("select 0.1 from dual"):
+    print("Value:", value, "* 3 =", value * 3)
+</pre>
+
+<p>Run the file:</p>
+
+<pre><strong>python type_converter.py</strong></pre>
+
+      <p>The output is like:</p>
+
+      <pre>Value: 0.1 * 3 = 0.30000000000000004</pre>
+
+      <p>Edit the file and add a type handler that uses a Python
+      decimal converter:</p>
+
+<pre>
+import cx_Oracle
+<strong>import decimal</strong>
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+<strong>def ReturnNumbersAsDecimal(cursor, name, defaultType, size, precision, scale):
+    if defaultType == cx_Oracle.NUMBER:
+        return cursor.var(str, 9, cursor.arraysize, outconverter = decimal.Decimal)
+
+cur.outputtypehandler = ReturnNumbersAsDecimal</strong>
+
+for value, in cur.execute("select 0.1 from dual"):
+    print("Value:", value, "* 3 =", value * 3)
+</pre>
+
+      <p>The Python <code>decimal.Decimal</code> converter gets called
+      with the string representation of the Oracle number.  The output
+      from <code>decimal.Decimal</code> is returned in the output
+      tuple.  </p>
+
+      <p>Run the file:</p>
+
+      <pre><strong>python type_converter.py</strong></pre>
+
+      <p>Output is like:</p>
+
+      <pre>Value: 0.1 * 3 = 0.3</pre>
+
+      <p>Although the code demonstrates the use of outconverter, in this
+      particular case, the variable can be created simply by using the
+      following code to replace the outputtypehandler function defined
+      above:</p>
+
+<pre>
+def ReturnNumbersAsDecimal(cursor, name, defaultType, size, precision, scale):
+    if defaultType == cx_Oracle.NUMBER:
+        return cursor.var(decimal.Decimal, arraysize = cursor.arraysize)
+</pre>
+
+    </li>
+
+    <li><h4>6.3 Input type handlers</h4>
+
+      <p>Input type handlers enable applications to change how data is
+      bound to statements, or to enable new types to be bound directly
+      without having to be converted individually.</p>
+
+      <p>Review <code>type_input.py</code>, which is similar to the
+      final <code>bind_sdo.py</code> from section 4.4, with the
+      addition of a new class and converter (shown in bold):</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+# Create table
+cur.execute("""begin
+                 execute immediate 'drop table testgeometry';
+                 exception when others then
+                   if sqlcode <> -942 then
+                     raise;
+                   end if;
+               end;""")
+cur.execute("""create table testgeometry (
+               id number(9) not null,
+               geometry MDSYS.SDO_GEOMETRY not null)""")
+
+<strong># Create a Python class for an SDO
+class mySDO(object):
+
+    def __init__(self, gtype, elemInfo, ordinates):
+        self.gtype = gtype
+        self.elemInfo = elemInfo
+        self.ordinates = ordinates
+
+# Get Oracle type information
+objType = con.gettype("MDSYS.SDO_GEOMETRY")
+elementInfoTypeObj = con.gettype("MDSYS.SDO_ELEM_INFO_ARRAY")
+ordinateTypeObj = con.gettype("MDSYS.SDO_ORDINATE_ARRAY")
+
+# Convert a Python object to MDSYS.SDO_GEOMETRY
+def SDOInConverter(value):
+    obj = objType.newobject()
+    obj.SDO_GTYPE = value.gtype
+    obj.SDO_ELEM_INFO = elementInfoTypeObj.newobject()
+    obj.SDO_ELEM_INFO.extend(value.elemInfo)
+    obj.SDO_ORDINATES = ordinateTypeObj.newobject()
+    obj.SDO_ORDINATES.extend(value.ordinates)
+    return obj
+
+def SDOInputTypeHandler(cursor, value, numElements):
+    if isinstance(value, mySDO):
+        return cursor.var(cx_Oracle.OBJECT, arraysize = numElements,
+                inconverter = SDOInConverter, typename = objType.name)
+
+sdo = mySDO(2003, [1, 1003, 3], [1, 1, 5, 7])  # Python object
+cur.inputtypehandler = SDOInputTypeHandler
+cur.execute("insert into testgeometry values (:1, :2)", (1, sdo))</strong>
+
+# Define a function to dump the contents of an Oracle object
+def dumpobject(obj, prefix = "  "):
+    if obj.type.iscollection:
+        print(prefix, "[")
+        for value in obj.aslist():
+            if isinstance(value, cx_Oracle.Object):
+                dumpobject(value, prefix + "  ")
+            else:
+                print(prefix + "  ", repr(value))
+        print(prefix, "]")
+    else:
+        print(prefix, "{")
+        for attr in obj.type.attributes:
+            value = getattr(obj, attr.name)
+            if isinstance(value, cx_Oracle.Object):
+                print(prefix + "  " + attr.name + " :")
+                dumpobject(value, prefix + "    ")
+            else:
+                print(prefix + "  " + attr.name + " :", repr(value))
+        print(prefix, "}")
+
+# Query the row
+print("Querying row just inserted...")
+cur.execute("select id, geometry from testgeometry")
+for (id, obj) in cur:
+    print("Id: ", id)
+    dumpobject(obj)
+</pre>
+
+<p>In the new file, a Python class <code>mySDO</code> is defined,
+which has attributes corresponding to each Oracle MDSYS.SDO_GEOMETRY
+attribute.
+
+The <code>mySDO</code> class is used lower in the code to create a
+Python instance:</p>
+
+<pre>
+sdo = mySDO(2003, [1, 1003, 3], [1, 1, 5, 7])</pre>
+
+<p>which is then directly bound into the INSERT statement like:</p>
+
+<pre>cur.execute("insert into testgeometry values (:1, :2)", (1, sdo))</pre>
+
+<p>The mapping between Python and Oracle objects is handled in
+<code>SDOInConverter</code> which uses the cx_Oracle
+<code>newobject()</code> and <code>extend()</code> methods to create
+an Oracle object from the Python object values.  The
+<code>SDOInConverter</code> method is called by the input type handler
+<code>SDOInputTypeHandler</code> whenever an instance of
+<code>mySDO</code> is inserted with the cursor.</p>
+
+      <p>To confirm the behavior, run the file:</p>
+
+      <pre><strong>python type_input.py</strong></pre>
+
+    </li>
+
+  </ul>
+
+</li>
+
+<li><h3><a name="lobs">7. LOBs</a></h3>
+
+  <ul>
+    <li>
+    <h4>7.1 Fetching a CLOB using a locator</h4>
+
+      <p>Review the code contained in <code>clob.py</code>:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+print("Inserting data...")
+cur.execute("truncate table testclobs")
+longString = ""
+for i in range(5):
+    char = chr(ord('A') + i)
+    longString += char * 250
+    cur.execute("insert into testclobs values (:1, :2)",
+                   (i + 1, "String data " + longString + ' End of string'))
+con.commit()
+
+print("Querying data...")
+cur.prepare("select * from testclobs where id = :id")
+cur.execute(None, {'id': 1})
+(id, clob) = cur.fetchone()
+print("CLOB length:", clob.size())
+clobdata = clob.read()
+print("CLOB data:", clobdata)
+</pre>
+
+      <p>This inserts some test string data and then fetches one
+      record into <code>clob</code>, which is a cx_Oracle LOB Object.
+      Methods on LOB include <code>size()</code> and
+      <code>read()</code>.</p>
+
+      <p>To see the output, run the file:</p>
+
+<pre><strong>python clob.py</strong></pre>
+
+      <p>Edit the file and experiment reading chunks of data by giving
+      start character position and length, such as
+      <code>clob.read(1,10)</code></p>
+
+    </li>
+
+    <li>
+      <h4>7.2 Fetching a CLOB as a string</h4>
+
+      <p>For CLOBs small enough to fit in the application memory, it
+      is much faster to fetch them directly as strings.</p>
+
+      <p>Review the code contained in <code>clob_string.py</code>:</p>
+
+<pre>
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+print("Inserting data...")
+cur.execute("truncate table testclobs")
+longString = ""
+for i in range(5):
+    char = chr(ord('A') + i)
+    longString += char * 250
+    cur.execute("insert into testclobs values (:1, :2)",
+                (i + 1, "String data " + longString + ' End of string'))
+con.commit()
+
+<strong>def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
+    if defaultType == cx_Oracle.CLOB:
+        return cursor.var(cx_Oracle.LONG_STRING, arraysize = cursor.arraysize)
+
+con.outputtypehandler = OutputTypeHandler</strong>
+
+print("Querying data...")
+cur.prepare("select * from testclobs where id = :id")
+cur.execute(None, {'id': 1})
+<strong>(id, clobdata) = cur.fetchone()
+print("CLOB length:", len(clobdata))
+print("CLOB data:", clobdata)</strong>
+</pre>
+
+      <p>The OutputTypeHandler causes cx_Oracle to fetch the CLOB as a
+      string.  Standard Python string functions such as
+      <code>len()</code> can be used on the result.</p>
+
+      <p>The output is the same as for <code>clob.py</code>.  To
+      check, run the file:</p>
+
+<pre><strong>python clob_string.py</strong></pre>
+
+    </li>
+  </ul>
+
+</li>
+
+<li><h3><a name="rowfactory">8. Rowfactory functions</a></h3>
+
+  <p>Rowfactory functions enable queries to return objects other than
+  tuples.  They can be used to provide names for the various columns
+  or to return custom objects.</p>
+
+  <ul>
+    <li><h4>8.1 Rowfactory for mapping column names</h4>
+
+  <p>Review the code contained in <code>rowfactory.py</code>:</p>
+
+<pre>
+import collections
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+cur.execute("select deptno, dname from dept")
+rows = cur.fetchall()
+
+print('Array indexes:')
+for row in rows:
+    print(row[0], "->", row[1])
+
+print('Loop target variables:')
+for c1, c2 in rows:
+    print(c1, "->", c2)
+</pre>
+
+  <p>This shows two methods of accessing result set items from a data
+  row.  The first uses array indexes like <code>row[0]</code>.  The
+  second uses loop target variables which take the values of each row
+  tuple.</p>
+
+  <p>Run the file:</p>
+
+<pre><strong>python rowfactory.py</strong></pre>
+
+  <p>Both access methods gives the same results.</p>
+
+  <p>To use a rowfactory function, edit <code>rowfactory.py</code> and
+  add:</p>
+
+<pre>
+<strong>print('Rowfactory:')
+cur.execute("select deptno, dname from dept")
+cur.rowfactory = collections.namedtuple("MyClass", ["DeptNumber", "DeptName"])
+
+rows = cur.fetchall()
+for row in rows:
+    print(row.DeptNumber, "->", row.DeptName)
+</strong></pre>
+
+      <p>This uses the Python factory function
+      <code>namedtuple()</code> to create a subclass of tuple that allows
+      access to the elements via indexes or the given field names.</p>
+
+      <p>The <code>print()</code> function shows the use of the new
+      named tuple fields.  This coding style can help reduce coding
+      errors.</p>
+
+      <p>Run the script again:</p>
+
+<pre><strong>python rowfactory.py</strong></pre>
+
+
+  <p>The output results are the same.</p>
+
+</li>
+</ul>
+
+</li>
+
+<li><h3><a name="subclass">9. Subclassing connections and cursors</a></h3>
+
+  <p>Subclassing enables application to "hook" connection and cursor
+  creation.  This can be used to alter or log connection and execution
+  parameters, and to extend cx_Oracle functionality. </p>
+
+  <ul>
+    <li><h4>9.1 Subclassing connections</h4>
+
+  <p>Review the code contained in <code>subclass.py</code>:</p>
+
+  <pre>
+import cx_Oracle
+
+class MyConnection(cx_Oracle.Connection):
+
+    def __init__(self):
+        print("Connecting to database")
+        return super(MyConnection, self).__init__("pythonhol", "welcome", "localhost/orclpdb")
+
+con = MyConnection()
+cur = con.cursor()
+
+cur.execute("select count(*) from emp where deptno = :bv", (10,))
+count, = cur.fetchone()
+print("Number of rows:", count)
+</pre>
+
+  <p>This creates a new class "MyConnection" that inherits from the
+  cx_Oracle Connection class.  The <code>__init__</code> method is
+  invoked when an instance of the new class is created.  It prints a
+  message and calls the base class, passing the connection
+  credentials.</p>
+
+  <p>In the "normal" application, the application code:</p>
+
+  <pre>con = MyConnection()</pre>
+
+  <p>does not need to supply any credentials, as they are embedded in the
+  custom subclass. All the cx_Oracle methods such as <code>cursor()</code> are
+  available, as shown by the query.</p>
+
+  <p>Run the file:</p>
+
+<pre><strong>python subclass.py</strong></pre>
+
+  <p>The query executes successfully.</p>
+
+    </li>
+
+    <li><h4>9.2 Subclassing cursors</h4>
+
+      <p>Edit <code>subclass.py</code> and extend the
+      <code>cursor()</code> method with a new MyCursor class:</p>
+
+<pre>
+import cx_Oracle
+
+class MyConnection(cx_Oracle.Connection):
+
+    def __init__(self):
+        print("Connecting to database")
+        return super(MyConnection, self).__init__("pythonhol", "welcome", "localhost/orclpdb")
+
+<strong>    def cursor(self):
+        return MyCursor(self)
+
+class MyCursor(cx_Oracle.Cursor):
+
+   def execute(self, statement, args):
+       print("Executing:", statement)
+       print("Arguments:")
+       for argIndex, arg in enumerate(args):
+           print("  Bind", argIndex + 1, "has value", repr(arg))
+           return super(MyCursor, self).execute(statement, args)
+
+   def fetchone(self):
+       print("Fetchone()")
+       return super(MyCursor, self).fetchone()</strong>
+
+con = MyConnection()
+cur = con.cursor()
+
+cur.execute("select count(*) from emp where deptno = :bv", (10,))
+count, = cur.fetchone()
+print("Number of rows:", count)
+</pre>
+
+<p>When the application gets a cursor from the
+<code>MyConnection</code> class, the new <code>cursor()</code> method
+returns an instance of our new <code>MyCursor</code> class.</p>
+
+<p>The "application" query code remains unchanged.  The new
+<code>execute()</code> and <code>fetchone()</code> methods of the
+<code>MyCursor</code> class get invoked.  They do some logging and
+invoke the parent methods to do the actual statement execution.</p>
+
+<p>To confirm this, run the file again:</p>
+
+<pre><strong>python subclass.py</strong></pre>
+
+    </li>
+
+    </ul>
+</li>
+
+<li><h3><a name="aq">10. Advanced Queuing</a></h3>
+  <ul>
+    <li><h4>10.1 Message passing with Oracle Advanced Queuing</h4></li>
+
+    <p>Review <code>aq.py</code>:</p>
+
+<pre>
+import cx_Oracle
+import decimal
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+BOOK_TYPE_NAME = "UDT_BOOK"
+QUEUE_NAME = "BOOKS"
+QUEUE_TABLE_NAME = "BOOK_QUEUE_TABLE"
+
+# Cleanup
+cur.execute(
+    """begin
+         dbms_aqadm.stop_queue('""" + QUEUE_NAME + """');
+         dbms_aqadm.drop_queue('""" + QUEUE_NAME + """');
+         dbms_aqadm.drop_queue_table('""" + QUEUE_TABLE_NAME + """');
+         execute immediate 'drop type """ + BOOK_TYPE_NAME + """';
+         exception when others then
+           if sqlcode <> -24010 then
+             raise;
+           end if;
+       end;""")
+
+# Create type
+print("Creating books type UDT_BOOK...")
+cur.execute("""
+        create type %s as object (
+            title varchar2(100),
+            authors varchar2(100),
+            price number(5,2)
+        );""" % BOOK_TYPE_NAME)
+
+# Create queue table and queue and start the queue
+print("Creating queue table...")
+cur.callproc("dbms_aqadm.create_queue_table",
+             (QUEUE_TABLE_NAME, BOOK_TYPE_NAME))
+cur.callproc("dbms_aqadm.create_queue", (QUEUE_NAME, QUEUE_TABLE_NAME))
+cur.callproc("dbms_aqadm.start_queue", (QUEUE_NAME,))
+
+# Enqueue a few messages
+booksType = con.gettype(BOOK_TYPE_NAME)
+book1 = booksType.newobject()
+book1.TITLE = "The Fellowship of the Ring"
+book1.AUTHORS = "Tolkien, J.R.R."
+book1.PRICE = decimal.Decimal("10.99")
+book2 = booksType.newobject()
+book2.TITLE = "Harry Potter and the Philosopher's Stone"
+book2.AUTHORS = "Rowling, J.K."
+book2.PRICE = decimal.Decimal("7.99")
+options = con.enqoptions()
+messageProperties = con.msgproperties()
+for book in (book1, book2):
+    print("Enqueuing book", book.TITLE)
+    con.enq(QUEUE_NAME, options, messageProperties, book)
+con.commit()
+
+# Dequeue the messages
+options = con.deqoptions()
+options.navigation = cx_Oracle.DEQ_FIRST_MSG
+options.wait = cx_Oracle.DEQ_NO_WAIT
+while con.deq(QUEUE_NAME, options, messageProperties, book):
+    print("Dequeued book", book.TITLE)
+con.commit()
+</pre>
+
+<p>This file sets up Advanced Queuing using Oracle's DBMS_AQADM
+package.  The queue is used for passing Oracle UDT_BOOK objects.</p>
+
+<p>Run the file:</p>
+
+<pre><strong>python aq.py</strong></pre>
+
+<p>The output shows messages being queued and dequeued.</p>
+
+<p>To experiment, split the code into three files: one to create and
+start the queue, and two other files to queue and dequeue messages.
+Experiment running the queue and dequeue files concurrently in
+separate terminal windows. If you are stuck, look in the
+<code>solutions</code> directory at the <code>aq-dequeue.py</code>,
+<code>aq-enqueue.py</code> and <code>aq-queuestart.py</code>
+files.</p>
+
+<p>Try changing the dequeue options and mode.  For example change the
+dequeue <code>options.wait</code> value to
+<code>cx_Oracle.DEQ_WAIT_FOREVER</code>.</p>
+
+</ul>
+</li>
+
+</ol>
+
+  <h2><a name="summary">Summary</a></h2>
+  <p>In this tutorial, you have learned how to: </p>
+  <ul>
+    <li>Create connections</li>
+    <li>Use sessions pooling and Database Resident Connection Pooling</li>
+    <li>Execute queries and fetch data</li>
+    <li>Use bind variables</li>
+    <li>Use PL/SQL stored functions and procedures</li>
+    <li>Extend cx_Oracle classes</li>
+    <li>Use Oracle Advanced Queuing</li>
+  </ul>
+
+
+  <h2><a name="primer">Appendix: Python Primer</a></h2>
+
+  <p>Python is a dynamically typed scripting language. It is most
+  often used to run command-line scripts but is also used in Web
+  applications.</p>
+
+  <h4>Running Python</h4>
+
+<p> You can either:</p>
+
+  <ul>
+
+    <li><p>Create a file of Python commands, such as
+      <code>myfile.py</code>.  This can be run with:</p>
+      <pre><strong>python myfile.py</strong></pre></li>
+
+    <li><p>Alternatively run the Python interpreter by executing the
+    <code>python</code> command in a terminal, and then interactively
+    enter commands. Use <strong>Ctrl-D</strong> to exit back to the
+    operating system prompt.</p></li>
+
+    </ul>
+
+    <h4>Indentation</h4>
+
+    <p> Whitespace indentation is significant in Python.  When copying
+    examples, use the same column alignment as shown. The samples in
+    this lab use spaces, not tabs. </p>
+
+    <p>The following indentation prints 'done' once after the loop has
+    completed:</p>
+
+<pre>
+for i in range(5):
+    print(i)
+print('done')
+</pre>
+
+    <p>But this indentation prints 'done' in each iteration:</p>
+
+<pre>
+for i in range(5):
+    print(i)
+    print('done')
+</pre>
+
+<h4>Strings</h4>
+
+<p> Python strings can be enclosed in
+    single or double quotes:</p>
+
+  <pre>'A string constant'
+&quot;another constant&quot;</pre>
+  <p>Multi line strings use a triple-quote syntax:</p>
+  <pre>&quot;&quot;&quot;
+SELECT *
+FROM EMP
+&quot;&quot;&quot;</pre>
+
+    <h4>Variables</h4>
+
+<p> Variables do not need types declared:</p>
+  <pre>count = 1
+ename = 'Arnie'</pre>
+
+    <h4>Comments</h4>
+
+<p> Comments are either single line:</p>
+  <pre># a short comment</pre>
+  <p>They can be multi-line using the triple-quote token to create a string that does nothing:</p>
+  <pre>&quot;&quot;&quot;
+a longer
+comment
+&quot;&quot;&quot;
+</pre>
+
+    <h4>Printing</h4>
+
+<p> Strings and variables can be displayed with a <code>print()</code> function:</p>
+  <pre>print('Hello, World!')
+print('Value:', count)</pre>
+
+    <P>Note the <a
+    href="https://docs.python.org/3.0/whatsnew/3.0.html#print-is-a-function"
+    ><code>print</code></a> syntax and output is different in Python
+    2.</p>
+
+    <h4>Data Structures</h4>
+
+    <p>Associative arrays are called 'dictionaries':</p>
+    <pre>a2 = {'PI':3.1415, 'E':2.7182}</pre>
+    <p>Ordered arrays are called 'lists':</p>
+    <pre>a3 = [101, 4, 67]</pre>
+    <p>Lists can be accessed via indexes.</p>
+    <pre>
+print(a3[0])
+print(a3[-1])
+print(a3[1:3])
+</pre>
+
+  <p>Tuples are like lists but cannot be changed once they are
+  created. They are created with parentheses:</p>
+
+  <pre>a4 = (3, 7, 10)</pre>
+
+  <p>Individual values in a tuple can be assigned to variables like:</p>
+
+  <pre>v1, v2, v3 = a4</pre>
+
+  <p>Now the variable v1 contains 3, the variable v2 contains 7 and the variable v3 contains 10.</p>
+
+  <p>The value in a single entry tuple like "<code>(13,)</code>"can be
+  assigned to a variable by putting a comma after the variable name
+  like:</p>
+
+  <pre>v1, = (13,)</pre>
+
+  <p>If the assignment is:</p>
+
+  <pre>v1 = (13,)</pre>
+
+  <p>then <code>v1</code> will contain the whole tuple "<code>(13,)</code>"</p>
+
+    <h4>Objects</h4>
+
+<p>Everything in Python is an object. As an example, given the of the
+list <code>a3</code> above, the <code>append()</code> method can be
+used to add a value to the list.</p>
+
+  <pre>a3.append(23)</pre>
+  <p>Now <code>a3</code> contains <code>[101, 4, 67, 23]</code></p>
+
+<h4>Flow Control</h4>
+
+<p> Code flow can be controlled with tests and loops. The
+<code>if</code>/<code>elif</code>/<code>else</code> statements look
+like:</p>
+
+<pre>
+if sal &gt; 900000:
+    print('Salary is way too big')
+elif sal &gt; 500000:
+    print('Salary is huge')
+else:
+    print('Salary might be OK')
+</pre>
+
+<p>This also shows how the clauses are delimited with colons, and each
+sub block of code is indented.</p>
+
+<h4>Loops</h4>
+
+  <p>A traditional loop is:</p>
+  <pre>for i in range(10):
+    print(i)</pre>
+
+  <p>This prints the numbers from 0 to 9. The value of <code>i</code>
+    is incremented in each iteration. </p>
+
+  <p>The '<code>for</code>' command can also be used to iterate over
+  lists and tuples:</p>
+
+ <pre>
+a5 = ['Aa', 'Bb', 'Cc']
+for v in a5:
+    print(v)
+</pre>
+
+<p>This sets <code>v</code> to each element of the list
+<code>a5</code> in turn.</p>
+
+<h4>Functions</h4>
+
+<p> A function may be defined as:</p>
+
+<pre>
+def myfunc(p1, p2):
+    &quot;Function documentation: add two numbers&quot;
+    print(p1, p2)
+    return p1 + p2</pre>
+
+<p>Functions may or may not return values. This function could be called using:</p>
+
+<pre>v3 = myfunc(1, 3)</pre>
+
+<p>Function calls must appear after their function definition.</p>
+
+<p>Functions are also objects and have attributes. The inbuilt
+<code>__doc__</code> attribute can be used to find the function
+description:</p>
+
+  <pre>print(myfunc.__doc__)</pre>
+
+<h4>Modules</h4>
+
+<p> Sub-files can be included in Python scripts with an import statement.</p>
+  <pre>import os
+import sys</pre>
+  <p>Many predefined modules exist, such as the os and the sys modules.</p>
+
+
+<h2><a name="resources">Resources</a></h2>
+
+<ul>
+  <li><a href="https://docs.python.org/3/" >Python 3 Documentation</a></li>
+  <li><a href="http://cx-oracle.readthedocs.io/en/latest/index.html" >Python cx_Oracle Documentation</a></li>
+  <li><a href="https://github.com/oracle/python-cx_Oracle" >Python cx_Oracle Source Code Repository</a></li>
+</ul>
+
+<div class="footer"></div>
+<table border="0" cellpadding="10" cellspacing="0" width="100%">
+  <tbody><tr>
+    <td align="right" width="54%">Copyright &copy; 2017, Oracle and/or its affiliates. All rights reserved</td>
+  </tr>
+  <tr><td colspan="2"></td></tr>
+  </tbody>
+</table>
+
+
+</div>
+</body>
+</html>

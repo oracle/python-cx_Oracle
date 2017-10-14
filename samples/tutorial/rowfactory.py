@@ -1,0 +1,24 @@
+#------------------------------------------------------------------------------
+# rowfactory.py (Section 8.1)
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Copyright 2017, Oracle and/or its affiliates. All rights reserved.
+#------------------------------------------------------------------------------
+
+import collections
+import cx_Oracle
+
+con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+cur = con.cursor()
+
+cur.execute("select deptno, dname from dept")
+res = cur.fetchall()
+
+print('Array indexes:')
+for row in res:
+    print(row[0], "->", row[1])
+
+print('Loop target variables:')
+for c1, c2 in res:
+    print(c1, "->", c2)

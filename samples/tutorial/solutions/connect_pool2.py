@@ -1,0 +1,38 @@
+#------------------------------------------------------------------------------
+# connect_pool2.py (Section 2.5)
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Copyright 2017, Oracle and/or its affiliates. All rights reserved.
+#------------------------------------------------------------------------------
+
+import cx_Oracle
+import threading
+import time
+
+pool = cx_Oracle.SessionPool("pythonhol", "welcome", "localhost/orclpdb:pooled",
+                             min = 2, max = 5, increment = 1, threaded = True)
+
+def Query():
+    con = pool.acquire(cclass="PYTHONHOL", purity=cx_Oracle.ATTR_PURITY_SELF)
+    #con = pool.acquire(cclass="PYTHONHOL", purity=cx_Oracle.ATTR_PURITY_NEW)
+    cur = con.cursor()
+    for i in range(4):
+        cur.execute("select myseq.nextval from dual")
+        seqval, = cur.fetchone()
+        print("Thread", threading.current_thread().name, "fetched sequence =", seqval)
+        #time.sleep(1)
+
+numberOfThreads = 5
+threadArray = []
+
+for i in range(numberOfThreads):
+    thread = threading.Thread(name='#'+str(i), target=Query)
+    threadArray.append(thread)
+    #time.sleep(4)
+    thread.start()
+
+for t in threadArray:
+    t.join()
+
+print("All done!")
