@@ -468,10 +468,10 @@ Connection Object
 .. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0)
 
     Return a new :ref:`subscription object <subscrobj>` using the connection.
-    Currently the namespace and protocol arguments cannot have any other
+    Currently the namespace and protocol parameters cannot have any other
     meaningful values.
 
-    The callback is expected to be a callable that accepts a single argument.
+    The callback is expected to be a callable that accepts a single parameter.
     A :ref:`message object <msgobjects>` is passed to this callback whenever a
     notification is received.
 
@@ -479,7 +479,7 @@ Connection Object
     time in seconds. The default value of 0 indicates that the subscription
     never expires.
 
-    The operations argument enables filtering of the messages that are sent
+    The operations parameter enables filtering of the messages that are sent
     (insert, update, delete). The default value will send notifications for all
     operations.
 
@@ -487,7 +487,7 @@ Connection Object
     database server. If not specified, an unused port will be selected by the
     database.
 
-    The qos argument specifies quality of service options. It should be one or
+    The qos parameter specifies quality of service options. It should be one or
     more of the following flags, OR'ed together:
     :data:`cx_Oracle.SUBSCR_QOS_RELIABLE`,
     :data:`cx_Oracle.SUBSCR_QOS_DEREG_NFY`,

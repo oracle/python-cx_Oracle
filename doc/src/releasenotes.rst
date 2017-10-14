@@ -288,7 +288,7 @@ Version 5.3 (March 2017)
     that do not have any validity.
 #)  Changed driver name to match informal driver name standard used by Oracle
     for other drivers.
-#)  Add check for maximum of 10,000 arguments when calling a stored procedure
+#)  Add check for maximum of 10,000 parameters when calling a stored procedure
     or function in order to prevent a possible improper memory access from
     taking place.
 #)  Removed -mno-cygwin compile flag since it is no longer used in newer
@@ -304,12 +304,12 @@ Version 5.3 (March 2017)
 #)  Increased default array size to 100 (from 50) to match other drivers.
 #)  Added support for setting the :attr:`~Connection.internal_name` and
     :attr:`~Connection.external_name` on the connection directly. The use of
-    the twophase argument is now deprecated.  Applications should set the
+    the twophase parameter is now deprecated.  Applications should set the
     internal_name and external_name attributes directly to a value appropriate
     to the application.
 #)  Added support for using application context when
     :meth:`creating a connection <cx_Oracle.Connection>`. This should be used
-    in preference to the module, action and clientinfo arguments which are now
+    in preference to the module, action and clientinfo parameters which are now
     deprecated.
 #)  Reworked database change notification and continuous query notification to
     more closely align with the PL/SQL implementation and prepare for sending
@@ -321,10 +321,10 @@ Version 5.3 (March 2017)
       deprecated constant SUBSCR_CQ_QOS_QUERY
     - added constant :data:`~cx_Oracle.SUBSCR_QOS_DEREG_NFY` to replace
       deprecated constant SUBSCR_QOS_PURGE_ON_NTFN
-    - added constant :data:`~cx_Oracle.SUBSCR_QOS_ROWIDS` to replace argument
+    - added constant :data:`~cx_Oracle.SUBSCR_QOS_ROWIDS` to replace parameter
       rowids for method :meth:`Connection.subscribe()`
-    - deprecated argument cqqos for method :meth:`Connection.subscribe()`. The
-      qos argument should be used instead.
+    - deprecated parameter cqqos for method :meth:`Connection.subscribe()`. The
+      qos parameter should be used instead.
     - dropped constants SUBSCR_CQ_QOS_CLQRYCACHE, SUBSCR_QOS_HAREG,
       SUBSCR_QOS_MULTICBK, SUBSCR_QOS_PAYLOAD, SUBSCR_QOS_REPLICATE, and
       SUBSCR_QOS_SECURE since they were never actually used
@@ -475,7 +475,7 @@ Version 5.0.3 (February 2010)
 
 #)  Added support for 64-bit Windows.
 #)  Added support for Python 3.1 and dropped support for Python 3.0.
-#)  Added support for keyword arguments in cursor.callproc() and
+#)  Added support for keyword parameters in cursor.callproc() and
     cursor.callfunc().
 #)  Added documentation for the UNICODE and FIXED_UNICODE variable types.
 #)  Added extra link arguments required for Mac OS X as suggested by Jason
@@ -788,10 +788,10 @@ Version 4.2 (July 2006)
     to determine the size of the arrays created for bind variables.
 #)  Added repr() methods to provide something a little more useful than the
     standard type name and memory address.
-#)  Added keyword argument support to the functions that imply such in the
+#)  Added keyword parameter support to the functions that imply such in the
     documentation as requested by Harald Armin Massa.
 #)  Treat an empty dictionary passed through to cursor.execute() as keyword
-    arguments the same as if no keyword arguments were specified at all, as
+    parameters the same as if no keyword parameters were specified at all, as
     requested by Fabien Grumelard.
 #)  Fixed memory leak when a LOB read would fail.
 #)  Set the LDFLAGS value in the environment rather than directly in the
@@ -1057,7 +1057,7 @@ Version 3.0 (March 2003)
     DB API extension
 #)  Added support for passing a dictionary as the second parameter for the
     cursor.execute() method in order to comply with the DB API more closely;
-    the method of passing parameters with keyword arguments is still supported
+    the method of passing parameters with keyword parameters is still supported
     and is in fact preferred
 #)  Added support for the attribute "statement" on cursors which is a
     reference to the last SQL statement prepared or executed
@@ -1066,7 +1066,7 @@ Version 3.0 (March 2003)
 #)  Fixed bug where segfault would occur if the array size was changed after
     the cursor was executed but before it was fetched
 #)  Ignore array size when performing executemany() and use the length of the
-    list of arguments instead
+    list of parameters instead
 #)  Rollback when connection is closed or destroyed to follow DB API rather
     than use the Oracle default (which is commit)
 #)  Added check for array size too large causing an integer overflow
@@ -1113,7 +1113,7 @@ Version 2.5 (July 2002)
     copy(<var>, <src_pos>, <targ_pos>) to copy the value from a variable in a
     more efficient manner than setvalue(getvalue())
 #)  Implemented cursor method executemany() which expects a list of
-    dictionaries for the arguments
+    dictionaries for the parameters
 #)  Implemented cursor method callproc()
 #)  Added cursor method prepare() which parses (prepares) the statement for
     execution; subsequent execute() or executemany() calls can pass None as the
@@ -1123,8 +1123,8 @@ Version 2.5 (July 2002)
     returning the number of rows thus fetched; this is used to avoid the
     overhead of generating result sets; used for high performance only
 #)  Added cursor method executemanyprepared() which is identical to the method
-    executemany() except that it takes a single argument which is the number of
-    times to execute a previously prepared statement and it assumes that the
+    executemany() except that it takes a single parameter which is the number
+    of times to execute a previously prepared statement and it assumes that the
     bind variables already have their values set; used for high performance
     only
 #)  Added support for rowid being returned in a select statement
@@ -1142,11 +1142,11 @@ Version 2.4 (January 2002)
 
 #)  String variables can now be made any length (previously restricted to the
     64K limit imposed by Oracle for default binding); use the type
-    cx_Oracle.LONG_STRING as the argument to setinputsizes() for binding in
+    cx_Oracle.LONG_STRING as the parameter to setinputsizes() for binding in
     string values larger than 4000 bytes.
 #)  Raw and long raw columns are now supported; use the types cx_Oracle.BINARY
-    and cx_Oracle.LONG_BINARY as the argument to setinputsizes() for binding in
-    values of these types.
+    and cx_Oracle.LONG_BINARY as the parameter to setinputsizes() for binding
+    in values of these types.
 #)  Functions DateFromTicks(), TimeFromTicks() and TimestampFromTicks()
     are now implemented.
 #)  Function cursor.setoutputsize() implemented

@@ -73,7 +73,7 @@ Cursor Object
 
     Call a function with the given name. The return type is specified in the
     same notation as is required by :meth:`~Cursor.setinputsizes()`. The
-    sequence of parameters must contain one entry for each argument that the
+    sequence of parameters must contain one entry for each parameter that the
     function expects. Any keyword parameters will be included after the
     positional parameters. The result of the call is the return value of the
     function.
@@ -86,13 +86,13 @@ Cursor Object
 
         If you intend to call :meth:`Cursor.setinputsizes()` on the cursor
         prior to making this call, then note that the first item in the
-        argument list refers to the return value of the function.
+        parameter list refers to the return value of the function.
 
 
 .. method:: Cursor.callproc(name, parameters=[], keywordParameters={})
 
     Call a procedure with the given name. The sequence of parameters must
-    contain one entry for each argument that the procedure expects. The result
+    contain one entry for each parameter that the procedure expects. The result
     of the call is a modified copy of the input sequence. Input parameters are
     left untouched; output and input/output parameters are replaced with
     possibly new values. Keyword parameters will be included after the
@@ -135,8 +135,8 @@ Cursor Object
 .. method:: Cursor.execute(statement, [parameters], \*\*keywordParameters)
 
     Execute a statement against the database. Parameters may be passed as a
-    dictionary or sequence or as keyword arguments. If the arguments are a
-    dictionary, the values will be bound by name and if the arguments are a
+    dictionary or sequence or as keyword parameters. If the parameters are a
+    dictionary, the values will be bound by name and if the parameters are a
     sequence the values will be bound by position. Note that if the values are
     bound by position, the order of the variables is from left to right as they
     are encountered in the statement and SQL statements are processed
@@ -399,8 +399,8 @@ Cursor Object
 
     This read-write attribute specifies a method to call for each row that is
     retrieved from the database. Ordinarily a tuple is returned for each row
-    but if this attribute is set, the method is called with the argument tuple
-    that would normally be returned and the result of the method is returned
+    but if this attribute is set, the method is called with the tuple that
+    would normally be returned, and the result of the method is returned
     instead.
 
     .. note::
@@ -452,15 +452,15 @@ Cursor Object
     memory areas for the operation's parameters. Each parameter should be a
     type object corresponding to the input that will be used or it should be an
     integer specifying the maximum length of a string parameter. Use keyword
-    arguments when binding by name and positional arguments when binding by
+    parameters when binding by name and positional parameters when binding by
     position. The singleton None can be used as a parameter when using
-    positional arguments to indicate that no space should be reserved for that
+    positional parameters to indicate that no space should be reserved for that
     position.
 
     .. note::
 
         If you plan to use :meth:`~Cursor.callfunc()` then be aware that the
-        first argument in the list refers to the return value of the function.
+        first parameter in the list refers to the return value of the function.
 
 
 .. method:: Cursor.setoutputsize(size, [column])

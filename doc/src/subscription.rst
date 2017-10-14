@@ -66,10 +66,10 @@ Subscription Object
 
     Register the query for subsequent notification when tables referenced by
     the query are changed. This behaves similarly to cursor.execute() but only
-    queries are permitted and the arguments must be a sequence or dictionary.
-    If the qos parameter included the flag cx_Oracle.SUBSCR_QOS_QUERY when
-    the subscription was created, then the ID for the registered query is
-    returned; otherwise, None is returned.
+    queries are permitted and the args parameter must be a sequence or
+    dictionary.  If the qos parameter included the flag
+    cx_Oracle.SUBSCR_QOS_QUERY when the subscription was created, then the ID
+    for the registered query is returned; otherwise, None is returned.
 
 
 .. attribute:: Subscription.timeout

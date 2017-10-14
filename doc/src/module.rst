@@ -22,15 +22,19 @@ Module Interface
         This method is an extension to the DB API definition.
 
 
-.. function:: Connection([user, password, dsn, mode, handle, pool, threaded, \
-        events, cclass, purity, newpassword, encoding, nencoding, edition, \
-        appcontext, tag, matchanytag, shardingkey, supershardingkey])
-    connect([user, password, dsn, mode, handle, pool, threaded, \
-        events, cclass, purity, newpassword, encoding, nencoding, edition, \
-        appcontext, tag, matchanytag, shardingkey, supershardingkey])
+.. function:: Connection(user=None, password=None, dsn=None, mode=None, \
+        handle=None, pool=None, threaded=False, events=False, cclass=None, \
+        purity=None, newpassword=None, encoding=None, nencoding=None, \
+        edition=None, appcontext=[], tag=None, matchanytag=False, \
+        shardingkey=[], supershardingkey=[])
+    connect(user=None, password=None, dsn=None, mode=None, handle=None, \
+        pool=None, threaded=False, events=False, cclass=None, purity=None, \
+        newpassword=None, encoding=None, nencoding=None, edition=None, \
+        appcontext=[], tag=None, matchanytag=None, shardingkey=[], \
+        supershardingkey=[])
 
     Constructor for creating a connection to the database. Return a
-    :ref:`connection object <connobj>`. All arguments are optional and can be
+    :ref:`connection object <connobj>`. All parameters are optional and can be
     specified as keyword parameters.
 
     The dsn (data source name) is the TNS entry (from the Oracle names server
@@ -48,60 +52,63 @@ Module Interface
     use when embedding Python in an application (like PowerBuilder) which has
     already made the connection.
 
-    The pool argument is expected to be a :ref:`session pool object <sesspool>`
-    and the use of this argument is the equivalent of calling pool.acquire().
+    The pool parameter is expected to be a
+    :ref:`session pool object <sesspool>` and the use of this parameter is the
+    equivalent of calling :meth:`SessionPool.acquire()`. Parameters not
+    acecpted by that method are ignored.
 
-    The threaded argument is expected to be a boolean expression which
+    The threaded parameter is expected to be a boolean expression which
     indicates whether or not Oracle should wrap accesses to connections with a
     mutex. Doing so in single threaded applications imposes a performance
     penalty of about 10-15% which is why the default is False.
 
-    The events argument is expected to be a boolean expression which indicates
-    whether or not to initialize Oracle in events mode.
+    The events parameter is expected to be a boolean expression which indicates
+    whether or not to initialize Oracle in events mode. This is required for
+    continuous query notification and high availablity event notifications.
 
-    The cclass argument is expected to be a string and defines the connection
+    The cclass parameter is expected to be a string and defines the connection
     class for database resident connection pooling (DRCP).
 
-    The purity argument is expected to be one of
+    The purity parameter is expected to be one of
     :data:`~cx_Oracle.ATTR_PURITY_NEW`, :data:`~cx_Oracle.ATTR_PURITY_SELF`, or
     :data:`~cx_Oracle.ATTR_PURITY_DEFAULT`.
 
-    The newpassword argument is expected to be a string if specified and sets
+    The newpassword parameter is expected to be a string if specified and sets
     the password for the logon during the connection process.
 
-    The encoding argument is expected to be a string if specified and sets the
+    The encoding parameter is expected to be a string if specified and sets the
     encoding to use for regular database strings. If not specified, the
     environment variable NLS_LANG is used. If the environment variable NLS_LANG
     is not set, ASCII is used.
 
-    The nencoding argument is expected to be a string if specified and sets the
-    encoding to use for national character set database strings. If not
+    The nencoding parameter is expected to be a string if specified and sets
+    the encoding to use for national character set database strings. If not
     specified, the environment variable NLS_NCHAR is used. If the environment
     variable NLS_NCHAR is not used, the environment variable NLS_LANG is used
     instead, and if the environment variable NLS_LANG is not set, ASCII is
     used.
 
-    The edition argument is expected to be a string if specified and sets the
+    The edition parameter is expected to be a string if specified and sets the
     edition to use for the session. It is only relevant if both the client and
     the server are at least Oracle Database 11.2.
 
-    The appcontext argument is expected to be a list of 3-tuples, if specified,
+    The appcontext parameter is expected to be a list of 3-tuples, if specified,
     and sets the application context for the connection. Application context
     is available in the database by using the sys_context() PL/SQL method and
     can be used within a logon trigger as well as any other PL/SQL procedures.
     Each entry in the list is expected to contain three strings: the namespace,
     the name and the value.
 
-    The tag argument, if specified, is expected to be a string and will limit
+    The tag parameter, if specified, is expected to be a string and will limit
     the sessions that can be returned from a session pool unless the
-    matchanytag argument is set to True. In that case sessions with the
+    matchanytag parameter is set to True. In that case sessions with the
     specified tag will be preferred over others, but if no such sessions are
     available a session with a different tag may be returned instead. In any
     case, untagged sessions will always be returned if no sessions with the
     specified tag are available. Sessions are tagged when they are
     :meth:`released <SessionPool.release>` back to the pool.
 
-    The shardingkey and supershardingkey arguments, if specified, are expected
+    The shardingkey and supershardingkey parameters, if specified, are expected
     to be a sequence of values which will be used to identify the database
     shard to connect to. Currently only strings are supported for the key
     values.
@@ -132,7 +139,7 @@ Module Interface
 .. function:: makedsn(host, port, sid=None, service_name=None, region=None, \
         sharding_key=None, super_sharding_key=None)
 
-    Return a string suitable for use as the dsn argument for
+    Return a string suitable for use as the dsn parameter for
     :meth:`~cx_Oracle.connect()`. This string is identical to the strings that
     are defined by the Oracle names server or defined in the tnsnames.ora file.
 
@@ -141,10 +148,11 @@ Module Interface
         This method is an extension to the DB API definition.
 
 
-.. function:: SessionPool(user, password, database, min, max, increment, \
+.. function:: SessionPool(user, password, dsn, min, max, increment, \
         connectiontype=cx_Oracle.Connection, threaded=False, \
-        getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, homogeneous=True, \
-        externalauth=False, encoding=None, nencoding=None, edition=None)
+        getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, events=False, \
+        homogeneous=True, externalauth=False, encoding=None, nencoding=None, \
+        edition=None)
 
     Create and return a :ref:`session pool object <sesspool>`. This
     allows for very fast connections to the database and is of primary use in a
@@ -155,26 +163,30 @@ Module Interface
     :meth:`~SessionPool.acquire()` will create connection objects of that type,
     rather than the base type defined at the module level.
 
-    The threaded attribute is expected to be a boolean expression which
+    The threaded parameter is expected to be a boolean expression which
     indicates whether Oracle should wrap accesses to connections with a mutex.
     Doing so in single threaded applications imposes a performance penalty of
     about 10-15% which is why the default is False.
 
-    The encoding argument is expected to be a string if specified and sets the
-    encoding to use for regular database strings. If not specified, the
+    The events parameter is expected to be a boolean expression which indicates
+    whether or not to initialize Oracle in events mode. This is required for
+    continuous query notification and high availablity event notifications.
+
+    The encoding parameter is expected to be a string, if specified, and sets
+    the encoding to use for regular database strings. If not specified, the
     environment variable NLS_LANG is used. If the environment variable NLS_LANG
     is not set, ASCII is used.
 
-    The nencoding argument is expected to be a string if specified and sets the
-    encoding to use for national character set database strings. If not
+    The nencoding parameter is expected to be a string, if specified, and sets
+    the encoding to use for national character set database strings. If not
     specified, the environment variable NLS_NCHAR is used. If the environment
     variable NLS_NCHAR is not used, the environment variable NLS_LANG is used
     instead, and if the environment variable NLS_LANG is not set, ASCII is
     used.
 
-    The edition argument is expected to be a string, if specified, and sets the
-    edition to use for the sessions in the pool. It is only relevant if both
-    the client and the server are at least Oracle Database 11.2.
+    The edition parameter is expected to be a string, if specified, and sets
+    the edition to use for the sessions in the pool. It is only relevant if
+    both the client and the server are at least Oracle Database 11.2.
 
     .. note::
 
@@ -244,7 +256,7 @@ General
 
     Note that in order to make use of multiple threads in a program which
     intends to connect and disconnect in different threads, the threaded
-    argument to :meth:`connect()` or :meth:`SessionPool()` must be true.
+    parameter to :meth:`connect()` or :meth:`SessionPool()` must be true.
 
 
 .. data:: version
@@ -262,14 +274,14 @@ Advanced Queuing: Delivery Modes
 
 These constants are extensions to the DB API definition. They are possible
 values for the :attr:`~DeqOptions.deliverymode` attribute of the
-:ref:`dequeue options object <deqoptions>` passed as the options argument to
+:ref:`dequeue options object <deqoptions>` passed as the options parameter to
 the :meth:`Connection.deq()` method as well as the
 :attr:`~EnqOptions.deliverymode` attribute of the
-:ref:`enqueue options object <enqoptions>` passed as the options argument to
+:ref:`enqueue options object <enqoptions>` passed as the options parameter to
 the :meth:`Connection.enq()` method. They are also possible values for the
 :attr:`~MessageProperties.deliverymode` attribute of the
 :ref:`message properties object <msgproperties>` passed as the msgproperties
-argument to the :meth:`Connection.deq()` and :meth:`Connection.enq()` methods.
+parameter to the :meth:`Connection.deq()` and :meth:`Connection.enq()` methods.
 
 
 .. data:: MSG_BUFFERED
@@ -295,8 +307,8 @@ Advanced Queuing: Dequeue Modes
 
 These constants are extensions to the DB API definition. They are possible
 values for the :attr:`~DeqOptions.mode` attribute of the
-:ref:`dequeue options object <deqoptions>`. This object is the options argument
-for the :meth:`Connection.deq()` method.
+:ref:`dequeue options object <deqoptions>`. This object is the options
+parameter for the :meth:`Connection.deq()` method.
 
 
 .. data:: DEQ_BROWSE
@@ -330,8 +342,8 @@ Advanced Queuing: Dequeue Navigation Modes
 
 These constants are extensions to the DB API definition. They are possible
 values for the :attr:`~DeqOptions.navigation` attribute of the
-:ref:`dequeue options object <deqoptions>`. This object is the options argument
-for the :meth:`Connection.deq()` method.
+:ref:`dequeue options object <deqoptions>`. This object is the options
+parameter for the :meth:`Connection.deq()` method.
 
 
 .. data:: DEQ_FIRST_MSG
@@ -363,8 +375,8 @@ Advanced Queuing: Dequeue Visibility Modes
 
 These constants are extensions to the DB API definition. They are possible
 values for the :attr:`~DeqOptions.visibility` attribute of the
-:ref:`dequeue options object <deqoptions>`. This object is the options argument
-for the :meth:`Connection.deq()` method.
+:ref:`dequeue options object <deqoptions>`. This object is the options
+parameter for the :meth:`Connection.deq()` method.
 
 
 .. data:: DEQ_IMMEDIATE
@@ -384,8 +396,8 @@ Advanced Queuing: Dequeue Wait Modes
 
 These constants are extensions to the DB API definition. They are possible
 values for the :attr:`~DeqOptions.wait` attribute of the
-:ref:`dequeue options object <deqoptions>`. This object is the options argument
-for the :meth:`Connection.deq()` method.
+:ref:`dequeue options object <deqoptions>`. This object is the options
+parameter for the :meth:`Connection.deq()` method.
 
 
 .. data:: DEQ_NO_WAIT
@@ -405,8 +417,8 @@ Advanced Queuing: Enqueue Visibility Modes
 
 These constants are extensions to the DB API definition. They are possible
 values for the :attr:`~EnqOptions.visibility` attribute of the
-:ref:`enqueue options object <enqoptions>`. This object is the options argument
-for the :meth:`Connection.enq()` method.
+:ref:`enqueue options object <enqoptions>`. This object is the options
+parameter for the :meth:`Connection.enq()` method.
 
 
 .. data:: ENQ_IMMEDIATE
@@ -427,7 +439,7 @@ Advanced Queuing: Message States
 These constants are extensions to the DB API definition. They are possible
 values for the :attr:`~MessageProperties.state` attribute of the
 :ref:`message properties object <msgproperties>`. This object is the
-msgproperties argument for the :meth:`Connection.deq()` and
+msgproperties parameter for the :meth:`Connection.deq()` and
 :meth:`Connection.enq()` methods.
 
 
@@ -606,7 +618,7 @@ Operation Codes
 ---------------
 
 These constants are extensions to the DB API definition. They are possible
-values for the operations argument for the :meth:`Connection.subscribe()`
+values for the operations parameter for the :meth:`Connection.subscribe()`
 method. One or more of these values can be OR'ed together. These values are
 also used by the :attr:`MessageTable.operation` or
 :attr:`MessageQuery.operation` attributes of the messages that are sent.
