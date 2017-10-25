@@ -76,29 +76,22 @@ static udt_VariableType vt_TimestampLTZ = {
 static int DateTimeVar_SetValue(udt_Variable *var, uint32_t pos, dpiData *data,
         PyObject *value)
 {
-    dpiTimestamp *timestamp;
-
-    timestamp = &data->value.asTimestamp;
     if (PyDateTime_Check(value)) {
-        timestamp->year = PyDateTime_GET_YEAR(value);
-        timestamp->month = PyDateTime_GET_MONTH(value);
-        timestamp->day = PyDateTime_GET_DAY(value);
-        timestamp->hour = PyDateTime_DATE_GET_HOUR(value);
-        timestamp->minute = PyDateTime_DATE_GET_MINUTE(value);
-        timestamp->second = PyDateTime_DATE_GET_SECOND(value);
-        timestamp->fsecond = PyDateTime_DATE_GET_MICROSECOND(value) * 1000;
+        dpiData_setTimestamp(data, PyDateTime_GET_YEAR(value),
+                PyDateTime_GET_MONTH(value), PyDateTime_GET_DAY(value),
+                PyDateTime_DATE_GET_HOUR(value),
+                PyDateTime_DATE_GET_MINUTE(value),
+                PyDateTime_DATE_GET_SECOND(value),
+                PyDateTime_DATE_GET_MICROSECOND(value) * 1000, 0, 0);
     } else if (PyDate_Check(value)) {
-        timestamp->year = PyDateTime_GET_YEAR(value);
-        timestamp->month = PyDateTime_GET_MONTH(value);
-        timestamp->day = PyDateTime_GET_DAY(value);
-        timestamp->hour = 0;
-        timestamp->minute = 0;
-        timestamp->second = 0;
-        timestamp->fsecond = 0;
+        dpiData_setTimestamp(data, PyDateTime_GET_YEAR(value),
+                PyDateTime_GET_MONTH(value), PyDateTime_GET_DAY(value), 0, 0,
+                0, 0, 0, 0);
     } else {
         PyErr_SetString(PyExc_TypeError, "expecting date data");
         return -1;
     }
+
     return 0;
 }
 
