@@ -196,6 +196,12 @@ create table &main_user..TestBuildings (
     BuildingObj                         &main_user..udt_Building not null
 );
 
+create table &main_user..TestRowids (
+    IntCol                              number(9) not null,
+    RowidCol                            rowid,
+    URowidCol                           urowid
+);
+
 -- populate tables
 begin
     for i in 1..10 loop

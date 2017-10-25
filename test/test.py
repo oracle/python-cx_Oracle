@@ -51,7 +51,8 @@ else:
             "SessionPool",
             "StringVar",
             "TimestampVar",
-            "AQ"
+            "AQ",
+            "Rowid"
     ]
     clientVersion = cx_Oracle.clientversion()
     if clientVersion[:2] >= (12, 1):
