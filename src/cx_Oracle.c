@@ -741,6 +741,7 @@ void initcx_Oracle(void)
 #include "dpiError.c"
 #include "dpiGen.c"
 #include "dpiGlobal.c"
+#include "dpiHandlePool.c"
 #include "dpiLob.c"
 #include "dpiMsgProps.c"
 #include "dpiObject.c"
