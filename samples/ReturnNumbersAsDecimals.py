@@ -22,8 +22,7 @@ import SampleEnv
 
 def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
     if defaultType == cx_Oracle.NUMBER:
-        return cursor.var(str, size = 200, arraysize = cursor.arraysize,
-                outconverter = decimal.Decimal)
+        return cursor.var(decimal.Decimal, arraysize = cursor.arraysize)
 
 connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
 connection.outputtypehandler = OutputTypeHandler
