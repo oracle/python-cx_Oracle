@@ -135,7 +135,10 @@ Connection Object
 .. attribute:: Connection.current_schema
 
     This read-write attribute sets the current schema attribute for the
-    session.
+    session. Setting this value is the same as executing the SQL statement
+    "ALTER SESSION SET CURRENT_SCHEMA". The attribute is set (and verified) on
+    the next call that does a round trip to the server. The value is placed
+    before unqualified database objects in SQL statements you then execute.
 
     .. note::
 
