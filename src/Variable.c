@@ -782,6 +782,13 @@ static int Variable_SetSingleValue(udt_Variable *var, uint32_t arrayPos,
     int result = 0;
     dpiData *data;
 
+    // ensure we do not exceed the number of allocated elements
+    if (arrayPos >= var->allocatedElements) {
+        PyErr_SetString(PyExc_IndexError,
+                "Variable_SetSingleValue: array size exceeded");
+        return -1;
+    }
+
     // convert value, if necessary
     if (var->inConverter && var->inConverter != Py_None) {
         convertedValue = PyObject_CallFunctionObjArgs(var->inConverter, value,
