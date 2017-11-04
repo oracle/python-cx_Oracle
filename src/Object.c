@@ -186,9 +186,11 @@ static PyObject *Object_Repr(udt_Object *self)
 //   Convert a Python value to an Oracle value.
 //-----------------------------------------------------------------------------
 static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
-        dpiNativeTypeNum *nativeTypeNum, dpiData *data, udt_Buffer *buffer)
+        dpiOracleTypeNum oracleTypeNum, dpiNativeTypeNum *nativeTypeNum,
+        dpiData *data, udt_Buffer *buffer)
 {
     PyObject *textValue, *valueType;
+    const char *encoding;
     udt_Object *otherObj;
     udt_LOB *lob;
     int status;
@@ -214,8 +216,12 @@ static int Object_ConvertFromPython(udt_Object *obj, PyObject *value,
             if (status < 0)
                 return -1;
         } else {
-            if (cxBuffer_FromObject(buffer, value,
-                    obj->objectType->connection->encodingInfo.encoding) < 0)
+            if (oracleTypeNum == DPI_ORACLE_TYPE_NCHAR ||
+                    oracleTypeNum == DPI_ORACLE_TYPE_NVARCHAR ||
+                    oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
+                encoding = obj->objectType->connection->encodingInfo.nencoding;
+            else encoding = obj->objectType->connection->encodingInfo.encoding;
+            if (cxBuffer_FromObject(buffer, value, encoding) < 0)
                 return -1;
         }
         *nativeTypeNum = DPI_NATIVE_TYPE_BYTES;
@@ -362,8 +368,8 @@ static int Object_SetAttributeValue(udt_Object *self,
     int status;
 
     cxBuffer_Init(&buffer);
-    if (Object_ConvertFromPython(self, value, &nativeTypeNum, &data,
-            &buffer) < 0)
+    if (Object_ConvertFromPython(self, value, attribute->oracleTypeNum,
+            &nativeTypeNum, &data, &buffer) < 0)
         return -1;
     status = dpiObject_setAttributeValue(self->handle, attribute->handle,
             nativeTypeNum, &data);
@@ -421,7 +427,8 @@ static int Object_InternalAppend(udt_Object *self, PyObject *value)
     int status;
 
     cxBuffer_Init(&buffer);
-    if (Object_ConvertFromPython(self, value, &nativeTypeNum, &data,
+    if (Object_ConvertFromPython(self, value,
+            self->objectType->elementOracleTypeNum, &nativeTypeNum, &data,
             &buffer) < 0)
         return -1;
     status = dpiObject_appendElement(self->handle, nativeTypeNum, &data);
@@ -718,7 +725,8 @@ static PyObject *Object_SetElement(udt_Object *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "iO", &index, &value))
         return NULL;
     cxBuffer_Init(&buffer);
-    if (Object_ConvertFromPython(self, value, &nativeTypeNum, &data,
+    if (Object_ConvertFromPython(self, value,
+            self->objectType->elementOracleTypeNum, &nativeTypeNum, &data,
             &buffer) < 0)
         return NULL;
     status = dpiObject_setElementValueByIndex(self->handle, index,
