@@ -12,7 +12,8 @@ Version 6.0.3 (November 2017)
 -----------------------------
 
 #)  Update to `ODPI-C 2.0.3
-    <https://oracle.github.io/odpi/doc/releasenotes.html#version-2-0-3-tbd>`__.
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-2-0-3-november-6-2017>`__.
 
     - Prevent use of unitialized data in certain cases (`issue 77
       <https://github.com/oracle/python-cx_Oracle/issues/77>`__).
