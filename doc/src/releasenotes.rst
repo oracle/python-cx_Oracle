@@ -8,6 +8,34 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.0.3 (November 2017)
+-----------------------------
+
+#)  Update to `ODPI-C 2.0.3
+    <https://oracle.github.io/odpi/doc/releasenotes.html#version-2-0-3-tbd>`__.
+
+    - Prevent use of unitialized data in certain cases (`issue 77
+      <https://github.com/oracle/python-cx_Oracle/issues/77>`__).
+    - Attempting to ping a database earlier than 10g results in error
+      "ORA-1010: invalid OCI operation", but that implies a response from the
+      database and therefore a successful ping, so treat it that way!
+    - Correct handling of conversion of some numbers to NATIVE_FLOAT.
+    - Prevent use of NaN with Oracle numbers since it produces corrupt data
+      (`issue 91 <https://github.com/oracle/python-cx_Oracle/issues/91>`__).
+    - Verify that Oracle objects bound to cursors, fetched from cursors, set in
+      object attributes or appended to collection objects are of the correct
+      type.
+    - Correct handling of NVARCHAR2 when used as attributes of Oracle objects
+      or as elements of collections.
+
+#)  Ensure that a call to setinputsizes() with an invalid type prior to a call
+    to executemany() does not result in a type error, but instead gracefully
+    ignores the call to setinputsizes() as required by the DB API
+    (https://github.com/oracle/python-cx_Oracle/issues/75).
+#)  Check variable array size when setting variable values and raise
+    IndexError, as is already done for getting variable values.
+
+
 Version 6.0.2 (August 2017)
 ---------------------------
 
