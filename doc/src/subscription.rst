@@ -96,6 +96,12 @@ Message Objects
     the notification.
 
 
+.. attribute:: Message.txid
+
+    This read-only attribute returns the id of the transaction that generated
+    the notification.
+
+
 .. attribute:: Message.queries
 
     This read-only attribute returns a list of message query objects that give

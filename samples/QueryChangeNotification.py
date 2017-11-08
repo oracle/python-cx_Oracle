@@ -34,6 +34,7 @@ def callback(message):
         registered = False
         return
     print("Message database name:", message.dbname)
+    print("Message tranasction id:", message.txid)
     print("Message queries:")
     for query in message.queries:
         print("--> Query ID:", query.id)

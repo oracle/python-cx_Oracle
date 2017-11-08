@@ -34,6 +34,7 @@ typedef struct {
     udt_Subscription *subscription;
     dpiEventType type;
     PyObject *dbname;
+    PyObject *txId;
     PyObject *tables;
     PyObject *queries;
 } udt_Message;
@@ -92,6 +93,7 @@ static PyMemberDef g_MessageTypeMembers[] = {
             READONLY },
     { "type", T_INT, offsetof(udt_Message, type), READONLY },
     { "dbname", T_OBJECT, offsetof(udt_Message, dbname), READONLY },
+    { "txid", T_OBJECT, offsetof(udt_Message, txId), READONLY },
     { "tables", T_OBJECT, offsetof(udt_Message, tables), READONLY },
     { "queries", T_OBJECT, offsetof(udt_Message, queries), READONLY },
     { NULL }
@@ -450,6 +452,12 @@ static int Message_Initialize(udt_Message *self,
             message->dbNameLength, encoding);
     if (!self->dbname)
         return -1;
+    if (message->txId) {
+        self->txId = PyBytes_FromStringAndSize(message->txId,
+                message->txIdLength);
+        if (!self->txId)
+            return -1;
+    }
     switch (message->eventType) {
         case DPI_EVENT_OBJCHANGE:
             self->tables = PyList_New(message->numTables);
