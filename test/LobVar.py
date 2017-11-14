@@ -188,9 +188,11 @@ class TestLobVar(BaseTestCase):
         value = u"\u03b4\u4e2a"
         cursor = connection.cursor()
         cursor.execute("truncate table TestNCLOBs")
+        cursor.setinputsizes(val = cx_Oracle.NCHAR)
         cursor.execute("insert into TestNCLOBs values (1, :val)", val = value)
         cursor.execute("select NCLOBCol from TestNCLOBs")
         nclob, = cursor.fetchone()
+        cursor.setinputsizes(val = cx_Oracle.NCHAR)
         cursor.execute("update TestNCLOBs set NCLOBCol = :val",
                 val = nclob.read() + value)
         cursor.execute("select NCLOBCol from TestNCLOBs")

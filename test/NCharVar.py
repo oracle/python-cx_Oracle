@@ -39,6 +39,7 @@ class TestNCharVar(BaseTestCase):
 
     def testBindUnicode(self):
         "test binding in a unicode"
+        self.cursor.setinputsizes(value = cx_Oracle.NCHAR)
         self.cursor.execute("""
                 select * from TestUnicodes
                 where UnicodeCol = :value""",
@@ -58,11 +59,13 @@ class TestNCharVar(BaseTestCase):
 
     def testBindUnicodeAfterNumber(self):
         "test binding in a unicode after setting input sizes to a number"
+        unicodeVal = self.cursor.var(cx_Oracle.NCHAR)
+        unicodeVal.setvalue(0, u"Unicode \u3042 6")
         self.cursor.setinputsizes(value = cx_Oracle.NUMBER)
         self.cursor.execute("""
                 select * from TestUnicodes
                 where UnicodeCol = :value""",
-                value = u"Unicode \u3042 6")
+                value = unicodeVal)
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[6]])
 
     def testBindUnicodeArrayDirect(self):
