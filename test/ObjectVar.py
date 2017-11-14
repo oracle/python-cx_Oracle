@@ -233,3 +233,33 @@ class TestObjectVar(BaseTestCase):
                 (23, 'Substring value'), None), None)
         self.connection.rollback()
 
+    def testInvalidTypeObject(self):
+        "test trying to find an object type that does not exist"
+        self.assertRaises(cx_Oracle.DatabaseError, self.connection.gettype,
+                "A TYPE THAT DOES NOT EXIST")
+
+    def testAppendingWrongObjectType(self):
+        "test appending an object of the wrong type to a collection"
+        collectionObjType = self.connection.gettype("UDT_OBJECTARRAY")
+        collectionObj = collectionObjType.newobject()
+        arrayObjType = self.connection.gettype("UDT_ARRAY")
+        arrayObj = arrayObjType.newobject()
+        self.assertRaises(cx_Oracle.DatabaseError, collectionObj.append,
+                arrayObj)
+
+    def testSettingAttrWrongObjectType(self):
+        "test assigning an object of the wrong type to an object attribute"
+        objType = self.connection.gettype("UDT_OBJECT")
+        obj = objType.newobject()
+        wrongObjType = self.connection.gettype("UDT_OBJECTARRAY")
+        wrongObj = wrongObjType.newobject()
+        self.assertRaises(cx_Oracle.DatabaseError, setattr, obj,
+                "SUBOBJECTVALUE", wrongObj)
+
+    def testSettingVarWrongObjectType(self):
+        "test setting value of object variable to wrong object type"
+        wrongObjType = self.connection.gettype("UDT_OBJECTARRAY")
+        wrongObj = wrongObjType.newobject()
+        var = self.cursor.var(cx_Oracle.OBJECT, typename = "UDT_OBJECT")
+        self.assertRaises(cx_Oracle.DatabaseError, var.setvalue, 0, wrongObj)
+

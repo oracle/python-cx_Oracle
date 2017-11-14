@@ -208,6 +208,7 @@ class TestLobVar(BaseTestCase):
         self.__TestLobOperations("NCLOB")
 
     def testTemporaryLobs(self):
+        "test temporary LOBs"
         cursor = self.connection.cursor()
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -226,4 +227,9 @@ class TestLobVar(BaseTestCase):
         cursor.close()
         tempLobs = self.__GetTempLobs(sid)
         self.assertEqual(tempLobs, 0)
+
+    def testAssignStringBeyondArraySize(self):
+        "test assign string to NCLOB beyond array size"
+        nclobVar = self.cursor.var(cx_Oracle.NCLOB)
+        self.assertRaises(IndexError, nclobVar.setvalue, 1, "test char")
 
