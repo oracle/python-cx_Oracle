@@ -18,9 +18,17 @@
 #include <datetime.h>
 #include <structmember.h>
 #include <time.h>
+#include <math.h>
 #include <oci.h>
 #include <orid.h>
 #include <xa.h>
+
+// define isnan for older versions of Visual Studio which only define _isnan
+#ifdef _WIN32
+#ifndef isnan
+#define isnan                  _isnan
+#endif
+#endif
 
 // validate OCI library
 #if !defined(OCI_MAJOR_VERSION) || (OCI_MAJOR_VERSION < 11) || \

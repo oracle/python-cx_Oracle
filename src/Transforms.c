@@ -248,6 +248,12 @@ static int PythonFloatToOracleNumber(
     sword status;
 
     doubleValue = PyFloat_AS_DOUBLE(pythonValue);
+    if (isnan(doubleValue)) {
+        PyErr_SetString(g_DatabaseErrorException,
+                "value is not a number (NaN) and cannot be used in Oracle "
+                "numbers");
+        return -1;
+    }
     status = OCINumberFromReal(environment->errorHandle, &doubleValue,
             sizeof(double), oracleValue);
     return Environment_CheckForError(environment, status,
