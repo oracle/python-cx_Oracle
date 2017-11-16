@@ -38,6 +38,22 @@ static udt_VariableType vt_Interval = {
 };
 
 
+// PyPy compatibility {
+
+#ifndef PyDateTime_DELTA_GET_DAYS
+#define PyDateTime_DELTA_GET_DAYS(x) ((x)->days)
+#endif
+
+#ifndef PyDateTime_DELTA_GET_SECONDS
+#define PyDateTime_DELTA_GET_SECONDS(x) ((x)->seconds)
+#endif
+
+#ifndef PyDateTime_DELTA_GET_MICROSECONDS
+#define PyDateTime_DELTA_GET_MICROSECONDS(x) ((x)->microseconds)
+#endif
+
+// }
+
 //-----------------------------------------------------------------------------
 // IntervalVar_SetValue()
 //   Set the value of the variable.
@@ -47,6 +63,7 @@ static int IntervalVar_SetValue(udt_Variable *var, uint32_t pos, dpiData *data,
 {
     dpiIntervalDS *interval;
     PyDateTime_Delta *delta;
+    int32_t delta_seconds;
 
     if (!PyDelta_Check(value)) {
         PyErr_SetString(PyExc_TypeError, "expecting timedelta data");
@@ -54,12 +71,13 @@ static int IntervalVar_SetValue(udt_Variable *var, uint32_t pos, dpiData *data,
     }
     delta = (PyDateTime_Delta*) value;
     interval = &data->value.asIntervalDS;
-    interval->days = delta->days;
-    interval->hours = (int32_t) delta->seconds / 3600;
-    interval->seconds = delta->seconds - interval->hours * 3600;
-    interval->minutes = (int32_t) interval->seconds / 60;
-    interval->seconds -= interval->minutes * 60;
-    interval->fseconds = delta->microseconds * 1000;
+    delta_seconds = PyDateTime_DELTA_GET_SECONDS(delta);
+    interval->days = PyDateTime_DELTA_GET_DAYS(delta);
+    interval->hours = delta_seconds / 3600;
+    interval->seconds = delta_seconds % 3600;
+    interval->minutes = interval->seconds / 60;
+    interval->seconds = interval->seconds % 60;
+    interval->fseconds = PyDateTime_DELTA_GET_MICROSECONDS(delta) * 1000;
     return 0;
 }
 
