@@ -38,8 +38,7 @@ static udt_VariableType vt_Interval = {
 };
 
 
-// PyPy compatibility {
-
+// PyPy compatibility
 #ifndef PyDateTime_DELTA_GET_DAYS
 #define PyDateTime_DELTA_GET_DAYS(x) ((x)->days)
 #endif
@@ -52,7 +51,6 @@ static udt_VariableType vt_Interval = {
 #define PyDateTime_DELTA_GET_MICROSECONDS(x) ((x)->microseconds)
 #endif
 
-// }
 
 //-----------------------------------------------------------------------------
 // IntervalVar_SetValue()
