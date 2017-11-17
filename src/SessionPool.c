@@ -270,6 +270,8 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
     dpiCreateParams.minSessions = minSessions;
     dpiCreateParams.maxSessions = maxSessions;
     dpiCreateParams.sessionIncrement = sessionIncrement;
+    dpiCommonParams.edition = editionBuffer.ptr;
+    dpiCommonParams.editionLength = editionBuffer.size;
 
     // create pool
     Py_BEGIN_ALLOW_THREADS
