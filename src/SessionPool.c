@@ -184,6 +184,7 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
     PyObject *externalAuthObj, *editionObj;
     dpiCommonCreateParams dpiCommonParams;
     dpiPoolCreateParams dpiCreateParams;
+    PyObject *usernameObj, *dsnObj;
     PyTypeObject *connectionType;
     const char *encoding;
     int status, temp;
@@ -208,7 +209,7 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
     if (dpiContext_initPoolCreateParams(g_DpiContext, &dpiCreateParams) < 0)
         return Error_RaiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OOOiii|OObOOOssO",
-            keywordList, &self->username, &passwordObj, &self->dsn,
+            keywordList, &usernameObj, &passwordObj, &dsnObj,
             &minSessions, &maxSessions, &sessionIncrement, &connectionType,
             &threadedObj, &dpiCreateParams.getMode, &eventsObj,
             &homogeneousObj, &externalAuthObj, &dpiCommonParams.encoding,
@@ -240,8 +241,10 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
     // initialize the object's members
     Py_INCREF(connectionType);
     self->connectionType = connectionType;
-    Py_INCREF(self->dsn);
-    Py_INCREF(self->username);
+    Py_INCREF(dsnObj);
+    self->dsn = dsnObj;
+    Py_INCREF(usernameObj);
+    self->username = usernameObj;
     self->minSessions = minSessions;
     self->maxSessions = maxSessions;
     self->sessionIncrement = sessionIncrement;
