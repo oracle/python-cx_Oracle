@@ -20,7 +20,7 @@
 #
 # Statistics regarding the pool can be acquired from the following query:
 #
-#   select * from v$pool_cc_stats;
+#   select * from v$cpool_cc_stats;
 #
 # There is no difference in how a connection is used once it has been
 # established.
