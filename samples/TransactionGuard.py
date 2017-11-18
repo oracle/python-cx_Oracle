@@ -44,7 +44,6 @@ SESSION_MIN = 1
 SESSION_MAX = 9
 SESSION_INCR = 2
 CONNECT_STRING = "localhost/orcl-tg"
-CONNECT_STRING = "slc10gqr/orcl-tg"
 
 # for Python 2.7 we need raw_input
 try:
