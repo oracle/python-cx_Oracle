@@ -90,7 +90,9 @@ Module Interface
 
     The edition parameter is expected to be a string if specified and sets the
     edition to use for the session. It is only relevant if both the client and
-    the server are at least Oracle Database 11.2.
+    the database are at least Oracle Database 11.2. If this parameter is used
+    with the cclass parameter the exception "DPI-1058: edition not supported
+    with connection class" will be raised.
 
     The appcontext parameter is expected to be a list of 3-tuples, if specified,
     and sets the application context for the connection. Application context
