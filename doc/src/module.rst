@@ -44,7 +44,9 @@ Module Interface
     same format accepted by Oracle applications such as SQL\*Plus.
 
     If the mode is specified, it must be one of :data:`~cx_Oracle.SYSDBA`,
-    :data:`~cx_Oracle.SYSASM` or :data:`~cx_Oracle.SYSOPER` which are defined
+    :data:`~cx_Oracle.SYSASM`, :data:`~cx_Oracle.SYSOPER`,
+    :data:`~cx_Oracle.SYSBKP`, :data:`~cx_Oracle.SYSDGD`,
+    :data:`~cx_Oracle.SYSKMT` or :data:`~cx_Oracle.SYSRAC` which are defined
     at the module level; otherwise, it defaults to the normal mode of
     connecting.
 
@@ -513,14 +515,34 @@ values for the mode parameter of the :meth:`connect()` method.
     This constant is used to specify that SYSASM access is to be acquired.
 
 
+.. data:: SYSBKP
+
+    This constant is used to specify that SYSBACKUP access is to be acquired.
+
+
 .. data:: SYSDBA
 
     This constant is used to specify that SYSDBA access is to be acquired.
 
 
+.. data:: SYSDGD
+
+    This constant is used to specify that SYSDG access is to be acquired.
+
+
+.. data:: SYSKMT
+
+    This constant is used to specify that SYSKM access is to be acquired.
+
+
 .. data:: SYSOPER
 
     This constant is used to specify that SYSOPER access is to be acquired.
+
+
+.. data:: SYSRAC
+
+    This constant is used to specify that SYSRAC access is to be acquired.
 
 
 Database Shutdown Modes
