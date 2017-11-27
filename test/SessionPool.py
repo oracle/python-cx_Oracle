@@ -34,6 +34,7 @@ class TestConnection(TestCase):
                 encoding = ENCODING, nencoding = NENCODING)
         self.assertEqual(pool.username, USERNAME, "user name differs")
         self.assertEqual(pool.tnsentry, TNSENTRY, "tnsentry differs")
+        self.assertEqual(pool.dsn, TNSENTRY, "dsn differs")
         self.assertEqual(pool.max, 8, "max differs")
         self.assertEqual(pool.min, 2, "min differs")
         self.assertEqual(pool.increment, 3, "increment differs")

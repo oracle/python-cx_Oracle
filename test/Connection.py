@@ -22,6 +22,16 @@ class TestConnection(TestCase):
         count, = cursor.fetchone()
         self.assertEqual(count, 10)
 
+    def __VerifyAttributes(self, connection, attrName, value, tableName,
+            columnName):
+        setattr(connection, attrName, value)
+        cursor = connection.cursor()
+        sql = "select %s from %s where %s = :value" % \
+                (columnName, tableName, columnName)
+        cursor.execute(sql, value = value)
+        result, = cursor.fetchone()
+        self.assertEqual(result, value, "%s value mismatch" % attrName)
+
     def setUp(self):
         self.username = USERNAME
         self.password = PASSWORD
@@ -32,12 +42,48 @@ class TestConnection(TestCase):
                 "user name differs")
         self.assertEqual(connection.tnsentry, self.tnsentry,
                 "tnsentry differs")
+        self.assertEqual(connection.dsn, self.tnsentry, "dsn differs")
 
     def testAllArgs(self):
         "connection to database with user, password, TNS separate"
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
         self.verifyArgs(connection)
+
+    def testAttributes(self):
+        "test connection end-to-end tracing attributes"
+        connection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY)
+        self.__VerifyAttributes(connection, "action", "cx_OracleTest_Action",
+                "v$session", "action")
+        self.__VerifyAttributes(connection, "module", "cx_OracleTest_Module",
+                "v$session", "module")
+        self.__VerifyAttributes(connection, "clientinfo",
+                "cx_OracleTest_CInfo", "v$session", "client_info")
+        self.__VerifyAttributes(connection, "client_identifier",
+                "cx_OracleTest_CID", "v$session", "client_identifier")
+        self.__VerifyAttributes(connection, "dbop",
+                "cx_OracleTest_DBOP", "v$sql_monitor", "dbop_name")
+
+    def testAutoCommit(self):
+        "test use of autocommit"
+        connection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY)
+        cursor = connection.cursor()
+        otherConnection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY)
+        otherCursor = otherConnection.cursor()
+        cursor.execute("truncate table TestTempTable")
+        cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (1, null)""")
+        otherCursor.execute("select * from TestTempTable")
+        rows = otherCursor.fetchall()
+        self.assertEqual(rows, [])
+        connection.autocommit = True
+        cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (2, null)""")
+        otherCursor.execute("select * from TestTempTable order by IntCol")
+        rows = otherCursor.fetchall()
+        self.assertEqual(rows, [(1, None), (2, None)])
 
     def testBadConnectString(self):
         "connection to database with bad connect string"
@@ -52,6 +98,16 @@ class TestConnection(TestCase):
         "connection to database with bad password"
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 self.username, self.password + u"X", self.tnsentry)
+
+    def testChangePassword(self):
+        "test changing password"
+        newPassword = "NEW_PASSWORD"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        connection.changepassword(self.password, newPassword)
+        cconnection = cx_Oracle.connect(self.username, newPassword,
+                self.tnsentry)
+        connection.changepassword(newPassword, self.password)
 
     def testEncodings(self):
         "connection with only encoding or nencoding specified should work"
