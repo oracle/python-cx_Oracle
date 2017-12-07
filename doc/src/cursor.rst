@@ -143,6 +143,10 @@ Cursor Object
     differently than PL/SQL statements. For this reason, it is generally
     recommended to bind parameters by name instead of by position.
 
+    Parameters passed as a dictionary are name and value pairs. The name maps
+    to the bind variable name used by the statement and the value maps to the
+    Python value you wish bound to that bind variable.
+
     A reference to the statement will be retained by the cursor. If None or the
     same string object is passed in again, the cursor will execute that
     statement again without performing a prepare or rebinding and redefining.
