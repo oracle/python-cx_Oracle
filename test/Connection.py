@@ -22,13 +22,10 @@ class TestConnection(TestCase):
         count, = cursor.fetchone()
         self.assertEqual(count, 10)
 
-    def __VerifyAttributes(self, connection, attrName, value, tableName,
-            columnName):
+    def __VerifyAttributes(self, connection, attrName, value, sql):
         setattr(connection, attrName, value)
         cursor = connection.cursor()
-        sql = "select %s from %s where %s = :value" % \
-                (columnName, tableName, columnName)
-        cursor.execute(sql, value = value)
+        cursor.execute(sql)
         result, = cursor.fetchone()
         self.assertEqual(result, value, "%s value mismatch" % attrName)
 
@@ -53,16 +50,19 @@ class TestConnection(TestCase):
     def testAttributes(self):
         "test connection end-to-end tracing attributes"
         connection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY)
+        self.__VerifyAttributes(connection, "dbop", "cx_OracleTest_DBOP",
+                "select dbop_name from v$sql_monitor "
+                "where sid = sys_context('userenv', 'sid')")
         self.__VerifyAttributes(connection, "action", "cx_OracleTest_Action",
-                "v$session", "action")
+                "select sys_context('userenv', 'action') from dual")
         self.__VerifyAttributes(connection, "module", "cx_OracleTest_Module",
-                "v$session", "module")
+                "select sys_context('userenv', 'module') from dual")
         self.__VerifyAttributes(connection, "clientinfo",
-                "cx_OracleTest_CInfo", "v$session", "client_info")
+                "cx_OracleTest_CInfo",
+                "select sys_context('userenv', 'client_info') from dual")
         self.__VerifyAttributes(connection, "client_identifier",
-                "cx_OracleTest_CID", "v$session", "client_identifier")
-        self.__VerifyAttributes(connection, "dbop",
-                "cx_OracleTest_DBOP", "v$sql_monitor", "dbop_name")
+                "cx_OracleTest_CID",
+                "select sys_context('userenv', 'client_identifier') from dual")
 
     def testAutoCommit(self):
         "test use of autocommit"
