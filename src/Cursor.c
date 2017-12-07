@@ -816,7 +816,7 @@ static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
                     deferTypeAssignment) < 0)
                 return -1;
             if (newVar) {
-                if (i < PyList_GET_SIZE(self->bindVariables)) {
+                if (i < (uint32_t) PyList_GET_SIZE(self->bindVariables)) {
                     if (PyList_SetItem(self->bindVariables, i,
                             (PyObject*) newVar) < 0) {
                         Py_DECREF(newVar);

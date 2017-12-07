@@ -173,7 +173,7 @@ static PyObject *LOB_InternalRead(udt_LOB *self, uint64_t offset,
     // create a buffer of the correct size
     if (dpiLob_getBufferSize(self->handle, amount, &bufferSize) < 0)
         return Error_RaiseAndReturnNull();
-    buffer = (char*) PyMem_Malloc(bufferSize);
+    buffer = (char*) PyMem_Malloc((Py_ssize_t) bufferSize);
     if (!buffer)
         return PyErr_NoMemory();
 
@@ -189,12 +189,12 @@ static PyObject *LOB_InternalRead(udt_LOB *self, uint64_t offset,
 
     // return the result
     if (self->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
-        result = PyUnicode_Decode(buffer, bufferSize,
+        result = PyUnicode_Decode(buffer, (Py_ssize_t) bufferSize,
                 self->connection->encodingInfo.nencoding, NULL);
     else if (self->oracleTypeNum == DPI_ORACLE_TYPE_CLOB)
-        result = cxString_FromEncodedString(buffer, bufferSize,
+        result = cxString_FromEncodedString(buffer, (Py_ssize_t) bufferSize,
                 self->connection->encodingInfo.encoding);
-    else result = PyBytes_FromStringAndSize(buffer, bufferSize);
+    else result = PyBytes_FromStringAndSize(buffer, (Py_ssize_t) bufferSize);
     PyMem_Free(buffer);
     return result;
 }
