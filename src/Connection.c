@@ -739,6 +739,7 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
     PyObject *shardingKeyObj, *superShardingKeyObj;
     dpiCommonCreateParams dpiCommonParams;
     dpiConnCreateParams dpiCreateParams;
+    unsigned long long externalHandle;
     udt_ConnectionParams params;
     PyObject *newPasswordObj;
     udt_SessionPool *pool;
@@ -752,6 +753,7 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
 
     // parse arguments
     pool = NULL;
+    externalHandle = 0;
     threadedObj = eventsObj = newPasswordObj = usernameObj = NULL;
     passwordObj = dsnObj = cclassObj = editionObj = tagObj = NULL;
     matchAnyTagObj = contextObj = shardingKeyObj = superShardingKeyObj = NULL;
@@ -766,13 +768,14 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
         return Error_RaiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
             "|OOOikO!OOOiOssOOOOOO", keywordList, &usernameObj, &passwordObj,
-            &dsnObj, &dpiCreateParams.authMode,
-            &dpiCreateParams.externalHandle, &g_SessionPoolType, &pool,
-            &threadedObj, &eventsObj, &cclassObj, &dpiCreateParams.purity,
-            &newPasswordObj, &dpiCommonParams.encoding,
-            &dpiCommonParams.nencoding, &editionObj, &contextObj, &tagObj,
-            &matchAnyTagObj, &shardingKeyObj, &superShardingKeyObj))
+            &dsnObj, &dpiCreateParams.authMode, &externalHandle,
+            &g_SessionPoolType, &pool, &threadedObj, &eventsObj, &cclassObj,
+            &dpiCreateParams.purity, &newPasswordObj,
+            &dpiCommonParams.encoding, &dpiCommonParams.nencoding, &editionObj,
+            &contextObj, &tagObj, &matchAnyTagObj, &shardingKeyObj,
+            &superShardingKeyObj))
         return -1;
+    dpiCreateParams.externalHandle = (void*) externalHandle;
     if (GetBooleanValue(threadedObj, 0, &temp) < 0)
         return -1;
     if (temp)
@@ -1055,7 +1058,7 @@ static PyObject *Connection_GetHandle(udt_Connection *self, void *unused)
         return NULL;
     if (dpiConn_getHandle(self->handle, &handle) < 0)
         return Error_RaiseAndReturnNull();
-    return PyInt_FromLong((long) handle);
+    return PyLong_FromUnsignedLongLong((unsigned long long) handle);
 }
 
 
