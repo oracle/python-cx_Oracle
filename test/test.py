@@ -52,7 +52,8 @@ else:
             "StringVar",
             "TimestampVar",
             "AQ",
-            "Rowid"
+            "Rowid",
+            "Subscription"
     ]
     clientVersion = cx_Oracle.clientversion()
     if clientVersion[:2] >= (12, 1):
