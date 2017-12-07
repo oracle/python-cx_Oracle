@@ -9,6 +9,7 @@
 
 """Module for testing connections."""
 
+import random
 import threading
 
 class TestConnection(TestCase):
@@ -141,6 +142,27 @@ class TestConnection(TestCase):
                 self.tnsentry)
         connection.close()
         self.assertRaises(cx_Oracle.DatabaseError, connection.rollback)
+
+    def testConnectWithHandle(self):
+        "test creating a connection using a handle"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        cursor = connection.cursor()
+        cursor.execute("truncate table TestTempTable")
+        intValue = random.randint(1, 32768)
+        cursor.execute("insert into TestTempTable values (:val, null)",
+                val = intValue)
+        connection2 = cx_Oracle.connect(handle = connection.handle)
+        cursor = connection2.cursor()
+        cursor.execute("select IntCol from TestTempTable")
+        fetchedIntValue, = cursor.fetchone()
+        self.assertEqual(fetchedIntValue, intValue)
+        cursor.close()
+        self.assertRaises(cx_Oracle.DatabaseError, connection2.close)
+        connection.close()
+        cursor = connection2.cursor()
+        self.assertRaises(cx_Oracle.DatabaseError, cursor.execute,
+                "select count(*) from TestTempTable")
 
     def testMakeDSN(self):
         "test making a data source name from host, port and sid"
