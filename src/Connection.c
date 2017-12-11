@@ -767,7 +767,7 @@ static int Connection_Init(udt_Connection *self, PyObject *args,
     if (dpiContext_initConnCreateParams(g_DpiContext, &dpiCreateParams) < 0)
         return Error_RaiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOikO!OOOiOssOOOOOO", keywordList, &usernameObj, &passwordObj,
+            "|OOOiKO!OOOiOssOOOOOO", keywordList, &usernameObj, &passwordObj,
             &dsnObj, &dpiCreateParams.authMode, &externalHandle,
             &g_SessionPoolType, &pool, &threadedObj, &eventsObj, &cclassObj,
             &dpiCreateParams.purity, &newPasswordObj,
