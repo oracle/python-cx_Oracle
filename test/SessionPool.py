@@ -109,8 +109,10 @@ class TestConnection(TestCase):
 
     def testThreading(self):
         """test session pool to database with multiple threads"""
-        self.pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 5, 20,
-                2, threaded = True, encoding = ENCODING, nencoding = NENCODING)
+        self.pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY,
+                min = 5, max = 20, increment = 2, threaded = True,
+                getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT, encoding = ENCODING,
+                nencoding = NENCODING)
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__ConnectAndDrop)
@@ -121,8 +123,10 @@ class TestConnection(TestCase):
 
     def testThreadingWithErrors(self):
         """test session pool to database with multiple threads (with errors)"""
-        self.pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 5, 20,
-                2, threaded = True, encoding = ENCODING, nencoding = NENCODING)
+        self.pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY,
+                min = 5, max = 20, increment = 2, threaded = True,
+                getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT, encoding = ENCODING,
+                nencoding = NENCODING)
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__ConnectAndGenerateError)
