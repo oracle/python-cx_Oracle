@@ -8,6 +8,75 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.1 (December 2017)
+---------------------------
+
+#)  Update to `ODPI-C 2.1
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-2-1-december-12-2017>`__.
+
+    - Support was added for accessing sharded databases via sharding keys (new
+      in Oracle 12.2). NOTE: the underlying OCI library has a bug when using
+      standalone connections. There is a small memory leak proportional to the
+      number of connections created/dropped. There is no memory leak when using
+      session pools, which is recommended.
+    - Added options for authentication with SYSBACKUP, SYSDG, SYSKM and SYSRAC,
+      as requested (`issue 101
+      <https://github.com/oracle/python-cx_Oracle/issues/101>`__).
+    - Attempts to release statements or free LOBs after the connection has been
+      closed (by, for example, killing the session) are now prevented.
+    - An error message was added when specifying an edition and a connection
+      class since this combination is not supported.
+    - Attempts to close the session for connections created with an external
+      handle are now prevented.
+    - Attempting to ping a database earlier than 10g results in ORA-1010:
+      invalid OCI operation, but that implies a response from the database and
+      therefore a successful ping, so treat it that way!
+      (see `<https://github.com/rana/ora/issues/224>`__ for more information).
+    - Support was added for converting numeric values in an object type
+      attribute to integer and text, as requested (`ODPI-C issue 35
+      <https://github.com/oracle/odpi/issues/35>`__).
+    - Setting attributes :attr:`DeqOptions.msgId` and
+      :attr:`MessageProperties.msgId` now works as expected.
+    - The overflow check when using double values (Python floats) as input
+      to float attributes of objects or elements of collections was removed as
+      it didn't work anyway and is a well-known issue that cannot be prevented
+      without removing desired functionality. The developer should ensure that
+      the source value falls within the limits of floats, understand the
+      consequent precision loss or use a different data type.
+    - Variables of string/raw types are restricted to 2 bytes less than 1 GB
+      (1,073,741,822 bytes), since OCI cannot handle more than that currently.
+    - Support was added for identifying the id of the transaction which spawned
+      a subscription message, as requested
+      (`ODPI-C issue 32 <https://github.com/oracle/odpi/issues/32>`__).
+    - Corrected use of subscription port number (`issue 115
+      <https://github.com/oracle/python-cx_Oracle/issues/115>`__).
+    - Problems reported with the usage of FormatMessage() on Windows were
+      addressed (`ODPI-C issue 47
+      <https://github.com/oracle/odpi/issues/47>`__).
+    - On Windows, if oci.dll cannot be loaded because it is the wrong
+      architecture (32-bit vs 64-bit), attempt to find the offending DLL and
+      include the full path of the DLL in the message, as suggested.
+      (`ODPI-C issue 49 <https://github.com/oracle/odpi/issues/49>`__).
+    - Force OCI prefetch to always use the value 2; the OCI default is 1 but
+      setting the ODPI-C default to 2 ensures that single row fetches don't
+      require an extra round trip to determine if there are more rows to fetch;
+      this change also reduces the potential memory consumption when
+      fetchArraySize was set to a large value and also avoids performance
+      issues discovered with larger values of prefetch.
+
+#)  Fix build with PyPy 5.9.0-alpha0 in libpython mode
+    (`PR 54 <https://github.com/oracle/python-cx_Oracle/pull/54>`__).
+#)  Ensure that the edition is passed through to the database when a session
+    pool is created.
+#)  Corrected handling of Python object references when an invalid keyword
+    parameter is passed to :meth:`cx_Oracle.SessionPool`.
+#)  Corrected handling of :attr:`Connection.handle` and the handle parameter
+    to :meth:`cx_Oracle.connect` on Windows.
+#)  Documentation improvements.
+#)  Added test cases to the test suite.
+
+
 Version 6.0.3 (November 2017)
 -----------------------------
 
