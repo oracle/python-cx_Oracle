@@ -1,4 +1,4 @@
-# Open Source Python/Oracle Utility - cx_Oracle
+# Python cx_Oracle interface to Oracle Database
 
 cx_Oracle is a Python extension module that enables access to Oracle Database.
 It conforms to the [Python database API 2.0 specification][1] with a
@@ -11,61 +11,45 @@ cx_Oracle 6 has been tested with Python version 2.7, and with versions
 client libraries. Oracle's standard client-server version
 interoperability allows connection to both older and newer databases,
 for example Oracle 12.2 client libraries can connect to Oracle
-Database 11.2 or later.
+Database 11.2.
 
-## Documentation
+## Getting Started
 
-See the [cx_Oracle Documentation][2] and [Release Notes][14].
+Install Python from [python.org][4].
 
-## Help
+Install cx_Oracle using [Quick Start cx_Oracle Installation][6].
 
-Issues and questions can be raised with the cx_Oracle community on
-[GitHub][9] or on the [mailing list][5].
+Download cx_Oracle [samples][12] or create a script like the one
+below.
 
-## Installation
+Locate your Oracle Database username and password, and the database
+connection string.  The connection string is commonly of the format
+`hostname/servicename`, using the hostname where the database is
+running, and the service name of the Oracle Database instance.
 
-See [cx_Oracle Installation][15] for detailed instructions.
+Substitute your username, password and connection string in the code.
+For downloaded examples, put these in [`SampleEnv.py`][13] and
+[`SampleEnv.sql`][10], and then follow [`sample/README`][16] to create
+the cx_Oracle sample schema.  SQL scripts to create Oracle Database's
+common sample schemas can be found at
+[github.com/oracle/db-sample-schemas][17].
 
-- The simplest way to install cx_Oracle 6 is with pip:
+Run the Python script, for example:
 
 ```
-  python -m pip install cx_Oracle --upgrade
+python myscript.py
 ```
 
-  If a binary wheel package is not available on [PyPI][6] for your platform, the
-  source package will be used.
-
-  Note that if you download a source zip file directly from GitHub
-  that you will also need to download an [ODPI-C][10] source zip file
-  and extract it inside the directory called "odpi".
-
-- After cx_Oracle is installed, Oracle client libraries must also be installed
-  and configured. These can be from Oracle Instant Client, from a local Oracle
-  Database, or from a full Oracle Client installation.
-
-  If you need the libraries, download and unzip the [Oracle Instant Client][4]
-  'Basic' package for your platform and set PATH, LD_LIBRARY_PATH, or similar
-  platform-specific library path loading environment.  See
-  the [installation notes for ODPI-C][13] for help.
-
-  Versions 11.2, 12.1 and 12.2 of the Oracle Client libraries on Linux,
-  Windows and macOS are supported.  Users have also reported success
-  with other platforms.
-
-If you require cx_Oracle 5.3, download a Windows installer from
-[PyPI][16] or use `python -m pip install cx-oracle==5.3` to
-install from source.
-
-Very old versions of cx_Oracle can be found in the files section at
-[SourceForce][17].
-
-## Example
+### Sample cx_Oracle Script
 
 ```python
+# myscript.py
+
 from __future__ import print_function
 
 import cx_Oracle
 
+# Connect as user "hr" with password "welcome" to the "oraclepdb" service running on this computer.
 connection = cx_Oracle.connect("hr", "welcome", "localhost/orclpdb")
 
 cursor = connection.cursor()
@@ -79,9 +63,32 @@ for fname, lname in cursor:
 print("Values:", fname, lname)
 ```
 
-For more examples, please see the [test suite][11] and the
-[samples][12]. You can also look at the scripts in [cx_OracleTools][7] and
-the modules in [cx_PyOracleLib][8].
+## Installation
+
+See [cx_Oracle Installation][15].
+
+## Examples
+
+See the [samples][12] directory and the [test suite][11]. You can also
+look at the scripts in [cx_OracleTools][7] and the modules in
+[cx_PyOracleLib][8].
+
+## Documentation
+
+See the [cx_Oracle Documentation][2].
+
+## Changes
+
+See [What's New][18] and the [Release Notes][14].
+
+## Tests
+
+See the [test suite][11].
+
+## Help
+
+Issues and questions can be raised with the cx_Oracle community on
+[GitHub][9] or on the [mailing list][5].
 
 ## Features
 
@@ -169,17 +176,18 @@ for more information.
 [1]: https://www.python.org/dev/peps/pep-0249
 [2]: http://cx-oracle.readthedocs.io
 [3]: https://github.com/oracle/python-cx_Oracle/blob/master/LICENSE.txt
-[4]: http://www.oracle.com/technetwork/database/features/instant-client/index.html
+[4]: https://www.python.org/downloads/
 [5]: http://lists.sourceforge.net/lists/listinfo/cx-oracle-users
-[6]: https://pypi.python.org/pypi/cx_Oracle
+[6]: http://cx-oracle.readthedocs.io/en/latest/installation.html#quick-start-cx-oracle-installation
 [7]: http://cx-oracletools.sourceforge.net
 [8]: http://cx-pyoraclelib.sourceforge.net
 [9]: https://github.com/oracle/python-cx_Oracle/issues
-[10]: https://oracle.github.io/odpi
+[10]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/SampleEnv.sql
 [11]: https://github.com/oracle/python-cx_Oracle/tree/master/test
 [12]: https://github.com/oracle/python-cx_Oracle/tree/master/samples
-[13]: https://oracle.github.io/odpi/doc/installation.html
+[13]: https://github.com/oracle/python-cx_Oracle/tree/master/samples/SampleEnv.py
 [14]: http://cx-oracle.readthedocs.io/en/latest/releasenotes.html
 [15]: http://cx-oracle.readthedocs.io/en/latest/installation.html
-[16]: https://pypi.python.org/pypi/cx_Oracle/5.3
-[17]: https://sourceforge.net/projects/cx-oracle/files/
+[16]: https://github.com/oracle/python-cx_Oracle/tree/master/samples/README.md
+[17]: https://github.com/oracle/db-sample-schemas
+[18]: http://cx-oracle.readthedocs.io/en/latest/whatsnew.html
