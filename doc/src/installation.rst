@@ -7,24 +7,74 @@ cx_Oracle 6 Installation
 Overview
 ========
 
-Before cx_Oracle can be installed, an installation of
-`Python <https://www.python.org/downloads>`__ is needed first. Python 2.7 and
-Python 3.4 and higher are supported.
+To connect Python and Oracle Database you need:
 
-The simplest method of installing cx_Oracle is to `Install Using Pip`_. You
-can also `Install Using GitHub`_. If you run into trouble, check out the
-section on `Troubleshooting`_. cx_Oracle uses `ODPI-C
-<https://github.com/oracle/odpi>`__, which means that the `ODPI-C installation
-instructions <https://oracle.github.io/odpi/doc/installation.html>`__ can be
-useful to review.
+- Python 2.7 or 3.4 and higher.
 
-After cx_Oracle has been installed, you must also `Install Oracle Client`_, if
-that has not been done already. Oracle Client versions 12.2, 12.1 and 11.2
-are supported.
+- The cx_Oracle module, which is available on `PyPI
+  <https://pypi.python.org/pypi/cx_Oracle>`__.
 
-Finally, you need an `Oracle Database`_ for Python to connect to. Oracle's
-standard client-server version interoperability allows cx_Oracle to connect to
-both older and newer databases. Python can be local or remote to the database.
+- Oracle client libraries. These can be from the free `Oracle Instant
+  Client
+  <http://www.oracle.com/technetwork/database/features/instant-client/
+  index.html>`__, or those included in Oracle Database if Python is on
+  the same machine as the database.  Oracle client libraries versions
+  12.2, 12.1 and 11.2 are supported on Linux, Windows and macOS.
+  Users have also reported success with other platforms.
+
+- An Oracle Database. Oracle's standard client-server version
+  interoperability allows cx_Oracle to connect to both older and newer
+  databases.
+
+Quick Start cx_Oracle Installation
+==================================
+
+- An installation of `Python <https://www.python.org/downloads>`__ is
+  needed. Python 2.7 and Python 3.4 and higher are supported.
+
+- Install cx_Oracle from `PyPI
+  <https://pypi.python.org/pypi/cx_Oracle>`__ with:
+
+      python -m pip install cx_Oracle --upgrade
+
+  If a binary wheel package is not available for your platform, the
+  source package will be downloaded, compiled, and the resulting
+  binary installed.
+
+- Add Oracle 12.2, 12.1 or 11.2 client libraries to your operating
+  system library search path such as ``PATH`` on Windows or
+  ``LD_LIBRARY_PATH`` on Linux.  On macOS move the files to ``~/lib``
+  or ``/usr/local/lib``.
+
+    - If your database is remote, then download and unzip the client
+      libraries from the free `Oracle Instant Client
+      <http://www.oracle.com/technetwork/database/features/instant-client/
+      index.html>`__ "Basic" or "Basic Light" package for your
+      operating system architecture.
+
+      Instant Client on Windows requires an appropriate `Microsoft
+      Windows Redistributables
+      <https://oracle.github.io/odpi/doc/installation.html#windows>`__.
+      On Linux, the ``libaio`` (sometimes called ``libaio1``) package
+      is needed.
+
+    - Alternatively use the client libraries already available in a
+      locally installed database such as the free `Oracle XE
+      <http://www.oracle.com/technetwork/database/database-technologies/express-edition/overview/index.html>`__
+      release.
+
+  Version 12.2 client libraries can connect to Oracle Database 11.2 or
+  greater. Version 12.1 client libraries can connect to Oracle Database
+  10.2 or greater. Version 11.2 client libraries can connect to Oracle
+  Database 9.2 or greater.
+
+If you run into trouble, check out the section on `Troubleshooting`_.
+
+The database abstraction layer in cx_Oracle is `ODPI-C
+<https://github.com/oracle/odpi>`__, which means that the `ODPI-C
+installation instructions
+<https://oracle.github.io/odpi/doc/installation.html>`__ can be useful
+to review.
 
 
 Upgrading from cx_Oracle 5
@@ -130,13 +180,16 @@ on configuration.
 Oracle Database
 ===============
 
-Oracle Client libraries allow connection to older and newer databases.
+Oracle's standard client-server network interoperability allows
+connections between different versions of Oracle Client and Oracle
+Database.  For certified configurations see Oracle Support's `Doc ID
+207303.1 <https://support.oracle.com/epmos/faces/DocumentDisplay?id=207303.1>`__.
 In summary, Oracle Client 12.2 can connect to Oracle Database 11.2 or
 greater. Oracle Client 12.1 can connect to Oracle Database 10.2 or
 greater. Oracle Client 11.2 can connect to Oracle Database 9.2 or
-greater. For additional information on which Oracle Database releases
-are supported by which Oracle client versions, please see `Doc ID 207303.1
-<https://support.oracle.com/epmos/faces/DocumentDisplay?id=207303.1>`__.
+greater.  The technical restrictions on creating connections may be more
+flexible.  For example Oracle Client 12.2 can successfully connect to Oracle
+Database 10.2.
 
 Since a single cx_Oracle binary can use multiple client versions and access
 multiple database versions, it is important your application is tested in your
@@ -165,6 +218,18 @@ errors. These include:
 
     - when attempting to get array DML row counts with Oracle Client
       11.2 you will get the error "DPI-1013: not supported"
+
+
+Installing cx_Oracle 5.3
+========================
+
+If you require cx_Oracle 5.3, download a Windows installer from `PyPI
+<https://pypi.python.org/pypi/cx_Oracle>`__ or use ``python -m pip
+install cx-oracle==5.3`` to install from source.
+
+Very old versions of cx_Oracle can be found in the files section at
+`SourceForce <https://sourceforge.net/projects/cx-oracle/files/>`__.
+
 
 Troubleshooting
 ===============
