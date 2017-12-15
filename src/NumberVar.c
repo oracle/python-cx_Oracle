@@ -198,14 +198,6 @@ static int NumberVar_SetValueDecimal(udt_Variable *var, uint32_t pos,
 static int NumberVar_SetValueFloat(udt_Variable *var, uint32_t pos,
         dpiData *data, PyObject *value)
 {
-    if (!PyFloat_Check(value) &&
-#if PY_MAJOR_VERSION < 3
-            !PyInt_Check(value) &&
-#endif
-            !PyLong_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "expecting float");
-        return -1;
-    }
     data->value.asDouble = PyFloat_AsDouble(value);
     if (PyErr_Occurred())
         return -1;
