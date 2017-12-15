@@ -33,7 +33,7 @@ Quick Start cx_Oracle Installation
   needed. Python 2.7 and Python 3.4 and higher are supported.
 
 - Install cx_Oracle from `PyPI
-  <https://pypi.python.org/pypi/cx_Oracle>`__ with:
+  <https://pypi.python.org/pypi/cx_Oracle>`__ with::
 
       python -m pip install cx_Oracle --upgrade
 
