@@ -93,7 +93,7 @@ static PyMethodDef g_CursorMethods[] = {
     { "fetchraw", (PyCFunction) Cursor_FetchRaw,
               METH_VARARGS | METH_KEYWORDS },
     { "prepare", (PyCFunction) Cursor_Prepare, METH_VARARGS },
-    { "parse", (PyCFunction) Cursor_Parse, METH_VARARGS },
+    { "parse", (PyCFunction) Cursor_Parse, METH_O },
     { "setinputsizes", (PyCFunction) Cursor_SetInputSizes,
               METH_VARARGS | METH_KEYWORDS },
     { "executemany", (PyCFunction) Cursor_ExecuteMany,
@@ -1022,16 +1022,11 @@ static int Cursor_InternalPrepare(udt_Cursor *self, PyObject *statement,
 //   Parse the statement without executing it. This also retrieves information
 // about the select list for select statements.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Parse(udt_Cursor *self, PyObject *args)
+static PyObject *Cursor_Parse(udt_Cursor *self, PyObject *statement)
 {
     uint32_t mode, numQueryColumns;
     dpiStmtInfo stmtInfo;
-    PyObject *statement;
     int status;
-
-    // statement text is expected
-    if (!PyArg_ParseTuple(args, "S", &statement))
-        return NULL;
 
     // make sure the cursor is open
     if (Cursor_IsOpen(self) < 0)
