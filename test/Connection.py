@@ -51,9 +51,10 @@ class TestConnection(TestCase):
     def testAttributes(self):
         "test connection end-to-end tracing attributes"
         connection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY)
-        self.__VerifyAttributes(connection, "dbop", "cx_OracleTest_DBOP",
-                "select dbop_name from v$sql_monitor "
-                "where sid = sys_context('userenv', 'sid')")
+        if CLIENT_VERSION >= (12, 1):
+            self.__VerifyAttributes(connection, "dbop", "cx_OracleTest_DBOP",
+                    "select dbop_name from v$sql_monitor "
+                    "where sid = sys_context('userenv', 'sid')")
         self.__VerifyAttributes(connection, "action", "cx_OracleTest_Action",
                 "select sys_context('userenv', 'action') from dual")
         self.__VerifyAttributes(connection, "module", "cx_OracleTest_Module",
