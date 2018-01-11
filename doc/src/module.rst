@@ -201,12 +201,23 @@ Module Interface
 
     Construct an object holding a time value.
 
+    .. note::
+
+        The time only data type is not supported by Oracle. Calling this
+        function will raise a NotSupportedError exception.
+
+
 
 .. function:: TimeFromTicks(ticks)
 
     Construct an object holding a time value from the given ticks value (number
     of seconds since the epoch; see the documentation of the standard Python
     time module for details).
+
+    .. note::
+
+        The time only data type is not supported by Oracle. Calling this
+        function will raise a NotSupportedError exception.
 
 
 .. function:: Timestamp(year, month, day, hour, minute, second)
