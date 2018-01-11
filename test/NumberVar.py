@@ -330,3 +330,10 @@ class TestNumberVar(BaseTestCase):
         self.assertEqual(result, 1.0 / 7.0)
         self.assertTrue(isinstance(result, float), "float not returned")
 
+    def testStringFormat(self):
+        "test that string format is returned properly"
+        var = self.cursor.var(cx_Oracle.NUMBER)
+        self.assertEqual(str(var), "<cx_Oracle.NUMBER with value None>")
+        var.setvalue(0, 4)
+        self.assertEqual(str(var), "<cx_Oracle.NUMBER with value 4.0>")
+

@@ -229,3 +229,11 @@ class TestConnection(TestCase):
         for thread in threads:
             thread.join()
 
+    def testStringFormat(self):
+        "test string format of connection"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        expectedValue = "<cx_Oracle.Connection to %s@%s>" % \
+                (self.username, self.tnsentry)
+        self.assertEqual(str(connection), expectedValue)
+

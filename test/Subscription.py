@@ -89,3 +89,8 @@ class Subscription(BaseTestCase):
         self.assertEqual(data.rowOperations, rowOperations)
         self.assertEqual(data.rowids, rowids)
 
+        # test string format of subscription object is as expected
+        fmt = "<cx_Oracle.Subscription on <cx_Oracle.Connection to %s@%s>>"
+        expectedValue = fmt % (USERNAME, TNSENTRY)
+        self.assertEqual(str(sub), expectedValue)
+

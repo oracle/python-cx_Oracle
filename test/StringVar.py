@@ -378,3 +378,9 @@ class TestStringVar(BaseTestCase):
                 [2, u'd5ff845a', u'94275767', u'bf161ff6', u'', u'', idVar])
         cursor.execute("drop table issue_50 purge")
 
+    def testSetRowidToString(self):
+        "test assigning a string to rowid"
+        var = self.cursor.var(cx_Oracle.ROWID)
+        self.assertRaises(cx_Oracle.NotSupportedError, var.setvalue, 0,
+                "ABDHRYTHFJGKDKKDH")
+

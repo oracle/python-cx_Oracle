@@ -53,6 +53,15 @@ class TestConnection(TestCase):
         self.assertEqual(pool.busy, 2, "busy not 2 after release")
         del connection_2
         self.assertEqual(pool.busy, 1, "busy not 1 after del")
+        pool.getmode = cx_Oracle.SPOOL_ATTRVAL_NOWAIT
+        self.assertEqual(pool.getmode, cx_Oracle.SPOOL_ATTRVAL_NOWAIT)
+        pool.stmtcachesize = 50
+        self.assertEqual(pool.stmtcachesize, 50)
+        pool.timeout = 10
+        self.assertEqual(pool.timeout, 10)
+        if CLIENT_VERSION >= (12, 1):
+            pool.max_lifetime_session = 10
+            self.assertEqual(pool.max_lifetime_session, 10)
 
     def testProxyAuth(self):
         """test that proxy authentication is possible"""
@@ -134,4 +143,41 @@ class TestConnection(TestCase):
             thread.start()
         for thread in threads:
             thread.join()
+
+    def testPurity(self):
+        """test session pool with various types of purity"""
+        action = "TEST_ACTION"
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, min = 1,
+                max = 8, increment = 1, encoding = ENCODING,
+                nencoding = NENCODING)
+
+        # get connection and set the action
+        connection = pool.acquire()
+        connection.action = action
+        cursor = connection.cursor()
+        cursor.execute("select 1 from dual")
+        cursor.close()
+        pool.release(connection)
+        self.assertEqual(pool.opened, 1, "opened (1)")
+
+        # verify that the connection still has the action set on it
+        connection = pool.acquire()
+        cursor = connection.cursor()
+        cursor.execute("select sys_context('userenv', 'action') from dual")
+        result, = cursor.fetchone()
+        self.assertEqual(result, action)
+        cursor.close()
+        pool.release(connection)
+        self.assertEqual(pool.opened, 1, "opened (2)")
+
+        # get a new connection with new purity (should not have state)
+        connection = pool.acquire(purity = cx_Oracle.ATTR_PURITY_NEW)
+        cursor = connection.cursor()
+        cursor.execute("select sys_context('userenv', 'action') from dual")
+        result, = cursor.fetchone()
+        self.assertEqual(result, None)
+        cursor.close()
+        self.assertEqual(pool.opened, 2, "opened (3)")
+        pool.drop(connection)
+        self.assertEqual(pool.opened, 1, "opened (4)")
 

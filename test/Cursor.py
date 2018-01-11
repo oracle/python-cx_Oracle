@@ -455,3 +455,25 @@ class TestCursor(BaseTestCase):
                 end;""", [var, 'test_', 5, '_second_', 3, 7])
         self.assertEqual(var.getvalue(), u"test_5_second_37")
 
+    def testStringFormat(self):
+        """test string format of cursor"""
+        formatString = "<cx_Oracle.Cursor on <cx_Oracle.Connection to %s@%s>>"
+        expectedValue = formatString % (USERNAME, TNSENTRY)
+        self.assertEqual(str(self.cursor), expectedValue)
+
+    def testCursorFetchRaw(self):
+        """test cursor.fetchraw()"""
+        cursor = self.connection.cursor()
+        cursor.arraysize = 25
+        cursor.execute("select LongIntCol from TestNumbers order by IntCol")
+        self.assertEqual(cursor.fetchraw(), 10)
+        self.assertEqual(cursor.fetchvars[0].getvalue(), 38)
+
+    def testParse(self):
+        """test parsing statements"""
+        sql = "select LongIntCol from TestNumbers where IntCol = :val"
+        self.cursor.parse(sql)
+        self.assertEqual(self.cursor.statement, sql)
+        self.assertEqual(self.cursor.description,
+                [ ('LONGINTCOL', cx_Oracle.NUMBER, 17, None, 16, 0, 0) ])
+

@@ -263,3 +263,9 @@ class TestObjectVar(BaseTestCase):
         var = self.cursor.var(cx_Oracle.OBJECT, typename = "UDT_OBJECT")
         self.assertRaises(cx_Oracle.DatabaseError, var.setvalue, 0, wrongObj)
 
+    def testStringFormat(self):
+        "test object string format"
+        objType = self.connection.gettype("UDT_OBJECT")
+        self.assertEqual(str(objType),
+                "<cx_Oracle.ObjectType CX_ORACLE.UDT_OBJECT>")
+

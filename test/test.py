@@ -94,6 +94,7 @@ for name in moduleNames:
     if inSetup:
         fileName = os.path.join("test", fileName)
     module = imp.new_module(name)
+    setattr(module, "CLIENT_VERSION", cx_Oracle.clientversion())
     setattr(module, "USERNAME", TestEnv.MAIN_USER)
     setattr(module, "PASSWORD", TestEnv.MAIN_PASSWORD)
     setattr(module, "PROXY_USERNAME", TestEnv.PROXY_USER)
