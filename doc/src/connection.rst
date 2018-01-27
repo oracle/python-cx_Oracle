@@ -114,11 +114,8 @@ Connection Object
     connection will be unusable from this point forward; an Error exception
     will be raised if any operation is attempted with the connection.
 
-    Before the connection can be closed, all cursors created by the connection
-    must first be closed or all references released. In addition, all LOB
-    objects created by the connection must have their references released. If
-    this has not been done, the exception "DPI-1054: connection cannot be
-    closed when open statements or LOBs exist" will be raised.
+    All open cursors and LOBs created by the connection will be closed and will
+    also no longer be usable.
 
     Internally, references to the connection are held by cursor objects,
     LOB objects, subscription objects, etc. Once all of these references are
