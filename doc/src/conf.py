@@ -33,7 +33,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'cx_Oracle'
-copyright = u'2016, 2017, Oracle and/or its affiliates. All rights reserved. Portions Copyright © 2007-2015, Anthony Tuininga. All rights reserved. Portions Copyright © 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta, Canada. All rights reserved'
+copyright = u'2016, 2018, Oracle and/or its affiliates. All rights reserved. Portions Copyright © 2007-2015, Anthony Tuininga. All rights reserved. Portions Copyright © 2001-2007, Computronix (Canada) Ltd., Edmonton, Alberta, Canada. All rights reserved'
 author = 'Oracle'
 
 # The default replacements for |version| and |release|, also used in various
