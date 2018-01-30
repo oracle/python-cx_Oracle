@@ -62,12 +62,16 @@ else:
 
 class BaseTestCase(unittest.TestCase):
 
-    def setUp(self):
+    def getConnection(self, **kwargs):
         import cx_Oracle
         import TestEnv
-        self.connection = cx_Oracle.Connection(TestEnv.MAIN_USER,
-                TestEnv.MAIN_PASSWORD, TestEnv.CONNECT_STRING,
-                encoding = TestEnv.ENCODING, nencoding = TestEnv.NENCODING)
+        return cx_Oracle.Connection(TestEnv.MAIN_USER, TestEnv.MAIN_PASSWORD,
+                TestEnv.CONNECT_STRING, encoding = TestEnv.ENCODING,
+                nencoding = TestEnv.NENCODING, **kwargs)
+
+    def setUp(self):
+        import TestEnv
+        self.connection = self.getConnection()
         self.cursor = self.connection.cursor()
         self.cursor.arraysize = TestEnv.ARRAY_SIZE
 

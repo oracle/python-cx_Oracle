@@ -19,7 +19,7 @@ class TestAQ(BaseTestCase):
     ]
 
     def __deqInThread(self, results):
-        connection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY)
+        connection = self.getConnection()
         booksType = connection.gettype("UDT_BOOK")
         book = booksType.newobject()
         options = connection.deqoptions()
@@ -98,6 +98,7 @@ class TestAQ(BaseTestCase):
                 "TEST_TRANSFORMATION")
         self.__verifyAttribute(options, "visibility", cx_Oracle.ENQ_IMMEDIATE)
         self.__verifyAttribute(options, "wait", 1287)
+        self.__verifyAttribute(options, "msgid", b'mID')
 
     def testDeqWithWait(self):
         "test waiting for dequeue"
@@ -145,4 +146,145 @@ class TestAQ(BaseTestCase):
         self.assertEqual(props.attempts, 0)
         self.__verifyAttribute(props, "priority", 1)
         self.assertEqual(props.state, cx_Oracle.MSG_READY)
+
+    def testVisibilityModeCommit(self):
+        "test enqueue visibility option - ENQ_ON_COMMIT"
+        booksType = self.connection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.bookData[0]
+        enqOptions = self.connection.enqoptions()
+        enqOptions.visibility = cx_Oracle.ENQ_ON_COMMIT
+        props = self.connection.msgproperties()
+        self.connection.enq("BOOKS", enqOptions, props, book)
+
+        otherConnection = self.getConnection()
+        deqOptions = otherConnection.deqoptions()
+        deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
+        deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+        booksType = otherConnection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        props = otherConnection.msgproperties()
+        messageId = otherConnection.deq("BOOKS", deqOptions, props, book)
+        self.assertTrue(messageId is None)
+
+    def testVisibilityModeImmediate(self):
+        "test enqueue visibility option - ENQ_IMMEDIATE"
+        booksType = self.connection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.bookData[0]
+        enqOptions = self.connection.enqoptions()
+        enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
+        props = self.connection.msgproperties()
+        self.connection.enq("BOOKS", enqOptions, props, book)
+
+        otherConnection = self.getConnection()
+        deqOptions = otherConnection.deqoptions()
+        deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
+        deqOptions.visibility = cx_Oracle.DEQ_ON_COMMIT
+        deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+        booksType = otherConnection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        props = otherConnection.msgproperties()
+        otherConnection.deq("BOOKS", deqOptions, props, book)
+        results = (book.TITLE, book.AUTHORS, book.PRICE)
+        otherConnection.commit()
+        self.assertEqual(results, self.bookData[0])
+
+    def testDeliveryModeSameBuffered(self):
+        "test enqueue/dequeue delivery modes identical - buffered"
+        booksType = self.connection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.bookData[0]
+        enqOptions = self.connection.enqoptions()
+        enqOptions.deliverymode = cx_Oracle.MSG_BUFFERED
+        enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
+        props = self.connection.msgproperties()
+        self.connection.enq("BOOKS", enqOptions, props, book)
+
+        otherConnection = self.getConnection()
+        deqOptions = otherConnection.deqoptions()
+        deqOptions.deliverymode = cx_Oracle.MSG_BUFFERED
+        deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
+        deqOptions.visibility = cx_Oracle.DEQ_IMMEDIATE
+        deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+        booksType = otherConnection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        props = otherConnection.msgproperties()
+        otherConnection.deq("BOOKS", deqOptions, props, book)
+        results = (book.TITLE, book.AUTHORS, book.PRICE)
+        otherConnection.commit()
+        self.assertEqual(results, self.bookData[0])
+
+    def testDeliveryModeSamePersistent(self):
+        "test enqueue/dequeue delivery modes identical - persistent"
+        booksType = self.connection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.bookData[0]
+        enqOptions = self.connection.enqoptions()
+        enqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT
+        enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
+        props = self.connection.msgproperties()
+        self.connection.enq("BOOKS", enqOptions, props, book)
+
+        otherConnection = self.getConnection()
+        deqOptions = otherConnection.deqoptions()
+        deqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT
+        deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
+        deqOptions.visibility = cx_Oracle.DEQ_IMMEDIATE
+        deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+        booksType = otherConnection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        props = otherConnection.msgproperties()
+        otherConnection.deq("BOOKS", deqOptions, props, book)
+        results = (book.TITLE, book.AUTHORS, book.PRICE)
+        otherConnection.commit()
+        self.assertEqual(results, self.bookData[0])
+
+    def testDeliveryModeSamePersistentBuffered(self):
+        "test enqueue/dequeue delivery modes identical - persistent/buffered"
+        booksType = self.connection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.bookData[0]
+        enqOptions = self.connection.enqoptions()
+        enqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT_OR_BUFFERED
+        enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
+        props = self.connection.msgproperties()
+        self.connection.enq("BOOKS", enqOptions, props, book)
+
+        otherConnection = self.getConnection()
+        deqOptions = otherConnection.deqoptions()
+        deqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT_OR_BUFFERED
+        deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
+        deqOptions.visibility = cx_Oracle.DEQ_IMMEDIATE
+        deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+        booksType = otherConnection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        props = otherConnection.msgproperties()
+        otherConnection.deq("BOOKS", deqOptions, props, book)
+        results = (book.TITLE, book.AUTHORS, book.PRICE)
+        otherConnection.commit()
+        self.assertEqual(results, self.bookData[0])
+
+    def testDeliveryModeDifferent(self):
+        "test enqueue/dequeue delivery modes different"
+        booksType = self.connection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.bookData[0]
+        enqOptions = self.connection.enqoptions()
+        enqOptions.deliverymode = cx_Oracle.MSG_BUFFERED
+        enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
+        props = self.connection.msgproperties()
+        self.connection.enq("BOOKS", enqOptions, props, book)
+
+        otherConnection = self.getConnection()
+        deqOptions = otherConnection.deqoptions()
+        deqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT
+        deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
+        deqOptions.visibility = cx_Oracle.DEQ_IMMEDIATE
+        deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+        booksType = otherConnection.gettype("UDT_BOOK")
+        book = booksType.newobject()
+        props = otherConnection.msgproperties()
+        messageId = otherConnection.deq("BOOKS", deqOptions, props, book)
+        self.assertTrue(messageId is None)
 
