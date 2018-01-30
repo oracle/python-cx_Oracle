@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+// Copyright 2016-2018, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -8,67 +8,60 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// DeqOptions.c
+// cxoDeqOptions.c
 //   Implements the dequeue options objects used in Advanced Queuing.
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// structure used for implementing dequeue options
-//-----------------------------------------------------------------------------
-typedef struct {
-    PyObject_HEAD
-    dpiDeqOptions *handle;
-    const char *encoding;
-} udt_DeqOptions;
-
+#include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
 // Declaration of methods used for dequeue options
 //-----------------------------------------------------------------------------
-static udt_DeqOptions *DeqOptions_New(udt_Connection*);
-static void DeqOptions_Free(udt_DeqOptions*);
-static PyObject *DeqOptions_GetCondition(udt_DeqOptions*, void*);
-static PyObject *DeqOptions_GetConsumerName(udt_DeqOptions*, void*);
-static PyObject *DeqOptions_GetCorrelation(udt_DeqOptions*, void*);
-static PyObject *DeqOptions_GetMode(udt_DeqOptions*, void*);
-static PyObject *DeqOptions_GetMsgId(udt_DeqOptions*, void*);
-static PyObject *DeqOptions_GetNavigation(udt_DeqOptions*, void*);
-static PyObject *DeqOptions_GetTransformation(udt_DeqOptions*, void*);
-static PyObject *DeqOptions_GetVisibility(udt_DeqOptions*, void*);
-static PyObject *DeqOptions_GetWait(udt_DeqOptions*, void*);
-static int DeqOptions_SetCondition(udt_DeqOptions*, PyObject*, void*);
-static int DeqOptions_SetConsumerName(udt_DeqOptions*, PyObject*, void*);
-static int DeqOptions_SetCorrelation(udt_DeqOptions*, PyObject*, void*);
-static int DeqOptions_SetDeliveryMode(udt_DeqOptions*, PyObject*, void*);
-static int DeqOptions_SetMode(udt_DeqOptions*, PyObject*, void*);
-static int DeqOptions_SetMsgId(udt_DeqOptions*, PyObject*, void*);
-static int DeqOptions_SetNavigation(udt_DeqOptions*, PyObject*, void*);
-static int DeqOptions_SetTransformation(udt_DeqOptions*, PyObject*, void*);
-static int DeqOptions_SetVisibility(udt_DeqOptions*, PyObject*, void*);
-static int DeqOptions_SetWait(udt_DeqOptions*, PyObject*, void*);
+static void cxoDeqOptions_free(cxoDeqOptions*);
+static PyObject *cxoDeqOptions_getCondition(cxoDeqOptions*, void*);
+static PyObject *cxoDeqOptions_getConsumerName(cxoDeqOptions*, void*);
+static PyObject *cxoDeqOptions_getCorrelation(cxoDeqOptions*, void*);
+static PyObject *cxoDeqOptions_getMode(cxoDeqOptions*, void*);
+static PyObject *cxoDeqOptions_getMsgId(cxoDeqOptions*, void*);
+static PyObject *cxoDeqOptions_getNavigation(cxoDeqOptions*, void*);
+static PyObject *cxoDeqOptions_getTransformation(cxoDeqOptions*, void*);
+static PyObject *cxoDeqOptions_getVisibility(cxoDeqOptions*, void*);
+static PyObject *cxoDeqOptions_getWait(cxoDeqOptions*, void*);
+static int cxoDeqOptions_setCondition(cxoDeqOptions*, PyObject*, void*);
+static int cxoDeqOptions_setConsumerName(cxoDeqOptions*, PyObject*, void*);
+static int cxoDeqOptions_setCorrelation(cxoDeqOptions*, PyObject*, void*);
+static int cxoDeqOptions_setDeliveryMode(cxoDeqOptions*, PyObject*, void*);
+static int cxoDeqOptions_setMode(cxoDeqOptions*, PyObject*, void*);
+static int cxoDeqOptions_setMsgId(cxoDeqOptions*, PyObject*, void*);
+static int cxoDeqOptions_setNavigation(cxoDeqOptions*, PyObject*, void*);
+static int cxoDeqOptions_setTransformation(cxoDeqOptions*, PyObject*, void*);
+static int cxoDeqOptions_setVisibility(cxoDeqOptions*, PyObject*, void*);
+static int cxoDeqOptions_setWait(cxoDeqOptions*, PyObject*, void*);
 
 
 //-----------------------------------------------------------------------------
 // declaration of calculated members for Python type "DeqOptions"
 //-----------------------------------------------------------------------------
-static PyGetSetDef g_DeqOptionsCalcMembers[] = {
-    { "condition", (getter) DeqOptions_GetCondition,
-            (setter) DeqOptions_SetCondition, 0, 0 },
-    { "consumername", (getter) DeqOptions_GetConsumerName,
-            (setter) DeqOptions_SetConsumerName, 0, 0 },
-    { "correlation", (getter) DeqOptions_GetCorrelation,
-            (setter) DeqOptions_SetCorrelation, 0, 0 },
-    { "deliverymode", 0, (setter) DeqOptions_SetDeliveryMode, 0, 0 },
-    { "mode", (getter) DeqOptions_GetMode, (setter) DeqOptions_SetMode, 0, 0 },
-    { "msgid", (getter) DeqOptions_GetMsgId,
-            (setter) DeqOptions_SetMsgId, 0, 0 },
-    { "navigation", (getter) DeqOptions_GetNavigation,
-            (setter) DeqOptions_SetNavigation, 0, 0 },
-    { "transformation", (getter) DeqOptions_GetTransformation,
-            (setter) DeqOptions_SetTransformation, 0, 0 },
-    { "visibility", (getter) DeqOptions_GetVisibility,
-            (setter) DeqOptions_SetVisibility, 0, 0 },
-    { "wait", (getter) DeqOptions_GetWait, (setter) DeqOptions_SetWait, 0, 0 },
+static PyGetSetDef cxoDeqOptionsCalcMembers[] = {
+    { "condition", (getter) cxoDeqOptions_getCondition,
+            (setter) cxoDeqOptions_setCondition, 0, 0 },
+    { "consumername", (getter) cxoDeqOptions_getConsumerName,
+            (setter) cxoDeqOptions_setConsumerName, 0, 0 },
+    { "correlation", (getter) cxoDeqOptions_getCorrelation,
+            (setter) cxoDeqOptions_setCorrelation, 0, 0 },
+    { "deliverymode", 0, (setter) cxoDeqOptions_setDeliveryMode, 0, 0 },
+    { "mode", (getter) cxoDeqOptions_getMode, (setter) cxoDeqOptions_setMode,
+            0, 0 },
+    { "msgid", (getter) cxoDeqOptions_getMsgId,
+            (setter) cxoDeqOptions_setMsgId, 0, 0 },
+    { "navigation", (getter) cxoDeqOptions_getNavigation,
+            (setter) cxoDeqOptions_setNavigation, 0, 0 },
+    { "transformation", (getter) cxoDeqOptions_getTransformation,
+            (setter) cxoDeqOptions_setTransformation, 0, 0 },
+    { "visibility", (getter) cxoDeqOptions_getVisibility,
+            (setter) cxoDeqOptions_setVisibility, 0, 0 },
+    { "wait", (getter) cxoDeqOptions_getWait, (setter) cxoDeqOptions_setWait,
+            0, 0 },
     { NULL }
 };
 
@@ -76,12 +69,12 @@ static PyGetSetDef g_DeqOptionsCalcMembers[] = {
 //-----------------------------------------------------------------------------
 // Python type declarations
 //-----------------------------------------------------------------------------
-static PyTypeObject g_DeqOptionsType = {
+PyTypeObject cxoPyTypeDeqOptions = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.DeqOptions",             // tp_name
-    sizeof(udt_DeqOptions),             // tp_basicsize
+    sizeof(cxoDeqOptions),              // tp_basicsize
     0,                                  // tp_itemsize
-    (destructor) DeqOptions_Free,       // tp_dealloc
+    (destructor) cxoDeqOptions_free,    // tp_dealloc
     0,                                  // tp_print
     0,                                  // tp_getattr
     0,                                  // tp_setattr
@@ -106,7 +99,7 @@ static PyTypeObject g_DeqOptionsType = {
     0,                                  // tp_iternext
     0,                                  // tp_methods
     0,                                  // tp_members
-    g_DeqOptionsCalcMembers,            // tp_getset
+    cxoDeqOptionsCalcMembers,           // tp_getset
     0,                                  // tp_base
     0,                                  // tp_dict
     0,                                  // tp_descr_get
@@ -122,135 +115,139 @@ static PyTypeObject g_DeqOptionsType = {
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_New()
+// cxoDeqOptions_new()
 //   Create a new dequeue options object.
 //-----------------------------------------------------------------------------
-static udt_DeqOptions *DeqOptions_New(udt_Connection *connection)
+cxoDeqOptions *cxoDeqOptions_new(cxoConnection *connection)
 {
-    udt_DeqOptions *self;
+    cxoDeqOptions *options;
 
-    self = (udt_DeqOptions*) g_DeqOptionsType.tp_alloc(&g_DeqOptionsType, 0);
-    if (!self)
+    options = (cxoDeqOptions*)
+            cxoPyTypeDeqOptions.tp_alloc(&cxoPyTypeDeqOptions, 0);
+    if (!options)
         return NULL;
-    if (dpiConn_newDeqOptions(connection->handle, &self->handle) < 0) {
-        Py_DECREF(self);
-        Error_RaiseAndReturnNull();
+    if (dpiConn_newDeqOptions(connection->handle, &options->handle) < 0) {
+        Py_DECREF(options);
+        cxoError_raiseAndReturnNull();
         return NULL;
     }
-    self->encoding = connection->encodingInfo.encoding;
+    options->encoding = connection->encodingInfo.encoding;
 
-    return self;
+    return options;
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_Free()
+// cxoDeqOptions_free()
 //   Free the memory associated with the dequeue options object.
 //-----------------------------------------------------------------------------
-static void DeqOptions_Free(
-    udt_DeqOptions *self)               // object to free
+static void cxoDeqOptions_free(cxoDeqOptions *options)
 {
-    if (self->handle) {
-        dpiDeqOptions_release(self->handle);
-        self->handle = NULL;
+    if (options->handle) {
+        dpiDeqOptions_release(options->handle);
+        options->handle = NULL;
     }
-    Py_TYPE(self)->tp_free((PyObject*) self);
+    Py_TYPE(options)->tp_free((PyObject*) options);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetAttrText()
+// cxoDeqOptions_getAttrText()
 //   Get the value of the attribute as text.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetAttrText(udt_DeqOptions *self,
+static PyObject *cxoDeqOptions_getAttrText(cxoDeqOptions *options,
         int (*func)(dpiDeqOptions*, const char**, uint32_t*))
 {
     uint32_t valueLength;
     const char *value;
 
-    if ((*func)(self->handle, &value, &valueLength) < 0)
-        return Error_RaiseAndReturnNull();
+    if ((*func)(options->handle, &value, &valueLength) < 0)
+        return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxString_FromEncodedString(value, valueLength, self->encoding);
+    return cxoPyString_fromEncodedString(value, valueLength,
+            options->encoding);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetAttrText()
+// cxoDeqOptions_setAttrText()
 //   Set the value of the attribute as text.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetAttrText(udt_DeqOptions *self, PyObject *value,
+static int cxoDeqOptions_setAttrText(cxoDeqOptions *options, PyObject *value,
         int (*func)(dpiDeqOptions*, const char*, uint32_t))
 {
-    udt_Buffer buffer;
+    cxoBuffer buffer;
     int status;
 
-    if (cxBuffer_FromObject(&buffer, value, self->encoding))
+    if (cxoBuffer_fromObject(&buffer, value, options->encoding))
         return -1;
-    status = (*func)(self->handle, buffer.ptr, buffer.size);
-    cxBuffer_Clear(&buffer);
+    status = (*func)(options->handle, buffer.ptr, buffer.size);
+    cxoBuffer_clear(&buffer);
     if (status < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetCondition()
+// cxoDeqOptions_getCondition()
 //   Get the value of the condition option.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetCondition(udt_DeqOptions *self, void *unused)
+static PyObject *cxoDeqOptions_getCondition(cxoDeqOptions *options,
+        void *unused)
 {
-    return DeqOptions_GetAttrText(self, dpiDeqOptions_getCondition);
+    return cxoDeqOptions_getAttrText(options, dpiDeqOptions_getCondition);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetConsumerName()
+// cxoDeqOptions_getConsumerName()
 //   Get the value of the consumer name option.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetConsumerName(udt_DeqOptions *self, void *unused)
+static PyObject *cxoDeqOptions_getConsumerName(cxoDeqOptions *options,
+        void *unused)
 {
-    return DeqOptions_GetAttrText(self, dpiDeqOptions_getConsumerName);
+    return cxoDeqOptions_getAttrText(options, dpiDeqOptions_getConsumerName);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetCorrelation()
+// cxoDeqOptions_getCorrelation()
 //   Get the value of the correlation option.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetCorrelation(udt_DeqOptions *self, void *unused)
+static PyObject *cxoDeqOptions_getCorrelation(cxoDeqOptions *options,
+        void *unused)
 {
-    return DeqOptions_GetAttrText(self, dpiDeqOptions_getCorrelation);
+    return cxoDeqOptions_getAttrText(options, dpiDeqOptions_getCorrelation);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetMode()
+// cxoDeqOptions_getMode()
 //   Get the value of the mode option.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetMode(udt_DeqOptions *self, void *unused)
+static PyObject *cxoDeqOptions_getMode(cxoDeqOptions *options, void *unused)
 {
     dpiDeqMode value;
 
-    if (dpiDeqOptions_getMode(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiDeqOptions_getMode(options->handle, &value) < 0)
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(value);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetMsgId()
+// cxoDeqOptions_getMsgId()
 //   Get the value of the message id option.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetMsgId(udt_DeqOptions *self, void *unused)
+static PyObject *cxoDeqOptions_getMsgId(cxoDeqOptions *options, void *unused)
 {
     uint32_t valueLength;
     const char *value;
 
-    if (dpiDeqOptions_getMsgId(self->handle, &value, &valueLength) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiDeqOptions_getMsgId(options->handle, &value, &valueLength) < 0)
+        return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
     return PyBytes_FromStringAndSize(value, valueLength);
@@ -258,116 +255,119 @@ static PyObject *DeqOptions_GetMsgId(udt_DeqOptions *self, void *unused)
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetNavigation()
+// cxoDeqOptions_getNavigation()
 //   Get the value of the navigation option.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetNavigation(udt_DeqOptions *self, void *unused)
+static PyObject *cxoDeqOptions_getNavigation(cxoDeqOptions *options,
+        void *unused)
 {
     dpiDeqNavigation value;
 
-    if (dpiDeqOptions_getNavigation(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiDeqOptions_getNavigation(options->handle, &value) < 0)
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(value);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetTransformation()
+// cxoDeqOptions_getTransformation()
 //   Get the value of the transformation option.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetTransformation(udt_DeqOptions *self,
+static PyObject *cxoDeqOptions_getTransformation(cxoDeqOptions *options,
         void *unused)
 {
-    return DeqOptions_GetAttrText(self, dpiDeqOptions_getTransformation);
+    return cxoDeqOptions_getAttrText(options, dpiDeqOptions_getTransformation);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetVisibility()
+// cxoDeqOptions_getVisibility()
 //   Get the value of the visibility option.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetVisibility(udt_DeqOptions *self, void *unused)
+static PyObject *cxoDeqOptions_getVisibility(cxoDeqOptions *options,
+        void *unused)
 {
     dpiVisibility value;
 
-    if (dpiDeqOptions_getVisibility(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiDeqOptions_getVisibility(options->handle, &value) < 0)
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(value);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_GetWait()
+// cxoDeqOptions_getWait()
 //   Get the value of the wait option.
 //-----------------------------------------------------------------------------
-static PyObject *DeqOptions_GetWait(udt_DeqOptions *self, void *unused)
+static PyObject *cxoDeqOptions_getWait(cxoDeqOptions *options, void *unused)
 {
     uint32_t value;
 
-    if (dpiDeqOptions_getWait(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiDeqOptions_getWait(options->handle, &value) < 0)
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(value);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetCondition()
+// cxoDeqOptions_setCondition()
 //   Set the value of the condition option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetCondition(udt_DeqOptions *self, PyObject *valueObj,
-        void *unused)
+static int cxoDeqOptions_setCondition(cxoDeqOptions *options,
+        PyObject *valueObj, void *unused)
 {
-    return DeqOptions_SetAttrText(self, valueObj, dpiDeqOptions_setCondition);
+    return cxoDeqOptions_setAttrText(options, valueObj,
+            dpiDeqOptions_setCondition);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetConsumerName()
+// cxoDeqOptions_setConsumerName()
 //   Set the value of the consumer name option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetConsumerName(udt_DeqOptions *self, PyObject *valueObj,
-        void *unused)
+static int cxoDeqOptions_setConsumerName(cxoDeqOptions *options,
+        PyObject *valueObj, void *unused)
 {
-    return DeqOptions_SetAttrText(self, valueObj,
+    return cxoDeqOptions_setAttrText(options, valueObj,
             dpiDeqOptions_setConsumerName);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetCorrelation()
+// cxoDeqOptions_setCorrelation()
 //   Set the value of the correlation option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetCorrelation(udt_DeqOptions *self, PyObject *valueObj,
-        void *unused)
+static int cxoDeqOptions_setCorrelation(cxoDeqOptions *options,
+        PyObject *valueObj, void *unused)
 {
-    return DeqOptions_SetAttrText(self, valueObj,
+    return cxoDeqOptions_setAttrText(options, valueObj,
             dpiDeqOptions_setCorrelation);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetDeliveryMode()
+// cxoDeqOptions_setDeliveryMode()
 //   Set the value of the delivery mode option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetDeliveryMode(udt_DeqOptions *self, PyObject *valueObj,
-        void *unused)
+static int cxoDeqOptions_setDeliveryMode(cxoDeqOptions *options,
+        PyObject *valueObj, void *unused)
 {
     dpiMessageDeliveryMode value;
 
     value = PyInt_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
-    if (dpiDeqOptions_setDeliveryMode(self->handle, value) < 0)
-        return Error_RaiseAndReturnInt();
+    if (dpiDeqOptions_setDeliveryMode(options->handle, value) < 0)
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetMode()
+// cxoDeqOptions_setMode()
 //   Set the value of the mode option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetMode(udt_DeqOptions *self, PyObject *valueObj,
+static int cxoDeqOptions_setMode(cxoDeqOptions *options, PyObject *valueObj,
         void *unused)
 {
     dpiDeqMode value;
@@ -375,17 +375,17 @@ static int DeqOptions_SetMode(udt_DeqOptions *self, PyObject *valueObj,
     value = PyInt_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
-    if (dpiDeqOptions_setMode(self->handle, value) < 0)
-        return Error_RaiseAndReturnInt();
+    if (dpiDeqOptions_setMode(options->handle, value) < 0)
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetMsgId()
+// cxoDeqOptions_setMsgId()
 //   Set the value of the message id option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetMsgId(udt_DeqOptions *self, PyObject *valueObj,
+static int cxoDeqOptions_setMsgId(cxoDeqOptions *options, PyObject *valueObj,
         void *unused)
 {
     Py_ssize_t valueLength;
@@ -393,66 +393,66 @@ static int DeqOptions_SetMsgId(udt_DeqOptions *self, PyObject *valueObj,
 
     if (PyBytes_AsStringAndSize(valueObj, &value, &valueLength) < 0)
         return -1;
-    if (dpiDeqOptions_setMsgId(self->handle, value,
+    if (dpiDeqOptions_setMsgId(options->handle, value,
             (uint32_t) valueLength) < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetNavigation()
+// cxoDeqOptions_setNavigation()
 //   Set the value of the navigation option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetNavigation(udt_DeqOptions *self, PyObject *valueObj,
-        void *unused)
+static int cxoDeqOptions_setNavigation(cxoDeqOptions *options,
+        PyObject *valueObj, void *unused)
 {
     dpiDeqNavigation value;
 
     value = PyInt_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
-    if (dpiDeqOptions_setNavigation(self->handle, value) < 0)
-        return Error_RaiseAndReturnInt();
+    if (dpiDeqOptions_setNavigation(options->handle, value) < 0)
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetTransformation()
+// cxoDeqOptions_setTransformation()
 //   Set the value of the correlation option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetTransformation(udt_DeqOptions *self,
+static int cxoDeqOptions_setTransformation(cxoDeqOptions *options,
         PyObject *valueObj, void *unused)
 {
-    return DeqOptions_SetAttrText(self, valueObj,
+    return cxoDeqOptions_setAttrText(options, valueObj,
             dpiDeqOptions_setTransformation);
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetVisibility()
+// cxoDeqOptions_setVisibility()
 //   Set the value of the visibility option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetVisibility(udt_DeqOptions *self, PyObject *valueObj,
-        void *unused)
+static int cxoDeqOptions_setVisibility(cxoDeqOptions *options,
+        PyObject *valueObj, void *unused)
 {
     dpiVisibility value;
 
     value = PyInt_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
-    if (dpiDeqOptions_setVisibility(self->handle, value) < 0)
-        return Error_RaiseAndReturnInt();
+    if (dpiDeqOptions_setVisibility(options->handle, value) < 0)
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// DeqOptions_SetWait()
+// cxoDeqOptions_setWait()
 //   Set the value of the wait option.
 //-----------------------------------------------------------------------------
-static int DeqOptions_SetWait(udt_DeqOptions *self, PyObject *valueObj,
+static int cxoDeqOptions_setWait(cxoDeqOptions *options, PyObject *valueObj,
         void *unused)
 {
     uint32_t value;
@@ -460,8 +460,8 @@ static int DeqOptions_SetWait(udt_DeqOptions *self, PyObject *valueObj,
     value = PyInt_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
-    if (dpiDeqOptions_setWait(self->handle, value) < 0)
-        return Error_RaiseAndReturnInt();
+    if (dpiDeqOptions_setWait(options->handle, value) < 0)
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 

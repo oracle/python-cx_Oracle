@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+// Copyright 2016-2018, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -8,44 +8,21 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Buffer.c
+// cxoBuffer.c
 //   Defines buffer structure and routines for populating it. These are used
 // to translate Python objects into the buffers needed for Oracle, including
 // Unicode or buffer objects.
 //-----------------------------------------------------------------------------
 
-// define structure for abstracting string buffers
-typedef struct {
-    const char *ptr;
-    uint32_t numCharacters;
-    uint32_t size;
-    PyObject *obj;
-} udt_Buffer;
-
+#include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// cxBuffer_Init()
-//   Initialize the buffer with an empty string. Returns 0 as a convenience to
-// the caller.
-//-----------------------------------------------------------------------------
-static int cxBuffer_Init(udt_Buffer *buf)
-{
-    buf->ptr = NULL;
-    buf->size = 0;
-    buf->numCharacters = 0;
-    buf->obj = NULL;
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
-// cxBuffer_FromObject()
+// cxoBuffer_fromObject()
 //   Populate the string buffer from a unicode object.
 //-----------------------------------------------------------------------------
-static int cxBuffer_FromObject(udt_Buffer *buf, PyObject *obj,
-        const char *encoding)
+int cxoBuffer_fromObject(cxoBuffer *buf, PyObject *obj, const char *encoding)
 {
-    cxBuffer_Init(buf);
+    cxoBuffer_init(buf);
     if (!obj)
         return 0;
     if (PyUnicode_Check(obj)) {
@@ -74,11 +51,29 @@ static int cxBuffer_FromObject(udt_Buffer *buf, PyObject *obj,
         buf->numCharacters = buf->size = (uint32_t) temp;
 #endif
     } else {
-        PyErr_SetString(PyExc_TypeError, CXORA_TYPE_ERROR);
+#if PY_MAJOR_VERSION >= 3
+        PyErr_SetString(PyExc_TypeError, "expecting string or bytes object");
+#else
+        PyErr_SetString(PyExc_TypeError,
+                "expecting string, unicode or buffer object");
+#endif
         return -1;
     }
     return 0;
 }
 
-#define cxBuffer_Clear(buf)             Py_CLEAR((buf)->obj)
+
+//-----------------------------------------------------------------------------
+// cxoBuffer_init()
+//   Initialize the buffer with an empty string. Returns 0 as a convenience to
+// the caller.
+//-----------------------------------------------------------------------------
+int cxoBuffer_init(cxoBuffer *buf)
+{
+    buf->ptr = NULL;
+    buf->size = 0;
+    buf->numCharacters = 0;
+    buf->obj = NULL;
+    return 0;
+}
 

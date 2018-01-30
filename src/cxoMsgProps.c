@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+// Copyright 2016-2018, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -8,62 +8,54 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MsgProps.c
+// cxoMsgProps.c
 //   Implements the message properties object used in Advanced Queuing.
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// structures used for handling AQ options and message properties
-//-----------------------------------------------------------------------------
-typedef struct {
-    PyObject_HEAD
-    dpiMsgProps *handle;
-    const char *encoding;
-} udt_MsgProps;
-
+#include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
 // Declaration of methods used for message properties
 //-----------------------------------------------------------------------------
-static udt_MsgProps *MsgProps_New(udt_Connection*);
-static void MsgProps_Free(udt_MsgProps*);
-static PyObject *MsgProps_GetNumAttempts(udt_MsgProps*, void*);
-static PyObject *MsgProps_GetCorrelation(udt_MsgProps*, void*);
-static PyObject *MsgProps_GetDelay(udt_MsgProps*, void*);
-static PyObject *MsgProps_GetDeliveryMode(udt_MsgProps*, void*);
-static PyObject *MsgProps_GetEnqTime(udt_MsgProps*, void*);
-static PyObject *MsgProps_GetExceptionQ(udt_MsgProps*, void*);
-static PyObject *MsgProps_GetExpiration(udt_MsgProps*, void*);
-static PyObject *MsgProps_GetOriginalMsgId(udt_MsgProps*, void*);
-static PyObject *MsgProps_GetPriority(udt_MsgProps*, void*);
-static PyObject *MsgProps_GetState(udt_MsgProps*, void*);
-static int MsgProps_SetCorrelation(udt_MsgProps*, PyObject*, void*);
-static int MsgProps_SetDelay(udt_MsgProps*, PyObject*, void*);
-static int MsgProps_SetExceptionQ(udt_MsgProps*, PyObject*, void*);
-static int MsgProps_SetExpiration(udt_MsgProps*, PyObject*, void*);
-static int MsgProps_SetOriginalMsgId(udt_MsgProps*, PyObject*, void*);
-static int MsgProps_SetPriority(udt_MsgProps*, PyObject*, void*);
+static void cxoMsgProps_free(cxoMsgProps*);
+static PyObject *cxoMsgProps_getNumAttempts(cxoMsgProps*, void*);
+static PyObject *cxoMsgProps_getCorrelation(cxoMsgProps*, void*);
+static PyObject *cxoMsgProps_getDelay(cxoMsgProps*, void*);
+static PyObject *cxoMsgProps_getDeliveryMode(cxoMsgProps*, void*);
+static PyObject *cxoMsgProps_getEnqTime(cxoMsgProps*, void*);
+static PyObject *cxoMsgProps_getExceptionQ(cxoMsgProps*, void*);
+static PyObject *cxoMsgProps_getExpiration(cxoMsgProps*, void*);
+static PyObject *cxoMsgProps_getOriginalMsgId(cxoMsgProps*, void*);
+static PyObject *cxoMsgProps_getPriority(cxoMsgProps*, void*);
+static PyObject *cxoMsgProps_getState(cxoMsgProps*, void*);
+static int cxoMsgProps_setCorrelation(cxoMsgProps*, PyObject*, void*);
+static int cxoMsgProps_setDelay(cxoMsgProps*, PyObject*, void*);
+static int cxoMsgProps_setExceptionQ(cxoMsgProps*, PyObject*, void*);
+static int cxoMsgProps_setExpiration(cxoMsgProps*, PyObject*, void*);
+static int cxoMsgProps_setOriginalMsgId(cxoMsgProps*, PyObject*, void*);
+static int cxoMsgProps_setPriority(cxoMsgProps*, PyObject*, void*);
 
 
 //-----------------------------------------------------------------------------
 // declaration of calculated members for Python type "MessageProperties"
 //-----------------------------------------------------------------------------
-static PyGetSetDef g_MessagePropertiesCalcMembers[] = {
-    { "attempts", (getter) MsgProps_GetNumAttempts, 0, 0, 0 },
-    { "correlation", (getter) MsgProps_GetCorrelation,
-            (setter) MsgProps_SetCorrelation, 0, 0 },
-    { "delay", (getter) MsgProps_GetDelay, (setter) MsgProps_SetDelay, 0, 0 },
-    { "deliverymode", (getter) MsgProps_GetDeliveryMode, 0, 0, 0 },
-    { "enqtime", (getter) MsgProps_GetEnqTime, 0, 0, 0 },
-    { "exceptionq", (getter) MsgProps_GetExceptionQ,
-            (setter) MsgProps_SetExceptionQ, 0, 0 },
-    { "expiration", (getter) MsgProps_GetExpiration,
-            (setter) MsgProps_SetExpiration, 0, 0 },
-    { "msgid", (getter) MsgProps_GetOriginalMsgId,
-            (setter) MsgProps_SetOriginalMsgId, 0, 0 },
-    { "priority", (getter) MsgProps_GetPriority,
-            (setter) MsgProps_SetPriority, 0, 0 },
-    { "state", (getter) MsgProps_GetState, 0, 0, 0 },
+static PyGetSetDef cxoMsgPropsCalcMembers[] = {
+    { "attempts", (getter) cxoMsgProps_getNumAttempts, 0, 0, 0 },
+    { "correlation", (getter) cxoMsgProps_getCorrelation,
+            (setter) cxoMsgProps_setCorrelation, 0, 0 },
+    { "delay", (getter) cxoMsgProps_getDelay, (setter) cxoMsgProps_setDelay, 0,
+            0 },
+    { "deliverymode", (getter) cxoMsgProps_getDeliveryMode, 0, 0, 0 },
+    { "enqtime", (getter) cxoMsgProps_getEnqTime, 0, 0, 0 },
+    { "exceptionq", (getter) cxoMsgProps_getExceptionQ,
+            (setter) cxoMsgProps_setExceptionQ, 0, 0 },
+    { "expiration", (getter) cxoMsgProps_getExpiration,
+            (setter) cxoMsgProps_setExpiration, 0, 0 },
+    { "msgid", (getter) cxoMsgProps_getOriginalMsgId,
+            (setter) cxoMsgProps_setOriginalMsgId, 0, 0 },
+    { "priority", (getter) cxoMsgProps_getPriority,
+            (setter) cxoMsgProps_setPriority, 0, 0 },
+    { "state", (getter) cxoMsgProps_getState, 0, 0, 0 },
     { NULL }
 };
 
@@ -71,12 +63,12 @@ static PyGetSetDef g_MessagePropertiesCalcMembers[] = {
 //-----------------------------------------------------------------------------
 // Python type declarations
 //-----------------------------------------------------------------------------
-static PyTypeObject g_MessagePropertiesType = {
+PyTypeObject cxoPyTypeMsgProps = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.MessageProperties",      // tp_name
-    sizeof(udt_MsgProps),               // tp_basicsize
+    sizeof(cxoMsgProps),                // tp_basicsize
     0,                                  // tp_itemsize
-    (destructor) MsgProps_Free,         // tp_dealloc
+    (destructor) cxoMsgProps_free,      // tp_dealloc
     0,                                  // tp_print
     0,                                  // tp_getattr
     0,                                  // tp_setattr
@@ -101,7 +93,7 @@ static PyTypeObject g_MessagePropertiesType = {
     0,                                  // tp_iternext
     0,                                  // tp_methods
     0,                                  // tp_members
-    g_MessagePropertiesCalcMembers,     // tp_getset
+    cxoMsgPropsCalcMembers,             // tp_getset
     0,                                  // tp_base
     0,                                  // tp_dict
     0,                                  // tp_descr_get
@@ -117,62 +109,61 @@ static PyTypeObject g_MessagePropertiesType = {
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_New()
+// cxoMsgProps_new()
 //   Create a new message properties object.
 //-----------------------------------------------------------------------------
-static udt_MsgProps *MsgProps_New(udt_Connection *connection)
+cxoMsgProps *cxoMsgProps_new(cxoConnection *connection)
 {
-    udt_MsgProps *self;
+    cxoMsgProps *props;
 
-    self = (udt_MsgProps*)
-            g_MessagePropertiesType.tp_alloc(&g_MessagePropertiesType, 0);
-    if (!self)
+    props = (cxoMsgProps*) cxoPyTypeMsgProps.tp_alloc(&cxoPyTypeMsgProps, 0);
+    if (!props)
         return NULL;
-    if (dpiConn_newMsgProps(connection->handle, &self->handle) < 0) {
-        Py_DECREF(self);
-        Error_RaiseAndReturnNull();
+    if (dpiConn_newMsgProps(connection->handle, &props->handle) < 0) {
+        Py_DECREF(props);
+        cxoError_raiseAndReturnNull();
         return NULL;
     }
-    self->encoding = connection->encodingInfo.encoding;
+    props->encoding = connection->encodingInfo.encoding;
 
-    return self;
+    return props;
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_Free()
+// cxoMsgProps_free()
 //   Free the memory associated with the message properties object.
 //-----------------------------------------------------------------------------
-static void MsgProps_Free(udt_MsgProps *self)
+static void cxoMsgProps_free(cxoMsgProps *props)
 {
-    if (self->handle) {
-        dpiMsgProps_release(self->handle);
-        self->handle = NULL;
+    if (props->handle) {
+        dpiMsgProps_release(props->handle);
+        props->handle = NULL;
     }
-    Py_TYPE(self)->tp_free((PyObject*) self);
+    Py_TYPE(props)->tp_free((PyObject*) props);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetAttrInt32()
+// cxoMsgProps_getAttrInt32()
 //   Get the value of the attribute as a 32-bit integer.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetAttrInt32(udt_MsgProps *self,
+static PyObject *cxoMsgProps_getAttrInt32(cxoMsgProps *props,
         int (*func)(dpiMsgProps *props, int32_t *value))
 {
     int32_t value;
 
-    if ((*func)(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+    if ((*func)(props->handle, &value) < 0)
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(value);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_SetAttrInt32()
+// cxoMsgProps_setAttrInt32()
 //   Set the value of the attribute as a 32-bit integer.
 //-----------------------------------------------------------------------------
-static int MsgProps_SetAttrInt32(udt_MsgProps *self, PyObject *valueObj,
+static int cxoMsgProps_setAttrInt32(cxoMsgProps *props, PyObject *valueObj,
         int (*func)(dpiMsgProps *props, int32_t value))
 {
     int32_t value;
@@ -180,116 +171,115 @@ static int MsgProps_SetAttrInt32(udt_MsgProps *self, PyObject *valueObj,
     value = PyInt_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
-    if ((*func)(self->handle, value) < 0)
-        return Error_RaiseAndReturnInt();
+    if ((*func)(props->handle, value) < 0)
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetNumAttempts()
+// cxoMsgProps_getNumAttempts()
 //   Get the value of the attempts property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetNumAttempts(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getNumAttempts(cxoMsgProps *props, void *unused)
 {
-    return MsgProps_GetAttrInt32(self, dpiMsgProps_getNumAttempts);
+    return cxoMsgProps_getAttrInt32(props, dpiMsgProps_getNumAttempts);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetCorrelation()
+// cxoMsgProps_getCorrelation()
 //   Get the value of the correlation property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetCorrelation(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getCorrelation(cxoMsgProps *props, void *unused)
 {
     uint32_t valueLength;
     const char *value;
 
-    if (dpiMsgProps_getCorrelation(self->handle, &value, &valueLength) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiMsgProps_getCorrelation(props->handle, &value, &valueLength) < 0)
+        return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxString_FromEncodedString(value, valueLength, self->encoding);
+    return cxoPyString_fromEncodedString(value, valueLength, props->encoding);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetDelay()
+// cxoMsgProps_getDelay()
 //   Get the value of the delay property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetDelay(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getDelay(cxoMsgProps *props, void *unused)
 {
-    return MsgProps_GetAttrInt32(self, dpiMsgProps_getDelay);
+    return cxoMsgProps_getAttrInt32(props, dpiMsgProps_getDelay);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetDeliveryMode()
+// cxoMsgProps_getDeliveryMode()
 //   Get the value of the delivery mode property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetDeliveryMode(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getDeliveryMode(cxoMsgProps *props, void *unused)
 {
     dpiMessageDeliveryMode value;
 
-    if (dpiMsgProps_getDeliveryMode(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiMsgProps_getDeliveryMode(props->handle, &value) < 0)
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(value);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetEnqTime()
+// cxoMsgProps_getEnqTime()
 //   Get the value of the enqueue time property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetEnqTime(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getEnqTime(cxoMsgProps *props, void *unused)
 {
-    dpiTimestamp value;
+    dpiDataBuffer buffer;
 
-    if (dpiMsgProps_getEnqTime(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
-    return PyDateTime_FromDateAndTime(value.year, value.month, value.day,
-            value.hour, value.minute, value.second, 0);
+    if (dpiMsgProps_getEnqTime(props->handle, &buffer.asTimestamp) < 0)
+        return cxoError_raiseAndReturnNull();
+    return cxoTransform_toPython(CXO_TRANSFORM_DATETIME, NULL, NULL, &buffer);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetExceptionQ()
+// cxoMsgProps_getExceptionQ()
 //   Get the value of the exception queue property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetExceptionQ(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getExceptionQ(cxoMsgProps *props, void *unused)
 {
     uint32_t valueLength;
     const char *value;
 
-    if (dpiMsgProps_getExceptionQ(self->handle, &value, &valueLength) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiMsgProps_getExceptionQ(props->handle, &value, &valueLength) < 0)
+        return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxString_FromEncodedString(value, valueLength, self->encoding);
+    return cxoPyString_fromEncodedString(value, valueLength, props->encoding);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetExpiration()
+// cxoMsgProps_getExpiration()
 //   Get the value of the expiration property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetExpiration(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getExpiration(cxoMsgProps *props, void *unused)
 {
-    return MsgProps_GetAttrInt32(self, dpiMsgProps_getExpiration);
+    return cxoMsgProps_getAttrInt32(props, dpiMsgProps_getExpiration);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetOriginalMsgId()
+// cxoMsgProps_getOriginalMsgId()
 //   Get the value of the expiration property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetOriginalMsgId(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getOriginalMsgId(cxoMsgProps *props, void *unused)
 {
     uint32_t valueLength;
     const char *value;
 
-    if (dpiMsgProps_getOriginalMsgId(self->handle, &value, &valueLength) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiMsgProps_getOriginalMsgId(props->handle, &value, &valueLength) < 0)
+        return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
     return PyBytes_FromStringAndSize(value, valueLength);
@@ -297,96 +287,97 @@ static PyObject *MsgProps_GetOriginalMsgId(udt_MsgProps *self, void *unused)
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetPriority()
+// cxoMsgProps_getPriority()
 //   Get the value of the priority property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetPriority(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getPriority(cxoMsgProps *props, void *unused)
 {
-    return MsgProps_GetAttrInt32(self, dpiMsgProps_getPriority);
+    return cxoMsgProps_getAttrInt32(props, dpiMsgProps_getPriority);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_GetState()
+// cxoMsgProps_getState()
 //   Get the value of the state property.
 //-----------------------------------------------------------------------------
-static PyObject *MsgProps_GetState(udt_MsgProps *self, void *unused)
+static PyObject *cxoMsgProps_getState(cxoMsgProps *props, void *unused)
 {
     dpiMessageState value;
 
-    if (dpiMsgProps_getState(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiMsgProps_getState(props->handle, &value) < 0)
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(value);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_SetCorrelation()
+// cxoMsgProps_setCorrelation()
 //   Set the value of the correlation property.
 //-----------------------------------------------------------------------------
-static int MsgProps_SetCorrelation(udt_MsgProps *self, PyObject *valueObj,
+static int cxoMsgProps_setCorrelation(cxoMsgProps *props, PyObject *valueObj,
         void *unused)
 {
-    udt_Buffer buffer;
+    cxoBuffer buffer;
     int status;
 
-    if (cxBuffer_FromObject(&buffer, valueObj, self->encoding))
+    if (cxoBuffer_fromObject(&buffer, valueObj, props->encoding))
         return -1;
-    status = dpiMsgProps_setCorrelation(self->handle, buffer.ptr, buffer.size);
-    cxBuffer_Clear(&buffer);
+    status = dpiMsgProps_setCorrelation(props->handle, buffer.ptr,
+            buffer.size);
+    cxoBuffer_clear(&buffer);
     if (status < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_SetDelay()
+// cxoMsgProps_setDelay()
 //   Set the value of the delay property.
 //-----------------------------------------------------------------------------
-static int MsgProps_SetDelay(udt_MsgProps *self, PyObject *valueObj,
+static int cxoMsgProps_setDelay(cxoMsgProps *props, PyObject *valueObj,
         void *unused)
 {
-    return MsgProps_SetAttrInt32(self, valueObj, dpiMsgProps_setDelay);
+    return cxoMsgProps_setAttrInt32(props, valueObj, dpiMsgProps_setDelay);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_SetExceptionQ()
+// cxoMsgProps_setExceptionQ()
 //   Set the value of the exception queue property.
 //-----------------------------------------------------------------------------
-static int MsgProps_SetExceptionQ(udt_MsgProps *self, PyObject *valueObj,
+static int cxoMsgProps_setExceptionQ(cxoMsgProps *props, PyObject *valueObj,
         void *unused)
 {
-    udt_Buffer buffer;
+    cxoBuffer buffer;
     int status;
 
-    if (cxBuffer_FromObject(&buffer, valueObj, self->encoding))
+    if (cxoBuffer_fromObject(&buffer, valueObj, props->encoding))
         return -1;
-    status = dpiMsgProps_setExceptionQ(self->handle, buffer.ptr, buffer.size);
-    cxBuffer_Clear(&buffer);
+    status = dpiMsgProps_setExceptionQ(props->handle, buffer.ptr, buffer.size);
+    cxoBuffer_clear(&buffer);
     if (status < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_SetExpiration()
+// cxoMsgProps_setExpiration()
 //   Set the value of the expiration property.
 //-----------------------------------------------------------------------------
-static int MsgProps_SetExpiration(udt_MsgProps *self, PyObject *valueObj,
+static int cxoMsgProps_setExpiration(cxoMsgProps *props, PyObject *valueObj,
         void *unused)
 {
-    return MsgProps_SetAttrInt32(self, valueObj, dpiMsgProps_setExpiration);
+    return cxoMsgProps_setAttrInt32(props, valueObj, dpiMsgProps_setExpiration);
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_SetOriginalMsgId()
+// cxoMsgProps_setOriginalMsgId()
 //   Set the value of the original message id property.
 //-----------------------------------------------------------------------------
-static int MsgProps_SetOriginalMsgId(udt_MsgProps *self, PyObject *valueObj,
+static int cxoMsgProps_setOriginalMsgId(cxoMsgProps *props, PyObject *valueObj,
         void *unused)
 {
     Py_ssize_t valueLength;
@@ -394,20 +385,20 @@ static int MsgProps_SetOriginalMsgId(udt_MsgProps *self, PyObject *valueObj,
 
     if (PyBytes_AsStringAndSize(valueObj, &value, &valueLength) < 0)
         return -1;
-    if (dpiMsgProps_setOriginalMsgId(self->handle, value,
+    if (dpiMsgProps_setOriginalMsgId(props->handle, value,
             (uint32_t) valueLength) < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// MsgProps_SetPriority()
+// cxoMsgProps_setPriority()
 //   Set the value of the expiration property.
 //-----------------------------------------------------------------------------
-static int MsgProps_SetPriority(udt_MsgProps *self, PyObject *valueObj,
+static int cxoMsgProps_setPriority(cxoMsgProps *props, PyObject *valueObj,
         void *unused)
 {
-    return MsgProps_SetAttrInt32(self, valueObj, dpiMsgProps_setPriority);
+    return cxoMsgProps_setAttrInt32(props, valueObj, dpiMsgProps_setPriority);
 }
 

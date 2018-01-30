@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+// Copyright 2016-2018, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -8,56 +8,47 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// LOB.c
+// cxoLob.c
 //   Defines the routines for handling LOB values.
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// LOB type
-//-----------------------------------------------------------------------------
-typedef struct {
-    PyObject_HEAD
-    udt_Connection *connection;
-    dpiOracleTypeNum oracleTypeNum;
-    dpiLob *handle;
-} udt_LOB;
-
+#include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
 // Declaration of external LOB functions.
 //-----------------------------------------------------------------------------
-static void LOB_Free(udt_LOB*);
-static PyObject *LOB_Str(udt_LOB*);
-static PyObject *LOB_Size(udt_LOB*, PyObject*);
-static PyObject *LOB_Open(udt_LOB*, PyObject*);
-static PyObject *LOB_Close(udt_LOB*, PyObject*);
-static PyObject *LOB_Read(udt_LOB*, PyObject*, PyObject*);
-static PyObject *LOB_Write(udt_LOB*, PyObject*, PyObject*);
-static PyObject *LOB_Trim(udt_LOB*, PyObject*, PyObject*);
-static PyObject *LOB_GetChunkSize(udt_LOB*, PyObject*);
-static PyObject *LOB_IsOpen(udt_LOB*, PyObject*);
-static PyObject *LOB_GetFileName(udt_LOB*, PyObject*);
-static PyObject *LOB_SetFileName(udt_LOB*, PyObject*);
-static PyObject *LOB_FileExists(udt_LOB*, PyObject*);
-static PyObject *LOB_Reduce(udt_LOB*);
+static void cxoLob_free(cxoLob*);
+static PyObject *cxoLob_str(cxoLob*);
+static PyObject *cxoLob_size(cxoLob*, PyObject*);
+static PyObject *cxoLob_open(cxoLob*, PyObject*);
+static PyObject *cxoLob_close(cxoLob*, PyObject*);
+static PyObject *cxoLob_read(cxoLob*, PyObject*, PyObject*);
+static PyObject *cxoLob_write(cxoLob*, PyObject*, PyObject*);
+static PyObject *cxoLob_trim(cxoLob*, PyObject*, PyObject*);
+static PyObject *cxoLob_getChunkSize(cxoLob*, PyObject*);
+static PyObject *cxoLob_isOpen(cxoLob*, PyObject*);
+static PyObject *cxoLob_getFileName(cxoLob*, PyObject*);
+static PyObject *cxoLob_setFileName(cxoLob*, PyObject*);
+static PyObject *cxoLob_fileExists(cxoLob*, PyObject*);
+static PyObject *cxoLob_reduce(cxoLob*);
 
 
 //-----------------------------------------------------------------------------
 // declaration of methods for Python type "LOB"
 //-----------------------------------------------------------------------------
-static PyMethodDef g_LOBMethods[] = {
-    { "size", (PyCFunction) LOB_Size, METH_NOARGS },
-    { "open", (PyCFunction) LOB_Open, METH_NOARGS },
-    { "close", (PyCFunction) LOB_Close, METH_NOARGS },
-    { "read", (PyCFunction) LOB_Read, METH_VARARGS | METH_KEYWORDS },
-    { "write", (PyCFunction) LOB_Write, METH_VARARGS | METH_KEYWORDS },
-    { "trim", (PyCFunction) LOB_Trim, METH_VARARGS | METH_KEYWORDS },
-    { "getchunksize", (PyCFunction) LOB_GetChunkSize, METH_NOARGS },
-    { "isopen", (PyCFunction) LOB_IsOpen, METH_NOARGS },
-    { "getfilename", (PyCFunction) LOB_GetFileName, METH_NOARGS },
-    { "setfilename", (PyCFunction) LOB_SetFileName, METH_VARARGS },
-    { "fileexists", (PyCFunction) LOB_FileExists, METH_NOARGS },
-    { "__reduce__", (PyCFunction) LOB_Reduce, METH_NOARGS },
+static PyMethodDef cxoLobMethods[] = {
+    { "size", (PyCFunction) cxoLob_size, METH_NOARGS },
+    { "open", (PyCFunction) cxoLob_open, METH_NOARGS },
+    { "close", (PyCFunction) cxoLob_close, METH_NOARGS },
+    { "read", (PyCFunction) cxoLob_read, METH_VARARGS | METH_KEYWORDS },
+    { "write", (PyCFunction) cxoLob_write, METH_VARARGS | METH_KEYWORDS },
+    { "trim", (PyCFunction) cxoLob_trim, METH_VARARGS | METH_KEYWORDS },
+    { "getchunksize", (PyCFunction) cxoLob_getChunkSize, METH_NOARGS },
+    { "isopen", (PyCFunction) cxoLob_isOpen, METH_NOARGS },
+    { "getfilename", (PyCFunction) cxoLob_getFileName, METH_NOARGS },
+    { "setfilename", (PyCFunction) cxoLob_setFileName, METH_VARARGS },
+    { "fileexists", (PyCFunction) cxoLob_fileExists, METH_NOARGS },
+    { "__reduce__", (PyCFunction) cxoLob_reduce, METH_NOARGS },
     { NULL, NULL }
 };
 
@@ -65,12 +56,12 @@ static PyMethodDef g_LOBMethods[] = {
 //-----------------------------------------------------------------------------
 // Python type declaration
 //-----------------------------------------------------------------------------
-static PyTypeObject g_LOBType = {
+PyTypeObject cxoPyTypeLob = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.LOB",                    // tp_name
-    sizeof(udt_LOB),                    // tp_basicsize
+    sizeof(cxoLob),                     // tp_basicsize
     0,                                  // tp_itemsize
-    (destructor) LOB_Free,              // tp_dealloc
+    (destructor) cxoLob_free,           // tp_dealloc
     0,                                  // tp_print
     0,                                  // tp_getattr
     0,                                  // tp_setattr
@@ -81,7 +72,7 @@ static PyTypeObject g_LOBType = {
     0,                                  // tp_as_mapping
     0,                                  // tp_hash
     0,                                  // tp_call
-    (reprfunc) LOB_Str,                 // tp_str
+    (reprfunc) cxoLob_str,              // tp_str
     0,                                  // tp_getattro
     0,                                  // tp_setattro
     0,                                  // tp_as_buffer
@@ -93,7 +84,7 @@ static PyTypeObject g_LOBType = {
     0,                                  // tp_weaklistoffset
     0,                                  // tp_iter
     0,                                  // tp_iternext
-    g_LOBMethods,                       // tp_methods
+    cxoLobMethods,                      // tp_methods
     0,                                  // tp_members
     0,                                  // tp_getset
     0,                                  // tp_base
@@ -111,49 +102,49 @@ static PyTypeObject g_LOBType = {
 
 
 //-----------------------------------------------------------------------------
-// LOB_New()
+// cxoLob_new()
 //   Create a new LOB.
 //-----------------------------------------------------------------------------
-PyObject *LOB_New(udt_Connection *connection, dpiOracleTypeNum oracleTypeNum,
+PyObject *cxoLob_new(cxoConnection *connection, dpiOracleTypeNum oracleTypeNum,
         dpiLob *handle)
 {
-    udt_LOB *self;
+    cxoLob *lob;
 
-    self = (udt_LOB*) g_LOBType.tp_alloc(&g_LOBType, 0);
-    if (!self)
+    lob = (cxoLob*) cxoPyTypeLob.tp_alloc(&cxoPyTypeLob, 0);
+    if (!lob)
         return NULL;
     if (dpiLob_addRef(handle) < 0) {
-        Py_DECREF(self);
+        Py_DECREF(lob);
         return NULL;
     }
-    self->handle = handle;
-    self->oracleTypeNum = oracleTypeNum;
+    lob->handle = handle;
+    lob->oracleTypeNum = oracleTypeNum;
     Py_INCREF(connection);
-    self->connection = connection;
-    return (PyObject*) self;
+    lob->connection = connection;
+    return (PyObject*) lob;
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_Free()
+// cxoLob_free()
 //   Free a LOB.
 //-----------------------------------------------------------------------------
-static void LOB_Free(udt_LOB *self)
+static void cxoLob_free(cxoLob *lob)
 {
-    if (self->handle) {
-        dpiLob_release(self->handle);
-        self->handle = NULL;
+    if (lob->handle) {
+        dpiLob_release(lob->handle);
+        lob->handle = NULL;
     }
-    Py_CLEAR(self->connection);
-    Py_TYPE(self)->tp_free((PyObject*) self);
+    Py_CLEAR(lob->connection);
+    Py_TYPE(lob)->tp_free((PyObject*) lob);
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_InternalRead()
+// cxoLob_internalRead()
 //   Return a portion (or all) of the data in the LOB.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_InternalRead(udt_LOB *self, uint64_t offset,
+static PyObject *cxoLob_internalRead(cxoLob *lob, uint64_t offset,
         uint64_t amount)
 {
     uint64_t bufferSize;
@@ -163,37 +154,37 @@ static PyObject *LOB_InternalRead(udt_LOB *self, uint64_t offset,
 
     // modify the arguments
     if (amount == (uint64_t)(-1)) {
-        if (dpiLob_getSize(self->handle, &amount) < 0)
-            return Error_RaiseAndReturnNull();
+        if (dpiLob_getSize(lob->handle, &amount) < 0)
+            return cxoError_raiseAndReturnNull();
         if (amount >= offset)
             amount = amount - offset + 1;
         else amount = 1;
     }
 
     // create a buffer of the correct size
-    if (dpiLob_getBufferSize(self->handle, amount, &bufferSize) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiLob_getBufferSize(lob->handle, amount, &bufferSize) < 0)
+        return cxoError_raiseAndReturnNull();
     buffer = (char*) PyMem_Malloc((Py_ssize_t) bufferSize);
     if (!buffer)
         return PyErr_NoMemory();
 
     // read the LOB
     Py_BEGIN_ALLOW_THREADS
-    status = dpiLob_readBytes(self->handle, offset, amount, buffer,
+    status = dpiLob_readBytes(lob->handle, offset, amount, buffer,
             &bufferSize);
     Py_END_ALLOW_THREADS
     if (status < 0) {
         PyMem_Free(buffer);
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     }
 
     // return the result
-    if (self->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
+    if (lob->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
         result = PyUnicode_Decode(buffer, (Py_ssize_t) bufferSize,
-                self->connection->encodingInfo.nencoding, NULL);
-    else if (self->oracleTypeNum == DPI_ORACLE_TYPE_CLOB)
-        result = cxString_FromEncodedString(buffer, (Py_ssize_t) bufferSize,
-                self->connection->encodingInfo.encoding);
+                lob->connection->encodingInfo.nencoding, NULL);
+    else if (lob->oracleTypeNum == DPI_ORACLE_TYPE_CLOB)
+        result = cxoPyString_fromEncodedString(buffer, (Py_ssize_t) bufferSize,
+                lob->connection->encodingInfo.encoding);
     else result = PyBytes_FromStringAndSize(buffer, (Py_ssize_t) bufferSize);
     PyMem_Free(buffer);
     return result;
@@ -201,84 +192,85 @@ static PyObject *LOB_InternalRead(udt_LOB *self, uint64_t offset,
 
 
 //-----------------------------------------------------------------------------
-// LOB_InternalWrite()
+// cxoLob_internalWrite()
 //   Write the data in the Python object to the LOB.
 //-----------------------------------------------------------------------------
-static int LOB_InternalWrite(udt_LOB *self, PyObject *dataObj, uint64_t offset)
+static int cxoLob_internalWrite(cxoLob *lob, PyObject *dataObj,
+        uint64_t offset)
 {
     const char *encoding;
-    udt_Buffer buffer;
+    cxoBuffer buffer;
     int status;
 
-    if (self->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
-        encoding = self->connection->encodingInfo.nencoding;
-    else encoding = self->connection->encodingInfo.encoding;
-    if (cxBuffer_FromObject(&buffer, dataObj, encoding) < 0)
+    if (lob->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
+        encoding = lob->connection->encodingInfo.nencoding;
+    else encoding = lob->connection->encodingInfo.encoding;
+    if (cxoBuffer_fromObject(&buffer, dataObj, encoding) < 0)
         return -1;
     Py_BEGIN_ALLOW_THREADS
-    status = dpiLob_writeBytes(self->handle, offset,
+    status = dpiLob_writeBytes(lob->handle, offset,
             (char*) buffer.ptr, buffer.size);
     Py_END_ALLOW_THREADS
-    cxBuffer_Clear(&buffer);
+    cxoBuffer_clear(&buffer);
     if (status < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_Size()
+// cxoLob_size()
 //   Return the size of the data in the LOB.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_Size(udt_LOB *self, PyObject *args)
+static PyObject *cxoLob_size(cxoLob *lob, PyObject *args)
 {
     uint64_t length;
 
-    if (dpiLob_getSize(self->handle, &length) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiLob_getSize(lob->handle, &length) < 0)
+        return cxoError_raiseAndReturnNull();
     return PyLong_FromUnsignedLongLong(length);
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_Open()
+// cxoLob_open()
 //   Open the LOB to speed further accesses.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_Open(udt_LOB *self, PyObject *args)
+static PyObject *cxoLob_open(cxoLob *lob, PyObject *args)
 {
     int status;
 
     Py_BEGIN_ALLOW_THREADS
-    status = dpiLob_openResource(self->handle);
+    status = dpiLob_openResource(lob->handle);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_Close()
+// cxoLob_close()
 //   Close the LOB.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_Close(udt_LOB *self, PyObject *args)
+static PyObject *cxoLob_close(cxoLob *lob, PyObject *args)
 {
     int status;
 
     Py_BEGIN_ALLOW_THREADS
-    status = dpiLob_closeResource(self->handle);
+    status = dpiLob_closeResource(lob->handle);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_Read()
+// cxoLob_read()
 //   Return a portion (or all) of the data in the LOB.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_Read(udt_LOB *self, PyObject *args, PyObject *keywordArgs)
+static PyObject *cxoLob_read(cxoLob *lob, PyObject *args, PyObject *keywordArgs)
 {
     static char *keywordList[] = { "offset", "amount", NULL };
     unsigned PY_LONG_LONG offset, amount;
@@ -289,25 +281,25 @@ static PyObject *LOB_Read(udt_LOB *self, PyObject *args, PyObject *keywordArgs)
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|KK", keywordList,
             &offset, &amount))
         return NULL;
-    return LOB_InternalRead(self, (uint64_t) offset, (uint64_t) amount);
+    return cxoLob_internalRead(lob, (uint64_t) offset, (uint64_t) amount);
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_Str()
+// cxoLob_str()
 //   Return all of the data in the LOB.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_Str(udt_LOB *self)
+static PyObject *cxoLob_str(cxoLob *lob)
 {
-    return LOB_InternalRead(self, 1, (uint64_t)(-1));
+    return cxoLob_internalRead(lob, 1, (uint64_t)(-1));
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_Write()
+// cxoLob_write()
 //   Write a value to the LOB.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_Write(udt_LOB *self, PyObject *args,
+static PyObject *cxoLob_write(cxoLob *lob, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "data", "offset", NULL };
@@ -318,17 +310,18 @@ static PyObject *LOB_Write(udt_LOB *self, PyObject *args,
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|K", keywordList,
             &dataObj, &offset))
         return NULL;
-    if (LOB_InternalWrite(self, dataObj, (uint64_t) offset) < 0)
+    if (cxoLob_internalWrite(lob, dataObj, (uint64_t) offset) < 0)
         return NULL;
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_Trim()
+// cxoLob_trim()
 //   Trim the LOB to the specified length.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_Trim(udt_LOB *self, PyObject *args, PyObject *keywordArgs)
+static PyObject *cxoLob_trim(cxoLob *lob, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "newSize", NULL };
     unsigned PY_LONG_LONG newSize;
@@ -339,23 +332,23 @@ static PyObject *LOB_Trim(udt_LOB *self, PyObject *args, PyObject *keywordArgs)
             &newSize))
         return NULL;
     Py_BEGIN_ALLOW_THREADS
-    status = dpiLob_trim(self->handle, (uint64_t) newSize);
+    status = dpiLob_trim(lob->handle, (uint64_t) newSize);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_Reduce()
+// cxoLob_reduce()
 //   Method provided for pickling/unpickling of LOBs.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_Reduce(udt_LOB *self)
+static PyObject *cxoLob_reduce(cxoLob *lob)
 {
     PyObject *result, *value;
 
-    value = LOB_Str(self);
+    value = cxoLob_str(lob);
     if (!value)
         return NULL;
     result = Py_BuildValue("(O(O))", Py_TYPE(value), value);
@@ -365,42 +358,42 @@ static PyObject *LOB_Reduce(udt_LOB *self)
 
 
 //-----------------------------------------------------------------------------
-// LOB_GetChunkSize()
+// cxoLob_getChunkSize()
 //   Return the chunk size that should be used when reading/writing the LOB in
 // chunks.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_GetChunkSize(udt_LOB *self, PyObject *args)
+static PyObject *cxoLob_getChunkSize(cxoLob *lob, PyObject *args)
 {
     uint32_t size;
 
-    if (dpiLob_getChunkSize(self->handle, &size) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiLob_getChunkSize(lob->handle, &size) < 0)
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(size);
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_IsOpen()
+// cxoLob_isOpen()
 //   Return a boolean indicating if the lob is open or not.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_IsOpen(udt_LOB *self, PyObject *args)
+static PyObject *cxoLob_isOpen(cxoLob *lob, PyObject *args)
 {
     int isOpen, status;
 
     Py_BEGIN_ALLOW_THREADS
-    status = dpiLob_getIsResourceOpen(self->handle, &isOpen);
+    status = dpiLob_getIsResourceOpen(lob->handle, &isOpen);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     return PyBool_FromLong(isOpen);
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_GetFileName()
+// cxoLob_getFileName()
 //   Return the directory alias and file name for the BFILE lob.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_GetFileName(udt_LOB *self, PyObject *args)
+static PyObject *cxoLob_getFileName(cxoLob *lob, PyObject *args)
 {
     uint32_t directoryAliasLength, fileNameLength;
     const char *directoryAlias, *fileName;
@@ -409,25 +402,25 @@ static PyObject *LOB_GetFileName(udt_LOB *self, PyObject *args)
 
     // get the information from the LOB
     Py_BEGIN_ALLOW_THREADS
-    status = dpiLob_getDirectoryAndFileName(self->handle, &directoryAlias,
+    status = dpiLob_getDirectoryAndFileName(lob->handle, &directoryAlias,
             &directoryAliasLength, &fileName, &fileNameLength);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
 
     // create the two-tuple for returning
     result = PyTuple_New(2);
     if (!result)
         return NULL;
-    temp = cxString_FromEncodedString(directoryAlias, directoryAliasLength,
-            self->connection->encodingInfo.encoding);
+    temp = cxoPyString_fromEncodedString(directoryAlias, directoryAliasLength,
+            lob->connection->encodingInfo.encoding);
     if (!temp) {
         Py_DECREF(result);
         return NULL;
     }
     PyTuple_SET_ITEM(result, 0, temp);
-    temp = cxString_FromEncodedString(fileName, fileNameLength,
-            self->connection->encodingInfo.encoding);
+    temp = cxoPyString_fromEncodedString(fileName, fileNameLength,
+            lob->connection->encodingInfo.encoding);
     if (!temp) {
         Py_DECREF(result);
         return NULL;
@@ -439,55 +432,55 @@ static PyObject *LOB_GetFileName(udt_LOB *self, PyObject *args)
 
 
 //-----------------------------------------------------------------------------
-// LOB_SetFileName()
+// cxoLob_setFileName()
 //   Set the directory alias and file name for the BFILE lob.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_SetFileName(udt_LOB *self, PyObject *args)
+static PyObject *cxoLob_setFileName(cxoLob *lob, PyObject *args)
 {
-    udt_Buffer directoryAliasBuffer, fileNameBuffer;
+    cxoBuffer directoryAliasBuffer, fileNameBuffer;
     PyObject *directoryAliasObj, *fileNameObj;
     int status;
 
     // get the directory alias and file name
     if (!PyArg_ParseTuple(args, "OO", &directoryAliasObj, &fileNameObj))
         return NULL;
-    if (cxBuffer_FromObject(&directoryAliasBuffer, directoryAliasObj,
-            self->connection->encodingInfo.encoding) < 0)
+    if (cxoBuffer_fromObject(&directoryAliasBuffer, directoryAliasObj,
+            lob->connection->encodingInfo.encoding) < 0)
         return NULL;
-    if (cxBuffer_FromObject(&fileNameBuffer, fileNameObj,
-            self->connection->encodingInfo.encoding) < 0) {
-        cxBuffer_Clear(&directoryAliasBuffer);
+    if (cxoBuffer_fromObject(&fileNameBuffer, fileNameObj,
+            lob->connection->encodingInfo.encoding) < 0) {
+        cxoBuffer_clear(&directoryAliasBuffer);
         return NULL;
     }
 
     // perform the work
     Py_BEGIN_ALLOW_THREADS
-    status = dpiLob_setDirectoryAndFileName(self->handle,
+    status = dpiLob_setDirectoryAndFileName(lob->handle,
             (char*) directoryAliasBuffer.ptr, directoryAliasBuffer.size,
             (char*) fileNameBuffer.ptr, fileNameBuffer.size);
     Py_END_ALLOW_THREADS
-    cxBuffer_Clear(&directoryAliasBuffer);
-    cxBuffer_Clear(&fileNameBuffer);
+    cxoBuffer_clear(&directoryAliasBuffer);
+    cxoBuffer_clear(&fileNameBuffer);
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
 
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// LOB_FileExists()
+// cxoLob_fileExists()
 //   Return a boolean indicating if the BFIILE lob exists.
 //-----------------------------------------------------------------------------
-static PyObject *LOB_FileExists(udt_LOB *self, PyObject *args)
+static PyObject *cxoLob_fileExists(cxoLob *lob, PyObject *args)
 {
     int status, exists;
 
     Py_BEGIN_ALLOW_THREADS
-    status = dpiLob_getFileExists(self->handle, &exists);
+    status = dpiLob_getFileExists(lob->handle, &exists);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     if (exists)
         Py_RETURN_TRUE;
     Py_RETURN_FALSE;

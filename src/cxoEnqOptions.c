@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+// Copyright 2016-2018, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -8,41 +8,32 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// EnqOptions.c
+// cxoEnqOptions.c
 //   Implements the enqueue options objects used in Advanced Queuing.
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// structure used for implementing enqueue options
-//-----------------------------------------------------------------------------
-typedef struct {
-    PyObject_HEAD
-    dpiEnqOptions *handle;
-    const char *encoding;
-} udt_EnqOptions;
-
+#include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
 // Declaration of methods used for enqueue options
 //-----------------------------------------------------------------------------
-static udt_EnqOptions *EnqOptions_New(udt_Connection*);
-static void EnqOptions_Free(udt_EnqOptions*);
-static PyObject *EnqOptions_GetTransformation(udt_EnqOptions*, void*);
-static PyObject *EnqOptions_GetVisibility(udt_EnqOptions*, void*);
-static int EnqOptions_SetDeliveryMode(udt_EnqOptions*, PyObject*, void*);
-static int EnqOptions_SetTransformation(udt_EnqOptions*, PyObject*, void*);
-static int EnqOptions_SetVisibility(udt_EnqOptions*, PyObject*, void*);
+static void cxoEnqOptions_free(cxoEnqOptions*);
+static PyObject *cxoEnqOptions_getTransformation(cxoEnqOptions*, void*);
+static PyObject *cxoEnqOptions_getVisibility(cxoEnqOptions*, void*);
+static int cxoEnqOptions_setDeliveryMode(cxoEnqOptions*, PyObject*, void*);
+static int cxoEnqOptions_setTransformation(cxoEnqOptions*, PyObject*, void*);
+static int cxoEnqOptions_setVisibility(cxoEnqOptions*, PyObject*, void*);
 
 
 //-----------------------------------------------------------------------------
 // declaration of calculated members for Python type "EnqOptions"
 //-----------------------------------------------------------------------------
-static PyGetSetDef g_EnqOptionsCalcMembers[] = {
-    { "deliverymode", 0, (setter) EnqOptions_SetDeliveryMode, 0, 0 },
-    { "transformation", (getter) EnqOptions_GetTransformation,
-            (setter) EnqOptions_SetTransformation, 0, 0 },
-    { "visibility", (getter) EnqOptions_GetVisibility,
-            (setter) EnqOptions_SetVisibility, 0, 0 },
+static PyGetSetDef cxoEnqOptionsCalcMembers[] = {
+    { "deliverymode", 0, (setter) cxoEnqOptions_setDeliveryMode, 0, 0 },
+    { "transformation", (getter) cxoEnqOptions_getTransformation,
+            (setter) cxoEnqOptions_setTransformation, 0, 0 },
+    { "visibility", (getter) cxoEnqOptions_getVisibility,
+            (setter) cxoEnqOptions_setVisibility, 0, 0 },
     { NULL }
 };
 
@@ -50,12 +41,12 @@ static PyGetSetDef g_EnqOptionsCalcMembers[] = {
 //-----------------------------------------------------------------------------
 // Python type declarations
 //-----------------------------------------------------------------------------
-static PyTypeObject g_EnqOptionsType = {
+PyTypeObject cxoPyTypeEnqOptions = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.EnqOptions",             // tp_name
-    sizeof(udt_EnqOptions),             // tp_basicsize
+    sizeof(cxoEnqOptions),              // tp_basicsize
     0,                                  // tp_itemsize
-    (destructor) EnqOptions_Free,       // tp_dealloc
+    (destructor) cxoEnqOptions_free,    // tp_dealloc
     0,                                  // tp_print
     0,                                  // tp_getattr
     0,                                  // tp_setattr
@@ -80,7 +71,7 @@ static PyTypeObject g_EnqOptionsType = {
     0,                                  // tp_iternext
     0,                                  // tp_methods
     0,                                  // tp_members
-    g_EnqOptionsCalcMembers,            // tp_getset
+    cxoEnqOptionsCalcMembers,           // tp_getset
     0,                                  // tp_base
     0,                                  // tp_dict
     0,                                  // tp_descr_get
@@ -96,19 +87,20 @@ static PyTypeObject g_EnqOptionsType = {
 
 
 //-----------------------------------------------------------------------------
-// EnqOptions_New()
+// cxoEnqOptions_new()
 //   Create a new enqueue options object.
 //-----------------------------------------------------------------------------
-static udt_EnqOptions *EnqOptions_New(udt_Connection *connection)
+cxoEnqOptions *cxoEnqOptions_new(cxoConnection *connection)
 {
-    udt_EnqOptions *self;
+    cxoEnqOptions *self;
 
-    self = (udt_EnqOptions*) g_EnqOptionsType.tp_alloc(&g_EnqOptionsType, 0);
+    self = (cxoEnqOptions*)
+            cxoPyTypeEnqOptions.tp_alloc(&cxoPyTypeEnqOptions, 0);
     if (!self)
         return NULL;
     if (dpiConn_newEnqOptions(connection->handle, &self->handle) < 0) {
         Py_DECREF(self);
-        Error_RaiseAndReturnNull();
+        cxoError_raiseAndReturnNull();
         return NULL;
     }
     self->encoding = connection->encodingInfo.encoding;
@@ -118,10 +110,10 @@ static udt_EnqOptions *EnqOptions_New(udt_Connection *connection)
 
 
 //-----------------------------------------------------------------------------
-// EnqOptions_Free()
+// cxoEnqOptions_free()
 //   Free the memory associated with the enqueue options object.
 //-----------------------------------------------------------------------------
-static void EnqOptions_Free(udt_EnqOptions *self)
+static void cxoEnqOptions_free(cxoEnqOptions *self)
 {
     if (self->handle) {
         dpiEnqOptions_release(self->handle);
@@ -132,10 +124,10 @@ static void EnqOptions_Free(udt_EnqOptions *self)
 
 
 //-----------------------------------------------------------------------------
-// EnqOptions_GetTransformation()
+// cxoEnqOptions_getTransformation()
 //   Get the value of the transformation option.
 //-----------------------------------------------------------------------------
-static PyObject *EnqOptions_GetTransformation(udt_EnqOptions *self,
+static PyObject *cxoEnqOptions_getTransformation(cxoEnqOptions *self,
         void *unused)
 {
     uint32_t valueLength;
@@ -143,32 +135,32 @@ static PyObject *EnqOptions_GetTransformation(udt_EnqOptions *self,
 
     if (dpiEnqOptions_getTransformation(self->handle, &value,
             &valueLength) < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxString_FromEncodedString(value, valueLength, self->encoding);
+    return cxoPyString_fromEncodedString(value, valueLength, self->encoding);
 }
 
 
 //-----------------------------------------------------------------------------
-// EnqOptions_GetVisibility()
+// cxoEnqOptions_getVisibility()
 //   Get the value of the visibility option.
 //-----------------------------------------------------------------------------
-static PyObject *EnqOptions_GetVisibility(udt_EnqOptions *self, void *unused)
+static PyObject *cxoEnqOptions_getVisibility(cxoEnqOptions *self, void *unused)
 {
     dpiVisibility value;
 
     if (dpiEnqOptions_getVisibility(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(value);
 }
 
 
 //-----------------------------------------------------------------------------
-// EnqOptions_SetDeliveryMode()
+// cxoEnqOptions_setDeliveryMode()
 //   Set the value of the delivery mode option.
 //-----------------------------------------------------------------------------
-static int EnqOptions_SetDeliveryMode(udt_EnqOptions *self, PyObject *valueObj,
+static int cxoEnqOptions_setDeliveryMode(cxoEnqOptions *self, PyObject *valueObj,
         void *unused)
 {
     dpiMessageDeliveryMode value;
@@ -177,37 +169,37 @@ static int EnqOptions_SetDeliveryMode(udt_EnqOptions *self, PyObject *valueObj,
     if (PyErr_Occurred())
         return -1;
     if (dpiEnqOptions_setDeliveryMode(self->handle, value) < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// EnqOptions_SetTransformation()
+// cxoEnqOptions_setTransformation()
 //   Set the value of the transformation option.
 //-----------------------------------------------------------------------------
-static int EnqOptions_SetTransformation(udt_EnqOptions *self,
+static int cxoEnqOptions_setTransformation(cxoEnqOptions *self,
         PyObject *valueObj, void *unused)
 {
-    udt_Buffer buffer;
+    cxoBuffer buffer;
     int status;
 
-    if (cxBuffer_FromObject(&buffer, valueObj, self->encoding) < 0)
+    if (cxoBuffer_fromObject(&buffer, valueObj, self->encoding) < 0)
         return -1;
     status = dpiEnqOptions_setTransformation(self->handle, buffer.ptr,
             buffer.size);
-    cxBuffer_Clear(&buffer);
+    cxoBuffer_clear(&buffer);
     if (status < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// EnqOptions_SetVisibility()
+// cxoEnqOptions_setVisibility()
 //   Set the value of the visibility option.
 //-----------------------------------------------------------------------------
-static int EnqOptions_SetVisibility(udt_EnqOptions *self,
+static int cxoEnqOptions_setVisibility(cxoEnqOptions *self,
         PyObject *valueObj, void *unused)
 {
     dpiVisibility value;
@@ -216,7 +208,7 @@ static int EnqOptions_SetVisibility(udt_EnqOptions *self,
     if (PyErr_Occurred())
         return -1;
     if (dpiEnqOptions_setVisibility(self->handle, value) < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
     return 0;
 }
 

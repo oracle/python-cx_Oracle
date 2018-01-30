@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+// Copyright 2016-2018, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -8,37 +8,27 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Error.c
+// cxoError.c
 //   Error handling.
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// structure for the Python type
-//-----------------------------------------------------------------------------
-typedef struct {
-    PyObject_HEAD
-    long code;
-    unsigned offset;
-    PyObject *message;
-    PyObject *context;
-    char isRecoverable;
-} udt_Error;
-
+#include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
 // forward declarations
 //-----------------------------------------------------------------------------
-static void Error_Free(udt_Error*);
-static PyObject *Error_Str(udt_Error*);
-static PyObject *Error_New(PyTypeObject*, PyObject*, PyObject*);
-static PyObject *Error_Reduce(udt_Error*);
+static void cxoError_free(cxoError *error);
+static PyObject *cxoError_str(cxoError *error);
+static PyObject *cxoError_new(PyTypeObject *type, PyObject *args,
+        PyObject *keywordArgs);
+static PyObject *cxoError_reduce(cxoError*);
 
 
 //-----------------------------------------------------------------------------
 // declaration of methods
 //-----------------------------------------------------------------------------
-static PyMethodDef g_ErrorMethods[] = {
-    { "__reduce__", (PyCFunction) Error_Reduce, METH_NOARGS },
+static PyMethodDef cxoErrorMethods[] = {
+    { "__reduce__", (PyCFunction) cxoError_reduce, METH_NOARGS },
     { NULL, NULL }
 };
 
@@ -46,12 +36,12 @@ static PyMethodDef g_ErrorMethods[] = {
 //-----------------------------------------------------------------------------
 // declaration of members
 //-----------------------------------------------------------------------------
-static PyMemberDef g_ErrorMembers[] = {
-    { "code", T_LONG, offsetof(udt_Error, code), READONLY },
-    { "offset", T_UINT, offsetof(udt_Error, offset), READONLY },
-    { "message", T_OBJECT, offsetof(udt_Error, message), READONLY },
-    { "context", T_OBJECT, offsetof(udt_Error, context), READONLY },
-    { "isrecoverable", T_BOOL, offsetof(udt_Error, isRecoverable), READONLY },
+static PyMemberDef cxoErrorMembers[] = {
+    { "code", T_LONG, offsetof(cxoError, code), READONLY },
+    { "offset", T_UINT, offsetof(cxoError, offset), READONLY },
+    { "message", T_OBJECT, offsetof(cxoError, message), READONLY },
+    { "context", T_OBJECT, offsetof(cxoError, context), READONLY },
+    { "isrecoverable", T_BOOL, offsetof(cxoError, isRecoverable), READONLY },
     { NULL }
 };
 
@@ -59,12 +49,12 @@ static PyMemberDef g_ErrorMembers[] = {
 //-----------------------------------------------------------------------------
 // declaration of Python type
 //-----------------------------------------------------------------------------
-static PyTypeObject g_ErrorType = {
+PyTypeObject cxoPyTypeError = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle._Error",                 // tp_name
-    sizeof(udt_Error),                  // tp_basicsize
+    sizeof(cxoError),                   // tp_basicsize
     0,                                  // tp_itemsize
-    (destructor) Error_Free,            // tp_dealloc
+    (destructor) cxoError_free,         // tp_dealloc
     0,                                  // tp_print
     0,                                  // tp_getattr
     0,                                  // tp_setattr
@@ -75,7 +65,7 @@ static PyTypeObject g_ErrorType = {
     0,                                  // tp_as_mapping
     0,                                  // tp_hash
     0,                                  // tp_call
-    (reprfunc) Error_Str,               // tp_str
+    (reprfunc) cxoError_str,            // tp_str
     0,                                  // tp_getattro
     0,                                  // tp_setattro
     0,                                  // tp_as_buffer
@@ -87,8 +77,8 @@ static PyTypeObject g_ErrorType = {
     0,                                  // tp_weaklistoffset
     0,                                  // tp_iter
     0,                                  // tp_iternext
-    g_ErrorMethods,                     // tp_methods
-    g_ErrorMembers,                     // tp_members
+    cxoErrorMethods,                    // tp_methods
+    cxoErrorMembers,                    // tp_members
     0,                                  // tp_getset
     0,                                  // tp_base
     0,                                  // tp_dict
@@ -97,7 +87,7 @@ static PyTypeObject g_ErrorType = {
     0,                                  // tp_dictoffset
     0,                                  // tp_init
     0,                                  // tp_alloc
-    Error_New,                          // tp_new
+    cxoError_new,                       // tp_new
     0,                                  // tp_free
     0,                                  // tp_is_gc
     0                                   // tp_bases
@@ -105,136 +95,130 @@ static PyTypeObject g_ErrorType = {
 
 
 //-----------------------------------------------------------------------------
-// Error_Free()
+// cxoError_free()
 //   Deallocate the error.
 //-----------------------------------------------------------------------------
-static void Error_Free(udt_Error *self)
+static void cxoError_free(cxoError *error)
 {
-    Py_CLEAR(self->message);
-    Py_CLEAR(self->context);
-    PyObject_Del(self);
+    Py_CLEAR(error->message);
+    Py_CLEAR(error->context);
+    PyObject_Del(error);
 }
 
 
 //-----------------------------------------------------------------------------
-// Error_New()
+// cxoError_internalNew()
+//   Internal method for creating an error object from the DPI error
+// information.
+//-----------------------------------------------------------------------------
+cxoError *cxoError_internalNew(dpiErrorInfo *errorInfo)
+{
+    cxoError *error;
+
+    // create error object and initialize it
+    error = (cxoError*) cxoPyTypeError.tp_alloc(&cxoPyTypeError, 0);
+    if (!error)
+        return NULL;
+    error->code = errorInfo->code;
+    error->offset = errorInfo->offset;
+    error->isRecoverable = (char) errorInfo->isRecoverable;
+
+    // create message
+    error->message = cxoPyString_fromEncodedString(errorInfo->message,
+            errorInfo->messageLength, errorInfo->encoding);
+    if (!error->message) {
+        Py_DECREF(error);
+        return NULL;
+    }
+
+    // create context composed of function name and action
+#if PY_MAJOR_VERSION >= 3
+    error->context = PyUnicode_FromFormat("%s: %s", errorInfo->fnName,
+            errorInfo->action);
+#else
+    error->context = PyString_FromFormat("%s: %s", errorInfo->fnName,
+            errorInfo->action);
+#endif
+    if (!error->context) {
+        Py_DECREF(error);
+        return NULL;
+    }
+
+    return error;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoError_new()
 //   Create a new error object. This is intended to only be used by the
 // unpickling routine, and not by direct creation!
 //-----------------------------------------------------------------------------
-static PyObject *Error_New(PyTypeObject *type, PyObject *args,
+static PyObject *cxoError_new(PyTypeObject *type, PyObject *args,
         PyObject *keywordArgs)
 {
     PyObject *message, *context;
     int isRecoverable, code;
-    udt_Error *self;
+    cxoError *error;
     unsigned offset;
 
     isRecoverable = 0;
     if (!PyArg_ParseTuple(args, "OiIO|i", &message, &code, &offset, &context,
             &isRecoverable))
         return NULL;
-    self = (udt_Error*) type->tp_alloc(type, 0);
-    if (!self)
+    error = (cxoError*) type->tp_alloc(type, 0);
+    if (!error)
         return NULL;
 
-    self->code = code;
-    self->offset = offset;
-    self->isRecoverable = (char) isRecoverable;
+    error->code = code;
+    error->offset = offset;
+    error->isRecoverable = (char) isRecoverable;
     Py_INCREF(message);
-    self->message = message;
+    error->message = message;
     Py_INCREF(context);
-    self->context = context;
+    error->context = context;
 
-    return (PyObject*) self;
+    return (PyObject*) error;
 }
 
 
 //-----------------------------------------------------------------------------
-// Error_Str()
-//   Return a string representation of the error variable.
+// cxoError_raiseAndReturnInt()
+//   Internal method for raising an exception from an error generated from DPI.
+// Return -1 as a convenience to the caller.
 //-----------------------------------------------------------------------------
-static PyObject *Error_Str(udt_Error *self)
+int cxoError_raiseAndReturnInt(void)
 {
-    Py_INCREF(self->message);
-    return self->message;
+    dpiErrorInfo errorInfo;
+
+    dpiContext_getError(cxoDpiContext, &errorInfo);
+    return cxoError_raiseFromInfo(&errorInfo);
 }
 
 
 //-----------------------------------------------------------------------------
-// Error_InternalNew()
-//   Internal method for creating an error object from the DPI error
-// information.
+// cxoError_raiseAndReturnNull()
+//   Internal method for raising an exception from an error generated from DPI.
+// Return NULL as a convenience to the caller.
 //-----------------------------------------------------------------------------
-static udt_Error *Error_InternalNew(dpiErrorInfo *errorInfo)
+PyObject *cxoError_raiseAndReturnNull(void)
 {
-    PyObject *format, *args, *fnName, *action;
-    udt_Error *self;
-
-    // create error object and initialize it
-    self = (udt_Error*) g_ErrorType.tp_alloc(&g_ErrorType, 0);
-    if (!self)
-        return NULL;
-    self->code = errorInfo->code;
-    self->offset = errorInfo->offset;
-    self->isRecoverable = (char) errorInfo->isRecoverable;
-
-    // create message
-    self->message = cxString_FromEncodedString(errorInfo->message,
-            errorInfo->messageLength, errorInfo->encoding);
-    if (!self->message) {
-        Py_DECREF(self);
-        return NULL;
-    }
-
-    // create context composed of function name and action
-    fnName = cxString_FromAscii(errorInfo->fnName);
-    if (!fnName) {
-        Py_DECREF(self);
-        return NULL;
-    }
-    action = cxString_FromAscii(errorInfo->action);
-    if (!action) {
-        Py_DECREF(fnName);
-        Py_DECREF(self);
-        return NULL;
-    }
-    args = PyTuple_Pack(2, fnName, action);
-    Py_DECREF(fnName);
-    Py_DECREF(action);
-    if (!args) {
-        Py_DECREF(self);
-        return NULL;
-    }
-    format = cxString_FromAscii("%s: %s");
-    if (!format) {
-        Py_DECREF(self);
-        Py_DECREF(args);
-        return NULL;
-    }
-    self->context = cxString_Format(format, args);
-    Py_DECREF(format);
-    Py_DECREF(args);
-    if (!self->context) {
-        Py_DECREF(self);
-        return NULL;
-    }
-
-    return self;
+    cxoError_raiseAndReturnInt();
+    return NULL;
 }
 
 
 //-----------------------------------------------------------------------------
-// Error_RaiseFromInfo()
+// cxoError_raiseFromInfo()
 //   Internal method for raising an exception given an error information
 // structure from DPI. Return -1 as a convenience to the caller.
 //-----------------------------------------------------------------------------
-static int Error_RaiseFromInfo(dpiErrorInfo *errorInfo)
+int cxoError_raiseFromInfo(dpiErrorInfo *errorInfo)
 {
     PyObject *exceptionType;
-    udt_Error *self;
+    cxoError *error;
 
-    self = Error_InternalNew(errorInfo);
-    if (!self)
+    error = cxoError_internalNew(errorInfo);
+    if (!error)
         return -1;
     switch (errorInfo->code) {
         case 1:
@@ -242,7 +226,7 @@ static int Error_RaiseFromInfo(dpiErrorInfo *errorInfo)
         case 2290:
         case 2291:
         case 2292:
-            exceptionType = g_IntegrityErrorException;
+            exceptionType = cxoIntegrityErrorException;
             break;
         case 22:
         case 378:
@@ -269,51 +253,36 @@ static int Error_RaiseFromInfo(dpiErrorInfo *errorInfo)
         case 12571:
         case 27146:
         case 28511:
-            exceptionType = g_OperationalErrorException;
+            exceptionType = cxoOperationalErrorException;
             break;
         default:
-            exceptionType = g_DatabaseErrorException;
+            exceptionType = cxoDatabaseErrorException;
             break;
     }
-    PyErr_SetObject(exceptionType, (PyObject*) self);
-    Py_DECREF(self);
+    PyErr_SetObject(exceptionType, (PyObject*) error);
+    Py_DECREF(error);
     return -1;
 }
 
 
 //-----------------------------------------------------------------------------
-// Error_RaiseAndReturnInt()
-//   Internal method for raising an exception from an error generated from DPI.
-// Return -1 as a convenience to the caller.
-//-----------------------------------------------------------------------------
-static int Error_RaiseAndReturnInt(void)
-{
-    dpiErrorInfo errorInfo;
-
-    dpiContext_getError(g_DpiContext, &errorInfo);
-    return Error_RaiseFromInfo(&errorInfo);
-}
-
-
-//-----------------------------------------------------------------------------
-// Error_RaiseAndReturnNull()
-//   Internal method for raising an exception from an error generated from DPI.
-// Return NULL as a convenience to the caller.
-//-----------------------------------------------------------------------------
-static PyObject *Error_RaiseAndReturnNull(void)
-{
-    Error_RaiseAndReturnInt();
-    return NULL;
-}
-
-
-//-----------------------------------------------------------------------------
-// Error_Reduce()
+// cxoError_reduce()
 //   Method provided for pickling/unpickling of Error objects.
 //-----------------------------------------------------------------------------
-static PyObject *Error_Reduce(udt_Error *self)
+static PyObject *cxoError_reduce(cxoError *error)
 {
-    return Py_BuildValue("(O(OiIO))", Py_TYPE(self), self->message,
-            self->code, self->offset, self->context);
+    return Py_BuildValue("(O(OiIO))", Py_TYPE(error), error->message,
+            error->code, error->offset, error->context);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoError_str()
+//   Return a string representation of the error variable.
+//-----------------------------------------------------------------------------
+static PyObject *cxoError_str(cxoError *error)
+{
+    Py_INCREF(error->message);
+    return error->message;
 }
 

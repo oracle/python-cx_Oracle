@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+// Copyright 2016-2018, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -8,112 +8,81 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Cursor.c
-//   Definition of the Python type OracleCursor.
+// cxoCursor.c
+//   Definition of the Python type Cursor.
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// structure for the Python type "Cursor"
-//-----------------------------------------------------------------------------
-typedef struct {
-    PyObject_HEAD
-    dpiStmt *handle;
-    dpiStmtInfo stmtInfo;
-    udt_Connection *connection;
-    PyObject *statement;
-    PyObject *statementTag;
-    PyObject *bindVariables;
-    PyObject *fetchVariables;
-    PyObject *rowFactory;
-    PyObject *inputTypeHandler;
-    PyObject *outputTypeHandler;
-    uint32_t arraySize;
-    uint32_t bindArraySize;
-    uint32_t fetchArraySize;
-    int setInputSizes;
-    uint64_t rowCount;
-    uint32_t fetchBufferRowIndex;
-    uint32_t numRowsInFetchBuffer;
-    int moreRowsToFetch;
-    int isScrollable;
-    int fixupRefCursor;
-    int isOpen;
-} udt_Cursor;
-
-
-//-----------------------------------------------------------------------------
-// dependent function defintions
-//-----------------------------------------------------------------------------
-static void Cursor_Free(udt_Cursor*);
-
+#include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
 // functions for the Python type "Cursor"
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_GetIter(udt_Cursor*);
-static PyObject *Cursor_GetNext(udt_Cursor*);
-static PyObject *Cursor_Close(udt_Cursor*, PyObject*);
-static PyObject *Cursor_CallFunc(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_CallProc(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_Execute(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_ExecuteMany(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_ExecuteManyPrepared(udt_Cursor*, PyObject*);
-static PyObject *Cursor_FetchOne(udt_Cursor*, PyObject*);
-static PyObject *Cursor_FetchMany(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_FetchAll(udt_Cursor*, PyObject*);
-static PyObject *Cursor_FetchRaw(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_Parse(udt_Cursor*, PyObject*);
-static PyObject *Cursor_Prepare(udt_Cursor*, PyObject*);
-static PyObject *Cursor_Scroll(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_SetInputSizes(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_SetOutputSize(udt_Cursor*, PyObject*);
-static PyObject *Cursor_Var(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_ArrayVar(udt_Cursor*, PyObject*);
-static PyObject *Cursor_BindNames(udt_Cursor*, PyObject*);
-static PyObject *Cursor_GetDescription(udt_Cursor*, void*);
-static PyObject *Cursor_New(PyTypeObject*, PyObject*, PyObject*);
-static int Cursor_Init(udt_Cursor*, PyObject*, PyObject*);
-static PyObject *Cursor_Repr(udt_Cursor*);
-static PyObject* Cursor_GetBatchErrors(udt_Cursor*);
-static PyObject *Cursor_GetArrayDMLRowCounts(udt_Cursor*);
-static PyObject *Cursor_GetImplicitResults(udt_Cursor*);
-static int Cursor_PerformDefine(udt_Cursor*, uint32_t);
-static int Cursor_GetVarData(udt_Cursor*);
+static void cxoCursor_free(cxoCursor*);
+static PyObject *cxoCursor_getIter(cxoCursor*);
+static PyObject *cxoCursor_getNext(cxoCursor*);
+static PyObject *cxoCursor_close(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_callFunc(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_callProc(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_execute(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_executeMany(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_executeManyPrepared(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_fetchOne(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_fetchMany(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_fetchAll(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_fetchRaw(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_parse(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_prepare(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_scroll(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_setInputSizes(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_setOutputSize(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_var(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_arrayVar(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_bindNames(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_getDescription(cxoCursor*, void*);
+static PyObject *cxoCursor_new(PyTypeObject*, PyObject*, PyObject*);
+static int cxoCursor_init(cxoCursor*, PyObject*, PyObject*);
+static PyObject *cxoCursor_repr(cxoCursor*);
+static PyObject* cxoCursor_getBatchErrors(cxoCursor*);
+static PyObject *cxoCursor_getArrayDMLRowCounts(cxoCursor*);
+static PyObject *cxoCursor_getImplicitResults(cxoCursor*);
+static int cxoCursor_performDefine(cxoCursor*, uint32_t);
+static int cxoCursor_getVarData(cxoCursor*);
 
 
 //-----------------------------------------------------------------------------
 // declaration of methods for Python type "Cursor"
 //-----------------------------------------------------------------------------
-static PyMethodDef g_CursorMethods[] = {
-    { "execute", (PyCFunction) Cursor_Execute, METH_VARARGS | METH_KEYWORDS },
-    { "fetchall", (PyCFunction) Cursor_FetchAll, METH_NOARGS },
-    { "fetchone", (PyCFunction) Cursor_FetchOne, METH_NOARGS },
-    { "fetchmany", (PyCFunction) Cursor_FetchMany,
+static PyMethodDef cxoCursorMethods[] = {
+    { "execute", (PyCFunction) cxoCursor_execute,
+            METH_VARARGS | METH_KEYWORDS },
+    { "fetchall", (PyCFunction) cxoCursor_fetchAll, METH_NOARGS },
+    { "fetchone", (PyCFunction) cxoCursor_fetchOne, METH_NOARGS },
+    { "fetchmany", (PyCFunction) cxoCursor_fetchMany,
               METH_VARARGS | METH_KEYWORDS },
-    { "fetchraw", (PyCFunction) Cursor_FetchRaw,
+    { "fetchraw", (PyCFunction) cxoCursor_fetchRaw,
               METH_VARARGS | METH_KEYWORDS },
-    { "prepare", (PyCFunction) Cursor_Prepare, METH_VARARGS },
-    { "parse", (PyCFunction) Cursor_Parse, METH_O },
-    { "setinputsizes", (PyCFunction) Cursor_SetInputSizes,
+    { "prepare", (PyCFunction) cxoCursor_prepare, METH_VARARGS },
+    { "parse", (PyCFunction) cxoCursor_parse, METH_O },
+    { "setinputsizes", (PyCFunction) cxoCursor_setInputSizes,
               METH_VARARGS | METH_KEYWORDS },
-    { "executemany", (PyCFunction) Cursor_ExecuteMany,
+    { "executemany", (PyCFunction) cxoCursor_executeMany,
               METH_VARARGS | METH_KEYWORDS },
-    { "callproc", (PyCFunction) Cursor_CallProc,
+    { "callproc", (PyCFunction) cxoCursor_callProc,
               METH_VARARGS  | METH_KEYWORDS },
-    { "callfunc", (PyCFunction) Cursor_CallFunc,
+    { "callfunc", (PyCFunction) cxoCursor_callFunc,
               METH_VARARGS  | METH_KEYWORDS },
-    { "executemanyprepared", (PyCFunction) Cursor_ExecuteManyPrepared,
+    { "executemanyprepared", (PyCFunction) cxoCursor_executeManyPrepared,
               METH_VARARGS },
-    { "setoutputsize", (PyCFunction) Cursor_SetOutputSize, METH_VARARGS },
-    { "scroll", (PyCFunction) Cursor_Scroll, METH_VARARGS | METH_KEYWORDS },
-    { "var", (PyCFunction) Cursor_Var, METH_VARARGS | METH_KEYWORDS },
-    { "arrayvar", (PyCFunction) Cursor_ArrayVar, METH_VARARGS },
-    { "bindnames", (PyCFunction) Cursor_BindNames, METH_NOARGS },
-    { "close", (PyCFunction) Cursor_Close, METH_NOARGS },
-    { "getbatcherrors", (PyCFunction) Cursor_GetBatchErrors, METH_NOARGS },
-    { "getarraydmlrowcounts", (PyCFunction) Cursor_GetArrayDMLRowCounts,
+    { "setoutputsize", (PyCFunction) cxoCursor_setOutputSize, METH_VARARGS },
+    { "scroll", (PyCFunction) cxoCursor_scroll, METH_VARARGS | METH_KEYWORDS },
+    { "var", (PyCFunction) cxoCursor_var, METH_VARARGS | METH_KEYWORDS },
+    { "arrayvar", (PyCFunction) cxoCursor_arrayVar, METH_VARARGS },
+    { "bindnames", (PyCFunction) cxoCursor_bindNames, METH_NOARGS },
+    { "close", (PyCFunction) cxoCursor_close, METH_NOARGS },
+    { "getbatcherrors", (PyCFunction) cxoCursor_getBatchErrors, METH_NOARGS },
+    { "getarraydmlrowcounts", (PyCFunction) cxoCursor_getArrayDMLRowCounts,
               METH_NOARGS },
-    { "getimplicitresults", (PyCFunction) Cursor_GetImplicitResults,
+    { "getimplicitresults", (PyCFunction) cxoCursor_getImplicitResults,
               METH_NOARGS },
     { NULL, NULL }
 };
@@ -122,20 +91,20 @@ static PyMethodDef g_CursorMethods[] = {
 //-----------------------------------------------------------------------------
 // declaration of members for Python type "Cursor"
 //-----------------------------------------------------------------------------
-static PyMemberDef g_CursorMembers[] = {
-    { "arraysize", T_UINT, offsetof(udt_Cursor, arraySize), 0 },
-    { "bindarraysize", T_UINT, offsetof(udt_Cursor, bindArraySize), 0 },
-    { "rowcount", T_ULONGLONG, offsetof(udt_Cursor, rowCount), READONLY },
-    { "statement", T_OBJECT, offsetof(udt_Cursor, statement), READONLY },
-    { "connection", T_OBJECT_EX, offsetof(udt_Cursor, connection), READONLY },
-    { "rowfactory", T_OBJECT, offsetof(udt_Cursor, rowFactory), 0 },
-    { "bindvars", T_OBJECT, offsetof(udt_Cursor, bindVariables), READONLY },
-    { "fetchvars", T_OBJECT, offsetof(udt_Cursor, fetchVariables), READONLY },
-    { "inputtypehandler", T_OBJECT, offsetof(udt_Cursor, inputTypeHandler),
+static PyMemberDef cxoCursorMembers[] = {
+    { "arraysize", T_UINT, offsetof(cxoCursor, arraySize), 0 },
+    { "bindarraysize", T_UINT, offsetof(cxoCursor, bindArraySize), 0 },
+    { "rowcount", T_ULONGLONG, offsetof(cxoCursor, rowCount), READONLY },
+    { "statement", T_OBJECT, offsetof(cxoCursor, statement), READONLY },
+    { "connection", T_OBJECT_EX, offsetof(cxoCursor, connection), READONLY },
+    { "rowfactory", T_OBJECT, offsetof(cxoCursor, rowFactory), 0 },
+    { "bindvars", T_OBJECT, offsetof(cxoCursor, bindVariables), READONLY },
+    { "fetchvars", T_OBJECT, offsetof(cxoCursor, fetchVariables), READONLY },
+    { "inputtypehandler", T_OBJECT, offsetof(cxoCursor, inputTypeHandler),
             0 },
-    { "outputtypehandler", T_OBJECT, offsetof(udt_Cursor, outputTypeHandler),
+    { "outputtypehandler", T_OBJECT, offsetof(cxoCursor, outputTypeHandler),
             0 },
-    { "scrollable", T_BOOL, offsetof(udt_Cursor, isScrollable), 0 },
+    { "scrollable", T_BOOL, offsetof(cxoCursor, isScrollable), 0 },
     { NULL }
 };
 
@@ -143,8 +112,8 @@ static PyMemberDef g_CursorMembers[] = {
 //-----------------------------------------------------------------------------
 // declaration of calculated members for Python type "Connection"
 //-----------------------------------------------------------------------------
-static PyGetSetDef g_CursorCalcMembers[] = {
-    { "description", (getter) Cursor_GetDescription, 0, 0, 0 },
+static PyGetSetDef cxoCursorCalcMembers[] = {
+    { "description", (getter) cxoCursor_getDescription, 0, 0, 0 },
     { NULL }
 };
 
@@ -152,17 +121,17 @@ static PyGetSetDef g_CursorCalcMembers[] = {
 //-----------------------------------------------------------------------------
 // declaration of Python type "Cursor"
 //-----------------------------------------------------------------------------
-static PyTypeObject g_CursorType = {
+PyTypeObject cxoPyTypeCursor = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "cx_Oracle.Cursor",                 // tp_name
-    sizeof(udt_Cursor),                 // tp_basicsize
+    sizeof(cxoCursor),                  // tp_basicsize
     0,                                  // tp_itemsize
-    (destructor) Cursor_Free,           // tp_dealloc
+    (destructor) cxoCursor_free,        // tp_dealloc
     0,                                  // tp_print
     0,                                  // tp_getattr
     0,                                  // tp_setattr
     0,                                  // tp_compare
-    (reprfunc) Cursor_Repr,             // tp_repr
+    (reprfunc) cxoCursor_repr,          // tp_repr
     0,                                  // tp_as_number
     0,                                  // tp_as_sequence
     0,                                  // tp_as_mapping
@@ -179,33 +148,30 @@ static PyTypeObject g_CursorType = {
     0,                                  // tp_clear
     0,                                  // tp_richcompare
     0,                                  // tp_weaklistoffset
-    (getiterfunc) Cursor_GetIter,       // tp_iter
-    (iternextfunc) Cursor_GetNext,      // tp_iternext
-    g_CursorMethods,                    // tp_methods
-    g_CursorMembers,                    // tp_members
-    g_CursorCalcMembers,                // tp_getset
+    (getiterfunc) cxoCursor_getIter,    // tp_iter
+    (iternextfunc) cxoCursor_getNext,   // tp_iternext
+    cxoCursorMethods,                   // tp_methods
+    cxoCursorMembers,                   // tp_members
+    cxoCursorCalcMembers,               // tp_getset
     0,                                  // tp_base
     0,                                  // tp_dict
     0,                                  // tp_descr_get
     0,                                  // tp_descr_set
     0,                                  // tp_dictoffset
-    (initproc) Cursor_Init,             // tp_init
+    (initproc) cxoCursor_init,          // tp_init
     0,                                  // tp_alloc
-    Cursor_New,                         // tp_new
+    cxoCursor_new,                      // tp_new
     0,                                  // tp_free
     0,                                  // tp_is_gc
     0                                   // tp_bases
 };
 
 
-#include "Variable.c"
-
-
 //-----------------------------------------------------------------------------
-// Cursor_New()
+// cxoCursor_new()
 //   Create a new cursor object.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_New(PyTypeObject *type, PyObject *args,
+static PyObject *cxoCursor_new(PyTypeObject *type, PyObject *args,
         PyObject *keywordArgs)
 {
     return type->tp_alloc(type, 0);
@@ -213,136 +179,126 @@ static PyObject *Cursor_New(PyTypeObject *type, PyObject *args,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Init()
+// cxoCursor_init()
 //   Create a new cursor object.
 //-----------------------------------------------------------------------------
-static int Cursor_Init(udt_Cursor *self, PyObject *args, PyObject *keywordArgs)
+static int cxoCursor_init(cxoCursor *cursor, PyObject *args,
+        PyObject *keywordArgs)
 {
     static char *keywordList[] = { "connection", "scrollable", NULL };
-    udt_Connection *connection;
+    cxoConnection *connection;
     PyObject *scrollableObj;
 
     // parse arguments
     scrollableObj = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|O", keywordList,
-            &g_ConnectionType, &connection, &scrollableObj))
+            &cxoPyTypeConnection, &connection, &scrollableObj))
         return -1;
-    if (GetBooleanValue(scrollableObj, 0, &self->isScrollable) < 0)
+    if (cxoUtils_getBooleanValue(scrollableObj, 0, &cursor->isScrollable) < 0)
         return -1;
 
     // initialize members
     Py_INCREF(connection);
-    self->connection = connection;
-    self->arraySize = 100;
-    self->fetchArraySize = 100;
-    self->bindArraySize = 1;
-    self->isOpen = 1;
+    cursor->connection = connection;
+    cursor->arraySize = 100;
+    cursor->fetchArraySize = 100;
+    cursor->bindArraySize = 1;
+    cursor->isOpen = 1;
 
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Repr()
+// cxoCursor_repr()
 //   Return a string representation of the cursor.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Repr(udt_Cursor *cursor)
+static PyObject *cxoCursor_repr(cxoCursor *cursor)
 {
-    PyObject *connectionRepr, *module, *name, *result, *format, *formatArgs;
+    PyObject *connectionRepr, *module, *name, *result;
 
-    format = cxString_FromAscii("<%s.%s on %s>");
-    if (!format)
-        return NULL;
     connectionRepr = PyObject_Repr((PyObject*) cursor->connection);
-    if (!connectionRepr) {
-        Py_DECREF(format);
+    if (!connectionRepr)
         return NULL;
-    }
-    if (GetModuleAndName(Py_TYPE(cursor), &module, &name) < 0) {
-        Py_DECREF(format);
+    if (cxoUtils_getModuleAndName(Py_TYPE(cursor), &module, &name) < 0) {
         Py_DECREF(connectionRepr);
         return NULL;
     }
-    formatArgs = PyTuple_Pack(3, module, name, connectionRepr);
+    result = cxoUtils_formatString("<%s.%s on %s>",
+            PyTuple_Pack(3, module, name, connectionRepr));
     Py_DECREF(module);
     Py_DECREF(name);
     Py_DECREF(connectionRepr);
-    if (!formatArgs) {
-        Py_DECREF(format);
-        return NULL;
-    }
-    result = cxString_Format(format, formatArgs);
-    Py_DECREF(format);
-    Py_DECREF(formatArgs);
     return result;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Free()
+// cxoCursor_free()
 //   Deallocate the cursor.
 //-----------------------------------------------------------------------------
-static void Cursor_Free(udt_Cursor *self)
+static void cxoCursor_free(cxoCursor *cursor)
 {
-    Py_CLEAR(self->statement);
-    Py_CLEAR(self->statementTag);
-    Py_CLEAR(self->bindVariables);
-    Py_CLEAR(self->fetchVariables);
-    if (self->handle) {
-        dpiStmt_release(self->handle);
-        self->handle = NULL;
+    Py_CLEAR(cursor->statement);
+    Py_CLEAR(cursor->statementTag);
+    Py_CLEAR(cursor->bindVariables);
+    Py_CLEAR(cursor->fetchVariables);
+    if (cursor->handle) {
+        dpiStmt_release(cursor->handle);
+        cursor->handle = NULL;
     }
-    Py_CLEAR(self->connection);
-    Py_CLEAR(self->rowFactory);
-    Py_CLEAR(self->inputTypeHandler);
-    Py_CLEAR(self->outputTypeHandler);
-    Py_TYPE(self)->tp_free((PyObject*) self);
+    Py_CLEAR(cursor->connection);
+    Py_CLEAR(cursor->rowFactory);
+    Py_CLEAR(cursor->inputTypeHandler);
+    Py_CLEAR(cursor->outputTypeHandler);
+    Py_TYPE(cursor)->tp_free((PyObject*) cursor);
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_IsOpen()
+// cxoCursor_isOpen()
 //   Determines if the cursor object is open. Since the same cursor can be
 // used to execute multiple statements, simply checking for the DPI statement
 // handle is insufficient.
 //-----------------------------------------------------------------------------
-static int Cursor_IsOpen(udt_Cursor *self)
+static int cxoCursor_isOpen(cxoCursor *cursor)
 {
-    if (!self->isOpen) {
-        PyErr_SetString(g_InterfaceErrorException, "not open");
+    if (!cursor->isOpen) {
+        PyErr_SetString(cxoInterfaceErrorException, "not open");
         return -1;
     }
-    return Connection_IsConnected(self->connection);
+    return cxoConnection_isConnected(cursor->connection);
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_VerifyFetch()
+// cxoCursor_verifyFetch()
 //   Verify that fetching may happen from this cursor.
 //-----------------------------------------------------------------------------
-static int Cursor_VerifyFetch(udt_Cursor *self)
+static int cxoCursor_verifyFetch(cxoCursor *cursor)
 {
     uint32_t numQueryColumns;
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return -1;
 
     // fixup REF cursor, if applicable
-    if (self->fixupRefCursor) {
-        self->fetchArraySize = self->arraySize;
-        if (dpiStmt_setFetchArraySize(self->handle, self->fetchArraySize) < 0)
-            return Error_RaiseAndReturnInt();
-        if (dpiStmt_getNumQueryColumns(self->handle, &numQueryColumns) < 0)
-            return Error_RaiseAndReturnInt();
-        if (Cursor_PerformDefine(self, numQueryColumns) < 0)
-            return Error_RaiseAndReturnInt();
-        self->fixupRefCursor = 0;
+    if (cursor->fixupRefCursor) {
+        cursor->fetchArraySize = cursor->arraySize;
+        if (dpiStmt_setFetchArraySize(cursor->handle,
+                cursor->fetchArraySize) < 0)
+            return cxoError_raiseAndReturnInt();
+        if (dpiStmt_getNumQueryColumns(cursor->handle, &numQueryColumns) < 0)
+            return cxoError_raiseAndReturnInt();
+        if (cxoCursor_performDefine(cursor, numQueryColumns) < 0)
+            return cxoError_raiseAndReturnInt();
+        cursor->fixupRefCursor = 0;
     }
 
     // make sure the cursor is for a query
-    if (!self->fetchVariables) {
-        PyErr_SetString(g_InterfaceErrorException, "not a query");
+    if (!cursor->fetchVariables) {
+        PyErr_SetString(cxoInterfaceErrorException, "not a query");
         return -1;
     }
 
@@ -351,12 +307,12 @@ static int Cursor_VerifyFetch(udt_Cursor *self)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_FetchRow()
+// cxoCursor_fetchRow()
 //   Fetch a single row from the cursor. Internally the number of rows left in
 // the buffer is managed in order to minimize calls to Py_BEGIN_ALLOW_THREADS
 // and Py_END_ALLOW_THREADS which have a significant overhead.
 //-----------------------------------------------------------------------------
-static int Cursor_FetchRow(udt_Cursor *self, int *found,
+static int cxoCursor_fetchRow(cxoCursor *cursor, int *found,
         uint32_t *bufferRowIndex)
 {
     int status;
@@ -364,23 +320,23 @@ static int Cursor_FetchRow(udt_Cursor *self, int *found,
     // if the number of rows in the fetch buffer is zero and there are more
     // rows to fetch, call DPI with threading enabled in order to perform any
     // fetch requiring a network round trip
-    if (self->numRowsInFetchBuffer == 0 && self->moreRowsToFetch) {
+    if (cursor->numRowsInFetchBuffer == 0 && cursor->moreRowsToFetch) {
         Py_BEGIN_ALLOW_THREADS
-        status = dpiStmt_fetchRows(self->handle, self->fetchArraySize,
-                &self->fetchBufferRowIndex, &self->numRowsInFetchBuffer,
-                &self->moreRowsToFetch);
+        status = dpiStmt_fetchRows(cursor->handle, cursor->fetchArraySize,
+                &cursor->fetchBufferRowIndex, &cursor->numRowsInFetchBuffer,
+                &cursor->moreRowsToFetch);
         Py_END_ALLOW_THREADS
         if (status < 0)
-            return Error_RaiseAndReturnInt();
+            return cxoError_raiseAndReturnInt();
     }
 
     // keep track of where we are in the fetch buffer
-    if (self->numRowsInFetchBuffer == 0)
+    if (cursor->numRowsInFetchBuffer == 0)
         *found = 0;
     else {
         *found = 1;
-        *bufferRowIndex = self->fetchBufferRowIndex++;
-        self->numRowsInFetchBuffer--;
+        *bufferRowIndex = cursor->fetchBufferRowIndex++;
+        cursor->numRowsInFetchBuffer--;
     }
 
     return 0;
@@ -388,43 +344,43 @@ static int Cursor_FetchRow(udt_Cursor *self, int *found,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_PerformDefine()
+// cxoCursor_performDefine()
 //   Perform the defines for the cursor. At this point it is assumed that the
 // statement being executed is in fact a query.
 //-----------------------------------------------------------------------------
-static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
+static int cxoCursor_performDefine(cxoCursor *cursor, uint32_t numQueryColumns)
 {
     PyObject *outputTypeHandler, *result;
-    udt_ObjectType *objectType;
-    udt_VariableType *varType;
+    cxoObjectType *objectType;
+    cxoVarType *varType;
     dpiQueryInfo queryInfo;
     uint32_t pos, size;
-    udt_Variable *var;
+    cxoVar *var;
 
     // initialize fetching variables; these are used to reduce the number of
     // times that Py_BEGIN_ALLOW_THREADS/Py_END_ALLOW_THREADS is called as
     // there is a significant amount of overhead in making these calls
-    self->numRowsInFetchBuffer = 0;
-    self->moreRowsToFetch = 1;
+    cursor->numRowsInFetchBuffer = 0;
+    cursor->moreRowsToFetch = 1;
 
     // if fetch variables already exist, nothing more to do (we are executing
     // the same statement and therefore all defines have already been
     // performed)
-    if (self->fetchVariables)
+    if (cursor->fetchVariables)
         return 0;
 
     // create a list corresponding to the number of items
-    self->fetchVariables = PyList_New(numQueryColumns);
-    if (!self->fetchVariables)
+    cursor->fetchVariables = PyList_New(numQueryColumns);
+    if (!cursor->fetchVariables)
         return -1;
 
     // create a variable for each of the query columns
-    self->fetchArraySize = self->arraySize;
+    cursor->fetchArraySize = cursor->arraySize;
     for (pos = 1; pos <= numQueryColumns; pos++) {
 
         // get query information for the column position
-        if (dpiStmt_getQueryInfo(self->handle, pos, &queryInfo) < 0)
-            return Error_RaiseAndReturnInt();
+        if (dpiStmt_getQueryInfo(cursor->handle, pos, &queryInfo) < 0)
+            return cxoError_raiseAndReturnInt();
         if (queryInfo.typeInfo.sizeInChars)
             size = queryInfo.typeInfo.sizeInChars;
         else size = queryInfo.typeInfo.clientSizeInBytes;
@@ -432,30 +388,30 @@ static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
         // determine object type, if applicable
         objectType = NULL;
         if (queryInfo.typeInfo.objectType) {
-            objectType = ObjectType_New(self->connection,
+            objectType = cxoObjectType_new(cursor->connection,
                     queryInfo.typeInfo.objectType);
             if (!objectType)
                 return -1;
         }
 
         // determine the default type 
-        varType = VarType_FromDataTypeInfo(&queryInfo.typeInfo);
+        varType = cxoVarType_fromDataTypeInfo(&queryInfo.typeInfo);
         if (!varType)
             return -1;
 
         // see if an output type handler should be used
         var = NULL;
         outputTypeHandler = NULL;
-        if (self->outputTypeHandler && self->outputTypeHandler != Py_None)
-            outputTypeHandler = self->outputTypeHandler;
-        else if (self->connection->outputTypeHandler &&
-                self->connection->outputTypeHandler != Py_None)
-            outputTypeHandler = self->connection->outputTypeHandler;
+        if (cursor->outputTypeHandler && cursor->outputTypeHandler != Py_None)
+            outputTypeHandler = cursor->outputTypeHandler;
+        else if (cursor->connection->outputTypeHandler &&
+                cursor->connection->outputTypeHandler != Py_None)
+            outputTypeHandler = cursor->connection->outputTypeHandler;
 
         // if using an output type handler, None implies default behavior
         if (outputTypeHandler) {
             result = PyObject_CallFunction(outputTypeHandler, "Os#Oiii",
-                    self, queryInfo.name, queryInfo.nameLength,
+                    cursor, queryInfo.name, queryInfo.nameLength,
                     varType->pythonType, size, queryInfo.typeInfo.precision,
                     queryInfo.typeInfo.scale);
             if (!result) {
@@ -463,15 +419,15 @@ static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
                 return -1;
             } else if (result == Py_None)
                 Py_DECREF(result);
-            else if (!Variable_Check(result)) {
+            else if (!cxoVar_check(result)) {
                 Py_DECREF(result);
                 Py_XDECREF(objectType);
                 PyErr_SetString(PyExc_TypeError,
                         "expecting variable from output type handler");
                 return -1;
             } else {
-                var = (udt_Variable*) result;
-                if (var->allocatedElements < self->fetchArraySize) {
+                var = (cxoVar*) result;
+                if (var->allocatedElements < cursor->fetchArraySize) {
                     Py_DECREF(result);
                     Py_XDECREF(objectType);
                     PyErr_SetString(PyExc_TypeError,
@@ -484,7 +440,7 @@ static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
 
         // if no variable created yet, use the database metadata
         if (!var) {
-            var = Variable_New(self, self->fetchArraySize, varType, size, 0,
+            var = cxoVar_new(cursor, cursor->fetchArraySize, varType, size, 0,
                     objectType);
             if (!var) {
                 Py_XDECREF(objectType);
@@ -494,9 +450,9 @@ static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
 
         // add the variable to the fetch variables and perform define
         Py_XDECREF(objectType);
-        PyList_SET_ITEM(self->fetchVariables, pos - 1, (PyObject *) var);
-        if (dpiStmt_define(self->handle, pos, var->handle) < 0)
-            return Error_RaiseAndReturnInt();
+        PyList_SET_ITEM(cursor->fetchVariables, pos - 1, (PyObject *) var);
+        if (dpiStmt_define(cursor->handle, pos, var->handle) < 0)
+            return cxoError_raiseAndReturnInt();
 
     }
 
@@ -505,20 +461,20 @@ static int Cursor_PerformDefine(udt_Cursor *self, uint32_t numQueryColumns)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_ItemDescription()
+// cxoCursor_itemDescription()
 //   Return a tuple describing the item at the given position.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_ItemDescription(udt_Cursor *self, uint32_t pos)
+static PyObject *cxoCursor_itemDescription(cxoCursor *cursor, uint32_t pos)
 {
-    udt_VariableType *varType;
+    cxoVarType *varType;
     int displaySize, index;
     dpiQueryInfo queryInfo;
     PyObject *tuple, *temp;
 
     // get information about the column position
-    if (dpiStmt_getQueryInfo(self->handle, pos, &queryInfo) < 0)
+    if (dpiStmt_getQueryInfo(cursor->handle, pos, &queryInfo) < 0)
         return NULL;
-    varType = VarType_FromDataTypeInfo(&queryInfo.typeInfo);
+    varType = cxoVarType_fromDataTypeInfo(&queryInfo.typeInfo);
     if (!varType)
         return NULL;
 
@@ -559,8 +515,8 @@ static PyObject *Cursor_ItemDescription(udt_Cursor *self, uint32_t pos)
         return NULL;
 
     // set each of the items in the tuple
-    PyTuple_SET_ITEM(tuple, 0, cxString_FromEncodedString(queryInfo.name,
-            queryInfo.nameLength, self->connection->encodingInfo.encoding));
+    PyTuple_SET_ITEM(tuple, 0, cxoPyString_fromEncodedString(queryInfo.name,
+            queryInfo.nameLength, cursor->connection->encodingInfo.encoding));
     Py_INCREF(varType->pythonType);
     PyTuple_SET_ITEM(tuple, 1, (PyObject*) varType->pythonType);
     if (displaySize)
@@ -606,24 +562,24 @@ static PyObject *Cursor_ItemDescription(udt_Cursor *self, uint32_t pos)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetDescription()
+// cxoCursor_getDescription()
 //   Return a list of 7-tuples consisting of the description of the define
 // variables.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_GetDescription(udt_Cursor *self, void *unused)
+static PyObject *cxoCursor_getDescription(cxoCursor *cursor, void *unused)
 {
     uint32_t numQueryColumns, i;
     PyObject *results, *tuple;
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // determine the number of query columns; if not a query return None
-    if (!self->handle)
+    if (!cursor->handle)
         Py_RETURN_NONE;
-    if (dpiStmt_getNumQueryColumns(self->handle, &numQueryColumns) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiStmt_getNumQueryColumns(cursor->handle, &numQueryColumns) < 0)
+        return cxoError_raiseAndReturnNull();
     if (numQueryColumns == 0)
         Py_RETURN_NONE;
 
@@ -634,7 +590,7 @@ static PyObject *Cursor_GetDescription(udt_Cursor *self, void *unused)
 
     // create tuples corresponding to the select-items
     for (i = 0; i < numQueryColumns; i++) {
-        tuple = Cursor_ItemDescription(self, i + 1);
+        tuple = cxoCursor_itemDescription(cursor, i + 1);
         if (!tuple) {
             Py_DECREF(results);
             return NULL;
@@ -647,42 +603,42 @@ static PyObject *Cursor_GetDescription(udt_Cursor *self, void *unused)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Close()
+// cxoCursor_close()
 //   Close the cursor. Any action taken on this cursor from this point forward
 // results in an exception being raised.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Close(udt_Cursor *self, PyObject *args)
+static PyObject *cxoCursor_close(cxoCursor *cursor, PyObject *args)
 {
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
-    Py_CLEAR(self->bindVariables);
-    Py_CLEAR(self->fetchVariables);
-    if (self->handle) {
-        if (dpiStmt_close(self->handle, NULL, 0) < 0)
-            return Error_RaiseAndReturnNull();
-        dpiStmt_release(self->handle);
-        self->handle = NULL;
+    Py_CLEAR(cursor->bindVariables);
+    Py_CLEAR(cursor->fetchVariables);
+    if (cursor->handle) {
+        if (dpiStmt_close(cursor->handle, NULL, 0) < 0)
+            return cxoError_raiseAndReturnNull();
+        dpiStmt_release(cursor->handle);
+        cursor->handle = NULL;
     }
-    self->isOpen = 0;
+    cursor->isOpen = 0;
 
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_SetBindVariableHelper()
+// cxoCursor_setBindVariableHelper()
 //   Helper for setting a bind variable.
 //-----------------------------------------------------------------------------
-static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
-        unsigned arrayPos, PyObject *value, udt_Variable *origVar,
-        udt_Variable **newVar, int deferTypeAssignment)
+static int cxoCursor_setBindVariableHelper(cxoCursor *cursor,
+        unsigned numElements, unsigned arrayPos, PyObject *value,
+        cxoVar *origVar, cxoVar **newVar, int deferTypeAssignment)
 {
-    udt_Variable *varToSet;
+    cxoVar *varToSet;
     int isValueVar;
 
     // initialization
     *newVar = NULL;
-    isValueVar = Variable_Check(value);
+    isValueVar = cxoVar_check(value);
 
     // handle case where variable is already bound, either from a prior
     // execution or a call to setinputsizes()
@@ -692,7 +648,7 @@ static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
         if (isValueVar) {
             if ( (PyObject*) origVar != value) {
                 Py_INCREF(value);
-                *newVar = (udt_Variable*) value;
+                *newVar = (cxoVar*) value;
             }
 
         // otherwise, attempt to set the value, but if this fails, simply
@@ -707,7 +663,7 @@ static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
             // this is only necessary for executemany() since execute() always
             // passes a value of 1 for the number of elements
             if (numElements > origVar->allocatedElements) {
-                *newVar = Variable_New(self, numElements, origVar->type,
+                *newVar = cxoVar_new(cursor, numElements, origVar->type,
                         origVar->size, origVar->isArray, origVar->objectType);
                 if (!*newVar)
                     return -1;
@@ -715,7 +671,7 @@ static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
             }
 
             // attempt to set the value
-            if (Variable_SetValue(varToSet, arrayPos, value) < 0) {
+            if (cxoVar_setValue(varToSet, arrayPos, value) < 0) {
 
                 // executemany() should simply fail after the first element
                 if (arrayPos > 0)
@@ -738,15 +694,15 @@ static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
         // if the value is a variable object, bind it directly
         if (isValueVar) {
             Py_INCREF(value);
-            *newVar = (udt_Variable*) value;
+            *newVar = (cxoVar*) value;
 
         // otherwise, create a new variable, unless the value is None and
         // we wish to defer type assignment
         } else if (value != Py_None || !deferTypeAssignment) {
-            *newVar = Variable_NewByValue(self, value, numElements);
+            *newVar = cxoVar_newByValue(cursor, value, numElements);
             if (!*newVar)
                 return -1;
-            if (Variable_SetValue(*newVar, arrayPos, value) < 0) {
+            if (cxoVar_setValue(*newVar, arrayPos, value) < 0) {
                 Py_CLEAR(*newVar);
                 return -1;
             }
@@ -759,15 +715,15 @@ static int Cursor_SetBindVariableHelper(udt_Cursor *self, unsigned numElements,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_SetBindVariables()
+// cxoCursor_setBindVariables()
 //   Create or set bind variables.
 //-----------------------------------------------------------------------------
-static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
+int cxoCursor_setBindVariables(cxoCursor *cursor, PyObject *parameters,
         unsigned numElements, unsigned arrayPos, int deferTypeAssignment)
 {
     uint32_t i, origBoundByPos, origNumParams, boundByPos, numParams;
     PyObject *key, *value, *origVar;
-    udt_Variable *newVar;
+    cxoVar *newVar;
     Py_ssize_t pos, temp;
 
     // make sure positional and named binds are not being intermixed
@@ -779,22 +735,22 @@ static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
             return -1;
         numParams = (uint32_t) temp;
     }
-    if (self->bindVariables) {
-        origBoundByPos = PyList_Check(self->bindVariables);
+    if (cursor->bindVariables) {
+        origBoundByPos = PyList_Check(cursor->bindVariables);
         if (boundByPos != origBoundByPos) {
-            PyErr_SetString(g_ProgrammingErrorException,
+            PyErr_SetString(cxoProgrammingErrorException,
                     "positional and named binds cannot be intermixed");
             return -1;
         }
         if (origBoundByPos)
-            origNumParams = (uint32_t) PyList_GET_SIZE(self->bindVariables);
+            origNumParams = (uint32_t) PyList_GET_SIZE(cursor->bindVariables);
 
     // otherwise, create the list or dictionary if needed
     } else {
         if (boundByPos)
-            self->bindVariables = PyList_New(numParams);
-        else self->bindVariables = PyDict_New();
-        if (!self->bindVariables)
+            cursor->bindVariables = PyList_New(numParams);
+        else cursor->bindVariables = PyDict_New();
+        if (!cursor->bindVariables)
             return -1;
         origNumParams = 0;
     }
@@ -807,23 +763,23 @@ static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
                 return -1;
             Py_DECREF(value);
             if (i < origNumParams) {
-                origVar = PyList_GET_ITEM(self->bindVariables, i);
+                origVar = PyList_GET_ITEM(cursor->bindVariables, i);
                 if (origVar == Py_None)
                     origVar = NULL;
             } else origVar = NULL;
-            if (Cursor_SetBindVariableHelper(self, numElements, arrayPos,
-                    value, (udt_Variable*) origVar, &newVar,
+            if (cxoCursor_setBindVariableHelper(cursor, numElements, arrayPos,
+                    value, (cxoVar*) origVar, &newVar,
                     deferTypeAssignment) < 0)
                 return -1;
             if (newVar) {
-                if (i < (uint32_t) PyList_GET_SIZE(self->bindVariables)) {
-                    if (PyList_SetItem(self->bindVariables, i,
+                if (i < (uint32_t) PyList_GET_SIZE(cursor->bindVariables)) {
+                    if (PyList_SetItem(cursor->bindVariables, i,
                             (PyObject*) newVar) < 0) {
                         Py_DECREF(newVar);
                         return -1;
                     }
                 } else {
-                    if (PyList_Append(self->bindVariables,
+                    if (PyList_Append(cursor->bindVariables,
                             (PyObject*) newVar) < 0) {
                         Py_DECREF(newVar);
                         return -1;
@@ -837,13 +793,13 @@ static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
     } else {
         pos = 0;
         while (PyDict_Next(parameters, &pos, &key, &value)) {
-            origVar = PyDict_GetItem(self->bindVariables, key);
-            if (Cursor_SetBindVariableHelper(self, numElements, arrayPos,
-                    value, (udt_Variable*) origVar, &newVar,
+            origVar = PyDict_GetItem(cursor->bindVariables, key);
+            if (cxoCursor_setBindVariableHelper(cursor, numElements, arrayPos,
+                    value, (cxoVar*) origVar, &newVar,
                     deferTypeAssignment) < 0)
                 return -1;
             if (newVar) {
-                if (PyDict_SetItem(self->bindVariables, key,
+                if (PyDict_SetItem(cursor->bindVariables, key,
                         (PyObject*) newVar) < 0) {
                     Py_DECREF(newVar);
                     return -1;
@@ -858,10 +814,10 @@ static int Cursor_SetBindVariables(udt_Cursor *self, PyObject *parameters,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_PerformBind()
+// cxoCursor_performBind()
 //   Perform the binds on the cursor.
 //-----------------------------------------------------------------------------
-static int Cursor_PerformBind(udt_Cursor *self)
+int cxoCursor_performBind(cxoCursor *cursor)
 {
     PyObject *key, *var;
     Py_ssize_t pos;
@@ -871,21 +827,21 @@ static int Cursor_PerformBind(udt_Cursor *self)
     // this is done before binding is attempted so that if binding fails and
     // a new statement is prepared, the bind variables will be reset and
     // spurious errors will not occur
-    self->setInputSizes = 0;
+    cursor->setInputSizes = 0;
 
     // set values and perform binds for all bind variables
-    if (self->bindVariables) {
-        if (PyDict_Check(self->bindVariables)) {
+    if (cursor->bindVariables) {
+        if (PyDict_Check(cursor->bindVariables)) {
             pos = 0;
-            while (PyDict_Next(self->bindVariables, &pos, &key, &var)) {
-                if (Variable_Bind((udt_Variable*) var, self, key, 0) < 0)
+            while (PyDict_Next(cursor->bindVariables, &pos, &key, &var)) {
+                if (cxoVar_bind((cxoVar*) var, cursor, key, 0) < 0)
                     return -1;
             }
         } else {
-            for (i = 0; i < PyList_GET_SIZE(self->bindVariables); i++) {
-                var = PyList_GET_ITEM(self->bindVariables, i);
+            for (i = 0; i < PyList_GET_SIZE(cursor->bindVariables); i++) {
+                var = PyList_GET_ITEM(cursor->bindVariables, i);
                 if (var != Py_None) {
-                    if (Variable_Bind((udt_Variable*) var, self, NULL,
+                    if (cxoVar_bind((cxoVar*) var, cursor, NULL,
                             i + 1) < 0)
                         return -1;
                 }
@@ -898,31 +854,31 @@ static int Cursor_PerformBind(udt_Cursor *self)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_CreateRow()
+// cxoCursor_createRow()
 //   Create an object for the row. The object created is a tuple unless a row
 // factory function has been defined in which case it is the result of the
 // row factory function called with the argument tuple that would otherwise be
 // returned.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_CreateRow(udt_Cursor *self, uint32_t pos)
+static PyObject *cxoCursor_createRow(cxoCursor *cursor, uint32_t pos)
 {
     PyObject *tuple, *item, *result;
     Py_ssize_t numItems, i;
-    udt_Variable *var;
+    cxoVar *var;
 
     // bump row count as a new row has been found
-    self->rowCount++;
+    cursor->rowCount++;
 
     // create a new tuple
-    numItems = PyList_GET_SIZE(self->fetchVariables);
+    numItems = PyList_GET_SIZE(cursor->fetchVariables);
     tuple = PyTuple_New(numItems);
     if (!tuple)
         return NULL;
 
     // acquire the value for each item
     for (i = 0; i < numItems; i++) {
-        var = (udt_Variable*) PyList_GET_ITEM(self->fetchVariables, i);
-        item = Variable_GetSingleValue(var, pos);
+        var = (cxoVar*) PyList_GET_ITEM(cursor->fetchVariables, i);
+        item = cxoVar_getSingleValue(var, pos);
         if (!item) {
             Py_DECREF(tuple);
             return NULL;
@@ -931,8 +887,8 @@ static PyObject *Cursor_CreateRow(udt_Cursor *self, uint32_t pos)
     }
 
     // if a row factory is defined, call it
-    if (self->rowFactory && self->rowFactory != Py_None) {
-        result = PyObject_CallObject(self->rowFactory, tuple);
+    if (cursor->rowFactory && cursor->rowFactory != Py_None) {
+        result = PyObject_CallObject(cursor->rowFactory, tuple);
         Py_DECREF(tuple);
         return result;
     }
@@ -942,121 +898,122 @@ static PyObject *Cursor_CreateRow(udt_Cursor *self, uint32_t pos)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_InternalPrepare()
+// cxoCursor_internalPrepare()
 //   Internal method for preparing a statement for execution.
 //-----------------------------------------------------------------------------
-static int Cursor_InternalPrepare(udt_Cursor *self, PyObject *statement,
+static int cxoCursor_internalPrepare(cxoCursor *cursor, PyObject *statement,
         PyObject *statementTag)
 {
-    udt_Buffer statementBuffer, tagBuffer;
+    cxoBuffer statementBuffer, tagBuffer;
     int status;
 
     // make sure we don't get a situation where nothing is to be executed
-    if (statement == Py_None && !self->statement) {
-        PyErr_SetString(g_ProgrammingErrorException,
+    if (statement == Py_None && !cursor->statement) {
+        PyErr_SetString(cxoProgrammingErrorException,
                 "no statement specified and no prior statement prepared");
         return -1;
     }
 
     // nothing to do if the statement is identical to the one already stored
     // but go ahead and prepare anyway for create, alter and drop statments
-    if (statement == Py_None || statement == self->statement) {
-        if (self->handle && !self->stmtInfo.isDDL)
+    if (statement == Py_None || statement == cursor->statement) {
+        if (cursor->handle && !cursor->stmtInfo.isDDL)
             return 0;
-        statement = self->statement;
+        statement = cursor->statement;
     }
 
     // keep track of the statement
-    Py_XDECREF(self->statement);
+    Py_XDECREF(cursor->statement);
     Py_INCREF(statement);
-    self->statement = statement;
+    cursor->statement = statement;
 
     // keep track of the tag
-    Py_XDECREF(self->statementTag);
+    Py_XDECREF(cursor->statementTag);
     Py_XINCREF(statementTag);
-    self->statementTag = statementTag;
+    cursor->statementTag = statementTag;
 
     // clear fetch and bind variables if applicable
-    Py_CLEAR(self->fetchVariables);
-    if (!self->setInputSizes)
-        Py_CLEAR(self->bindVariables);
+    Py_CLEAR(cursor->fetchVariables);
+    if (!cursor->setInputSizes)
+        Py_CLEAR(cursor->bindVariables);
 
     // prepare statement
-    if (cxBuffer_FromObject(&statementBuffer, statement,
-            self->connection->encodingInfo.encoding) < 0)
+    if (cxoBuffer_fromObject(&statementBuffer, statement,
+            cursor->connection->encodingInfo.encoding) < 0)
         return -1;
-    if (cxBuffer_FromObject(&tagBuffer, statementTag,
-            self->connection->encodingInfo.encoding) < 0) {
-        cxBuffer_Clear(&statementBuffer);
+    if (cxoBuffer_fromObject(&tagBuffer, statementTag,
+            cursor->connection->encodingInfo.encoding) < 0) {
+        cxoBuffer_clear(&statementBuffer);
         return -1;
     }
     Py_BEGIN_ALLOW_THREADS
-    if (self->handle)
-        dpiStmt_release(self->handle);
-    status = dpiConn_prepareStmt(self->connection->handle, self->isScrollable,
-            (const char*) statementBuffer.ptr, statementBuffer.size,
-            (const char*) tagBuffer.ptr, tagBuffer.size, &self->handle);
+    if (cursor->handle)
+        dpiStmt_release(cursor->handle);
+    status = dpiConn_prepareStmt(cursor->connection->handle,
+            cursor->isScrollable, (const char*) statementBuffer.ptr,
+            statementBuffer.size, (const char*) tagBuffer.ptr, tagBuffer.size,
+            &cursor->handle);
     Py_END_ALLOW_THREADS
-    cxBuffer_Clear(&statementBuffer);
-    cxBuffer_Clear(&tagBuffer);
+    cxoBuffer_clear(&statementBuffer);
+    cxoBuffer_clear(&tagBuffer);
     if (status < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
 
     // get statement information
-    if (dpiStmt_getInfo(self->handle, &self->stmtInfo) < 0)
-        return Error_RaiseAndReturnInt();
+    if (dpiStmt_getInfo(cursor->handle, &cursor->stmtInfo) < 0)
+        return cxoError_raiseAndReturnInt();
 
     // set the fetch array size
-    if (dpiStmt_setFetchArraySize(self->handle, self->arraySize) < 0)
-        return Error_RaiseAndReturnInt();
+    if (dpiStmt_setFetchArraySize(cursor->handle, cursor->arraySize) < 0)
+        return cxoError_raiseAndReturnInt();
 
     // clear row factory, if applicable
-    Py_CLEAR(self->rowFactory);
+    Py_CLEAR(cursor->rowFactory);
 
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Parse()
+// cxoCursor_parse()
 //   Parse the statement without executing it. This also retrieves information
 // about the select list for select statements.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Parse(udt_Cursor *self, PyObject *statement)
+static PyObject *cxoCursor_parse(cxoCursor *cursor, PyObject *statement)
 {
     uint32_t mode, numQueryColumns;
     dpiStmtInfo stmtInfo;
     int status;
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // prepare the statement and get statement information
-    if (Cursor_InternalPrepare(self, statement, NULL) < 0)
+    if (cxoCursor_internalPrepare(cursor, statement, NULL) < 0)
         return NULL;
-    if (dpiStmt_getInfo(self->handle, &stmtInfo) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiStmt_getInfo(cursor->handle, &stmtInfo) < 0)
+        return cxoError_raiseAndReturnNull();
 
     // parse the statement
     if (stmtInfo.isQuery)
         mode = DPI_MODE_EXEC_DESCRIBE_ONLY;
     else mode = DPI_MODE_EXEC_PARSE_ONLY;
     Py_BEGIN_ALLOW_THREADS
-    status = dpiStmt_execute(self->handle, mode, &numQueryColumns);
+    status = dpiStmt_execute(cursor->handle, mode, &numQueryColumns);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
 
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Prepare()
+// cxoCursor_prepare()
 //   Prepare the statement for execution.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Prepare(udt_Cursor *self, PyObject *args)
+static PyObject *cxoCursor_prepare(cxoCursor *cursor, PyObject *args)
 {
     PyObject *statement, *statementTag;
 
@@ -1066,11 +1023,11 @@ static PyObject *Cursor_Prepare(udt_Cursor *self, PyObject *args)
         return NULL;
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // prepare the statement
-    if (Cursor_InternalPrepare(self, statement, statementTag) < 0)
+    if (cxoCursor_internalPrepare(cursor, statement, statementTag) < 0)
         return NULL;
 
     Py_RETURN_NONE;
@@ -1078,11 +1035,12 @@ static PyObject *Cursor_Prepare(udt_Cursor *self, PyObject *args)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_CallCalculateSize()
+// cxoCursor_callCalculateSize()
 //   Calculate the size of the statement that is to be executed.
 //-----------------------------------------------------------------------------
-static int Cursor_CallCalculateSize(PyObject *name, udt_Variable *returnValue,
-        PyObject *listOfArguments, PyObject *keywordArguments, int *size)
+static int cxoCursor_callCalculateSize(PyObject *name,
+        cxoVar *returnValue, PyObject *listOfArguments,
+        PyObject *keywordArguments, int *size)
 {
     Py_ssize_t numPositionalArgs, numKeywordArgs;
 
@@ -1119,7 +1077,7 @@ static int Cursor_CallCalculateSize(PyObject *name, udt_Variable *returnValue,
     // error if the number of arguments exceeds this value; more than this
     // number would probably be unusable in any case!
     if (numPositionalArgs + numKeywordArgs > 10000) {
-        PyErr_SetString(g_InterfaceErrorException, "too many arguments");
+        PyErr_SetString(cxoInterfaceErrorException, "too many arguments");
         return -1;
     }
 
@@ -1128,15 +1086,16 @@ static int Cursor_CallCalculateSize(PyObject *name, udt_Variable *returnValue,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_CallBuildStatement()
+// cxoCursor_callBuildStatement()
 //   Determine the statement and the bind variables to bind to the statement
 // that is created for calling a stored procedure or function.
 //-----------------------------------------------------------------------------
-static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
-        PyObject *listOfArguments, PyObject *keywordArguments, char *statement,
-        PyObject **statementObj, PyObject **bindVariables)
+static int cxoCursor_callBuildStatement(PyObject *name,
+        cxoVar *returnValue, PyObject *listOfArguments,
+        PyObject *keywordArguments, char *statement, PyObject **statementObj,
+        PyObject **bindVariables)
 {
-    PyObject *key, *value, *format, *formatArgs, *positionalArgs, *temp;
+    PyObject *key, *value, *formatArgs, *positionalArgs;
     uint32_t i, argNum, numPositionalArgs;
     Py_ssize_t pos;
     char *ptr;
@@ -1187,7 +1146,7 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
             if (i > 0)
                 *ptr++ = ',';
             ptr += sprintf(ptr, ":%d", argNum++);
-            if (g_OracleClientVersionInfo.versionNum < 12 &&
+            if (cxoClientVersionInfo.versionNum < 12 &&
                     PyBool_Check(PySequence_Fast_GET_ITEM(positionalArgs, i)))
                 ptr += sprintf(ptr, " = 1");
         }
@@ -1209,7 +1168,7 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
             if ((argNum > 1 && !returnValue) || (argNum > 2 && returnValue))
                 *ptr++ = ',';
             ptr += sprintf(ptr, "%%s => :%d", argNum++);
-            if (g_OracleClientVersionInfo.versionNum < 12 &&
+            if (cxoClientVersionInfo.versionNum < 12 &&
                     PyBool_Check(value))
                 ptr += sprintf(ptr, " = 1");
         }
@@ -1217,20 +1176,9 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
 
     // create statement object
     strcpy(ptr, "); end;");
-    format = cxString_FromAscii(statement);
-    if (!format) {
-        Py_DECREF(formatArgs);
-        return -1;
-    }
-    temp = PyList_AsTuple(formatArgs);
+    *statementObj = cxoUtils_formatString(statement,
+            PyList_AsTuple(formatArgs));
     Py_DECREF(formatArgs);
-    if (!temp) {
-        Py_DECREF(format);
-        return -1;
-    }
-    *statementObj = cxString_Format(format, temp);
-    Py_DECREF(format);
-    Py_DECREF(temp);
     if (!*statementObj)
         return -1;
 
@@ -1239,10 +1187,10 @@ static int Cursor_CallBuildStatement(PyObject *name, udt_Variable *returnValue,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Call()
+// cxoCursor_call()
 //   Call a stored procedure or function.
 //-----------------------------------------------------------------------------
-static int Cursor_Call(udt_Cursor *self, udt_Variable *returnValue,
+static int cxoCursor_call(cxoCursor *cursor, cxoVar *returnValue,
         PyObject *name, PyObject *listOfArguments, PyObject *keywordArguments)
 {
     PyObject *bindVariables, *statementObj, *results;
@@ -1265,11 +1213,11 @@ static int Cursor_Call(udt_Cursor *self, udt_Variable *returnValue,
     }
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return -1;
 
     // determine the statement size
-    if (Cursor_CallCalculateSize(name, returnValue, listOfArguments,
+    if (cxoCursor_callCalculateSize(name, returnValue, listOfArguments,
             keywordArguments, &statementSize) < 0)
         return -1;
 
@@ -1282,7 +1230,7 @@ static int Cursor_Call(udt_Cursor *self, udt_Variable *returnValue,
 
     // determine the statement to execute and the argument to pass
     bindVariables = statementObj = NULL;
-    if (Cursor_CallBuildStatement(name, returnValue, listOfArguments,
+    if (cxoCursor_callBuildStatement(name, returnValue, listOfArguments,
             keywordArguments, statement, &statementObj, &bindVariables) < 0) {
         PyMem_Free(statement);
         Py_XDECREF(statementObj);
@@ -1292,7 +1240,7 @@ static int Cursor_Call(udt_Cursor *self, udt_Variable *returnValue,
     PyMem_Free(statement);
 
     // execute the statement on the cursor
-    results = PyObject_CallMethod( (PyObject*) self, "execute", "OO",
+    results = PyObject_CallMethod( (PyObject*) cursor, "execute", "OO",
             statementObj, bindVariables);
     Py_DECREF(statementObj);
     Py_DECREF(bindVariables);
@@ -1305,16 +1253,16 @@ static int Cursor_Call(udt_Cursor *self, udt_Variable *returnValue,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_CallFunc()
+// cxoCursor_callFunc()
 //   Call a stored function and return the return value of the function.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_CallFunc(udt_Cursor *self, PyObject *args,
+static PyObject *cxoCursor_callFunc(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "name", "returnType", "parameters",
             "keywordParameters", NULL };
     PyObject *listOfArguments, *keywordArguments, *returnType, *results, *name;
-    udt_Variable *var;
+    cxoVar *var;
 
     // parse arguments
     listOfArguments = keywordArguments = NULL;
@@ -1323,26 +1271,26 @@ static PyObject *Cursor_CallFunc(udt_Cursor *self, PyObject *args,
         return NULL;
 
     // create the return variable
-    var = Variable_NewByType(self, returnType, 1);
+    var = cxoVar_newByType(cursor, returnType, 1);
     if (!var)
         return NULL;
 
     // call the function
-    if (Cursor_Call(self, var, name, listOfArguments, keywordArguments) < 0)
+    if (cxoCursor_call(cursor, var, name, listOfArguments, keywordArguments) < 0)
         return NULL;
 
     // determine the results
-    results = Variable_GetValue(var, 0);
+    results = cxoVar_getValue(var, 0);
     Py_DECREF(var);
     return results;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_CallProc()
+// cxoCursor_callProc()
 //   Call a stored procedure and return the (possibly modified) arguments.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_CallProc(udt_Cursor *self, PyObject *args,
+static PyObject *cxoCursor_callProc(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "name", "parameters", "keywordParameters",
@@ -1357,17 +1305,18 @@ static PyObject *Cursor_CallProc(udt_Cursor *self, PyObject *args,
         return NULL;
 
     // call the stored procedure
-    if (Cursor_Call(self, NULL, name, listOfArguments, keywordArguments) < 0)
+    if (cxoCursor_call(cursor, NULL, name, listOfArguments,
+            keywordArguments) < 0)
         return NULL;
 
     // create the return value
-    numArgs = PyList_GET_SIZE(self->bindVariables);
+    numArgs = PyList_GET_SIZE(cursor->bindVariables);
     results = PyList_New(numArgs);
     if (!results)
         return NULL;
     for (i = 0; i < numArgs; i++) {
-        var = PyList_GET_ITEM(self->bindVariables, i);
-        temp = Variable_GetValue((udt_Variable*) var, 0);
+        var = PyList_GET_ITEM(cursor->bindVariables, i);
+        temp = cxoVar_getValue((cxoVar*) var, 0);
         if (!temp) {
             Py_DECREF(results);
             return NULL;
@@ -1380,10 +1329,10 @@ static PyObject *Cursor_CallProc(udt_Cursor *self, PyObject *args,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Execute()
+// cxoCursor_execute()
 //   Execute the statement.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Execute(udt_Cursor *self, PyObject *args,
+static PyObject *cxoCursor_execute(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     PyObject *statement, *executeArgs;
@@ -1397,7 +1346,7 @@ static PyObject *Cursor_Execute(udt_Cursor *self, PyObject *args,
         if (PyDict_Size(keywordArgs) == 0)
             keywordArgs = NULL;
         else {
-            PyErr_SetString(g_InterfaceErrorException,
+            PyErr_SetString(cxoInterfaceErrorException,
                     "expecting argument or keyword arguments, not both");
             return NULL;
         }
@@ -1413,45 +1362,45 @@ static PyObject *Cursor_Execute(udt_Cursor *self, PyObject *args,
     }
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // prepare the statement, if applicable
-    if (Cursor_InternalPrepare(self, statement, NULL) < 0)
+    if (cxoCursor_internalPrepare(cursor, statement, NULL) < 0)
         return NULL;
 
     // perform binds
-    if (executeArgs && Cursor_SetBindVariables(self, executeArgs, 1, 0,
+    if (executeArgs && cxoCursor_setBindVariables(cursor, executeArgs, 1, 0,
             0) < 0)
         return NULL;
-    if (Cursor_PerformBind(self) < 0)
+    if (cxoCursor_performBind(cursor) < 0)
         return NULL;
 
     // execute the statement
     Py_BEGIN_ALLOW_THREADS
-    mode = (self->connection->autocommit) ? DPI_MODE_EXEC_COMMIT_ON_SUCCESS :
+    mode = (cursor->connection->autocommit) ? DPI_MODE_EXEC_COMMIT_ON_SUCCESS :
             DPI_MODE_EXEC_DEFAULT;
-    status = dpiStmt_execute(self->handle, mode, &numQueryColumns);
+    status = dpiStmt_execute(cursor->handle, mode, &numQueryColumns);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
 
     // get the count of the rows affected
-    if (dpiStmt_getRowCount(self->handle, &self->rowCount) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiStmt_getRowCount(cursor->handle, &cursor->rowCount) < 0)
+        return cxoError_raiseAndReturnNull();
 
     // for queries, return the cursor for convenience
     if (numQueryColumns > 0) {
-        if (Cursor_PerformDefine(self, numQueryColumns) < 0) {
-            Py_CLEAR(self->fetchVariables);
+        if (cxoCursor_performDefine(cursor, numQueryColumns) < 0) {
+            Py_CLEAR(cursor->fetchVariables);
             return NULL;
         }
-        Py_INCREF(self);
-        return (PyObject*) self;
+        Py_INCREF(cursor);
+        return (PyObject*) cursor;
     }
 
     // for returning statements, get the variable data for each bound variable
-    if (self->stmtInfo.isReturning && Cursor_GetVarData(self) < 0)
+    if (cursor->stmtInfo.isReturning && cxoCursor_getVarData(cursor) < 0)
         return NULL;
 
     // for statements other than queries, simply return None
@@ -1460,11 +1409,11 @@ static PyObject *Cursor_Execute(udt_Cursor *self, PyObject *args,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_ExecuteMany()
+// cxoCursor_executeMany()
 //   Execute the statement many times. The number of times is equivalent to the
 // number of elements in the array of dictionaries.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_ExecuteMany(udt_Cursor *self, PyObject *args,
+static PyObject *cxoCursor_executeMany(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "statement", "parameters", "batcherrors",
@@ -1481,11 +1430,11 @@ static PyObject *Cursor_ExecuteMany(udt_Cursor *self, PyObject *args,
         return NULL;
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // determine execution mode
-    mode = (self->connection->autocommit) ? DPI_MODE_EXEC_COMMIT_ON_SUCCESS :
+    mode = (cursor->connection->autocommit) ? DPI_MODE_EXEC_COMMIT_ON_SUCCESS :
             DPI_MODE_EXEC_DEFAULT;
     if (batchErrorsEnabled)
         mode |= DPI_MODE_EXEC_BATCH_ERRORS;
@@ -1493,7 +1442,7 @@ static PyObject *Cursor_ExecuteMany(udt_Cursor *self, PyObject *args,
         mode |= DPI_MODE_EXEC_ARRAY_DML_ROWCOUNTS;
 
     // prepare the statement
-    if (Cursor_InternalPrepare(self, statement, NULL) < 0)
+    if (cxoCursor_internalPrepare(cursor, statement, NULL) < 0)
         return NULL;
 
     // perform binds
@@ -1501,30 +1450,30 @@ static PyObject *Cursor_ExecuteMany(udt_Cursor *self, PyObject *args,
     for (i = 0; i < numRows; i++) {
         arguments = PyList_GET_ITEM(listOfArguments, i);
         if (!PyDict_Check(arguments) && !PySequence_Check(arguments)) {
-            PyErr_SetString(g_InterfaceErrorException,
+            PyErr_SetString(cxoInterfaceErrorException,
                     "expecting a list of dictionaries or sequences");
             return NULL;
         }
-        if (Cursor_SetBindVariables(self, arguments, numRows, i,
+        if (cxoCursor_setBindVariables(cursor, arguments, numRows, i,
                 (i < numRows - 1)) < 0)
             return NULL;
     }
-    if (Cursor_PerformBind(self) < 0)
+    if (cxoCursor_performBind(cursor) < 0)
         return NULL;
 
     // execute the statement, but only if the number of rows is greater than
     // zero since Oracle raises an error otherwise
     if (numRows > 0) {
         Py_BEGIN_ALLOW_THREADS
-        status = dpiStmt_executeMany(self->handle, mode, numRows);
+        status = dpiStmt_executeMany(cursor->handle, mode, numRows);
         Py_END_ALLOW_THREADS
         if (status < 0) {
-            Error_RaiseAndReturnNull();
-            dpiStmt_getRowCount(self->handle, &self->rowCount);
+            cxoError_raiseAndReturnNull();
+            dpiStmt_getRowCount(cursor->handle, &cursor->rowCount);
             return NULL;
         }
-        if (dpiStmt_getRowCount(self->handle, &self->rowCount) < 0)
-            return Error_RaiseAndReturnNull();
+        if (dpiStmt_getRowCount(cursor->handle, &cursor->rowCount) < 0)
+            return cxoError_raiseAndReturnNull();
     }
 
     Py_RETURN_NONE;
@@ -1532,12 +1481,13 @@ static PyObject *Cursor_ExecuteMany(udt_Cursor *self, PyObject *args,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_ExecuteManyPrepared()
+// cxoCursor_executeManyPrepared()
 //   Execute the prepared statement the number of times requested. At this
 // point, the statement must have been already prepared and the bind variables
 // must have their values set.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_ExecuteManyPrepared(udt_Cursor *self, PyObject *args)
+static PyObject *cxoCursor_executeManyPrepared(cxoCursor *cursor,
+        PyObject *args)
 {
     int numIters, status;
 
@@ -1546,38 +1496,39 @@ static PyObject *Cursor_ExecuteManyPrepared(udt_Cursor *self, PyObject *args)
         return NULL;
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // perform binds
-    if (Cursor_PerformBind(self) < 0)
+    if (cxoCursor_performBind(cursor) < 0)
         return NULL;
 
     // execute the statement
     Py_BEGIN_ALLOW_THREADS
-    status = dpiStmt_executeMany(self->handle, DPI_MODE_EXEC_DEFAULT,
+    status = dpiStmt_executeMany(cursor->handle, DPI_MODE_EXEC_DEFAULT,
             numIters);
     Py_END_ALLOW_THREADS
-    if (status < 0 || dpiStmt_getRowCount(self->handle, &self->rowCount) < 0)
-        return Error_RaiseAndReturnNull();
+    if (status < 0 || dpiStmt_getRowCount(cursor->handle,
+            &cursor->rowCount) < 0)
+        return cxoError_raiseAndReturnNull();
 
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_MultiFetch()
+// cxoCursor_multiFetch()
 //   Return a list consisting of the remaining rows up to the given row limit
 // (if specified).
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_MultiFetch(udt_Cursor *self, int rowLimit)
+static PyObject *cxoCursor_multiFetch(cxoCursor *cursor, int rowLimit)
 {
     uint32_t bufferRowIndex = 0;
     PyObject *results, *row;
     int found, rowNum;
 
     // verify fetch can be performed
-    if (Cursor_VerifyFetch(self) < 0)
+    if (cxoCursor_verifyFetch(cursor) < 0)
         return NULL;
 
     // create an empty list
@@ -1587,13 +1538,13 @@ static PyObject *Cursor_MultiFetch(udt_Cursor *self, int rowLimit)
 
     // fetch as many rows as possible
     for (rowNum = 0; rowLimit == 0 || rowNum < rowLimit; rowNum++) {
-        if (Cursor_FetchRow(self, &found, &bufferRowIndex) < 0) {
+        if (cxoCursor_fetchRow(cursor, &found, &bufferRowIndex) < 0) {
             Py_DECREF(results);
             return NULL;
         }
         if (!found)
             break;
-        row = Cursor_CreateRow(self, bufferRowIndex);
+        row = cxoCursor_createRow(cursor, bufferRowIndex);
         if (!row) {
             Py_DECREF(results);
             return NULL;
@@ -1611,60 +1562,60 @@ static PyObject *Cursor_MultiFetch(udt_Cursor *self, int rowLimit)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_FetchOne()
+// cxoCursor_fetchOne()
 //   Fetch a single row from the cursor.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_FetchOne(udt_Cursor *self, PyObject *args)
+static PyObject *cxoCursor_fetchOne(cxoCursor *cursor, PyObject *args)
 {
     uint32_t bufferRowIndex = 0;
     int found = 0;
 
-    if (Cursor_VerifyFetch(self) < 0)
+    if (cxoCursor_verifyFetch(cursor) < 0)
         return NULL;
-    if (Cursor_FetchRow(self, &found, &bufferRowIndex) < 0)
+    if (cxoCursor_fetchRow(cursor, &found, &bufferRowIndex) < 0)
         return NULL;
     if (found)
-        return Cursor_CreateRow(self, bufferRowIndex);
+        return cxoCursor_createRow(cursor, bufferRowIndex);
 
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_FetchMany()
+// cxoCursor_fetchMany()
 //   Fetch multiple rows from the cursor based on the arraysize.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_FetchMany(udt_Cursor *self, PyObject *args,
+static PyObject *cxoCursor_fetchMany(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "numRows", NULL };
     int rowLimit;
 
     // parse arguments -- optional rowlimit expected
-    rowLimit = self->arraySize;
+    rowLimit = cursor->arraySize;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|i", keywordList,
             &rowLimit))
         return NULL;
 
-    return Cursor_MultiFetch(self, rowLimit);
+    return cxoCursor_multiFetch(cursor, rowLimit);
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_FetchAll()
+// cxoCursor_fetchAll()
 //   Fetch all remaining rows from the cursor.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_FetchAll(udt_Cursor *self, PyObject *args)
+static PyObject *cxoCursor_fetchAll(cxoCursor *cursor, PyObject *args)
 {
-    return Cursor_MultiFetch(self, 0);
+    return cxoCursor_multiFetch(cursor, 0);
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_FetchRaw()
+// cxoCursor_fetchRaw()
 //   Perform raw fetch on the cursor; return the actual number of rows fetched.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_FetchRaw(udt_Cursor *self, PyObject *args,
+static PyObject *cxoCursor_fetchRaw(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "numRows", NULL };
@@ -1672,31 +1623,31 @@ static PyObject *Cursor_FetchRaw(udt_Cursor *self, PyObject *args,
     int moreRows;
 
     // expect an optional number of rows to retrieve
-    numRowsToFetch = self->fetchArraySize;
+    numRowsToFetch = cursor->fetchArraySize;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|i", keywordList,
             &numRowsToFetch))
         return NULL;
-    if (numRowsToFetch > self->fetchArraySize) {
-        PyErr_SetString(g_InterfaceErrorException,
+    if (numRowsToFetch > cursor->fetchArraySize) {
+        PyErr_SetString(cxoInterfaceErrorException,
                 "rows to fetch exceeds array size");
         return NULL;
     }
 
     // perform the fetch
-    if (dpiStmt_fetchRows(self->handle, numRowsToFetch, &bufferRowIndex,
+    if (dpiStmt_fetchRows(cursor->handle, numRowsToFetch, &bufferRowIndex,
             &numRowsFetched, &moreRows) < 0)
-        return Error_RaiseAndReturnNull();
-    self->rowCount += numRowsFetched;
-    self->numRowsInFetchBuffer = 0;
+        return cxoError_raiseAndReturnNull();
+    cursor->rowCount += numRowsFetched;
+    cursor->numRowsInFetchBuffer = 0;
     return PyInt_FromLong(numRowsFetched);
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Scroll()
+// cxoCursor_scroll()
 //   Scroll the cursor using the value and mode specified.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Scroll(udt_Cursor *self, PyObject *args,
+static PyObject *cxoCursor_scroll(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "value", "mode", NULL };
@@ -1724,74 +1675,74 @@ static PyObject *Cursor_Scroll(udt_Cursor *self, PyObject *args,
     else if (strcmp(strMode, "last") == 0)
         mode = DPI_MODE_FETCH_LAST;
     else {
-        PyErr_SetString(g_InterfaceErrorException,
+        PyErr_SetString(cxoInterfaceErrorException,
                 "mode must be one of relative, absolute, first or last");
         return NULL;
     }
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // perform scroll and get new row count and number of rows in buffer
     Py_BEGIN_ALLOW_THREADS
-    status = dpiStmt_scroll(self->handle, mode, offset,
-            0 - self->numRowsInFetchBuffer);
+    status = dpiStmt_scroll(cursor->handle, mode, offset,
+            0 - cursor->numRowsInFetchBuffer);
     if (status == 0)
-        status = dpiStmt_fetchRows(self->handle, self->fetchArraySize,
-                &self->fetchBufferRowIndex, &self->numRowsInFetchBuffer,
-                &self->moreRowsToFetch);
+        status = dpiStmt_fetchRows(cursor->handle, cursor->fetchArraySize,
+                &cursor->fetchBufferRowIndex, &cursor->numRowsInFetchBuffer,
+                &cursor->moreRowsToFetch);
     if (status == 0)
-        status = dpiStmt_getRowCount(self->handle, &self->rowCount);
+        status = dpiStmt_getRowCount(cursor->handle, &cursor->rowCount);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
-    self->rowCount -= self->numRowsInFetchBuffer;
+        return cxoError_raiseAndReturnNull();
+    cursor->rowCount -= cursor->numRowsInFetchBuffer;
 
     Py_RETURN_NONE;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_SetInputSizes()
+// cxoCursor_setInputSizes()
 //   Set the sizes of the bind variables.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_SetInputSizes(udt_Cursor *self, PyObject *args,
+static PyObject *cxoCursor_setInputSizes(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     Py_ssize_t numPositionalArgs, i;
     PyObject *key, *value;
-    udt_Variable *var;
+    cxoVar *var;
 
     // only expect keyword arguments or positional arguments, not both
     numPositionalArgs = PyTuple_Size(args);
     if (keywordArgs && numPositionalArgs > 0) {
-        PyErr_SetString(g_InterfaceErrorException,
+        PyErr_SetString(cxoInterfaceErrorException,
                 "expecting arguments or keyword arguments, not both");
         return NULL;
     }
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // eliminate existing bind variables
-    Py_CLEAR(self->bindVariables);
+    Py_CLEAR(cursor->bindVariables);
     if (keywordArgs)
-        self->bindVariables = PyDict_New();
-    else self->bindVariables = PyList_New(numPositionalArgs);
-    if (!self->bindVariables)
+        cursor->bindVariables = PyDict_New();
+    else cursor->bindVariables = PyList_New(numPositionalArgs);
+    if (!cursor->bindVariables)
         return NULL;
-    self->setInputSizes = 1;
+    cursor->setInputSizes = 1;
 
     // process each input
     if (keywordArgs) {
         i = 0;
         while (PyDict_Next(keywordArgs, &i, &key, &value)) {
-            var = Variable_NewByType(self, value, self->bindArraySize);
+            var = cxoVar_newByType(cursor, value, cursor->bindArraySize);
             if (!var)
                 return NULL;
-            if (PyDict_SetItem(self->bindVariables, key,
+            if (PyDict_SetItem(cursor->bindVariables, key,
                     (PyObject*) var) < 0) {
                 Py_DECREF(var);
                 return NULL;
@@ -1803,27 +1754,27 @@ static PyObject *Cursor_SetInputSizes(udt_Cursor *self, PyObject *args,
             value = PyTuple_GET_ITEM(args, i);
             if (value == Py_None) {
                 Py_INCREF(Py_None);
-                PyList_SET_ITEM(self->bindVariables, i, Py_None);
+                PyList_SET_ITEM(cursor->bindVariables, i, Py_None);
             } else {
-                var = Variable_NewByType(self, value, self->bindArraySize);
+                var = cxoVar_newByType(cursor, value, cursor->bindArraySize);
                 if (!var)
                     return NULL;
-                PyList_SET_ITEM(self->bindVariables, i, (PyObject*) var);
+                PyList_SET_ITEM(cursor->bindVariables, i, (PyObject*) var);
             }
         }
     }
 
-    Py_INCREF(self->bindVariables);
-    return self->bindVariables;
+    Py_INCREF(cursor->bindVariables);
+    return cursor->bindVariables;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_SetOutputSize()
+// cxoCursor_setOutputSize()
 //   Does nothing as ODPI-C handles long columns dynamically without the need
 // to specify a maximum length.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_SetOutputSize(udt_Cursor *self, PyObject *args)
+static PyObject *cxoCursor_setOutputSize(cxoCursor *cursor, PyObject *args)
 {
     int outputSize, outputSizeColumn;
 
@@ -1834,24 +1785,24 @@ static PyObject *Cursor_SetOutputSize(udt_Cursor *self, PyObject *args)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_Var()
+// cxoCursor_var()
 //   Create a bind variable and return it.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_Var(udt_Cursor *self, PyObject *args,
+static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "type", "size", "arraysize",
             "inconverter", "outconverter", "typename", NULL };
     PyObject *inConverter, *outConverter, *typeNameObj;
-    udt_ObjectType *objType = NULL;
-    udt_VariableType *varType;
+    cxoObjectType *objType = NULL;
+    cxoVarType *varType;
     int size, arraySize;
-    udt_Variable *var;
     PyObject *type;
+    cxoVar *var;
 
     // parse arguments
     size = 0;
-    arraySize = self->bindArraySize;
+    arraySize = cursor->bindArraySize;
     inConverter = outConverter = typeNameObj = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOO", keywordList,
             &type, &size, &arraySize, &inConverter, &outConverter,
@@ -1859,19 +1810,19 @@ static PyObject *Cursor_Var(udt_Cursor *self, PyObject *args,
         return NULL;
 
     // determine the type of variable
-    varType = Variable_TypeByPythonType(self, type);
+    varType = cxoVarType_fromPythonType((PyTypeObject*) type);
     if (!varType)
         return NULL;
     if (size == 0)
         size = varType->size;
     if (typeNameObj) {
-        objType = ObjectType_NewByName(self->connection, typeNameObj);
+        objType = cxoObjectType_newByName(cursor->connection, typeNameObj);
         if (!objType)
             return NULL;
     }
 
     // create the variable
-    var = Variable_New(self, arraySize, varType, size, 0, objType);
+    var = cxoVar_new(cursor, arraySize, varType, size, 0, objType);
     Py_XDECREF(objType);
     if (!var)
         return NULL;
@@ -1885,15 +1836,15 @@ static PyObject *Cursor_Var(udt_Cursor *self, PyObject *args,
 
 
 //-----------------------------------------------------------------------------
-// Cursor_ArrayVar()
+// cxoCursor_arrayVar()
 //   Create an array bind variable and return it.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_ArrayVar(udt_Cursor *self, PyObject *args)
+static PyObject *cxoCursor_arrayVar(cxoCursor *cursor, PyObject *args)
 {
     uint32_t size, numElements;
-    udt_VariableType *varType;
     PyObject *type, *value;
-    udt_Variable *var;
+    cxoVarType *varType;
+    cxoVar *var;
 
     // parse arguments
     size = 0;
@@ -1901,7 +1852,7 @@ static PyObject *Cursor_ArrayVar(udt_Cursor *self, PyObject *args)
         return NULL;
 
     // determine the type of variable
-    varType = Variable_TypeByPythonType(self, type);
+    varType = cxoVarType_fromPythonType((PyTypeObject*) type);
     if (!varType)
         return NULL;
     if (size == 0)
@@ -1921,13 +1872,13 @@ static PyObject *Cursor_ArrayVar(udt_Cursor *self, PyObject *args)
     }
 
     // create the variable
-    var = Variable_New(self, numElements, varType, size, 1, NULL);
+    var = cxoVar_new(cursor, numElements, varType, size, 1, NULL);
     if (!var)
         return NULL;
 
     // set the value, if applicable
     if (PyList_Check(value)) {
-        if (Variable_SetArrayValue(var, value) < 0)
+        if (cxoVar_setValue(var, 0, value) < 0)
             return NULL;
     }
 
@@ -1936,29 +1887,29 @@ static PyObject *Cursor_ArrayVar(udt_Cursor *self, PyObject *args)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_BindNames()
+// cxoCursor_bindNames()
 //   Return a list of bind variable names.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_BindNames(udt_Cursor *self, PyObject *args)
+static PyObject *cxoCursor_bindNames(cxoCursor *cursor, PyObject *args)
 {
     uint32_t numBinds, *nameLengths, i;
     PyObject *namesList, *temp;
     const char **names;
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // ensure that a statement has already been prepared
-    if (!self->statement) {
-        PyErr_SetString(g_ProgrammingErrorException,
+    if (!cursor->statement) {
+        PyErr_SetString(cxoProgrammingErrorException,
                 "statement must be prepared first");
         return NULL;
     }
 
     // determine the number of binds
-    if (dpiStmt_getBindCount(self->handle, &numBinds) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiStmt_getBindCount(cursor->handle, &numBinds) < 0)
+        return cxoError_raiseAndReturnNull();
 
     // if the number of binds is zero, nothing to do
     if (numBinds == 0)
@@ -1975,19 +1926,19 @@ static PyObject *Cursor_BindNames(udt_Cursor *self, PyObject *args)
     }
 
     // get the bind names
-    if (dpiStmt_getBindNames(self->handle, &numBinds, names,
+    if (dpiStmt_getBindNames(cursor->handle, &numBinds, names,
             nameLengths) < 0) {
         PyMem_Free((void*) names);
         PyMem_Free(nameLengths);
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     }
 
     // populate list with the results
     namesList = PyList_New(numBinds);
     if (namesList) {
         for (i = 0; i < numBinds; i++) {
-            temp = cxString_FromEncodedString(names[i], nameLengths[i],
-                    self->connection->encodingInfo.encoding);
+            temp = cxoPyString_fromEncodedString(names[i], nameLengths[i],
+                    cursor->connection->encodingInfo.encoding);
             if (!temp) {
                 Py_CLEAR(namesList);
                 break;
@@ -2002,33 +1953,33 @@ static PyObject *Cursor_BindNames(udt_Cursor *self, PyObject *args)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetIter()
+// cxoCursor_getIter()
 //   Return a reference to the cursor which supports the iterator protocol.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_GetIter(udt_Cursor *self)
+static PyObject *cxoCursor_getIter(cxoCursor *cursor)
 {
-    if (Cursor_VerifyFetch(self) < 0)
+    if (cxoCursor_verifyFetch(cursor) < 0)
         return NULL;
-    Py_INCREF(self);
-    return (PyObject*) self;
+    Py_INCREF(cursor);
+    return (PyObject*) cursor;
 }
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetNext()
+// cxoCursor_getNext()
 //   Return a reference to the cursor which supports the iterator protocol.
 //-----------------------------------------------------------------------------
-static PyObject *Cursor_GetNext(udt_Cursor *self)
+static PyObject *cxoCursor_getNext(cxoCursor *cursor)
 {
     uint32_t bufferRowIndex = 0;
     int found = 0;
 
-    if (Cursor_VerifyFetch(self) < 0)
+    if (cxoCursor_verifyFetch(cursor) < 0)
         return NULL;
-    if (Cursor_FetchRow(self, &found, &bufferRowIndex) < 0)
+    if (cxoCursor_fetchRow(cursor, &found, &bufferRowIndex) < 0)
         return NULL;
     if (found)
-        return Cursor_CreateRow(self, bufferRowIndex);
+        return cxoCursor_createRow(cursor, bufferRowIndex);
 
     // no more rows, return NULL without setting an exception
     return NULL;
@@ -2036,39 +1987,39 @@ static PyObject *Cursor_GetNext(udt_Cursor *self)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetVarData()
+// cxoCursor_getVarData()
 //   Get the data for all variables bound to the cursor. This is needed for a
 // returning statement which may have changed the number of elements in the
 // variable and the location of the variable data.
 //-----------------------------------------------------------------------------
-static int Cursor_GetVarData(udt_Cursor *self)
+static int cxoCursor_getVarData(cxoCursor *cursor)
 {
     Py_ssize_t i, size, pos;
     PyObject *key, *value;
-    udt_Variable *var;
+    cxoVar *var;
 
     // if there are no bind variables, nothing to do
-    if (!self->bindVariables)
+    if (!cursor->bindVariables)
         return 0;
 
     // handle bind by position
-    if (PyList_Check(self->bindVariables)) {
-        size = PyList_GET_SIZE(self->bindVariables);
+    if (PyList_Check(cursor->bindVariables)) {
+        size = PyList_GET_SIZE(cursor->bindVariables);
         for (i = 0; i < size; i++) {
-            var = (udt_Variable*) PyList_GET_ITEM(self->bindVariables, i);
+            var = (cxoVar*) PyList_GET_ITEM(cursor->bindVariables, i);
             if (dpiVar_getData(var->handle, &var->allocatedElements,
                     &var->data) < 0)
-                return Error_RaiseAndReturnInt();
+                return cxoError_raiseAndReturnInt();
         }
 
     // handle bind by name
     } else {
         pos = 0;
-        while (PyDict_Next(self->bindVariables, &pos, &key, &value)) {
-            var = (udt_Variable*) value;
+        while (PyDict_Next(cursor->bindVariables, &pos, &key, &value)) {
+            var = (cxoVar*) value;
             if (dpiVar_getData(var->handle, &var->allocatedElements,
                     &var->data) < 0)
-                return Error_RaiseAndReturnInt();
+                return cxoError_raiseAndReturnInt();
         }
     }
 
@@ -2079,19 +2030,19 @@ static int Cursor_GetVarData(udt_Cursor *self)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetBatchErrors()
+// cxoCursor_getBatchErrors()
 //    Returns a list of batch error objects.
 //-----------------------------------------------------------------------------
-static PyObject* Cursor_GetBatchErrors(udt_Cursor *self)
+static PyObject* cxoCursor_getBatchErrors(cxoCursor *cursor)
 {
     uint32_t numErrors, i;
     dpiErrorInfo *errors;
     PyObject *result;
-    udt_Error *error;
+    cxoError *error;
 
     // determine the number of errors
-    if (dpiStmt_getBatchErrorCount(self->handle, &numErrors) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiStmt_getBatchErrorCount(cursor->handle, &numErrors) < 0)
+        return cxoError_raiseAndReturnNull();
     if (numErrors == 0)
         return PyList_New(0);
 
@@ -2101,16 +2052,16 @@ static PyObject* Cursor_GetBatchErrors(udt_Cursor *self)
         return PyErr_NoMemory();
 
     // get error information
-    if (dpiStmt_getBatchErrors(self->handle, numErrors, errors) < 0) {
+    if (dpiStmt_getBatchErrors(cursor->handle, numErrors, errors) < 0) {
         PyMem_Free(errors);
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     }
 
     // create result
     result = PyList_New(numErrors);
     if (result) {
         for (i = 0; i < numErrors; i++) {
-            error = Error_InternalNew(&errors[i]);
+            error = cxoError_internalNew(&errors[i]);
             if (!error) {
                 Py_CLEAR(result);
                 break;
@@ -2124,18 +2075,18 @@ static PyObject* Cursor_GetBatchErrors(udt_Cursor *self)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetArrayDMLRowCounts
+// cxoCursor_getArrayDMLRowCounts
 //    Populates the array dml row count list.
 //-----------------------------------------------------------------------------
-static PyObject* Cursor_GetArrayDMLRowCounts(udt_Cursor *self)
+static PyObject* cxoCursor_getArrayDMLRowCounts(cxoCursor *cursor)
 {
     PyObject *result, *element;
     uint32_t numRowCounts, i;
     uint64_t *rowCounts;
 
     // get row counts from DPI
-    if (dpiStmt_getRowCounts(self->handle, &numRowCounts, &rowCounts) < 0)
-        return Error_RaiseAndReturnNull();
+    if (dpiStmt_getRowCounts(cursor->handle, &numRowCounts, &rowCounts) < 0)
+        return cxoError_raiseAndReturnNull();
 
     // return array
     result = PyList_New(numRowCounts);
@@ -2155,23 +2106,23 @@ static PyObject* Cursor_GetArrayDMLRowCounts(udt_Cursor *self)
 
 
 //-----------------------------------------------------------------------------
-// Cursor_GetImplicitResults
+// cxoCursor_getImplicitResults
 //   Return a list of cursors available implicitly after execution of a PL/SQL
 // block or stored procedure. If none are available, an empty list is returned.
 //-----------------------------------------------------------------------------
-static PyObject * Cursor_GetImplicitResults(udt_Cursor *self)
+static PyObject *cxoCursor_getImplicitResults(cxoCursor *cursor)
 {
-    udt_Cursor *childCursor;
+    cxoCursor *childCursor;
     dpiStmt *childStmt;
     PyObject *result;
 
     // make sure the cursor is open
-    if (Cursor_IsOpen(self) < 0)
+    if (cxoCursor_isOpen(cursor) < 0)
         return NULL;
 
     // make sure we have a statement executed (handle defined)
-    if (!self->handle) {
-        PyErr_SetString(g_InterfaceErrorException, "no statement executed");
+    if (!cursor->handle) {
+        PyErr_SetString(cxoInterfaceErrorException, "no statement executed");
         return NULL;
     }
 
@@ -2180,12 +2131,12 @@ static PyObject * Cursor_GetImplicitResults(udt_Cursor *self)
     if (!result)
         return NULL;
     while (1) {
-        if (dpiStmt_getImplicitResult(self->handle, &childStmt) < 0)
-            return Error_RaiseAndReturnNull();
+        if (dpiStmt_getImplicitResult(cursor->handle, &childStmt) < 0)
+            return cxoError_raiseAndReturnNull();
         if (!childStmt)
             break;
-        childCursor = (udt_Cursor*) PyObject_CallMethod(
-                (PyObject*) self->connection, "cursor", NULL);
+        childCursor = (cxoCursor*) PyObject_CallMethod(
+                (PyObject*) cursor->connection, "cursor", NULL);
         if (!childCursor) {
             dpiStmt_release(childStmt);
             Py_DECREF(result);

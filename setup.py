@@ -24,7 +24,7 @@ BUILD_VERSION = "6.2-dev"
 
 # setup extra link and compile args
 extraLinkArgs = []
-extraCompileArgs = ["-DBUILD_VERSION=%s" % BUILD_VERSION]
+extraCompileArgs = []
 if sys.platform == "aix4":
     extraCompileArgs.append("-qcpluscmt")
 elif sys.platform == "aix5":
@@ -66,34 +66,26 @@ classifiers = [
         "Topic :: Database"
 ]
 
+# define cx_Oracle sources
+sourceDir = "src"
+sources = [os.path.join(sourceDir, n) \
+        for n in sorted(os.listdir(sourceDir)) if n.endswith(".c")]
+
+# define ODPI-C sources
+dpiSourceDir = os.path.join("odpi", "src")
+dpiSources = [os.path.join(dpiSourceDir, n) \
+        for n in sorted(os.listdir(dpiSourceDir)) if n.endswith(".c")]
+
 # setup the extension
 extension = Extension(
         name = "cx_Oracle",
         include_dirs = ["odpi/include", "odpi/src"],
         extra_compile_args = extraCompileArgs,
+        define_macros = [("CXO_BUILD_VERSION", BUILD_VERSION)],
         extra_link_args = extraLinkArgs,
-        sources = ["src/cx_Oracle.c"],
-        depends = ["src/BooleanVar.c", "src/Buffer.c", "src/Connection.c",
-                "src/Cursor.c", "src/CursorVar.c", "src/DateTimeVar.c",
-                "src/DeqOptions.c", "src/EnqOptions.c", "src/Error.c",
-                "src/IntervalVar.c", "src/LOB.c", "src/LobVar.c",
-                "src/LongVar.c", "src/MsgProps.c", "src/NumberVar.c",
-                "src/Object.c", "src/ObjectType.c", "src/ObjectVar.c",
-                "src/SessionPool.c", "src/StringVar.c", "src/Subscription.c",
-                "src/Variable.c", "odpi/include/dpi.h", "odpi/src/dpiImpl.h",
-                "odpi/src/dpiConn.c", "odpi/src/dpiContext.c",
-                "odpi/src/dpiData.c", "odpi/src/dpiDebug.c",
-                "odpi/src/dpiDeqOptions.c", "odpi/src/dpiEnqOptions.c",
-                "odpi/src/dpiEnv.c", "odpi/src/dpiError.c",
-                "odpi/src/dpiGen.c", "odpi/src/dpiGlobal.c",
-                "odpi/src/dpiHandleList.c", "odpi/src/dpiHandlePool.c",
-                "odpi/src/dpiLob.c", "odpi/src/dpiMsgProps.c",
-                "odpi/src/dpiObject.c", "odpi/src/dpiObjectAttr.c",
-                "odpi/src/dpiObjectType.c", "odpi/src/dpiOci.c",
-                "odpi/src/dpiOracleType.c", "odpi/src/dpiPool.c",
-                "odpi/src/dpiRowid.c", "odpi/src/dpiStmt.c",
-                "odpi/src/dpiSubscr.c", "odpi/src/dpiUtils.c",
-                "odpi/src/dpiVar.c"])
+        sources = sources + dpiSources,
+        depends = ["src/cxoModule.h", "odpi/include/dpi.h",
+                "odpi/src/dpiImpl.h", "odpi/src/dpiErrorMessages.h"])
 
 # perform the setup
 setup(

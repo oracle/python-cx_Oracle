@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+// Copyright 2016-2018, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -8,59 +8,42 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SessionPool.c
+// cxoSessionPool.c
 //   Handles session pooling.
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// structure for the Python type "SessionPool"
-//-----------------------------------------------------------------------------
-typedef struct {
-    PyObject_HEAD
-    dpiPool *handle;
-    uint32_t minSessions;
-    uint32_t maxSessions;
-    uint32_t sessionIncrement;
-    uint32_t cacheSize;
-    dpiEncodingInfo encodingInfo;
-    int homogeneous;
-    int externalAuth;
-    PyObject *username;
-    PyObject *dsn;
-    PyObject *name;
-    PyTypeObject *connectionType;
-} udt_SessionPool;
+#include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
 // functions for the Python type "SessionPool"
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_New(PyTypeObject*, PyObject*, PyObject*);
-static int SessionPool_Init(udt_SessionPool*, PyObject*, PyObject*);
-static void SessionPool_Free(udt_SessionPool*);
-static PyObject *SessionPool_Acquire(udt_SessionPool*, PyObject*, PyObject*);
-static PyObject *SessionPool_Drop(udt_SessionPool*, PyObject*);
-static PyObject *SessionPool_Release(udt_SessionPool*, PyObject*, PyObject*);
-static PyObject *SessionPool_GetBusyCount(udt_SessionPool*, void*);
-static PyObject *SessionPool_GetGetMode(udt_SessionPool*, void*);
-static PyObject *SessionPool_GetMaxLifetimeSession(udt_SessionPool*, void*);
-static PyObject *SessionPool_GetOpenCount(udt_SessionPool*, void*);
-static PyObject *SessionPool_GetStmtCacheSize(udt_SessionPool*, void*);
-static PyObject *SessionPool_GetTimeout(udt_SessionPool*, void*);
-static int SessionPool_SetGetMode(udt_SessionPool*, PyObject*, void*);
-static int SessionPool_SetMaxLifetimeSession(udt_SessionPool*, PyObject*,
+static PyObject *cxoSessionPool_new(PyTypeObject*, PyObject*, PyObject*);
+static int cxoSessionPool_init(cxoSessionPool*, PyObject*, PyObject*);
+static void cxoSessionPool_free(cxoSessionPool*);
+static PyObject *cxoSessionPool_acquire(cxoSessionPool*, PyObject*, PyObject*);
+static PyObject *cxoSessionPool_drop(cxoSessionPool*, PyObject*);
+static PyObject *cxoSessionPool_release(cxoSessionPool*, PyObject*, PyObject*);
+static PyObject *cxoSessionPool_getBusyCount(cxoSessionPool*, void*);
+static PyObject *cxoSessionPool_getGetMode(cxoSessionPool*, void*);
+static PyObject *cxoSessionPool_getMaxLifetimeSession(cxoSessionPool*, void*);
+static PyObject *cxoSessionPool_getOpenCount(cxoSessionPool*, void*);
+static PyObject *cxoSessionPool_getStmtCacheSize(cxoSessionPool*, void*);
+static PyObject *cxoSessionPool_getTimeout(cxoSessionPool*, void*);
+static int cxoSessionPool_setGetMode(cxoSessionPool*, PyObject*, void*);
+static int cxoSessionPool_setMaxLifetimeSession(cxoSessionPool*, PyObject*,
         void*);
-static int SessionPool_SetStmtCacheSize(udt_SessionPool*, PyObject*, void*);
-static int SessionPool_SetTimeout(udt_SessionPool*, PyObject*, void*);
+static int cxoSessionPool_setStmtCacheSize(cxoSessionPool*, PyObject*, void*);
+static int cxoSessionPool_setTimeout(cxoSessionPool*, PyObject*, void*);
 
 
 //-----------------------------------------------------------------------------
 // declaration of methods for Python type "SessionPool"
 //-----------------------------------------------------------------------------
-static PyMethodDef g_SessionPoolMethods[] = {
-    { "acquire", (PyCFunction) SessionPool_Acquire,
+static PyMethodDef cxoSessionPoolMethods[] = {
+    { "acquire", (PyCFunction) cxoSessionPool_acquire,
             METH_VARARGS | METH_KEYWORDS },
-    { "drop", (PyCFunction) SessionPool_Drop, METH_VARARGS },
-    { "release", (PyCFunction) SessionPool_Release,
+    { "drop", (PyCFunction) cxoSessionPool_drop, METH_VARARGS },
+    { "release", (PyCFunction) cxoSessionPool_release,
             METH_VARARGS | METH_KEYWORDS },
     { NULL }
 };
@@ -69,16 +52,16 @@ static PyMethodDef g_SessionPoolMethods[] = {
 //-----------------------------------------------------------------------------
 // declaration of members for Python type "SessionPool"
 //-----------------------------------------------------------------------------
-static PyMemberDef g_SessionPoolMembers[] = {
-    { "username", T_OBJECT, offsetof(udt_SessionPool, username), READONLY },
-    { "dsn", T_OBJECT, offsetof(udt_SessionPool, dsn), READONLY },
-    { "tnsentry", T_OBJECT, offsetof(udt_SessionPool, dsn), READONLY },
-    { "name", T_OBJECT, offsetof(udt_SessionPool, name), READONLY },
-    { "max", T_INT, offsetof(udt_SessionPool, maxSessions), READONLY },
-    { "min", T_INT, offsetof(udt_SessionPool, minSessions), READONLY },
-    { "increment", T_INT, offsetof(udt_SessionPool, sessionIncrement),
+static PyMemberDef cxoSessionPoolMembers[] = {
+    { "username", T_OBJECT, offsetof(cxoSessionPool, username), READONLY },
+    { "dsn", T_OBJECT, offsetof(cxoSessionPool, dsn), READONLY },
+    { "tnsentry", T_OBJECT, offsetof(cxoSessionPool, dsn), READONLY },
+    { "name", T_OBJECT, offsetof(cxoSessionPool, name), READONLY },
+    { "max", T_INT, offsetof(cxoSessionPool, maxSessions), READONLY },
+    { "min", T_INT, offsetof(cxoSessionPool, minSessions), READONLY },
+    { "increment", T_INT, offsetof(cxoSessionPool, sessionIncrement),
             READONLY },
-    { "homogeneous", T_INT, offsetof(udt_SessionPool, homogeneous), READONLY },
+    { "homogeneous", T_INT, offsetof(cxoSessionPool, homogeneous), READONLY },
     { NULL }
 };
 
@@ -86,17 +69,17 @@ static PyMemberDef g_SessionPoolMembers[] = {
 //-----------------------------------------------------------------------------
 // declaration of calculated members for Python type "SessionPool"
 //-----------------------------------------------------------------------------
-static PyGetSetDef g_SessionPoolCalcMembers[] = {
-    { "opened", (getter) SessionPool_GetOpenCount, 0, 0, 0 },
-    { "busy", (getter) SessionPool_GetBusyCount, 0, 0, 0 },
-    { "timeout", (getter) SessionPool_GetTimeout,
-            (setter) SessionPool_SetTimeout, 0, 0 },
-    { "getmode", (getter) SessionPool_GetGetMode,
-            (setter) SessionPool_SetGetMode, 0, 0 },
-    { "max_lifetime_session", (getter) SessionPool_GetMaxLifetimeSession,
-            (setter) SessionPool_SetMaxLifetimeSession, 0, 0 },
-    { "stmtcachesize", (getter) SessionPool_GetStmtCacheSize,
-            (setter) SessionPool_SetStmtCacheSize, 0, 0 },
+static PyGetSetDef cxoSessionPoolCalcMembers[] = {
+    { "opened", (getter) cxoSessionPool_getOpenCount, 0, 0, 0 },
+    { "busy", (getter) cxoSessionPool_getBusyCount, 0, 0, 0 },
+    { "timeout", (getter) cxoSessionPool_getTimeout,
+            (setter) cxoSessionPool_setTimeout, 0, 0 },
+    { "getmode", (getter) cxoSessionPool_getGetMode,
+            (setter) cxoSessionPool_setGetMode, 0, 0 },
+    { "max_lifetime_session", (getter) cxoSessionPool_getMaxLifetimeSession,
+            (setter) cxoSessionPool_setMaxLifetimeSession, 0, 0 },
+    { "stmtcachesize", (getter) cxoSessionPool_getStmtCacheSize,
+            (setter) cxoSessionPool_setStmtCacheSize, 0, 0 },
     { NULL }
 };
 
@@ -104,12 +87,12 @@ static PyGetSetDef g_SessionPoolCalcMembers[] = {
 //-----------------------------------------------------------------------------
 // declaration of Python type "SessionPool"
 //-----------------------------------------------------------------------------
-static PyTypeObject g_SessionPoolType = {
+PyTypeObject cxoPyTypeSessionPool = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "OracleSessionPool",                // tp_name
-    sizeof(udt_SessionPool),            // tp_basicsize
+    "cx_Oracle.SessionPool",            // tp_name
+    sizeof(cxoSessionPool),             // tp_basicsize
     0,                                  // tp_itemsize
-    (destructor) SessionPool_Free,      // tp_dealloc
+    (destructor) cxoSessionPool_free,   // tp_dealloc
     0,                                  // tp_print
     0,                                  // tp_getattr
     0,                                  // tp_setattr
@@ -133,52 +116,42 @@ static PyTypeObject g_SessionPoolType = {
     0,                                  // tp_weaklistoffset
     0,                                  // tp_iter
     0,                                  // tp_iternext
-    g_SessionPoolMethods,               // tp_methods
-    g_SessionPoolMembers,               // tp_members
-    g_SessionPoolCalcMembers,           // tp_getset
+    cxoSessionPoolMethods,              // tp_methods
+    cxoSessionPoolMembers,              // tp_members
+    cxoSessionPoolCalcMembers,          // tp_getset
     0,                                  // tp_base
     0,                                  // tp_dict
     0,                                  // tp_descr_get
     0,                                  // tp_descr_set
     0,                                  // tp_dictoffset
-    (initproc) SessionPool_Init,        // tp_init
+    (initproc) cxoSessionPool_init,        // tp_init
     0,                                  // tp_alloc
-    (newfunc) SessionPool_New,          // tp_new
+    (newfunc) cxoSessionPool_new,          // tp_new
     0,                                  // tp_free
     0,                                  // tp_is_gc
     0                                   // tp_bases
 };
 
 
-#include "Connection.c"
-
-
 //-----------------------------------------------------------------------------
-// SessionPool_New()
+// cxoSessionPool_new()
 //   Create a new session pool object.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_New(PyTypeObject *type, PyObject *args,
+static PyObject *cxoSessionPool_new(PyTypeObject *type, PyObject *args,
         PyObject *keywordArgs)
 {
-    udt_SessionPool *newObject;
-
-    // create the object
-    newObject = (udt_SessionPool*) type->tp_alloc(type, 0);
-    if (!newObject)
-        return NULL;
-
-    return (PyObject*) newObject;
+    return type->tp_alloc(type, 0);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_Init()
+// cxoSessionPool_init()
 //   Initialize the session pool object.
 //-----------------------------------------------------------------------------
-static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
+static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
         PyObject *keywordArgs)
 {
-    udt_Buffer userNameBuffer, passwordBuffer, dsnBuffer, editionBuffer;
+    cxoBuffer userNameBuffer, passwordBuffer, dsnBuffer, editionBuffer;
     PyObject *threadedObj, *eventsObj, *homogeneousObj, *passwordObj;
     uint32_t minSessions, maxSessions, sessionIncrement;
     PyObject *externalAuthObj, *editionObj;
@@ -198,16 +171,16 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
     // parse arguments and keywords
     externalAuthObj = editionObj = NULL;
     threadedObj = eventsObj = homogeneousObj = passwordObj = NULL;
-    connectionType = &g_ConnectionType;
-    if (InitializeDPI() < 0)
+    connectionType = &cxoPyTypeConnection;
+    if (cxoUtils_initializeDPI() < 0)
         return -1;
-    if (dpiContext_initCommonCreateParams(g_DpiContext, &dpiCommonParams) < 0)
-        return Error_RaiseAndReturnInt();
-    dpiCommonParams.driverName = DRIVER_NAME;
+    if (dpiContext_initCommonCreateParams(cxoDpiContext, &dpiCommonParams) < 0)
+        return cxoError_raiseAndReturnInt();
+    dpiCommonParams.driverName = CXO_DRIVER_NAME;
     dpiCommonParams.driverNameLength =
             (uint32_t) strlen(dpiCommonParams.driverName);
-    if (dpiContext_initPoolCreateParams(g_DpiContext, &dpiCreateParams) < 0)
-        return Error_RaiseAndReturnInt();
+    if (dpiContext_initPoolCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
+        return cxoError_raiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OOOiii|OObOOOssO",
             keywordList, &usernameObj, &passwordObj, &dsnObj,
             &minSessions, &maxSessions, &sessionIncrement, &connectionType,
@@ -216,58 +189,60 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
             &dpiCommonParams.nencoding, &editionObj))
         return -1;
     if (!PyType_Check(connectionType)) {
-        PyErr_SetString(g_ProgrammingErrorException,
+        PyErr_SetString(cxoProgrammingErrorException,
                 "connectiontype must be a type");
         return -1;
     }
-    if (!PyType_IsSubtype(connectionType, &g_ConnectionType)) {
-        PyErr_SetString(g_ProgrammingErrorException,
+    if (!PyType_IsSubtype(connectionType, &cxoPyTypeConnection)) {
+        PyErr_SetString(cxoProgrammingErrorException,
                 "connectiontype must be a subclass of Connection");
         return -1;
     }
-    if (GetBooleanValue(threadedObj, 0, &temp) < 0)
+    if (cxoUtils_getBooleanValue(threadedObj, 0, &temp) < 0)
         return -1;
     if (temp)
         dpiCommonParams.createMode |= DPI_MODE_CREATE_THREADED;
-    if (GetBooleanValue(eventsObj, 0, &temp) < 0)
+    if (cxoUtils_getBooleanValue(eventsObj, 0, &temp) < 0)
         return -1;
     if (temp)
         dpiCommonParams.createMode |= DPI_MODE_CREATE_EVENTS;
-    if (GetBooleanValue(externalAuthObj, 0, &dpiCreateParams.externalAuth) < 0)
+    if (cxoUtils_getBooleanValue(externalAuthObj, 0,
+            &dpiCreateParams.externalAuth) < 0)
         return -1;
-    if (GetBooleanValue(homogeneousObj, 1, &dpiCreateParams.homogeneous) < 0)
+    if (cxoUtils_getBooleanValue(homogeneousObj, 1,
+            &dpiCreateParams.homogeneous) < 0)
         return -1;
 
     // initialize the object's members
     Py_INCREF(connectionType);
-    self->connectionType = connectionType;
+    pool->connectionType = connectionType;
     Py_INCREF(dsnObj);
-    self->dsn = dsnObj;
+    pool->dsn = dsnObj;
     Py_INCREF(usernameObj);
-    self->username = usernameObj;
-    self->minSessions = minSessions;
-    self->maxSessions = maxSessions;
-    self->sessionIncrement = sessionIncrement;
-    self->homogeneous = dpiCreateParams.homogeneous;
-    self->externalAuth = dpiCreateParams.externalAuth;
+    pool->username = usernameObj;
+    pool->minSessions = minSessions;
+    pool->maxSessions = maxSessions;
+    pool->sessionIncrement = sessionIncrement;
+    pool->homogeneous = dpiCreateParams.homogeneous;
+    pool->externalAuth = dpiCreateParams.externalAuth;
 
     // populate parameters
-    encoding = GetAdjustedEncoding(dpiCommonParams.encoding);
-    if (cxBuffer_FromObject(&userNameBuffer, self->username, encoding) < 0)
+    encoding = cxoUtils_getAdjustedEncoding(dpiCommonParams.encoding);
+    if (cxoBuffer_fromObject(&userNameBuffer, pool->username, encoding) < 0)
         return -1;
-    if (cxBuffer_FromObject(&passwordBuffer, passwordObj, encoding) < 0) {
-        cxBuffer_Clear(&userNameBuffer);
-        return -1;
-    }
-    if (cxBuffer_FromObject(&dsnBuffer, self->dsn, encoding) < 0) {
-        cxBuffer_Clear(&userNameBuffer);
-        cxBuffer_Clear(&passwordBuffer);
+    if (cxoBuffer_fromObject(&passwordBuffer, passwordObj, encoding) < 0) {
+        cxoBuffer_clear(&userNameBuffer);
         return -1;
     }
-    if (cxBuffer_FromObject(&editionBuffer, editionObj, encoding) < 0) {
-        cxBuffer_Clear(&userNameBuffer);
-        cxBuffer_Clear(&passwordBuffer);
-        cxBuffer_Clear(&dsnBuffer);
+    if (cxoBuffer_fromObject(&dsnBuffer, pool->dsn, encoding) < 0) {
+        cxoBuffer_clear(&userNameBuffer);
+        cxoBuffer_clear(&passwordBuffer);
+        return -1;
+    }
+    if (cxoBuffer_fromObject(&editionBuffer, editionObj, encoding) < 0) {
+        cxoBuffer_clear(&userNameBuffer);
+        cxoBuffer_clear(&passwordBuffer);
+        cxoBuffer_clear(&dsnBuffer);
         return -1;
     }
     dpiCreateParams.minSessions = minSessions;
@@ -278,28 +253,28 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
 
     // create pool
     Py_BEGIN_ALLOW_THREADS
-    status = dpiPool_create(g_DpiContext, userNameBuffer.ptr,
+    status = dpiPool_create(cxoDpiContext, userNameBuffer.ptr,
             userNameBuffer.size, passwordBuffer.ptr, passwordBuffer.size,
             dsnBuffer.ptr, dsnBuffer.size, &dpiCommonParams, &dpiCreateParams,
-            &self->handle);
+            &pool->handle);
     Py_END_ALLOW_THREADS
-    cxBuffer_Clear(&userNameBuffer);
-    cxBuffer_Clear(&passwordBuffer);
-    cxBuffer_Clear(&dsnBuffer);
-    cxBuffer_Clear(&editionBuffer);
+    cxoBuffer_clear(&userNameBuffer);
+    cxoBuffer_clear(&passwordBuffer);
+    cxoBuffer_clear(&dsnBuffer);
+    cxoBuffer_clear(&editionBuffer);
     if (status < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
 
     // get encodings and name
-    if (dpiPool_getEncodingInfo(self->handle, &self->encodingInfo) < 0)
-        return Error_RaiseAndReturnInt();
-    self->encodingInfo.encoding =
-            GetAdjustedEncoding(self->encodingInfo.encoding);
-    self->encodingInfo.nencoding =
-            GetAdjustedEncoding(self->encodingInfo.nencoding);
-    self->name = cxString_FromEncodedString(dpiCreateParams.outPoolName,
-            dpiCreateParams.outPoolNameLength, self->encodingInfo.encoding);
-    if (!self->name)
+    if (dpiPool_getEncodingInfo(pool->handle, &pool->encodingInfo) < 0)
+        return cxoError_raiseAndReturnInt();
+    pool->encodingInfo.encoding =
+            cxoUtils_getAdjustedEncoding(pool->encodingInfo.encoding);
+    pool->encodingInfo.nencoding =
+            cxoUtils_getAdjustedEncoding(pool->encodingInfo.nencoding);
+    pool->name = cxoPyString_fromEncodedString(dpiCreateParams.outPoolName,
+            dpiCreateParams.outPoolNameLength, pool->encodingInfo.encoding);
+    if (!pool->name)
         return -1;
 
     return 0;
@@ -307,27 +282,27 @@ static int SessionPool_Init(udt_SessionPool *self, PyObject *args,
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_Free()
+// cxoSessionPool_free()
 //   Deallocate the session pool.
 //-----------------------------------------------------------------------------
-static void SessionPool_Free(udt_SessionPool *self)
+static void cxoSessionPool_free(cxoSessionPool *pool)
 {
-    if (self->handle) {
-        dpiPool_release(self->handle);
-        self->handle = NULL;
+    if (pool->handle) {
+        dpiPool_release(pool->handle);
+        pool->handle = NULL;
     }
-    Py_CLEAR(self->username);
-    Py_CLEAR(self->dsn);
-    Py_CLEAR(self->name);
-    Py_TYPE(self)->tp_free((PyObject*) self);
+    Py_CLEAR(pool->username);
+    Py_CLEAR(pool->dsn);
+    Py_CLEAR(pool->name);
+    Py_TYPE(pool)->tp_free((PyObject*) pool);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_Acquire()
+// cxoSessionPool_acquire()
 //   Create a new connection within the session pool.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_Acquire(udt_SessionPool *self, PyObject *args,
+static PyObject *cxoSessionPool_acquire(cxoSessionPool *pool, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "user", "password", "cclass", "purity",
@@ -345,8 +320,8 @@ static PyObject *SessionPool_Acquire(udt_SessionPool *self, PyObject *args,
             &passwordLength, &cclassObj, &purityObj, &tagObj, &matchAnyTagObj,
             &shardingKeyObj, &superShardingKeyObj))
         return NULL;
-    if (self->homogeneous && username) {
-        PyErr_SetString(g_ProgrammingErrorException,
+    if (pool->homogeneous && username) {
+        PyErr_SetString(cxoProgrammingErrorException,
                 "pool is homogeneous. Proxy authentication is not possible.");
         return NULL;
     }
@@ -358,13 +333,13 @@ static PyObject *SessionPool_Acquire(udt_SessionPool *self, PyObject *args,
     if (!createKeywordArgs)
         return NULL;
     if (PyDict_SetItemString(createKeywordArgs, "pool",
-            (PyObject*) self) < 0) {
+            (PyObject*) pool) < 0) {
         Py_DECREF(createKeywordArgs);
         return NULL;
     }
 
     // create the connection object
-    result = PyObject_Call( (PyObject*) self->connectionType, args,
+    result = PyObject_Call( (PyObject*) pool->connectionType, args,
             createKeywordArgs);
     Py_DECREF(createKeywordArgs);
 
@@ -373,17 +348,17 @@ static PyObject *SessionPool_Acquire(udt_SessionPool *self, PyObject *args,
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_Drop()
+// cxoSessionPool_drop()
 //   Release a connection back to the session pool, dropping it so that a new
 // connection will be created if needed.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_Drop(udt_SessionPool *self, PyObject *args)
+static PyObject *cxoSessionPool_drop(cxoSessionPool *pool, PyObject *args)
 {
-    udt_Connection *connection;
+    cxoConnection *connection;
     int status;
 
     // connection is expected
-    if (!PyArg_ParseTuple(args, "O!", &g_ConnectionType, &connection))
+    if (!PyArg_ParseTuple(args, "O!", &cxoPyTypeConnection, &connection))
         return NULL;
 
     // release the connection
@@ -392,7 +367,7 @@ static PyObject *SessionPool_Drop(udt_SessionPool *self, PyObject *args)
             0);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
 
     // mark connection as closed
     Py_CLEAR(connection->sessionPool);
@@ -403,26 +378,26 @@ static PyObject *SessionPool_Drop(udt_SessionPool *self, PyObject *args)
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_Release()
+// cxoSessionPool_release()
 //   Release a connection back to the session pool.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_Release(udt_SessionPool *self, PyObject *args,
+static PyObject *cxoSessionPool_release(cxoSessionPool *pool, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "connection", "tag", NULL };
-    udt_Connection *connection;
+    cxoConnection *connection;
     dpiConnCloseMode mode;
-    udt_Buffer tagBuffer;
+    cxoBuffer tagBuffer;
     PyObject *tagObj;
     int status;
 
     // parse arguments
     tagObj = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|O",
-            keywordList, &g_ConnectionType, &connection, &tagObj))
+            keywordList, &cxoPyTypeConnection, &connection, &tagObj))
         return NULL;
-    if (cxBuffer_FromObject(&tagBuffer, tagObj,
-            self->encodingInfo.encoding) < 0)
+    if (cxoBuffer_fromObject(&tagBuffer, tagObj,
+            pool->encodingInfo.encoding) < 0)
         return NULL;
     mode = (tagBuffer.size > 0) ? DPI_MODE_CONN_CLOSE_RETAG :
             DPI_MODE_CONN_CLOSE_DEFAULT;
@@ -430,9 +405,9 @@ static PyObject *SessionPool_Release(udt_SessionPool *self, PyObject *args,
     status = dpiConn_close(connection->handle, mode, (char*) tagBuffer.ptr,
             tagBuffer.size);
     Py_END_ALLOW_THREADS
-    cxBuffer_Clear(&tagBuffer);
+    cxoBuffer_clear(&tagBuffer);
     if (status < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
 
     // mark connection as closed
     Py_CLEAR(connection->sessionPool);
@@ -443,18 +418,18 @@ static PyObject *SessionPool_Release(udt_SessionPool *self, PyObject *args,
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_GetAttribute()
+// cxoSessionPool_getAttribute()
 //   Return the value for the attribute.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_GetAttribute(udt_SessionPool *self,
+static PyObject *cxoSessionPool_getAttribute(cxoSessionPool *pool,
         int (*func)(dpiPool *pool, uint32_t *value))
 {
     uint32_t value;
 
-    if ((*func)(self->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+    if ((*func)(pool->handle, &value) < 0)
+        return cxoError_raiseAndReturnNull();
 #if PY_MAJOR_VERSION >= 3
-    return PyInt_FromUnsignedLong(value);
+    return PyLong_FromUnsignedLong(value);
 #else
     return PyInt_FromLong(value);
 #endif
@@ -462,10 +437,10 @@ static PyObject *SessionPool_GetAttribute(udt_SessionPool *self,
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_SetAttribute()
+// cxoSessionPool_setAttribute()
 //   Set the value of the OCI attribute.
 //-----------------------------------------------------------------------------
-static int SessionPool_SetAttribute(udt_SessionPool *self, PyObject *value,
+static int cxoSessionPool_setAttribute(cxoSessionPool *pool, PyObject *value,
         int (*func)(dpiPool *pool, uint32_t value))
 {
     uint32_t cValue;
@@ -475,91 +450,92 @@ static int SessionPool_SetAttribute(udt_SessionPool *self, PyObject *value,
         return -1;
     }
 #if PY_MAJOR_VERSION >= 3
-    cValue = PyInt_AsUnsignedLong(value);
+    cValue = PyLong_AsUnsignedLong(value);
 #else
     cValue = PyInt_AsLong(value);
 #endif
     if (PyErr_Occurred())
         return -1;
-    if ((*func)(self->handle, cValue) < 0)
-        return Error_RaiseAndReturnInt();
+    if ((*func)(pool->handle, cValue) < 0)
+        return cxoError_raiseAndReturnInt();
 
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_GetBusyCount()
+// cxoSessionPool_getBusyCount()
 //   Return the number of busy connections in the session pool.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_GetBusyCount(udt_SessionPool *pool, void *unused)
+static PyObject *cxoSessionPool_getBusyCount(cxoSessionPool *pool,
+        void *unused)
 {
-    return SessionPool_GetAttribute(pool, dpiPool_getBusyCount);
+    return cxoSessionPool_getAttribute(pool, dpiPool_getBusyCount);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_GetGetMode()
+// cxoSessionPool_getGetMode()
 //   Return the "get" mode for connections in the session pool.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_GetGetMode(udt_SessionPool *pool, void *unused)
+static PyObject *cxoSessionPool_getGetMode(cxoSessionPool *pool, void *unused)
 {
     dpiPoolGetMode value;
 
     if (dpiPool_getGetMode(pool->handle, &value) < 0)
-        return Error_RaiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(value);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_GetMaxLifetimeSession()
+// cxoSessionPool_getMaxLifetimeSession()
 //   Return the maximum lifetime session of connections in the session pool.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_GetMaxLifetimeSession(udt_SessionPool *pool,
+static PyObject *cxoSessionPool_getMaxLifetimeSession(cxoSessionPool *pool,
         void *unused)
 {
-    return SessionPool_GetAttribute(pool, dpiPool_getMaxLifetimeSession);
+    return cxoSessionPool_getAttribute(pool, dpiPool_getMaxLifetimeSession);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_GetOpenCount()
+// cxoSessionPool_getOpenCount()
 //   Return the number of open connections in the session pool.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_GetOpenCount(udt_SessionPool *pool, void *unused)
+static PyObject *cxoSessionPool_getOpenCount(cxoSessionPool *pool, void *unused)
 {
-    return SessionPool_GetAttribute(pool, dpiPool_getOpenCount);
+    return cxoSessionPool_getAttribute(pool, dpiPool_getOpenCount);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_GetStmtCacheSize()
+// cxoSessionPool_getStmtCacheSize()
 //   Return the size of the statement cache to use in connections that are
 // acquired from the pool.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_GetStmtCacheSize(udt_SessionPool *pool,
+static PyObject *cxoSessionPool_getStmtCacheSize(cxoSessionPool *pool,
         void *unused)
 {
-    return SessionPool_GetAttribute(pool, dpiPool_getStmtCacheSize);
+    return cxoSessionPool_getAttribute(pool, dpiPool_getStmtCacheSize);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_GetTimeout()
+// cxoSessionPool_getTimeout()
 //   Return the timeout for connections in the session pool.
 //-----------------------------------------------------------------------------
-static PyObject *SessionPool_GetTimeout(udt_SessionPool *pool, void *unused)
+static PyObject *cxoSessionPool_getTimeout(cxoSessionPool *pool, void *unused)
 {
-    return SessionPool_GetAttribute(pool, dpiPool_getTimeout);
+    return cxoSessionPool_getAttribute(pool, dpiPool_getTimeout);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_SetGetMode()
+// cxoSessionPool_setGetMode()
 //   Set the "get" mode for connections in the session pool.
 //-----------------------------------------------------------------------------
-static int SessionPool_SetGetMode(udt_SessionPool *pool, PyObject *value,
+static int cxoSessionPool_setGetMode(cxoSessionPool *pool, PyObject *value,
         void *unused)
 {
     dpiPoolGetMode cValue;
@@ -568,43 +544,43 @@ static int SessionPool_SetGetMode(udt_SessionPool *pool, PyObject *value,
     if (PyErr_Occurred())
         return -1;
     if (dpiPool_setGetMode(pool->handle, cValue) < 0)
-        return Error_RaiseAndReturnInt();
+        return cxoError_raiseAndReturnInt();
 
     return 0;
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_SetMaxLifetimeSession()
+// cxoSessionPool_setMaxLifetimeSession()
 //   Set the maximum lifetime for connections in the session pool.
 //-----------------------------------------------------------------------------
-static int SessionPool_SetMaxLifetimeSession(udt_SessionPool *pool,
+static int cxoSessionPool_setMaxLifetimeSession(cxoSessionPool *pool,
         PyObject *value, void *unused)
 {
-    return SessionPool_SetAttribute(pool, value,
+    return cxoSessionPool_setAttribute(pool, value,
             dpiPool_setMaxLifetimeSession);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_SetStmtCacheSize()
+// cxoSessionPool_setStmtCacheSize()
 //   Set the default size of the statement cache used for connections that are
 // acquired from the pool.
 //-----------------------------------------------------------------------------
-static int SessionPool_SetStmtCacheSize(udt_SessionPool *pool,
+static int cxoSessionPool_setStmtCacheSize(cxoSessionPool *pool,
         PyObject *value, void *unused)
 {
-    return SessionPool_SetAttribute(pool, value, dpiPool_setStmtCacheSize);
+    return cxoSessionPool_setAttribute(pool, value, dpiPool_setStmtCacheSize);
 }
 
 
 //-----------------------------------------------------------------------------
-// SessionPool_SetTimeout()
+// cxoSessionPool_setTimeout()
 //   Set the timeout for connections in the session pool.
 //-----------------------------------------------------------------------------
-static int SessionPool_SetTimeout(udt_SessionPool *pool, PyObject *value,
+static int cxoSessionPool_setTimeout(cxoSessionPool *pool, PyObject *value,
         void *unused)
 {
-    return SessionPool_SetAttribute(pool, value, dpiPool_setTimeout);
+    return cxoSessionPool_setAttribute(pool, value, dpiPool_setTimeout);
 }
 
