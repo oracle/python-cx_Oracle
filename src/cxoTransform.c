@@ -302,31 +302,30 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
             } else dbValue->asObject = obj->handle;
             return 0;
         case CXO_TRANSFORM_DATE:
-            if (!PyDateTime_Check(pyValue) && !PyDate_Check(pyValue)) {
-                PyErr_SetString(PyExc_TypeError, "expecting date or datetime");
-                return -1;
-            }
-            memset(&dbValue->asTimestamp, 0, sizeof(dbValue->asTimestamp));
-            dbValue->asTimestamp.year = PyDateTime_GET_YEAR(pyValue);
-            dbValue->asTimestamp.month = PyDateTime_GET_MONTH(pyValue);
-            dbValue->asTimestamp.day = PyDateTime_GET_DAY(pyValue);
-            return 0;
         case CXO_TRANSFORM_DATETIME:
         case CXO_TRANSFORM_TIMESTAMP:
         case CXO_TRANSFORM_TIMESTAMP_LTZ:
-            if (!PyDateTime_Check(pyValue)) {
-                PyErr_SetString(PyExc_TypeError, "expecting datetime");
+            if (PyDateTime_Check(pyValue)) {
+                memset(&dbValue->asTimestamp, 0, sizeof(dbValue->asTimestamp));
+                dbValue->asTimestamp.year = PyDateTime_GET_YEAR(pyValue);
+                dbValue->asTimestamp.month = PyDateTime_GET_MONTH(pyValue);
+                dbValue->asTimestamp.day = PyDateTime_GET_DAY(pyValue);
+                dbValue->asTimestamp.hour = PyDateTime_DATE_GET_HOUR(pyValue);
+                dbValue->asTimestamp.minute =
+                        PyDateTime_DATE_GET_MINUTE(pyValue);
+                dbValue->asTimestamp.second =
+                        PyDateTime_DATE_GET_SECOND(pyValue);
+                dbValue->asTimestamp.fsecond =
+                        PyDateTime_DATE_GET_MICROSECOND(pyValue) * 1000;
+            } else if (PyDate_Check(pyValue)) {
+                memset(&dbValue->asTimestamp, 0, sizeof(dbValue->asTimestamp));
+                dbValue->asTimestamp.year = PyDateTime_GET_YEAR(pyValue);
+                dbValue->asTimestamp.month = PyDateTime_GET_MONTH(pyValue);
+                dbValue->asTimestamp.day = PyDateTime_GET_DAY(pyValue);
+            } else {
+                PyErr_SetString(PyExc_TypeError, "expecting date or datetime");
                 return -1;
             }
-            memset(&dbValue->asTimestamp, 0, sizeof(dbValue->asTimestamp));
-            dbValue->asTimestamp.year = PyDateTime_GET_YEAR(pyValue);
-            dbValue->asTimestamp.month = PyDateTime_GET_MONTH(pyValue);
-            dbValue->asTimestamp.day = PyDateTime_GET_DAY(pyValue);
-            dbValue->asTimestamp.hour = PyDateTime_DATE_GET_HOUR(pyValue);
-            dbValue->asTimestamp.minute = PyDateTime_DATE_GET_MINUTE(pyValue);
-            dbValue->asTimestamp.second = PyDateTime_DATE_GET_SECOND(pyValue);
-            dbValue->asTimestamp.fsecond =
-                    PyDateTime_DATE_GET_MICROSECOND(pyValue) * 1000;
             return 0;
         case CXO_TRANSFORM_TIMEDELTA:
             if (!PyDelta_Check(pyValue)) {

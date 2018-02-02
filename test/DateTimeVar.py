@@ -48,6 +48,13 @@ class TestDateTimeVar(BaseTestCase):
                 value = datetime.datetime(2002, 12, 13, 9, 36, 0))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
+    def testBindDateInDateTimeVar(self):
+        "test binding date in a datetime variable"
+        var = self.cursor.var(cx_Oracle.DATETIME)
+        dateVal = datetime.date.today()
+        var.setvalue(0, dateVal)
+        self.assertEqual(var.getvalue().date(), dateVal)
+
     def testBindDateAfterString(self):
         "test binding in a date after setting input sizes to a string"
         self.cursor.setinputsizes(value = 15)
