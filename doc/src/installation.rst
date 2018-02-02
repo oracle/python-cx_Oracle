@@ -166,10 +166,10 @@ package to install cx_Oracle from `PyPI
 This will download and install a pre-compiled binary `if one is
 available <https://pypi.python.org/pypi/cx_Oracle>`__ for your
 architecture.  If a pre-compiled binary is not available, the source
-will be downloaded, compiled, and the resulting binary installed.  If
-you are using the default python package, you will need the
-``python-devel`` package or equivalent, which provides the `Python.h`
-header file.
+will be downloaded, compiled, and the resulting binary installed.
+Compiling cx_Oracle requires the `Python.h` header file.  If you are
+using the default python package, this file is in the ``python-devel``
+package or equivalent.
 
 Install Oracle Client
 ---------------------
