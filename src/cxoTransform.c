@@ -719,7 +719,7 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
             Py_DECREF(stringObj);
             return result;
         case CXO_TRANSFORM_OBJECT:
-            return cxoObject_new(objType, dbValue->asObject, 0);
+            return cxoObject_new(objType, dbValue->asObject);
         case CXO_TRANSFORM_ROWID:
             if (dpiRowid_getStringValue(dbValue->asRowid, &rowid,
                     &rowidLength) < 0)

@@ -402,8 +402,7 @@ PyObject *cxoLob_new(cxoConnection *connection, dpiOracleTypeNum oracleTypeNum,
 cxoMsgProps *cxoMsgProps_new(cxoConnection*);
 
 int cxoObject_internalExtend(cxoObject *obj, PyObject *sequence);
-PyObject *cxoObject_new(cxoObjectType *objectType, dpiObject *handle,
-        int addReference);
+PyObject *cxoObject_new(cxoObjectType *objectType, dpiObject *handle);
 
 cxoObjectAttr *cxoObjectAttr_new(cxoConnection *connection,
         dpiObjectAttr *handle);

@@ -108,18 +108,13 @@ PyTypeObject cxoPyTypeObject = {
 // cxoObject_new()
 //   Create a new object.
 //-----------------------------------------------------------------------------
-PyObject *cxoObject_new(cxoObjectType *objectType, dpiObject *handle,
-        int addReference)
+PyObject *cxoObject_new(cxoObjectType *objectType, dpiObject *handle)
 {
     cxoObject *obj;
 
-    if (addReference && dpiObject_addRef(handle) < 0)
-        return cxoError_raiseAndReturnNull();
     obj = (cxoObject*) cxoPyTypeObject.tp_alloc(&cxoPyTypeObject, 0);
-    if (!obj) {
-        dpiObject_release(handle);
+    if (!obj)
         return NULL;
-    }
     Py_INCREF(objectType);
     obj->objectType = objectType;
     obj->handle = handle;
@@ -431,11 +426,17 @@ static PyObject *cxoObject_asList(cxoObject *obj, PyObject *args)
 //-----------------------------------------------------------------------------
 static PyObject *cxoObject_copy(cxoObject *obj, PyObject *args)
 {
+    PyObject *copiedObj;
     dpiObject *handle;
 
     if (dpiObject_copy(obj->handle, &handle) < 0)
         return cxoError_raiseAndReturnNull();
-    return (PyObject*) cxoObject_new(obj->objectType, handle, 0);
+    copiedObj = cxoObject_new(obj->objectType, handle);
+    if (!copiedObj) {
+        dpiObject_release(handle);
+        return NULL;
+    }
+    return copiedObj;
 }
 
 

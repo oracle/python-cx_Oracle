@@ -405,6 +405,8 @@ PyObject *cxoVar_getSingleValue(cxoVar *var, uint32_t arrayPos)
         Py_RETURN_NONE;
     value = cxoTransform_toPython(var->type->transformNum, var->connection,
             var->objectType, &data->value);
+    if (value && var->objectType)
+        dpiObject_addRef(data->value.asObject);
     if (value && var->outConverter && var->outConverter != Py_None) {
         result = PyObject_CallFunctionObjArgs(var->outConverter, value, NULL);
         Py_DECREF(value);

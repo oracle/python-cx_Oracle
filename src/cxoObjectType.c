@@ -282,9 +282,11 @@ static PyObject *cxoObjectType_newObject(cxoObjectType *objType,
         return cxoError_raiseAndReturnNull();
 
     // create the object
-    obj = (cxoObject*) cxoObject_new(objType, handle, 0);
-    if (!obj)
+    obj = (cxoObject*) cxoObject_new(objType, handle);
+    if (!obj) {
+        dpiObject_release(handle);
         return NULL;
+    }
 
     // populate collection, if applicable
     if (initialValue) {
