@@ -113,10 +113,6 @@ PyObject *cxoLob_new(cxoConnection *connection, dpiOracleTypeNum oracleTypeNum,
     lob = (cxoLob*) cxoPyTypeLob.tp_alloc(&cxoPyTypeLob, 0);
     if (!lob)
         return NULL;
-    if (dpiLob_addRef(handle) < 0) {
-        Py_DECREF(lob);
-        return NULL;
-    }
     lob->handle = handle;
     lob->oracleTypeNum = oracleTypeNum;
     Py_INCREF(connection);

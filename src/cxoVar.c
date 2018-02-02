@@ -405,12 +405,26 @@ PyObject *cxoVar_getSingleValue(cxoVar *var, uint32_t arrayPos)
         Py_RETURN_NONE;
     value = cxoTransform_toPython(var->type->transformNum, var->connection,
             var->objectType, &data->value);
-    if (value && var->objectType)
-        dpiObject_addRef(data->value.asObject);
-    if (value && var->outConverter && var->outConverter != Py_None) {
-        result = PyObject_CallFunctionObjArgs(var->outConverter, value, NULL);
-        Py_DECREF(value);
-        return result;
+    if (value) {
+        switch (var->type->transformNum) {
+            case CXO_TRANSFORM_BFILE:
+            case CXO_TRANSFORM_BLOB:
+            case CXO_TRANSFORM_CLOB:
+            case CXO_TRANSFORM_NCLOB:
+                dpiLob_addRef(data->value.asLOB);
+                break;
+            case CXO_TRANSFORM_OBJECT:
+                dpiObject_addRef(data->value.asObject);
+                break;
+            default:
+                break;
+        }
+        if (var->outConverter && var->outConverter != Py_None) {
+            result = PyObject_CallFunctionObjArgs(var->outConverter, value,
+                    NULL);
+            Py_DECREF(value);
+            return result;
+        }
     }
 
     return value;
