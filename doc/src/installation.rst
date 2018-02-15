@@ -367,11 +367,24 @@ To use cx_Oracle with Oracle Instant Client zip files:
 3. Set the environment variable ``PATH`` to include the path that you
    created in step 2. For example, on Windows 7, update ``PATH`` in
    Control Panel -> System -> Advanced System Settings -> Advanced ->
-   Environment Variables -> System Variables -> PATH.
+   Environment Variables -> System Variables -> PATH.  Alternatively
+   use ``SET`` to change your ``PATH`` in each command prompt window
+   before you run python.
+
+   If you have other Oracle software installed, then when you use
+   Python you will need to make sure that the Instant Client
+   directory, e.g. ``C:\oracle\instantclient_12_2``, occurs in
+   ``PATH`` before any other Oracle directories.
 
    Restart any open command prompt windows.
 
-4. If you intend to co-locate optional Oracle configuration files such
+4. Oracle Instant Client libraries require a Visual Studio redistributable with a 64-bit or 32-bit architecture to match Instant Client's architecture.  Each Instant Client version requires a different redistributable version:
+
+       - For Instant Client 11.2 install `VS 2005 64-bit <https://www.microsoft.com/en-us/download/details.aspx?id=18471>`__ or `VS 2005 32-bit <https://www.microsoft.com/en-ca/download/details.aspx?id=3387>`__
+       - For Instant Client 12.1 install `VS 2010 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2010>`__
+       - For Instant Client 12.2 install `VS 2013 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2013>`__
+
+5. If you intend to co-locate optional Oracle configuration files such
    as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
    Instant Client, then create a ``network\admin`` subdirectory, for example
    ``C:\oracle\instantclient_12_2\network\admin``.
@@ -383,12 +396,6 @@ To use cx_Oracle with Oracle Instant Client zip files:
    accessible directory.  Then set the environment variable
    ``TNS_ADMIN`` to that directory name.
 
-5. Oracle Instant Client libraries require the presence of the correct
-   Visual Studio redistributable.
-
-       - 11.2 : `VS 2005 64-bit <https://www.microsoft.com/en-us/download/details.aspx?id=18471>`__ or `VS 2005 32-bit <https://www.microsoft.com/en-ca/download/details.aspx?id=3387>`__
-       - 12.1 : `VS 2010 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2010>`__
-       - 12.2 : `VS 2013 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2013>`__
 
 Local Database or Full Oracle Client
 ++++++++++++++++++++++++++++++++++++
