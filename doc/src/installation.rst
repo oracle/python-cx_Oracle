@@ -16,11 +16,11 @@ To use cx_Oracle 6 with Python and Oracle Database you need:
 
 - Oracle client libraries. These can be from the free `Oracle Instant
   Client
-  <http://www.oracle.com/technetwork/database/features/instant-client/
-  index.html>`__, or those included in Oracle Database if Python is on
-  the same machine as the database.  Oracle client libraries versions
-  12.2, 12.1 and 11.2 are supported on Linux, Windows and macOS.
-  Users have also reported success with other platforms.
+  <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__,
+  or those included in Oracle Database if Python is on the same
+  machine as the database.  Oracle client libraries versions 12.2,
+  12.1 and 11.2 are supported on Linux, Windows and macOS.  Users have
+  also reported success with other platforms.
 
 - An Oracle Database. Oracle's standard client-server version
   interoperability allows cx_Oracle to connect to both older and newer
@@ -49,9 +49,9 @@ Quick Start cx_Oracle Installation
 
     - If your database is remote, then download and unzip the client
       libraries from the free `Oracle Instant Client
-      <http://www.oracle.com/technetwork/database/features/instant-client/
-      index.html>`__ "Basic" or "Basic Light" package for your
-      operating system architecture.
+      <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
+      "Basic" or "Basic Light" package for your operating system
+      architecture.
 
       Instant Client on Windows requires an appropriate `Microsoft
       Windows Redistributables
@@ -100,10 +100,9 @@ features to cx_Oracle.
 
 The simplest way to get Oracle Client libraries is to install the free
 `Oracle Instant Client
-<http://www.oracle.com/technetwork/database/features/instant-client/
-index.html>`__ "Basic" or "Basic Light" package.  The libraries are
-also available in any Oracle Database installation or full Oracle
-Client installation.
+<http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
+"Basic" or "Basic Light" package.  The libraries are also available in
+any Oracle Database installation or full Oracle Client installation.
 
 Oracle's standard client-server network interoperability allows
 connections between different versions of Oracle Client libraries and
@@ -181,10 +180,10 @@ to access an Oracle Database instance. Oracle Client versions 12.2,
 
     - If your database is remote, then download the free `Oracle
       Instant Client
-      <http://www.oracle.com/technetwork/database/features/instant-client/
-      index.html>`__ "Basic" or "Basic Light" package for your
-      operating system architecture.  Use the RPM or ZIP packages,
-      based on your preferences.
+      <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
+      "Basic" or "Basic Light" package for your operating system
+      architecture.  Use the RPM or ZIP packages, based on your
+      preferences.
 
     - Alternatively use the client libraries already available in a
       locally installed database such as the free `Oracle XE
@@ -340,9 +339,9 @@ to access an Oracle Database instance. Oracle Client versions 12.2,
 
     - If your database is remote, then download the free `Oracle
       Instant Client
-      <http://www.oracle.com/technetwork/database/features/instant-client/
-      index.html>`__ "Basic" or "Basic Light" package for your
-      operating system architecture.
+      <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
+      "Basic" or "Basic Light" package for your operating system
+      architecture.
 
     - Alternatively use the client libraries already available in a
       locally installed database such as the free `Oracle XE
