@@ -320,6 +320,15 @@ class TestNumberVar(BaseTestCase):
         self.assertEqual(result, 148)
         self.assertTrue(isinstance(result, int), "integer not returned")
 
+    def testBoundaryNumbers(self):
+        "test that boundary numbers are handled properly"
+        inValues = [float('inf'), 0.0, float('-inf'), 1e126, -1e126]
+        outValues = [10**126, 0, -10**126, 10**126, -10**126]
+        for inValue, outValue in zip(inValues, outValues):
+            self.cursor.execute("select :1 from dual", (inValue,))
+            result, = self.cursor.fetchone()
+            self.assertEqual(result, outValue)
+
     def testReturnFloatFromDivision(self):
         "test that fetching the result of division returns a float"
         self.cursor.execute("""

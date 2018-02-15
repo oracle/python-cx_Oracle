@@ -16,19 +16,20 @@ import decimal
 class TestObjectVar(BaseTestCase):
 
     def __GetObjectAsTuple(self, obj):
+        if obj.type.iscollection:
+            value = []
+            for v in obj.aslist():
+                if isinstance(v, cx_Oracle.Object):
+                    v = self.__GetObjectAsTuple(v)
+                elif isinstance(value, cx_Oracle.LOB):
+                    v = v.read()
+                value.append(v)
+            return value
         attributeValues = []
         for attribute in obj.type.attributes:
             value = getattr(obj, attribute.name)
             if isinstance(value, cx_Oracle.Object):
-                if not value.type.iscollection:
-                    value = self.__GetObjectAsTuple(value)
-                else:
-                    subValue = []
-                    for v in value.aslist():
-                        if isinstance(v, cx_Oracle.Object):
-                            v = self.__GetObjectAsTuple(v)
-                        subValue.append(v)
-                    value = subValue
+                value = self.__GetObjectAsTuple(value)
             elif isinstance(value, cx_Oracle.LOB):
                 value = value.read()
             attributeValues.append(value)
@@ -246,6 +247,35 @@ class TestObjectVar(BaseTestCase):
         arrayObj = arrayObjType.newobject()
         self.assertRaises(cx_Oracle.DatabaseError, collectionObj.append,
                 arrayObj)
+
+    def testReferencingSubObj(self):
+        "test that referencing a sub object affects the parent object"
+        objType = self.connection.gettype("UDT_OBJECT")
+        subObjType = self.connection.gettype("UDT_SUBOBJECT")
+        obj = objType.newobject()
+        obj.SUBOBJECTVALUE = subObjType.newobject()
+        obj.SUBOBJECTVALUE.SUBNUMBERVALUE = 5
+        obj.SUBOBJECTVALUE.SUBSTRINGVALUE = "Substring"
+        self.assertEqual(obj.SUBOBJECTVALUE.SUBNUMBERVALUE, 5)
+        self.assertEqual(obj.SUBOBJECTVALUE.SUBSTRINGVALUE, "Substring")
+
+    def testAccessSubObjectParentObjectDestroyed(self):
+        "test that accessing sub object after parent object destroyed works"
+        objType = self.connection.gettype("UDT_OBJECT")
+        subObjType = self.connection.gettype("UDT_SUBOBJECT")
+        arrayType = self.connection.gettype("UDT_OBJECTARRAY")
+        subObj1 = subObjType.newobject()
+        subObj1.SUBNUMBERVALUE = 2
+        subObj1.SUBSTRINGVALUE = "AB"
+        subObj2 = subObjType.newobject()
+        subObj2.SUBNUMBERVALUE = 3
+        subObj2.SUBSTRINGVALUE = "CDE"
+        obj = objType.newobject()
+        obj.SUBOBJECTARRAY = arrayType.newobject([subObj1, subObj2])
+        subObjArray = obj.SUBOBJECTARRAY
+        del obj
+        self.assertEqual(self.__GetObjectAsTuple(subObjArray),
+                [(2, "AB"), (3, "CDE")])
 
     def testSettingAttrWrongObjectType(self):
         "test assigning an object of the wrong type to an object attribute"
