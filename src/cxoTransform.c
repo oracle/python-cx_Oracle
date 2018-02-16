@@ -236,7 +236,11 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
         case CXO_TRANSFORM_NCLOB:
             if (Py_TYPE(pyValue) == &cxoPyTypeLob) {
                 lob = (cxoLob*) pyValue;
-                dbValue->asLOB = lob->handle;
+                if (var) {
+                    if (dpiVar_setFromLob(var->handle, arrayPos,
+                            lob->handle) < 0)
+                        return cxoError_raiseAndReturnInt();
+                } else dbValue->asLOB = lob->handle;
                 return 0;
             }
             if (transformNum == CXO_TRANSFORM_NCLOB)

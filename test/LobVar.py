@@ -125,6 +125,15 @@ class TestLobVar(BaseTestCase):
                 string = prevChar * 5 + char * 5
                 self.assertEqual(lob.read(offset, 10), string)
 
+    def testBindLobValue(self):
+        "test binding a LOB value directly"
+        self.cursor.execute("truncate table TestCLOBs")
+        self.cursor.execute("insert into TestCLOBs values (1, 'Short value')")
+        self.cursor.execute("select ClobCol from TestCLOBs")
+        lob, = self.cursor.fetchone()
+        self.cursor.execute("insert into TestCLOBs values (2, :value)",
+                value = lob)
+
     def testBLOBCursorDescription(self):
         "test cursor description is accurate for BLOBs"
         self.cursor.execute("select * from TestBLOBs")
