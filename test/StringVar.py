@@ -30,6 +30,13 @@ class TestStringVar(BaseTestCase):
             self.rawData.append(dataTuple)
             self.dataByKey[i] = dataTuple
 
+    def testArrayWithIncreasedSize(self):
+        "test creating an array var and then increasing the internal size"
+        val = ["12345678901234567890"] * 3
+        arrayVar = self.cursor.arrayvar(str, len(val), 4)
+        arrayVar.setvalue(0, val)
+        self.assertEqual(arrayVar.getvalue(), val)
+
     def testBindString(self):
         "test binding in a string"
         self.cursor.execute("""

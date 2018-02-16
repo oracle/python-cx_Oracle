@@ -486,8 +486,8 @@ static int cxoVar_setValueBytes(cxoVar *var, uint32_t pos, dpiData *data,
     dpiData *tempVarData, *sourceData;
     dpiOracleTypeNum oracleTypeNum;
     dpiNativeTypeNum nativeTypeNum;
+    uint32_t i, numElements;
     dpiVar *tempVarHandle;
-    uint32_t i;
     int status;
 
     if (buffer->size > var->bufferSize) {
@@ -497,6 +497,18 @@ static int cxoVar_setValueBytes(cxoVar *var, uint32_t pos, dpiData *data,
                 nativeTypeNum, var->allocatedElements, buffer->size, 0,
                 var->isArray, NULL, &tempVarHandle, &tempVarData) < 0)
             return cxoError_raiseAndReturnInt();
+        if (var->isArray) {
+            if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0) {
+                cxoError_raiseAndReturnInt();
+                dpiVar_release(tempVarHandle);
+                return -1;
+            }
+            if (dpiVar_setNumElementsInArray(tempVarHandle, numElements) < 0) {
+                cxoError_raiseAndReturnInt();
+                dpiVar_release(tempVarHandle);
+                return -1;
+            }
+        }
         for (i = 0; i < var->allocatedElements; i++) {
             sourceData = &var->data[i];
             if (i == pos || sourceData->isNull)
@@ -504,8 +516,9 @@ static int cxoVar_setValueBytes(cxoVar *var, uint32_t pos, dpiData *data,
             if (dpiVar_setFromBytes(tempVarHandle, i,
                     sourceData->value.asBytes.ptr,
                     sourceData->value.asBytes.length) < 0) {
+                cxoError_raiseAndReturnInt();
                 dpiVar_release(tempVarHandle);
-                return cxoError_raiseAndReturnInt();
+                return -1;
             }
         }
         dpiVar_release(var->handle);
