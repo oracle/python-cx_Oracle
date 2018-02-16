@@ -95,6 +95,23 @@ class TestLobVar(BaseTestCase):
         lob.trim()
         self.assertEqual(lob.size(), 0)
 
+    def __TestTemporaryLOB(self, lobType):
+        self.cursor.execute("truncate table Test%ss" % lobType)
+        value = "A test string value"
+        if lobType == "BLOB" and sys.version_info[0] >= 3:
+            value = value.encode("ascii")
+        lobTypeObj = getattr(cx_Oracle, lobType)
+        lob = self.connection.createlob(lobTypeObj)
+        lob.write(value)
+        self.cursor.execute("""
+                insert into Test%ss (IntCol, %sCol)
+                values (:intVal, :lobVal)""" % (lobType, lobType),
+                intVal = 1,
+                lobVal = lob)
+        self.cursor.execute("select %sCol from Test%ss" % (lobType, lobType))
+        lob, = self.cursor.fetchone()
+        self.assertEqual(lob.read(), value)
+
     def __ValidateQuery(self, rows, lobType):
         longString = ""
         for row in rows:
@@ -171,6 +188,18 @@ class TestLobVar(BaseTestCase):
     def testCLOBOperations(self):
         "test operations on CLOBs"
         self.__TestLobOperations("CLOB")
+
+    def testCreateBlob(self):
+        "test creating a temporary BLOB"
+        self.__TestTemporaryLOB("BLOB")
+
+    def testCreateClob(self):
+        "test creating a temporary CLOB"
+        self.__TestTemporaryLOB("CLOB")
+
+    def testCreateNclob(self):
+        "test creating a temporary NCLOB"
+        self.__TestTemporaryLOB("NCLOB")
 
     def testMultipleFetch(self):
         "test retrieving data from a CLOB after multiple fetches"

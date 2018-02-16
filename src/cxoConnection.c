@@ -36,6 +36,7 @@ static PyObject *cxoConnection_contextManagerEnter(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_contextManagerExit(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_changePassword(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_getType(cxoConnection*, PyObject*);
+static PyObject *cxoConnection_createLob(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_getStmtCacheSize(cxoConnection*, void*);
 static PyObject *cxoConnection_newEnqueueOptions(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_newDequeueOptions(cxoConnection*, PyObject*);
@@ -100,6 +101,7 @@ static PyMethodDef cxoConnectionMethods[] = {
             METH_VARARGS | METH_KEYWORDS },
     { "enq", (PyCFunction) cxoConnection_enqueue,
             METH_VARARGS | METH_KEYWORDS },
+    { "createlob", (PyCFunction) cxoConnection_createLob, METH_O },
     { NULL }
 };
 
@@ -898,6 +900,45 @@ static int cxoConnection_setStmtCacheSize(cxoConnection* conn, PyObject *value,
 static PyObject *cxoConnection_getType(cxoConnection *conn, PyObject *nameObj)
 {
     return (PyObject*) cxoObjectType_newByName(conn, nameObj);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoConnection_createLob()
+//   Create a new temporary LOB and return it.
+//-----------------------------------------------------------------------------
+static PyObject *cxoConnection_createLob(cxoConnection *conn,
+        PyObject *lobType)
+{
+    dpiOracleTypeNum oracleTypeNum;
+    dpiLob *handle;
+    PyObject *lob;
+
+    // verify connection is open
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
+
+    // verify the LOB type
+    if (lobType == (PyObject*) &cxoPyTypeClobVar)
+        oracleTypeNum = DPI_ORACLE_TYPE_CLOB;
+    else if (lobType == (PyObject*) &cxoPyTypeBlobVar)
+        oracleTypeNum = DPI_ORACLE_TYPE_BLOB;
+    else if (lobType == (PyObject*) &cxoPyTypeNclobVar)
+        oracleTypeNum = DPI_ORACLE_TYPE_NCLOB;
+    else {
+        PyErr_SetString(PyExc_TypeError,
+                "parameter should be one of cx_Oracle.CLOB, cx_Oracle.BLOB "
+                "or cx_Oracle.NCLOB");
+        return NULL;
+    }
+
+    // create a temporary LOB
+    if (dpiConn_newTempLob(conn->handle, oracleTypeNum, &handle) < 0)
+        return cxoError_raiseAndReturnNull();
+    lob = cxoLob_new(conn, oracleTypeNum, handle);
+    if (!lob)
+        dpiLob_release(handle);
+    return lob;
 }
 
 

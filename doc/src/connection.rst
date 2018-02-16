@@ -129,6 +129,19 @@ Connection Object
     Commit any pending transactions to the database.
 
 
+.. method:: Connection.createlob(lobType)
+
+    Create and return a new temporary :ref:`LOB object <lobobj>` of the
+    specified type. The lobType parameter should be one of
+    :data:`cx_Oracle.CLOB`, :data:`cx_Oracle.BLOB` or :data:`cx_Oracle.NCLOB`.
+
+    .. versionadded:: 6.2
+
+    .. note::
+
+        This method is an extension to the DB API definition.
+
+
 .. attribute:: Connection.current_schema
 
     This read-write attribute sets the current schema attribute for the
