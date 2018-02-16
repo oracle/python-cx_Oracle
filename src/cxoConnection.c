@@ -89,7 +89,7 @@ static PyMethodDef cxoConnectionMethods[] = {
             METH_VARARGS | METH_KEYWORDS},
     { "changepassword", (PyCFunction) cxoConnection_changePassword,
             METH_VARARGS },
-    { "gettype", (PyCFunction) cxoConnection_getType, METH_VARARGS },
+    { "gettype", (PyCFunction) cxoConnection_getType, METH_O },
     { "deqoptions", (PyCFunction) cxoConnection_newDequeueOptions,
             METH_NOARGS },
     { "enqoptions", (PyCFunction) cxoConnection_newEnqueueOptions,
@@ -895,14 +895,8 @@ static int cxoConnection_setStmtCacheSize(cxoConnection* conn, PyObject *value,
 // cxoConnection_getType()
 //   Return a type object given its name.
 //-----------------------------------------------------------------------------
-static PyObject *cxoConnection_getType(cxoConnection *conn, PyObject *args)
+static PyObject *cxoConnection_getType(cxoConnection *conn, PyObject *nameObj)
 {
-    PyObject *nameObj = NULL;
-
-    // parse the arguments
-    if (!PyArg_ParseTuple(args, "O", &nameObj))
-        return NULL;
-
     return (PyObject*) cxoObjectType_newByName(conn, nameObj);
 }
 

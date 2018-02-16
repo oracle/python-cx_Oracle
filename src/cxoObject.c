@@ -41,12 +41,12 @@ static PyObject *cxoObject_trim(cxoObject*, PyObject*);
 // declaration of methods for Python type "Object"
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoObjectMethods[] = {
-    { "append", (PyCFunction) cxoObject_append, METH_VARARGS },
+    { "append", (PyCFunction) cxoObject_append, METH_O },
     { "aslist", (PyCFunction) cxoObject_asList, METH_NOARGS },
     { "copy", (PyCFunction) cxoObject_copy, METH_NOARGS },
     { "delete", (PyCFunction) cxoObject_delete, METH_VARARGS },
     { "exists", (PyCFunction) cxoObject_exists, METH_VARARGS },
-    { "extend", (PyCFunction) cxoObject_extend, METH_VARARGS },
+    { "extend", (PyCFunction) cxoObject_extend, METH_O },
     { "first", (PyCFunction) cxoObject_getFirstIndex, METH_NOARGS },
     { "getelement", (PyCFunction) cxoObject_getElement, METH_VARARGS },
     { "last", (PyCFunction) cxoObject_getLastIndex, METH_NOARGS },
@@ -336,15 +336,10 @@ int cxoObject_internalExtend(cxoObject *obj, PyObject *sequence)
 // cxoObject_append()
 //   Append an item to the collection.
 //-----------------------------------------------------------------------------
-static PyObject *cxoObject_append(cxoObject *obj, PyObject *args)
+static PyObject *cxoObject_append(cxoObject *obj, PyObject *value)
 {
-    PyObject *value;
-
-    if (!PyArg_ParseTuple(args, "O", &value))
-        return NULL;
     if (cxoObject_internalAppend(obj, value) < 0)
         return NULL;
-
     Py_RETURN_NONE;
 }
 
@@ -480,12 +475,8 @@ static PyObject *cxoObject_exists(cxoObject *obj, PyObject *args)
 // cxoObject_extend()
 //   Extend the collection by appending each of the items in the sequence.
 //-----------------------------------------------------------------------------
-static PyObject *cxoObject_extend(cxoObject *obj, PyObject *args)
+static PyObject *cxoObject_extend(cxoObject *obj, PyObject *sequence)
 {
-    PyObject *sequence;
-
-    if (!PyArg_ParseTuple(args, "O", &sequence))
-        return NULL;
     if (cxoObject_internalExtend(obj, sequence) < 0)
         return NULL;
     Py_RETURN_NONE;
