@@ -49,60 +49,9 @@ Database 11.2.</p>
 <div id="quickstart">
 <h2>Getting Started</h2>
 
-<ul>
-
-<li><p>Install Python from <a href="https://www.python.org/" >python.org</a>.</p></li>
-
-<li><p>Install cx_Oracle using <a href="http://cx-oracle.readthedocs.io/en/latest/installation.html#quick-start-cx-oracle-installation" >Quick Start cx_Oracle Installation</a>.</p></li>
-
-<li><p>Download cx_Oracle <a
-href="https://github.com/oracle/python-cx_Oracle/tree/master/samples"
->samples</a> or create a script like the one below.</p></li>
-
-<li><p>Locate your Oracle Database username and password, and the database
-connection string.  The connection string is commonly of the format
-<code>hostname/servicename</code>, using the hostname where the database is
-running, and the service name of the Oracle Database instance.</p>
-
-<p>Substitute your username, password and connection string in the
-code.  For downloaded examples, put these in <a
-href="https://github.com/oracle/python-cx_Oracle/tree/master/samples/SampleEnv.py"
-><code>SampleEnv.py</code></a> and <a
-href="https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/SampleEnv.sql"
-><code>SampleEnv.sql</code></a>, and then follow <a
-href="https://github.com/oracle/python-cx_Oracle/tree/master/samples/README.md"
-><code>sample/README</code></a> to create the cx_Oracle sample schema.
-SQL scripts to create Oracle Database's common sample schemas can be
-found at <a href="https://github.com/oracle/db-sample-schemas"
->github.com/oracle/db-sample-schemas</a></p> </li>
-
-<li><p>Run the Python script, for example:</p>
-
-<pre>
-python myscript.py
-</pre>
-</li>
-</ul>
-
-<h4><b>Sample cx_Oracle Script</b></h4>
-<pre>
-    from __future__ import print_function
-
-    import cx_Oracle
-
-    # Connect as user "hr" with password "welcome" to the "oraclepdb" service running on this computer.
-    connection = cx_Oracle.connect("hr", "welcome", "localhost/orclpdb")
-
-    cursor = connection.cursor()
-    cursor.execute("""
-            SELECT first_name, last_name
-            FROM employees
-            WHERE department_id = :did AND employee_id > :eid""",
-            did = 50,
-            eid = 190)
-    for fname, lname in cursor:
-        print("Values:", fname, lname)
-</pre>
+See <a
+href="http://cx-oracle.readthedocs.io/en/latest/installation.html#quick-start-cx-oracle-installation"
+>Quick Start cx_Oracle Installation</a>.
 
 </div> <!-- /quickstart -->
 
