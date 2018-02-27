@@ -238,3 +238,83 @@ class TestConnection(TestCase):
                 (self.username, self.tnsentry)
         self.assertEqual(str(connection), expectedValue)
 
+    def testCtxMgrCommitOnSuccess(self):
+        "test context manager - commit on success"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        cursor = connection.cursor()
+        cursor.execute("truncate table TestTempTable")
+        with connection:
+            cursor.execute("""
+                    insert into TestTempTable (IntCol, StringCol)
+                    values (1, null)""")
+        connection.rollback()
+        cursor.execute("select count(*) from TestTempTable")
+        count, = cursor.fetchone()
+        self.assertEqual(count, 1)
+
+    def testCtxMgrRollbackOnFailure(self):
+        "test context manager - rollback on failure"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        cursor = connection.cursor()
+        cursor.execute("truncate table TestTempTable")
+        cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (1, null)""")
+        try:
+            with connection:
+                1 / 0
+        except:
+            pass
+        cursor.execute("select count(*) from TestTempTable")
+        count, = cursor.fetchone()
+        self.assertEqual(count, 0)
+
+    def testConnectionAttributes(self):
+        "test connection attribute values"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry, encoding = "ASCII")
+        self.assertEqual(connection.maxBytesPerCharacter, 1)
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry, encoding = "UTF-8")
+        self.assertEqual(connection.maxBytesPerCharacter, 4)
+        self.assertEqual(connection.ltxid, b'')
+        self.assertEqual(connection.current_schema, None)
+        connection.current_schema = "test_schema"
+        self.assertEqual(connection.current_schema, "test_schema")
+        self.assertEqual(connection.edition, None)
+        connection.external_name = "test_external"
+        self.assertEqual(connection.external_name, "test_external")
+        connection.internal_name = "test_internal"
+        self.assertEqual(connection.internal_name, "test_internal")
+        connection.stmtcachesize = 30
+        self.assertEqual(connection.stmtcachesize, 30)
+        self.assertRaises(TypeError, connection.stmtcachesize, 20.5)
+        self.assertRaises(TypeError, connection.stmtcachesize, "value")
+
+    def testPing(self):
+        "test connection ping"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        connection.ping()
+
+    def testTransactionBegin(self):
+        "test begin, prepare, cancel transaction"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        cursor = connection.cursor()
+        cursor.execute("truncate table TestTempTable")
+        connection.begin(10, 'trxnId', 'branchId')
+        self.assertEqual(connection.prepare(), False)
+        connection.begin(10, 'trxnId', 'branchId')
+        cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (1, 'tesName')""")
+        self.assertEqual(connection.prepare(), True)
+        connection.cancel()
+        connection.rollback()
+        cursor.execute("select count(*) from TestTempTable")
+        count, = cursor.fetchone()
+        self.assertEqual(count, 0)
+

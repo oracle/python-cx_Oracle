@@ -298,4 +298,6 @@ class TestObjectVar(BaseTestCase):
         objType = self.connection.gettype("UDT_OBJECT")
         self.assertEqual(str(objType),
                 "<cx_Oracle.ObjectType CX_ORACLE.UDT_OBJECT>")
+        self.assertEqual(str(objType.attributes[0]),
+                "<cx_Oracle.ObjectAttribute NUMBERVALUE>")
 

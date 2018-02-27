@@ -145,7 +145,9 @@ class TestAQ(BaseTestCase):
         self.__verifyAttribute(props, "expiration", 30)
         self.assertEqual(props.attempts, 0)
         self.__verifyAttribute(props, "priority", 1)
+        self.__verifyAttribute(props, "msgid", b'mID')
         self.assertEqual(props.state, cx_Oracle.MSG_READY)
+        self.assertEqual(props.deliverymode, 0)
 
     def testVisibilityModeCommit(self):
         "test enqueue visibility option - ENQ_ON_COMMIT"
