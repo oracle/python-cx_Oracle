@@ -69,6 +69,7 @@ typedef struct cxoConnection cxoConnection;
 typedef struct cxoCursor cxoCursor;
 typedef struct cxoDeqOptions cxoDeqOptions;
 typedef struct cxoEnqOptions cxoEnqOptions;
+typedef struct cxoFuture cxoFuture;
 typedef struct cxoLob cxoLob;
 typedef struct cxoMessage cxoMessage;
 typedef struct cxoMessageQuery cxoMessageQuery;
@@ -115,6 +116,7 @@ extern PyTypeObject cxoPyTypeEnqOptions;
 extern PyTypeObject cxoPyTypeError;
 extern PyTypeObject cxoPyTypeFixedCharVar;
 extern PyTypeObject cxoPyTypeFixedNcharVar;
+extern PyTypeObject cxoPyTypeFuture;
 extern PyTypeObject cxoPyTypeIntervalVar;
 extern PyTypeObject cxoPyTypeLob;
 extern PyTypeObject cxoPyTypeLongBinaryVar;
@@ -146,6 +148,9 @@ extern PyTypeObject *cxoPyTypeDateTime;
 // ODPI-C context and version information
 extern dpiContext *cxoDpiContext;
 extern dpiVersionInfo cxoClientVersionInfo;
+
+// future object
+extern cxoFuture *cxoFutureObj;
 
 
 //-----------------------------------------------------------------------------
@@ -251,6 +256,11 @@ struct cxoEnqOptions {
     PyObject_HEAD
     dpiEnqOptions *handle;
     const char *encoding;
+};
+
+struct cxoFuture {
+    PyObject_HEAD
+    int contextManagerClose;
 };
 
 struct cxoLob {

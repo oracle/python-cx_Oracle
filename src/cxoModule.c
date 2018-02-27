@@ -46,6 +46,7 @@ PyObject *cxoIntegrityErrorException = NULL;
 PyObject *cxoInternalErrorException = NULL;
 PyObject *cxoProgrammingErrorException = NULL;
 PyObject *cxoNotSupportedErrorException = NULL;
+cxoFuture *cxoFutureObj = NULL;
 dpiContext *cxoDpiContext = NULL;
 dpiVersionInfo cxoClientVersionInfo;
 
@@ -257,6 +258,7 @@ static PyObject *cxoModule_initialize(void)
     CXO_MAKE_TYPE_READY(&cxoPyTypeError);
     CXO_MAKE_TYPE_READY(&cxoPyTypeFixedCharVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeFixedNcharVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeFuture);
     CXO_MAKE_TYPE_READY(&cxoPyTypeIntervalVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeLob);
     CXO_MAKE_TYPE_READY(&cxoPyTypeLongBinaryVar);
@@ -384,6 +386,14 @@ static PyObject *cxoModule_initialize(void)
         return NULL;
     if (PyModule_AddStringConstant(module, "buildtime",
             __DATE__ " " __TIME__) < 0)
+        return NULL;
+
+    // create and initialize future object
+    cxoFutureObj = (cxoFuture*) cxoPyTypeFuture.tp_alloc(&cxoPyTypeFuture, 0);
+    if (!cxoFutureObj)
+        return NULL;
+    cxoFutureObj->contextManagerClose = 0;
+    if (PyModule_AddObject(module, "__future__", (PyObject*) cxoFutureObj) < 0)
         return NULL;
 
     // add constants for authorization modes

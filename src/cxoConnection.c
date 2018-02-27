@@ -1335,14 +1335,15 @@ static PyObject *cxoConnection_contextManagerExit(cxoConnection *conn,
         PyObject* args)
 {
     PyObject *excType, *excValue, *excTraceback, *result;
-    char *methodName;
 
     if (!PyArg_ParseTuple(args, "OOO", &excType, &excValue, &excTraceback))
         return NULL;
-    if (excType == Py_None && excValue == Py_None && excTraceback == Py_None)
-        methodName = "commit";
-    else methodName = "rollback";
-    result = PyObject_CallMethod((PyObject*) conn, methodName, "");
+    if (cxoFutureObj && cxoFutureObj->contextManagerClose)
+        result = cxoConnection_close(conn, NULL);
+    else if (excType == Py_None && excValue == Py_None &&
+            excTraceback == Py_None)
+        result = cxoConnection_commit(conn, NULL);
+    else result = cxoConnection_rollback(conn, NULL);
     if (!result)
         return NULL;
     Py_DECREF(result);

@@ -238,6 +238,28 @@ class TestConnection(TestCase):
                 (self.username, self.tnsentry)
         self.assertEqual(str(connection), expectedValue)
 
+    def testCtxMgrClose(self):
+        "test context manager - close"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        cx_Oracle.__future__.ctx_mgr_close = True
+        try:
+            with connection:
+                cursor = connection.cursor()
+                cursor.execute("truncate table TestTempTable")
+                cursor.execute("insert into TestTempTable values (1, null)")
+                connection.commit()
+                cursor.execute("insert into TestTempTable values (2, null)")
+        finally:
+            cx_Oracle.__future__.ctx_mgr_close = False
+        self.assertRaises(cx_Oracle.DatabaseError, connection.ping)
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        cursor = connection.cursor()
+        cursor.execute("select count(*) from TestTempTable")
+        count, = cursor.fetchone()
+        self.assertEqual(count, 1)
+
     def testCtxMgrCommitOnSuccess(self):
         "test context manager - commit on success"
         connection = cx_Oracle.connect(self.username, self.password,

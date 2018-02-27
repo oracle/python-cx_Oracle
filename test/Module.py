@@ -16,6 +16,15 @@ class TestModule(BaseTestCase):
         date = cx_Oracle.DateFromTicks(timestamp)
         self.assertEqual(date, today.date())
 
+    def testFutureObj(self):
+        "test management of __future__ object"
+        self.assertEqual(cx_Oracle.__future__.ctx_mgr_close, False)
+        cx_Oracle.__future__.ctx_mgr_close = True
+        self.assertEqual(cx_Oracle.__future__.ctx_mgr_close, True)
+        self.assertEqual(cx_Oracle.__future__.dummy, None)
+        cx_Oracle.__future__.dummy = "Unimportant"
+        self.assertEqual(cx_Oracle.__future__.dummy, None)
+
     def testTimestampFromTicks(self):
         "test TimestampFromTicks()"
         timestamp = time.mktime(datetime.datetime.today().timetuple())

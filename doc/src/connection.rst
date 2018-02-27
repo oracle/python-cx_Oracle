@@ -13,8 +13,7 @@ Connection Object
 
 .. method:: Connection.__enter__()
 
-    The entry point for the connection as a context manager, a feature
-    available in Python 2.5 and higher. It returns itself.
+    The entry point for the connection as a context manager. It returns itself.
 
     .. note::
 
@@ -23,9 +22,12 @@ Connection Object
 
 .. method:: Connection.__exit__()
 
-    The exit point for the connection as a context manager, a feature available
-    in Python 2.5 and higher. In the event of an exception, the transaction is
-    rolled back; otherwise, the transaction is committed.
+    The exit point for the connection as a context manager. The default (but
+    deprecated) behavior is to roll back the transaction in the event of an
+    exception and to commit it otherwise. If the value of
+    `cx_Oracle.__future__.ctx_mgr_close` is set to True, however, the
+    connection is closed instead. In cx_Oracle 7, this will become the default
+    behaviour.
 
     .. note::
 
