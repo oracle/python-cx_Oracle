@@ -17,18 +17,18 @@
 #include "cxoModule.h"
 
 // define macro for adding integer constants
-#define ADD_INT_CONSTANT(name, value) \
+#define CXO_ADD_INT_CONSTANT(name, value) \
     if (PyModule_AddIntConstant(module, name, value) < 0) \
         return NULL;
 
 // define macro for adding type objects
-#define ADD_TYPE_OBJECT(name, type) \
+#define CXO_ADD_TYPE_OBJECT(name, type) \
     Py_INCREF(type); \
     if (PyModule_AddObject(module, name, (PyObject*) type) < 0) \
         return NULL;
 
 // define macro for and making types ready
-#define MAKE_TYPE_READY(type) \
+#define CXO_MAKE_TYPE_READY(type) \
     if (PyType_Ready(type) < 0) \
         return NULL;
 
@@ -50,11 +50,11 @@ dpiContext *cxoDpiContext = NULL;
 dpiVersionInfo cxoClientVersionInfo;
 
 //-----------------------------------------------------------------------------
-// SetException()
+// cxoModule_setException()
 //   Create an exception and set it in the provided dictionary.
 //-----------------------------------------------------------------------------
-static int SetException(PyObject *module, PyObject **exception, char *name,
-        PyObject *baseException)
+static int cxoModule_setException(PyObject *module, PyObject **exception,
+        char *name, PyObject *baseException)
 {
     char buffer[100];
 
@@ -67,10 +67,11 @@ static int SetException(PyObject *module, PyObject **exception, char *name,
 
 
 //-----------------------------------------------------------------------------
-// MakeDSN()
+// cxoModule_makeDSN()
 //   Make a data source name given the host port and SID.
 //-----------------------------------------------------------------------------
-static PyObject* MakeDSN(PyObject* self, PyObject* args, PyObject* keywordArgs)
+static PyObject* cxoModule_makeDSN(PyObject* self, PyObject* args,
+        PyObject* keywordArgs)
 {
     static unsigned int numConnectDataArgs = 5;
     static char *keywordList[] = { "host", "port", "sid", "service_name",
@@ -133,10 +134,10 @@ static PyObject* MakeDSN(PyObject* self, PyObject* args, PyObject* keywordArgs)
 
 
 //-----------------------------------------------------------------------------
-// ClientVersion()
+// cxoModule_clientVersion()
 //   Return the version of the Oracle client being used as a 5-tuple.
 //-----------------------------------------------------------------------------
-static PyObject* ClientVersion(PyObject* self, PyObject* args)
+static PyObject* cxoModule_clientVersion(PyObject* self, PyObject* args)
 {
     if (cxoUtils_initializeDPI() < 0)
         return NULL;
@@ -148,10 +149,10 @@ static PyObject* ClientVersion(PyObject* self, PyObject* args)
 
 
 //-----------------------------------------------------------------------------
-// Time()
+// cxoModule_time()
 //   Returns a time value suitable for binding.
 //-----------------------------------------------------------------------------
-static PyObject* Time(PyObject* self, PyObject* args)
+static PyObject* cxoModule_time(PyObject* self, PyObject* args)
 {
     PyErr_SetString(cxoNotSupportedErrorException,
             "Oracle does not support time only variables");
@@ -160,10 +161,10 @@ static PyObject* Time(PyObject* self, PyObject* args)
 
 
 //-----------------------------------------------------------------------------
-// TimeFromTicks()
+// cxoModule_timeFromTicks()
 //   Returns a time value suitable for binding.
 //-----------------------------------------------------------------------------
-static PyObject* TimeFromTicks(PyObject* self, PyObject* args)
+static PyObject* cxoModule_timeFromTicks(PyObject* self, PyObject* args)
 {
     PyErr_SetString(cxoNotSupportedErrorException,
             "Oracle does not support time only variables");
@@ -172,20 +173,20 @@ static PyObject* TimeFromTicks(PyObject* self, PyObject* args)
 
 
 //-----------------------------------------------------------------------------
-// DateFromTicks()
+// cxoModule_dateFromTicks()
 //   Returns a date value suitable for binding.
 //-----------------------------------------------------------------------------
-static PyObject* DateFromTicks(PyObject* self, PyObject* args)
+static PyObject* cxoModule_dateFromTicks(PyObject* self, PyObject* args)
 {
     return cxoTransform_dateFromTicks(args);
 }
 
 
 //-----------------------------------------------------------------------------
-// TimestampFromTicks()
+// cxoModule_timestampFromTicks()
 //   Returns a date value suitable for binding.
 //-----------------------------------------------------------------------------
-static PyObject* TimestampFromTicks(PyObject* self, PyObject* args)
+static PyObject* cxoModule_timestampFromTicks(PyObject* self, PyObject* args)
 {
     return cxoTransform_timestampFromTicks(args);
 }
@@ -195,12 +196,14 @@ static PyObject* TimestampFromTicks(PyObject* self, PyObject* args)
 //   Declaration of methods supported by this module
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoModuleMethods[] = {
-    { "makedsn", (PyCFunction) MakeDSN, METH_VARARGS | METH_KEYWORDS },
-    { "Time", (PyCFunction) Time, METH_VARARGS },
-    { "DateFromTicks", (PyCFunction) DateFromTicks, METH_VARARGS },
-    { "TimeFromTicks", (PyCFunction) TimeFromTicks, METH_VARARGS },
-    { "TimestampFromTicks", (PyCFunction) TimestampFromTicks, METH_VARARGS },
-    { "clientversion", (PyCFunction) ClientVersion, METH_NOARGS },
+    { "makedsn", (PyCFunction) cxoModule_makeDSN,
+            METH_VARARGS | METH_KEYWORDS },
+    { "Time", (PyCFunction) cxoModule_time, METH_VARARGS },
+    { "DateFromTicks", (PyCFunction) cxoModule_dateFromTicks, METH_VARARGS },
+    { "TimeFromTicks", (PyCFunction) cxoModule_timeFromTicks, METH_VARARGS },
+    { "TimestampFromTicks", (PyCFunction) cxoModule_timestampFromTicks,
+            METH_VARARGS },
+    { "clientversion", (PyCFunction) cxoModule_clientVersion, METH_NOARGS },
     { NULL }
 };
 
@@ -224,10 +227,10 @@ static struct PyModuleDef cxoModuleDef = {
 
 
 //-----------------------------------------------------------------------------
-// Module_Initialize()
+// cxoModule_initialize()
 //   Initialization routine for the module.
 //-----------------------------------------------------------------------------
-static PyObject *Module_Initialize(void)
+static PyObject *cxoModule_initialize(void)
 {
     PyObject *module;
 
@@ -240,43 +243,43 @@ static PyObject *Module_Initialize(void)
         return NULL;
 
     // prepare the types for use by the module
-    MAKE_TYPE_READY(&cxoPyTypeBfileVar);
-    MAKE_TYPE_READY(&cxoPyTypeBinaryVar);
-    MAKE_TYPE_READY(&cxoPyTypeBlobVar);
-    MAKE_TYPE_READY(&cxoPyTypeBooleanVar);
-    MAKE_TYPE_READY(&cxoPyTypeClobVar);
-    MAKE_TYPE_READY(&cxoPyTypeConnection);
-    MAKE_TYPE_READY(&cxoPyTypeCursor);
-    MAKE_TYPE_READY(&cxoPyTypeCursorVar);
-    MAKE_TYPE_READY(&cxoPyTypeDateTimeVar);
-    MAKE_TYPE_READY(&cxoPyTypeDeqOptions);
-    MAKE_TYPE_READY(&cxoPyTypeEnqOptions);
-    MAKE_TYPE_READY(&cxoPyTypeError);
-    MAKE_TYPE_READY(&cxoPyTypeFixedCharVar);
-    MAKE_TYPE_READY(&cxoPyTypeFixedNcharVar);
-    MAKE_TYPE_READY(&cxoPyTypeIntervalVar);
-    MAKE_TYPE_READY(&cxoPyTypeLob);
-    MAKE_TYPE_READY(&cxoPyTypeLongBinaryVar);
-    MAKE_TYPE_READY(&cxoPyTypeLongStringVar);
-    MAKE_TYPE_READY(&cxoPyTypeMsgProps);
-    MAKE_TYPE_READY(&cxoPyTypeMessage);
-    MAKE_TYPE_READY(&cxoPyTypeMessageQuery);
-    MAKE_TYPE_READY(&cxoPyTypeMessageRow);
-    MAKE_TYPE_READY(&cxoPyTypeMessageTable);
-    MAKE_TYPE_READY(&cxoPyTypeNativeFloatVar);
-    MAKE_TYPE_READY(&cxoPyTypeNativeIntVar);
-    MAKE_TYPE_READY(&cxoPyTypeNcharVar);
-    MAKE_TYPE_READY(&cxoPyTypeNclobVar);
-    MAKE_TYPE_READY(&cxoPyTypeNumberVar);
-    MAKE_TYPE_READY(&cxoPyTypeObjectAttr);
-    MAKE_TYPE_READY(&cxoPyTypeObject);
-    MAKE_TYPE_READY(&cxoPyTypeObjectType);
-    MAKE_TYPE_READY(&cxoPyTypeObjectVar);
-    MAKE_TYPE_READY(&cxoPyTypeRowidVar);
-    MAKE_TYPE_READY(&cxoPyTypeSessionPool);
-    MAKE_TYPE_READY(&cxoPyTypeStringVar);
-    MAKE_TYPE_READY(&cxoPyTypeSubscr);
-    MAKE_TYPE_READY(&cxoPyTypeTimestampVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeBfileVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeBinaryVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeBlobVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeBooleanVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeClobVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeConnection);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeCursor);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeCursorVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeDateTimeVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeDeqOptions);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeEnqOptions);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeError);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeFixedCharVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeFixedNcharVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeIntervalVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeLob);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeLongBinaryVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeLongStringVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeMsgProps);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeMessage);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeMessageQuery);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeMessageRow);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeMessageTable);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeNativeFloatVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeNativeIntVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeNcharVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeNclobVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeNumberVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeObjectAttr);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeObject);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeObjectType);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeObjectVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeRowidVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeSessionPool);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeStringVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeSubscr);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeTimestampVar);
 
     // initialize module and retrieve the dictionary
 #if PY_MAJOR_VERSION >= 3
@@ -288,81 +291,81 @@ static PyObject *Module_Initialize(void)
         return NULL;
 
     // create exception object and add it to the dictionary
-    if (SetException(module, &cxoWarningException,
+    if (cxoModule_setException(module, &cxoWarningException,
             "Warning", CXO_BASE_EXCEPTION) < 0)
         return NULL;
-    if (SetException(module, &cxoErrorException,
+    if (cxoModule_setException(module, &cxoErrorException,
             "Error", CXO_BASE_EXCEPTION) < 0)
         return NULL;
-    if (SetException(module, &cxoInterfaceErrorException,
+    if (cxoModule_setException(module, &cxoInterfaceErrorException,
             "InterfaceError", cxoErrorException) < 0)
         return NULL;
-    if (SetException(module, &cxoDatabaseErrorException,
+    if (cxoModule_setException(module, &cxoDatabaseErrorException,
             "DatabaseError", cxoErrorException) < 0)
         return NULL;
-    if (SetException(module, &cxoDataErrorException,
+    if (cxoModule_setException(module, &cxoDataErrorException,
             "DataError", cxoDatabaseErrorException) < 0)
         return NULL;
-    if (SetException(module, &cxoOperationalErrorException,
+    if (cxoModule_setException(module, &cxoOperationalErrorException,
             "OperationalError", cxoDatabaseErrorException) < 0)
         return NULL;
-    if (SetException(module, &cxoIntegrityErrorException,
+    if (cxoModule_setException(module, &cxoIntegrityErrorException,
             "IntegrityError", cxoDatabaseErrorException) < 0)
         return NULL;
-    if (SetException(module, &cxoInternalErrorException,
+    if (cxoModule_setException(module, &cxoInternalErrorException,
             "InternalError", cxoDatabaseErrorException) < 0)
         return NULL;
-    if (SetException(module, &cxoProgrammingErrorException,
+    if (cxoModule_setException(module, &cxoProgrammingErrorException,
             "ProgrammingError", cxoDatabaseErrorException) < 0)
         return NULL;
-    if (SetException(module, &cxoNotSupportedErrorException,
+    if (cxoModule_setException(module, &cxoNotSupportedErrorException,
             "NotSupportedError", cxoDatabaseErrorException) < 0)
         return NULL;
 
     // set up the types that are available
 #if PY_MAJOR_VERSION >= 3
-    ADD_TYPE_OBJECT("Binary", &PyBytes_Type)
+    CXO_ADD_TYPE_OBJECT("Binary", &PyBytes_Type)
 #else
-    ADD_TYPE_OBJECT("Binary", &PyBuffer_Type)
+    CXO_ADD_TYPE_OBJECT("Binary", &PyBuffer_Type)
 #endif
-    ADD_TYPE_OBJECT("Connection", &cxoPyTypeConnection)
-    ADD_TYPE_OBJECT("Cursor", &cxoPyTypeCursor)
-    ADD_TYPE_OBJECT("Timestamp", cxoPyTypeDateTime)
-    ADD_TYPE_OBJECT("Date", cxoPyTypeDate)
-    ADD_TYPE_OBJECT("SessionPool", &cxoPyTypeSessionPool)
-    ADD_TYPE_OBJECT("_Error", &cxoPyTypeError)
-    ADD_TYPE_OBJECT("Object", &cxoPyTypeObject)
-    ADD_TYPE_OBJECT("ObjectType", &cxoPyTypeObjectType)
-    ADD_TYPE_OBJECT("EnqOptions", &cxoPyTypeEnqOptions)
-    ADD_TYPE_OBJECT("DeqOptions", &cxoPyTypeDeqOptions)
-    ADD_TYPE_OBJECT("MessageProperties", &cxoPyTypeMsgProps)
+    CXO_ADD_TYPE_OBJECT("Connection", &cxoPyTypeConnection)
+    CXO_ADD_TYPE_OBJECT("Cursor", &cxoPyTypeCursor)
+    CXO_ADD_TYPE_OBJECT("Timestamp", cxoPyTypeDateTime)
+    CXO_ADD_TYPE_OBJECT("Date", cxoPyTypeDate)
+    CXO_ADD_TYPE_OBJECT("SessionPool", &cxoPyTypeSessionPool)
+    CXO_ADD_TYPE_OBJECT("_Error", &cxoPyTypeError)
+    CXO_ADD_TYPE_OBJECT("Object", &cxoPyTypeObject)
+    CXO_ADD_TYPE_OBJECT("ObjectType", &cxoPyTypeObjectType)
+    CXO_ADD_TYPE_OBJECT("EnqOptions", &cxoPyTypeEnqOptions)
+    CXO_ADD_TYPE_OBJECT("DeqOptions", &cxoPyTypeDeqOptions)
+    CXO_ADD_TYPE_OBJECT("MessageProperties", &cxoPyTypeMsgProps)
 
     // the name "connect" is required by the DB API
-    ADD_TYPE_OBJECT("connect", &cxoPyTypeConnection)
+    CXO_ADD_TYPE_OBJECT("connect", &cxoPyTypeConnection)
 
     // create the basic data types for setting input sizes
-    ADD_TYPE_OBJECT("BINARY", &cxoPyTypeBinaryVar)
-    ADD_TYPE_OBJECT("BFILE", &cxoPyTypeBfileVar)
-    ADD_TYPE_OBJECT("BLOB", &cxoPyTypeBlobVar)
-    ADD_TYPE_OBJECT("CLOB", &cxoPyTypeClobVar)
-    ADD_TYPE_OBJECT("CURSOR", &cxoPyTypeCursorVar)
-    ADD_TYPE_OBJECT("OBJECT", &cxoPyTypeObjectVar)
-    ADD_TYPE_OBJECT("DATETIME", &cxoPyTypeDateTimeVar)
-    ADD_TYPE_OBJECT("FIXED_CHAR", &cxoPyTypeFixedCharVar)
-    ADD_TYPE_OBJECT("FIXED_NCHAR", &cxoPyTypeFixedNcharVar)
-    ADD_TYPE_OBJECT("NCHAR", &cxoPyTypeNcharVar)
-    ADD_TYPE_OBJECT("INTERVAL", &cxoPyTypeIntervalVar)
-    ADD_TYPE_OBJECT("LOB", &cxoPyTypeLob)
-    ADD_TYPE_OBJECT("LONG_BINARY", &cxoPyTypeLongBinaryVar)
-    ADD_TYPE_OBJECT("LONG_STRING", &cxoPyTypeLongStringVar)
-    ADD_TYPE_OBJECT("NCLOB", &cxoPyTypeNclobVar)
-    ADD_TYPE_OBJECT("NUMBER", &cxoPyTypeNumberVar)
-    ADD_TYPE_OBJECT("ROWID", &cxoPyTypeRowidVar)
-    ADD_TYPE_OBJECT("STRING", &cxoPyTypeStringVar)
-    ADD_TYPE_OBJECT("TIMESTAMP", &cxoPyTypeTimestampVar)
-    ADD_TYPE_OBJECT("NATIVE_INT", &cxoPyTypeNativeIntVar)
-    ADD_TYPE_OBJECT("NATIVE_FLOAT", &cxoPyTypeNativeFloatVar)
-    ADD_TYPE_OBJECT("BOOLEAN", &cxoPyTypeBooleanVar)
+    CXO_ADD_TYPE_OBJECT("BINARY", &cxoPyTypeBinaryVar)
+    CXO_ADD_TYPE_OBJECT("BFILE", &cxoPyTypeBfileVar)
+    CXO_ADD_TYPE_OBJECT("BLOB", &cxoPyTypeBlobVar)
+    CXO_ADD_TYPE_OBJECT("CLOB", &cxoPyTypeClobVar)
+    CXO_ADD_TYPE_OBJECT("CURSOR", &cxoPyTypeCursorVar)
+    CXO_ADD_TYPE_OBJECT("OBJECT", &cxoPyTypeObjectVar)
+    CXO_ADD_TYPE_OBJECT("DATETIME", &cxoPyTypeDateTimeVar)
+    CXO_ADD_TYPE_OBJECT("FIXED_CHAR", &cxoPyTypeFixedCharVar)
+    CXO_ADD_TYPE_OBJECT("FIXED_NCHAR", &cxoPyTypeFixedNcharVar)
+    CXO_ADD_TYPE_OBJECT("NCHAR", &cxoPyTypeNcharVar)
+    CXO_ADD_TYPE_OBJECT("INTERVAL", &cxoPyTypeIntervalVar)
+    CXO_ADD_TYPE_OBJECT("LOB", &cxoPyTypeLob)
+    CXO_ADD_TYPE_OBJECT("LONG_BINARY", &cxoPyTypeLongBinaryVar)
+    CXO_ADD_TYPE_OBJECT("LONG_STRING", &cxoPyTypeLongStringVar)
+    CXO_ADD_TYPE_OBJECT("NCLOB", &cxoPyTypeNclobVar)
+    CXO_ADD_TYPE_OBJECT("NUMBER", &cxoPyTypeNumberVar)
+    CXO_ADD_TYPE_OBJECT("ROWID", &cxoPyTypeRowidVar)
+    CXO_ADD_TYPE_OBJECT("STRING", &cxoPyTypeStringVar)
+    CXO_ADD_TYPE_OBJECT("TIMESTAMP", &cxoPyTypeTimestampVar)
+    CXO_ADD_TYPE_OBJECT("NATIVE_INT", &cxoPyTypeNativeIntVar)
+    CXO_ADD_TYPE_OBJECT("NATIVE_FLOAT", &cxoPyTypeNativeFloatVar)
+    CXO_ADD_TYPE_OBJECT("BOOLEAN", &cxoPyTypeBooleanVar)
 
     // create constants required by Python DB API 2.0
     if (PyModule_AddStringConstant(module, "apilevel", "2.0") < 0)
@@ -384,107 +387,107 @@ static PyObject *Module_Initialize(void)
         return NULL;
 
     // add constants for authorization modes
-    ADD_INT_CONSTANT("SYSASM", DPI_MODE_AUTH_SYSASM)
-    ADD_INT_CONSTANT("SYSBKP", DPI_MODE_AUTH_SYSBKP)
-    ADD_INT_CONSTANT("SYSDBA", DPI_MODE_AUTH_SYSDBA)
-    ADD_INT_CONSTANT("SYSDGD", DPI_MODE_AUTH_SYSDGD)
-    ADD_INT_CONSTANT("SYSKMT", DPI_MODE_AUTH_SYSKMT)
-    ADD_INT_CONSTANT("SYSOPER", DPI_MODE_AUTH_SYSOPER)
-    ADD_INT_CONSTANT("SYSRAC", DPI_MODE_AUTH_SYSRAC)
-    ADD_INT_CONSTANT("PRELIM_AUTH", DPI_MODE_AUTH_PRELIM)
+    CXO_ADD_INT_CONSTANT("SYSASM", DPI_MODE_AUTH_SYSASM)
+    CXO_ADD_INT_CONSTANT("SYSBKP", DPI_MODE_AUTH_SYSBKP)
+    CXO_ADD_INT_CONSTANT("SYSDBA", DPI_MODE_AUTH_SYSDBA)
+    CXO_ADD_INT_CONSTANT("SYSDGD", DPI_MODE_AUTH_SYSDGD)
+    CXO_ADD_INT_CONSTANT("SYSKMT", DPI_MODE_AUTH_SYSKMT)
+    CXO_ADD_INT_CONSTANT("SYSOPER", DPI_MODE_AUTH_SYSOPER)
+    CXO_ADD_INT_CONSTANT("SYSRAC", DPI_MODE_AUTH_SYSRAC)
+    CXO_ADD_INT_CONSTANT("PRELIM_AUTH", DPI_MODE_AUTH_PRELIM)
 
     // add constants for session pool get modes
-    ADD_INT_CONSTANT("SPOOL_ATTRVAL_WAIT", DPI_MODE_POOL_GET_WAIT)
-    ADD_INT_CONSTANT("SPOOL_ATTRVAL_NOWAIT", DPI_MODE_POOL_GET_NOWAIT)
-    ADD_INT_CONSTANT("SPOOL_ATTRVAL_FORCEGET", DPI_MODE_POOL_GET_FORCEGET)
+    CXO_ADD_INT_CONSTANT("SPOOL_ATTRVAL_WAIT", DPI_MODE_POOL_GET_WAIT)
+    CXO_ADD_INT_CONSTANT("SPOOL_ATTRVAL_NOWAIT", DPI_MODE_POOL_GET_NOWAIT)
+    CXO_ADD_INT_CONSTANT("SPOOL_ATTRVAL_FORCEGET", DPI_MODE_POOL_GET_FORCEGET)
 
     // add constants for database shutdown modes
-    ADD_INT_CONSTANT("DBSHUTDOWN_ABORT", DPI_MODE_SHUTDOWN_ABORT)
-    ADD_INT_CONSTANT("DBSHUTDOWN_FINAL", DPI_MODE_SHUTDOWN_FINAL)
-    ADD_INT_CONSTANT("DBSHUTDOWN_IMMEDIATE", DPI_MODE_SHUTDOWN_IMMEDIATE)
-    ADD_INT_CONSTANT("DBSHUTDOWN_TRANSACTIONAL",
+    CXO_ADD_INT_CONSTANT("DBSHUTDOWN_ABORT", DPI_MODE_SHUTDOWN_ABORT)
+    CXO_ADD_INT_CONSTANT("DBSHUTDOWN_FINAL", DPI_MODE_SHUTDOWN_FINAL)
+    CXO_ADD_INT_CONSTANT("DBSHUTDOWN_IMMEDIATE", DPI_MODE_SHUTDOWN_IMMEDIATE)
+    CXO_ADD_INT_CONSTANT("DBSHUTDOWN_TRANSACTIONAL",
             DPI_MODE_SHUTDOWN_TRANSACTIONAL)
-    ADD_INT_CONSTANT("DBSHUTDOWN_TRANSACTIONAL_LOCAL",
+    CXO_ADD_INT_CONSTANT("DBSHUTDOWN_TRANSACTIONAL_LOCAL",
             DPI_MODE_SHUTDOWN_TRANSACTIONAL_LOCAL)
 
     // add constants for purity
-    ADD_INT_CONSTANT("ATTR_PURITY_DEFAULT", DPI_PURITY_DEFAULT)
-    ADD_INT_CONSTANT("ATTR_PURITY_NEW", DPI_PURITY_NEW)
-    ADD_INT_CONSTANT("ATTR_PURITY_SELF", DPI_PURITY_SELF)
+    CXO_ADD_INT_CONSTANT("ATTR_PURITY_DEFAULT", DPI_PURITY_DEFAULT)
+    CXO_ADD_INT_CONSTANT("ATTR_PURITY_NEW", DPI_PURITY_NEW)
+    CXO_ADD_INT_CONSTANT("ATTR_PURITY_SELF", DPI_PURITY_SELF)
 
     // add constants for subscription protocols
-    ADD_INT_CONSTANT("SUBSCR_PROTO_OCI", DPI_SUBSCR_PROTO_CALLBACK)
-    ADD_INT_CONSTANT("SUBSCR_PROTO_MAIL", DPI_SUBSCR_PROTO_MAIL)
-    ADD_INT_CONSTANT("SUBSCR_PROTO_SERVER", DPI_SUBSCR_PROTO_PLSQL)
-    ADD_INT_CONSTANT("SUBSCR_PROTO_HTTP", DPI_SUBSCR_PROTO_HTTP)
+    CXO_ADD_INT_CONSTANT("SUBSCR_PROTO_OCI", DPI_SUBSCR_PROTO_CALLBACK)
+    CXO_ADD_INT_CONSTANT("SUBSCR_PROTO_MAIL", DPI_SUBSCR_PROTO_MAIL)
+    CXO_ADD_INT_CONSTANT("SUBSCR_PROTO_SERVER", DPI_SUBSCR_PROTO_PLSQL)
+    CXO_ADD_INT_CONSTANT("SUBSCR_PROTO_HTTP", DPI_SUBSCR_PROTO_HTTP)
 
     // add constants for subscription quality of service
-    ADD_INT_CONSTANT("SUBSCR_QOS_RELIABLE", DPI_SUBSCR_QOS_RELIABLE)
-    ADD_INT_CONSTANT("SUBSCR_QOS_DEREG_NFY", DPI_SUBSCR_QOS_DEREG_NFY)
-    ADD_INT_CONSTANT("SUBSCR_QOS_ROWIDS", DPI_SUBSCR_QOS_ROWIDS)
-    ADD_INT_CONSTANT("SUBSCR_QOS_QUERY", DPI_SUBSCR_QOS_QUERY)
-    ADD_INT_CONSTANT("SUBSCR_QOS_BEST_EFFORT", DPI_SUBSCR_QOS_BEST_EFFORT)
+    CXO_ADD_INT_CONSTANT("SUBSCR_QOS_RELIABLE", DPI_SUBSCR_QOS_RELIABLE)
+    CXO_ADD_INT_CONSTANT("SUBSCR_QOS_DEREG_NFY", DPI_SUBSCR_QOS_DEREG_NFY)
+    CXO_ADD_INT_CONSTANT("SUBSCR_QOS_ROWIDS", DPI_SUBSCR_QOS_ROWIDS)
+    CXO_ADD_INT_CONSTANT("SUBSCR_QOS_QUERY", DPI_SUBSCR_QOS_QUERY)
+    CXO_ADD_INT_CONSTANT("SUBSCR_QOS_BEST_EFFORT", DPI_SUBSCR_QOS_BEST_EFFORT)
 
     // add constants for subscription namespaces
-    ADD_INT_CONSTANT("SUBSCR_NAMESPACE_DBCHANGE",
+    CXO_ADD_INT_CONSTANT("SUBSCR_NAMESPACE_DBCHANGE",
             DPI_SUBSCR_NAMESPACE_DBCHANGE)
 
     // add constants for event types
-    ADD_INT_CONSTANT("EVENT_NONE", DPI_EVENT_NONE)
-    ADD_INT_CONSTANT("EVENT_STARTUP", DPI_EVENT_STARTUP)
-    ADD_INT_CONSTANT("EVENT_SHUTDOWN", DPI_EVENT_SHUTDOWN)
-    ADD_INT_CONSTANT("EVENT_SHUTDOWN_ANY", DPI_EVENT_SHUTDOWN_ANY)
-    ADD_INT_CONSTANT("EVENT_DEREG", DPI_EVENT_DEREG)
-    ADD_INT_CONSTANT("EVENT_OBJCHANGE", DPI_EVENT_OBJCHANGE)
-    ADD_INT_CONSTANT("EVENT_QUERYCHANGE", DPI_EVENT_QUERYCHANGE)
+    CXO_ADD_INT_CONSTANT("EVENT_NONE", DPI_EVENT_NONE)
+    CXO_ADD_INT_CONSTANT("EVENT_STARTUP", DPI_EVENT_STARTUP)
+    CXO_ADD_INT_CONSTANT("EVENT_SHUTDOWN", DPI_EVENT_SHUTDOWN)
+    CXO_ADD_INT_CONSTANT("EVENT_SHUTDOWN_ANY", DPI_EVENT_SHUTDOWN_ANY)
+    CXO_ADD_INT_CONSTANT("EVENT_DEREG", DPI_EVENT_DEREG)
+    CXO_ADD_INT_CONSTANT("EVENT_OBJCHANGE", DPI_EVENT_OBJCHANGE)
+    CXO_ADD_INT_CONSTANT("EVENT_QUERYCHANGE", DPI_EVENT_QUERYCHANGE)
 
     // add constants for opcodes
-    ADD_INT_CONSTANT("OPCODE_ALLOPS", DPI_OPCODE_ALL_OPS)
-    ADD_INT_CONSTANT("OPCODE_ALLROWS", DPI_OPCODE_ALL_ROWS)
-    ADD_INT_CONSTANT("OPCODE_INSERT", DPI_OPCODE_INSERT)
-    ADD_INT_CONSTANT("OPCODE_UPDATE", DPI_OPCODE_UPDATE)
-    ADD_INT_CONSTANT("OPCODE_DELETE", DPI_OPCODE_DELETE)
-    ADD_INT_CONSTANT("OPCODE_ALTER", DPI_OPCODE_ALTER)
-    ADD_INT_CONSTANT("OPCODE_DROP", DPI_OPCODE_DROP)
+    CXO_ADD_INT_CONSTANT("OPCODE_ALLOPS", DPI_OPCODE_ALL_OPS)
+    CXO_ADD_INT_CONSTANT("OPCODE_ALLROWS", DPI_OPCODE_ALL_ROWS)
+    CXO_ADD_INT_CONSTANT("OPCODE_INSERT", DPI_OPCODE_INSERT)
+    CXO_ADD_INT_CONSTANT("OPCODE_UPDATE", DPI_OPCODE_UPDATE)
+    CXO_ADD_INT_CONSTANT("OPCODE_DELETE", DPI_OPCODE_DELETE)
+    CXO_ADD_INT_CONSTANT("OPCODE_ALTER", DPI_OPCODE_ALTER)
+    CXO_ADD_INT_CONSTANT("OPCODE_DROP", DPI_OPCODE_DROP)
 
     // add constants for AQ dequeue modes
-    ADD_INT_CONSTANT("DEQ_BROWSE", DPI_MODE_DEQ_BROWSE)
-    ADD_INT_CONSTANT("DEQ_LOCKED", DPI_MODE_DEQ_LOCKED)
-    ADD_INT_CONSTANT("DEQ_REMOVE", DPI_MODE_DEQ_REMOVE)
-    ADD_INT_CONSTANT("DEQ_REMOVE_NODATA", DPI_MODE_DEQ_REMOVE_NO_DATA)
+    CXO_ADD_INT_CONSTANT("DEQ_BROWSE", DPI_MODE_DEQ_BROWSE)
+    CXO_ADD_INT_CONSTANT("DEQ_LOCKED", DPI_MODE_DEQ_LOCKED)
+    CXO_ADD_INT_CONSTANT("DEQ_REMOVE", DPI_MODE_DEQ_REMOVE)
+    CXO_ADD_INT_CONSTANT("DEQ_REMOVE_NODATA", DPI_MODE_DEQ_REMOVE_NO_DATA)
 
     // add constants for AQ dequeue navigation
-    ADD_INT_CONSTANT("DEQ_FIRST_MSG", DPI_DEQ_NAV_FIRST_MSG)
-    ADD_INT_CONSTANT("DEQ_NEXT_TRANSACTION", DPI_DEQ_NAV_NEXT_TRANSACTION)
-    ADD_INT_CONSTANT("DEQ_NEXT_MSG", DPI_DEQ_NAV_NEXT_MSG)
+    CXO_ADD_INT_CONSTANT("DEQ_FIRST_MSG", DPI_DEQ_NAV_FIRST_MSG)
+    CXO_ADD_INT_CONSTANT("DEQ_NEXT_TRANSACTION", DPI_DEQ_NAV_NEXT_TRANSACTION)
+    CXO_ADD_INT_CONSTANT("DEQ_NEXT_MSG", DPI_DEQ_NAV_NEXT_MSG)
 
     // add constants for AQ dequeue visibility
-    ADD_INT_CONSTANT("DEQ_IMMEDIATE", DPI_VISIBILITY_IMMEDIATE)
-    ADD_INT_CONSTANT("DEQ_ON_COMMIT", DPI_VISIBILITY_ON_COMMIT)
+    CXO_ADD_INT_CONSTANT("DEQ_IMMEDIATE", DPI_VISIBILITY_IMMEDIATE)
+    CXO_ADD_INT_CONSTANT("DEQ_ON_COMMIT", DPI_VISIBILITY_ON_COMMIT)
 
     // add constants for AQ dequeue wait
-    ADD_INT_CONSTANT("DEQ_NO_WAIT", DPI_DEQ_WAIT_NO_WAIT)
-    ADD_INT_CONSTANT("DEQ_WAIT_FOREVER", DPI_DEQ_WAIT_FOREVER)
+    CXO_ADD_INT_CONSTANT("DEQ_NO_WAIT", DPI_DEQ_WAIT_NO_WAIT)
+    CXO_ADD_INT_CONSTANT("DEQ_WAIT_FOREVER", DPI_DEQ_WAIT_FOREVER)
 
     // add constants for AQ enqueue visibility
-    ADD_INT_CONSTANT("ENQ_IMMEDIATE", DPI_VISIBILITY_IMMEDIATE)
-    ADD_INT_CONSTANT("ENQ_ON_COMMIT", DPI_VISIBILITY_ON_COMMIT)
+    CXO_ADD_INT_CONSTANT("ENQ_IMMEDIATE", DPI_VISIBILITY_IMMEDIATE)
+    CXO_ADD_INT_CONSTANT("ENQ_ON_COMMIT", DPI_VISIBILITY_ON_COMMIT)
 
     // add constants for AQ table purge mode (message)
-    ADD_INT_CONSTANT("MSG_PERSISTENT", DPI_MODE_MSG_PERSISTENT)
-    ADD_INT_CONSTANT("MSG_BUFFERED", DPI_MODE_MSG_BUFFERED)
-    ADD_INT_CONSTANT("MSG_PERSISTENT_OR_BUFFERED",
+    CXO_ADD_INT_CONSTANT("MSG_PERSISTENT", DPI_MODE_MSG_PERSISTENT)
+    CXO_ADD_INT_CONSTANT("MSG_BUFFERED", DPI_MODE_MSG_BUFFERED)
+    CXO_ADD_INT_CONSTANT("MSG_PERSISTENT_OR_BUFFERED",
             DPI_MODE_MSG_PERSISTENT_OR_BUFFERED)
 
     // add constants for AQ message state
-    ADD_INT_CONSTANT("MSG_EXPIRED", DPI_MSG_STATE_EXPIRED)
-    ADD_INT_CONSTANT("MSG_READY", DPI_MSG_STATE_READY)
-    ADD_INT_CONSTANT("MSG_PROCESSED", DPI_MSG_STATE_PROCESSED)
-    ADD_INT_CONSTANT("MSG_WAITING", DPI_MSG_STATE_WAITING)
+    CXO_ADD_INT_CONSTANT("MSG_EXPIRED", DPI_MSG_STATE_EXPIRED)
+    CXO_ADD_INT_CONSTANT("MSG_READY", DPI_MSG_STATE_READY)
+    CXO_ADD_INT_CONSTANT("MSG_PROCESSED", DPI_MSG_STATE_PROCESSED)
+    CXO_ADD_INT_CONSTANT("MSG_WAITING", DPI_MSG_STATE_WAITING)
 
     // add special constants for AQ delay/expiration
-    ADD_INT_CONSTANT("MSG_NO_DELAY", 0)
-    ADD_INT_CONSTANT("MSG_NO_EXPIRATION", -1)
+    CXO_ADD_INT_CONSTANT("MSG_NO_DELAY", 0)
+    CXO_ADD_INT_CONSTANT("MSG_NO_EXPIRATION", -1)
 
     return module;
 }
@@ -496,12 +499,12 @@ static PyObject *Module_Initialize(void)
 #if PY_MAJOR_VERSION >= 3
 PyMODINIT_FUNC PyInit_cx_Oracle(void)
 {
-    return Module_Initialize();
+    return cxoModule_initialize();
 }
 #else
 void initcx_Oracle(void)
 {
-    Module_Initialize();
+    cxoModule_initialize();
 }
 #endif
 
