@@ -317,16 +317,18 @@ int cxoObject_internalExtend(cxoObject *obj, PyObject *sequence)
     PyObject *fastSequence, *element;
     Py_ssize_t size, i;
 
-    // append each of the items in the sequence to the collection
     fastSequence = PySequence_Fast(sequence, "expecting sequence");
     if (!fastSequence)
         return -1;
     size = PySequence_Fast_GET_SIZE(fastSequence);
     for (i = 0; i < size; i++) {
         element = PySequence_Fast_GET_ITEM(fastSequence, i);
-        if (cxoObject_internalAppend(obj, element) < 0)
+        if (cxoObject_internalAppend(obj, element) < 0) {
+            Py_DECREF(fastSequence);
             return -1;
+        }
     }
+    Py_DECREF(fastSequence);
     
     return 0;
 }
