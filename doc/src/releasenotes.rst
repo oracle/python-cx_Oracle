@@ -39,8 +39,8 @@ Version 6.2 (March 2018)
 #)  Added support for closing the connection when reaching the end of a
     ``with`` code block controlled by the connection as a context manager, but
     in a backwards compatible way
-    (https://github.com/oracle/python-cx_Oracle/issues/113). See
-    :data:`cx_Oracle.__future__` for more information.
+    (`issue 113 <https://github.com/oracle/python-cx_Oracle/issues/113>`__).
+    See :data:`cx_Oracle.__future__` for more information.
 #)  Reorganized code to simplify continued maintenance and consolidate
     transformations to/from Python objects.
 #)  Ensure that the number of elements in the array is not lost when the
