@@ -69,25 +69,48 @@ Quick Start cx_Oracle Installation
   10.2 or greater. Version 11.2 client libraries can connect to Oracle
   Database 9.2 or greater.
 
-- After installation, your Python applications will be able to connect
-  to your database.  The database can be on the same machine as
-  Python, or on a remote machine.  cx_Oracle does not install or
-  create a database.
+  The database abstraction layer in cx_Oracle is `ODPI-C
+  <https://github.com/oracle/odpi>`__, which means that the `ODPI-C
+  installation instructions
+  <https://oracle.github.io/odpi/doc/installation.html>`__ can be useful
+  to review.
 
-  You will need to know user credentials and the connection string for
-  the database.
+- Create a script like the one below::
 
-  You can learn how to use cx_Oracle from the API documentation and
-  `samples
-  <https://github.com/oracle/python-cx_Oracle/blob/master/samples>`__.
+	# myscript.py
 
-If you run into trouble, check out the section on `Troubleshooting`_.
+	from __future__ import print_function
 
-The database abstraction layer in cx_Oracle is `ODPI-C
-<https://github.com/oracle/odpi>`__, which means that the `ODPI-C
-installation instructions
-<https://oracle.github.io/odpi/doc/installation.html>`__ can be useful
-to review.
+	import cx_Oracle
+
+	# Connect as user "hr" with password "welcome" to the "oraclepdb" service running on this computer.
+	connection = cx_Oracle.connect("hr", "welcome", "localhost/orclpdb")
+
+	cursor = connection.cursor()
+	cursor.execute("""
+	    SELECT first_name, last_name
+	    FROM employees
+	    WHERE department_id = :did AND employee_id > :eid""",
+	    did = 50,
+	    eid = 190)
+	for fname, lname in cursor:
+	    print("Values:", fname, lname)
+
+  Locate your Oracle Database username and password, and the database
+  connection string.  The connection string is commonly of the format
+  ``hostname/servicename``, using the hostname where the database is
+  running, and the service name of the Oracle Database instance.
+
+  Substitute your username, password and connection string in the
+  code. Run the Python script, for example::
+
+        python myscript.py
+
+You can learn how to use cx_Oracle from the :ref:`API documentation <module>`
+and `samples
+<https://github.com/oracle/python-cx_Oracle/blob/master/samples>`__.
+
+If you run into installation trouble, check out the section on `Troubleshooting`_.
 
 
 Oracle Client and Oracle Database Interoperability

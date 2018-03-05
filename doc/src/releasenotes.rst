@@ -202,6 +202,9 @@ Version 6.0.1 (August 2017)
 Version 6.0 (August 2017)
 -------------------------
 
+See :ref:`What's New <whatsnew60>` for a summary of the changes between
+cx_Oracle 5.3 and cx_Oracle 6.0.
+
 #)  Update to `ODPI-C 2.0 <https://oracle.github.io/odpi/doc/releasenotes.html
     #version-2-0-august-14-2017>`__.
 

@@ -4,6 +4,8 @@
 What's New
 **********
 
+.. _whatsnew60:
+
 cx_Oracle 6.0
 =============
 
