@@ -8,6 +8,52 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.2 (March 2018)
+------------------------
+
+#)  Update to `ODPI-C 2.2.1
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-2-2-1-march-5-2018>`__.
+
+    - eliminate error "DPI-1054: connection cannot be closed when open
+      statements or LOBs exist" (`issue 138
+      <https://github.com/oracle/python-cx_Oracle/issues/138>`__).
+    - avoid a round trip to the database when a connection is released back to
+      the pool by preventing a rollback from being called when no transaction
+      is in progress.
+    - improve error message when the use of bind variables is attempted with
+      DLL statements, which is not supported by Oracle.
+    - if an Oracle object is retrieved from an attribute of another Oracle
+      object or a collection, prevent the "owner" from being destroyed until
+      the object that was retrieved has itself been destroyed.
+    - correct handling of boundary numbers 1e126 and -1e126
+    - eliminate memory leak when calling :meth:`Connection.enq()` and
+      :meth:`Connection.deq()`
+    - eliminate memory leak when setting NCHAR and NVARCHAR attributes of
+      objects.
+    - eliminate memory leak when fetching collection objects from the database.
+
+#)  Added support for creating a temporary CLOB, BLOB or NCLOB via the method
+    :meth:`Connection.createlob()`.
+#)  Added support for binding a LOB value directly to a cursor.
+#)  Added support for closing the connection when reaching the end of a
+    ``with`` code block controlled by the connection as a context manager, but
+    in a backwards compatible way
+    (https://github.com/oracle/python-cx_Oracle/issues/113). See
+    :data:`cx_Oracle.__future__` for more information.
+#)  Reorganized code to simplify continued maintenance and consolidate
+    transformations to/from Python objects.
+#)  Ensure that the number of elements in the array is not lost when the
+    buffer size is increased to accommodate larger strings.
+#)  Corrected support in Python 3.x for cursor.parse() by permitting a string
+    to be passed, instead of incorrectly requiring a bytes object.
+#)  Eliminate reference leak with LOBs acquired from attributes of objects or
+    elements of collections.
+#)  Eliminate reference leak when extending an Oracle collection.
+#)  Documentation improvements.
+#)  Added test cases to the test suite.
+
+
 Version 6.1 (December 2017)
 ---------------------------
 
