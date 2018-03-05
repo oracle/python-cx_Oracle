@@ -205,9 +205,9 @@ cxoVarType *cxoVarType_fromPythonType(PyTypeObject *type)
 static Py_ssize_t cxoVarType_calculateSize(PyObject *value,
         cxoTransformNum transformNum)
 {
+    Py_ssize_t size = 0;
 #if PY_MAJOR_VERSION < 3
     const void *ptr;
-    Py_ssize_t size = 0;
 #endif
 
     switch (transformNum) {
@@ -221,13 +221,15 @@ static Py_ssize_t cxoVarType_calculateSize(PyObject *value,
             return size;
 #endif
         case CXO_TRANSFORM_NSTRING:
-            return PyUnicode_GET_SIZE(value);
+            size = PyUnicode_GET_SIZE(value);
+            return (size == 0) ? 1 : size;
         case CXO_TRANSFORM_STRING:
 #if PY_MAJOR_VERSION >= 3
-            return PyUnicode_GET_SIZE(value);
+            size = PyUnicode_GET_SIZE(value);
 #else
-            return PyString_GET_SIZE(value);
+            size = PyString_GET_SIZE(value);
 #endif
+            return (size == 0) ? 1 : size;
         default:
             break;
     }
