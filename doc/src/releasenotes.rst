@@ -101,7 +101,7 @@ Version 6.0.3 (November 2017)
 #)  Ensure that a call to setinputsizes() with an invalid type prior to a call
     to executemany() does not result in a type error, but instead gracefully
     ignores the call to setinputsizes() as required by the DB API
-    (https://github.com/oracle/python-cx_Oracle/issues/75).
+    (`issue 75 <https://github.com/oracle/python-cx_Oracle/issues/75>`__).
 #)  Check variable array size when setting variable values and raise
     IndexError, as is already done for getting variable values.
 
