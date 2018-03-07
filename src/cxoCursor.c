@@ -963,9 +963,11 @@ static int cxoCursor_internalPrepare(cxoCursor *cursor, PyObject *statement,
     if (dpiStmt_getInfo(cursor->handle, &cursor->stmtInfo) < 0)
         return cxoError_raiseAndReturnInt();
 
-    // set the fetch array size
-    if (dpiStmt_setFetchArraySize(cursor->handle, cursor->arraySize) < 0)
-        return cxoError_raiseAndReturnInt();
+    // set the fetch array size, if applicable
+    if (cursor->stmtInfo.statementType == DPI_STMT_TYPE_SELECT) {
+        if (dpiStmt_setFetchArraySize(cursor->handle, cursor->arraySize) < 0)
+            return cxoError_raiseAndReturnInt();
+    }
 
     // clear row factory, if applicable
     Py_CLEAR(cursor->rowFactory);
