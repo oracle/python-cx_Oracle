@@ -346,3 +346,11 @@ class TestNumberVar(BaseTestCase):
         var.setvalue(0, 4)
         self.assertEqual(str(var), "<cx_Oracle.NUMBER with value 4.0>")
 
+    def testBindNativeFloat(self):
+        "test that binding native float is possible"
+        self.cursor.setinputsizes(cx_Oracle.NATIVE_FLOAT)
+        self.cursor.execute("select :1 from dual", (5,))
+        self.assertEqual(type(self.cursor.bindvars[0]), cx_Oracle.NATIVE_FLOAT)
+        self.cursor.execute("select :1 from dual", (1.5,))
+        self.assertEqual(type(self.cursor.bindvars[0]), cx_Oracle.NATIVE_FLOAT)
+

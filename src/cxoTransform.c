@@ -281,6 +281,8 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
             dbValue->asBytes.length = buffer->size;
             return 0;
         case CXO_TRANSFORM_FLOAT:
+        case CXO_TRANSFORM_NATIVE_DOUBLE:
+        case CXO_TRANSFORM_NATIVE_FLOAT:
             if (!PyFloat_Check(pyValue) &&
 #if PY_MAJOR_VERSION < 3
                     !PyInt_Check(pyValue) &&
@@ -289,7 +291,9 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
                 PyErr_SetString(PyExc_TypeError, "expecting float");
                 return -1;
             }
-            dbValue->asDouble = PyFloat_AsDouble(pyValue);
+            if (transformNum == CXO_TRANSFORM_NATIVE_FLOAT)
+                dbValue->asFloat = (float) PyFloat_AsDouble(pyValue);
+            else dbValue->asDouble = PyFloat_AsDouble(pyValue);
             if (PyErr_Occurred())
                 return -1;
             return 0;
