@@ -8,6 +8,13 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.2.1 (March 2018)
+--------------------------
+
+#)  Make sure cxoModule.h is included in the source archive
+    (`issue 155 <https://github.com/oracle/python-cx_Oracle/issues/155>`__).
+
+
 Version 6.2 (March 2018)
 ------------------------
 
