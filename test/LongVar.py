@@ -58,6 +58,20 @@ class TestLongVar(BaseTestCase):
         "test binding and fetching long data"
         self.__PerformTest("Long", cx_Oracle.LONG_STRING)
 
+    def testLongWithExecuteMany(self):
+        "test binding long data with executemany()"
+        data = []
+        self.cursor.execute("truncate table TestLongs")
+        for i in range(5):
+            char = chr(ord('A') + i)
+            longStr = char * (32768 * (i + 1))
+            data.append((i + 1, longStr))
+        self.cursor.executemany("insert into TestLongs values (:1, :2)", data)
+        self.connection.commit()
+        self.cursor.execute("select * from TestLongs order by IntCol")
+        fetchedData = self.cursor.fetchall()
+        self.assertEqual(fetchedData, data)
+
     def testLongRaws(self):
         "test binding and fetching long raw data"
         self.__PerformTest("LongRaw", cx_Oracle.LONG_BINARY)
