@@ -954,9 +954,13 @@ static PyObject *cxoConnection_getVersion(cxoConnection *conn, void *unused)
     dpiVersionInfo versionInfo;
     const char *releaseString;
     char buffer[25];
+    int status;
 
-    if (dpiConn_getServerVersion(conn->handle, &releaseString,
-            &releaseStringLength, &versionInfo) < 0)
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiConn_getServerVersion(conn->handle, &releaseString,
+            &releaseStringLength, &versionInfo);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
         return cxoError_raiseAndReturnNull();
     snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d.%d", versionInfo.versionNum,
             versionInfo.releaseNum, versionInfo.updateNum,
