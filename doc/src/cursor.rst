@@ -176,7 +176,11 @@ Cursor Object
     Prepare a statement for execution against a database and then execute it
     against all parameter mappings or sequences found in the sequence
     parameters. The statement is managed in the same way as the
-    :meth:`~Cursor.execute()` method manages it.
+    :meth:`~Cursor.execute()` method manages it. If the size of the buffers
+    allocated for any of the parameters exceeds 2 GB, you will receive the
+    error "DPI-1015: array size of <n> is too large", where <n> varies with the
+    size of each element being allocated in the buffer. If you receive this
+    error, decrease the number of elements in the sequence parameters.
 
     When true, the batcherrors parameter enables batch error support within
     Oracle and ensures that the call succeeds even if an exception takes place
@@ -186,6 +190,12 @@ Cursor Object
     When true, the arraydmlrowcounts parameter enables DML row counts to be
     retrieved from Oracle after the method has completed. The row counts can
     then be retrieved using :meth:`~Cursor.getarraydmlrowcounts()`.
+
+    For maximum efficiency, it is best to use the
+    :meth:`~Cursor.setinputsizes()` method to specify the parameter types and
+    sizes ahead of time; in particular, None is assumed to be a string of
+    length 1 so any values that are later bound as numbers or dates will raise
+    a TypeError exception.
 
 
 .. method:: Cursor.executemanyprepared(numIters)
