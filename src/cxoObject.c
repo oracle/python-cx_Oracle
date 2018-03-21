@@ -205,11 +205,17 @@ static PyObject *cxoObject_convertToPython(cxoObject *obj,
 static PyObject *cxoObject_getAttributeValue(cxoObject *obj,
         cxoObjectAttr *attribute)
 {
+    char numberAsStringBuffer[200], message[120];
     dpiOracleTypeNum oracleTypeNum;
     dpiNativeTypeNum nativeTypeNum;
-    char numberAsStringBuffer[200];
     dpiData data;
 
+    if (attribute->transformNum == CXO_TRANSFORM_UNSUPPORTED) {
+        snprintf(message, sizeof(message), "Oracle type %d not supported.",
+                attribute->oracleTypeNum);
+        PyErr_SetString(cxoNotSupportedErrorException, message);
+        return NULL;
+    }
     cxoTransform_getTypeInfo(attribute->transformNum, &oracleTypeNum,
             &nativeTypeNum);
     if (attribute->transformNum == CXO_TRANSFORM_LONG_INT) {
@@ -353,11 +359,17 @@ static PyObject *cxoObject_append(cxoObject *obj, PyObject *value)
 static PyObject *cxoObject_internalGetElementByIndex(cxoObject *obj,
         int32_t index)
 {
+    char numberAsStringBuffer[200], message[120];
     dpiOracleTypeNum oracleTypeNum;
     dpiNativeTypeNum nativeTypeNum;
-    char numberAsStringBuffer[200];
     dpiData data;
 
+    if (obj->objectType->elementTransformNum == CXO_TRANSFORM_UNSUPPORTED) {
+        snprintf(message, sizeof(message), "Oracle type %d not supported.",
+                obj->objectType->elementOracleTypeNum);
+        PyErr_SetString(cxoNotSupportedErrorException, message);
+        return NULL;
+    }
     cxoTransform_getTypeInfo(obj->objectType->elementTransformNum,
             &oracleTypeNum, &nativeTypeNum);
     if (obj->objectType->elementTransformNum == CXO_TRANSFORM_LONG_INT) {

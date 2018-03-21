@@ -316,6 +316,7 @@ struct cxoObjectAttr {
     PyObject_HEAD
     PyObject *name;
     dpiObjectAttr *handle;
+    dpiOracleTypeNum oracleTypeNum;
     cxoTransformNum transformNum;
     cxoObjectType *type;
 };
@@ -328,6 +329,7 @@ struct cxoObjectType {
     PyObject *attributes;
     PyObject *attributesByName;
     cxoConnection *connection;
+    dpiOracleTypeNum elementOracleTypeNum;
     cxoTransformNum elementTransformNum;
     PyObject *elementType;
     char isCollection;

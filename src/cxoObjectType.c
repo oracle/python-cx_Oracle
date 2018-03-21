@@ -121,6 +121,7 @@ static int cxoObjectType_initialize(cxoObjectType *objType,
     if (!objType->name)
         return -1;
     objType->isCollection = info.isCollection;
+    objType->elementOracleTypeNum = info.elementTypeInfo.oracleTypeNum;
     objType->elementTransformNum =
             cxoTransform_getNumFromDataTypeInfo(&info.elementTypeInfo);
     if (info.elementTypeInfo.objectType) {
