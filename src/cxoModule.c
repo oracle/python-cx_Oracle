@@ -392,7 +392,6 @@ static PyObject *cxoModule_initialize(void)
     cxoFutureObj = (cxoFuture*) cxoPyTypeFuture.tp_alloc(&cxoPyTypeFuture, 0);
     if (!cxoFutureObj)
         return NULL;
-    cxoFutureObj->contextManagerClose = 0;
     if (PyModule_AddObject(module, "__future__", (PyObject*) cxoFutureObj) < 0)
         return NULL;
 

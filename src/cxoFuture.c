@@ -69,6 +69,8 @@ static PyObject *cxoFuture_getAttr(cxoFuture *obj, PyObject *nameObject)
         return NULL;
     if (strncmp(buffer.ptr, "ctx_mgr_close", buffer.size) == 0)
         result = PyBool_FromLong(obj->contextManagerClose);
+    else if (strncmp(buffer.ptr, "dml_ret_array_val", buffer.size) == 0)
+        result = PyBool_FromLong(obj->dmlReturningArray);
     else {
         Py_INCREF(Py_None);
         result = Py_None;
@@ -92,6 +94,8 @@ static int cxoFuture_setAttr(cxoFuture *obj, PyObject *nameObject,
         return -1;
     if (strncmp(buffer.ptr, "ctx_mgr_close", buffer.size) == 0)
         result = cxoUtils_getBooleanValue(value, 0, &obj->contextManagerClose);
+    else if (strncmp(buffer.ptr, "dml_ret_array_val", buffer.size) == 0)
+        result = cxoUtils_getBooleanValue(value, 0, &obj->dmlReturningArray);
     cxoBuffer_clear(&buffer);
     return result;
 }

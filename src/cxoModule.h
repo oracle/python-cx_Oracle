@@ -261,6 +261,7 @@ struct cxoEnqOptions {
 struct cxoFuture {
     PyObject_HEAD
     int contextManagerClose;
+    int dmlReturningArray;
 };
 
 struct cxoLob {
@@ -377,6 +378,8 @@ struct cxoVar {
     uint32_t size;
     uint32_t bufferSize;
     int isArray;
+    int isValueSet;
+    int getReturnedData;
     cxoVarType *type;
 };
 
@@ -457,7 +460,7 @@ cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
 
 int cxoVar_bind(cxoVar *var, cxoCursor *cursor, PyObject *name, uint32_t pos);
 int cxoVar_check(PyObject *object);
-PyObject *cxoVar_getSingleValue(cxoVar *var, uint32_t arrayPos);
+PyObject *cxoVar_getSingleValue(cxoVar *var, dpiData *data, uint32_t arrayPos);
 PyObject *cxoVar_getValue(cxoVar *var, uint32_t arrayPos);
 cxoVar *cxoVar_new(cxoCursor *cursor, Py_ssize_t numElements, cxoVarType *type,
         Py_ssize_t size, int isArray, cxoObjectType *objType);

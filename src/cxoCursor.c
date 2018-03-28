@@ -46,7 +46,6 @@ static PyObject* cxoCursor_getBatchErrors(cxoCursor*);
 static PyObject *cxoCursor_getArrayDMLRowCounts(cxoCursor*);
 static PyObject *cxoCursor_getImplicitResults(cxoCursor*);
 static int cxoCursor_performDefine(cxoCursor*, uint32_t);
-static int cxoCursor_getVarData(cxoCursor*);
 
 
 //-----------------------------------------------------------------------------
@@ -878,7 +877,7 @@ static PyObject *cxoCursor_createRow(cxoCursor *cursor, uint32_t pos)
     // acquire the value for each item
     for (i = 0; i < numItems; i++) {
         var = (cxoVar*) PyList_GET_ITEM(cursor->fetchVariables, i);
-        item = cxoVar_getSingleValue(var, pos);
+        item = cxoVar_getSingleValue(var, var->data, pos);
         if (!item) {
             Py_DECREF(tuple);
             return NULL;
@@ -1400,10 +1399,6 @@ static PyObject *cxoCursor_execute(cxoCursor *cursor, PyObject *args,
         Py_INCREF(cursor);
         return (PyObject*) cursor;
     }
-
-    // for returning statements, get the variable data for each bound variable
-    if (cursor->stmtInfo.isReturning && cxoCursor_getVarData(cursor) < 0)
-        return NULL;
 
     // for statements other than queries, simply return None
     Py_RETURN_NONE;
@@ -1986,49 +1981,6 @@ static PyObject *cxoCursor_getNext(cxoCursor *cursor)
     // no more rows, return NULL without setting an exception
     return NULL;
 }
-
-
-//-----------------------------------------------------------------------------
-// cxoCursor_getVarData()
-//   Get the data for all variables bound to the cursor. This is needed for a
-// returning statement which may have changed the number of elements in the
-// variable and the location of the variable data.
-//-----------------------------------------------------------------------------
-static int cxoCursor_getVarData(cxoCursor *cursor)
-{
-    Py_ssize_t i, size, pos;
-    PyObject *key, *value;
-    cxoVar *var;
-
-    // if there are no bind variables, nothing to do
-    if (!cursor->bindVariables)
-        return 0;
-
-    // handle bind by position
-    if (PyList_Check(cursor->bindVariables)) {
-        size = PyList_GET_SIZE(cursor->bindVariables);
-        for (i = 0; i < size; i++) {
-            var = (cxoVar*) PyList_GET_ITEM(cursor->bindVariables, i);
-            if (dpiVar_getData(var->handle, &var->allocatedElements,
-                    &var->data) < 0)
-                return cxoError_raiseAndReturnInt();
-        }
-
-    // handle bind by name
-    } else {
-        pos = 0;
-        while (PyDict_Next(cursor->bindVariables, &pos, &key, &value)) {
-            var = (cxoVar*) value;
-            if (dpiVar_getData(var->handle, &var->allocatedElements,
-                    &var->data) < 0)
-                return cxoError_raiseAndReturnInt();
-        }
-    }
-
-    return 0;
-}
-
-
 
 
 //-----------------------------------------------------------------------------

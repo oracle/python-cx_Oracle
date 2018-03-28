@@ -379,7 +379,46 @@ int cxoVar_bind(cxoVar *var, cxoCursor *cursor, PyObject *name, uint32_t pos)
     if (status < 0)
         return cxoError_raiseAndReturnInt();
 
+    // set flag if bound to a DML returning statement and no data set
+    if (cursor->stmtInfo.isReturning && !var->isValueSet)
+        var->getReturnedData = 1;
+
     return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoVar_getArrayValue()
+//   Return the value of the variable as an array.
+//-----------------------------------------------------------------------------
+static PyObject *cxoVar_getArrayValue(cxoVar *var, uint32_t numElements,
+        dpiData *data)
+{
+    PyObject *value, *singleValue;
+    uint32_t i;
+
+    // use the first set of returned values if DML returning as array is not
+    // enabled
+    if (!(cxoFutureObj && cxoFutureObj->dmlReturningArray) &&
+            var->getReturnedData && !data) {
+        if (dpiVar_getReturnedData(var->handle, 0, &numElements, &data) < 0)
+            return cxoError_raiseAndReturnNull();
+    }
+
+    value = PyList_New(numElements);
+    if (!value)
+        return NULL;
+
+    for (i = 0; i < numElements; i++) {
+        singleValue = cxoVar_getSingleValue(var, data, i);
+        if (!singleValue) {
+            Py_DECREF(value);
+            return NULL;
+        }
+        PyList_SET_ITEM(value, i, singleValue);
+    }
+
+    return value;
 }
 
 
@@ -387,20 +426,34 @@ int cxoVar_bind(cxoVar *var, cxoCursor *cursor, PyObject *name, uint32_t pos)
 // cxoVar_getSingleValue()
 //   Return the value of the variable at the given position.
 //-----------------------------------------------------------------------------
-PyObject *cxoVar_getSingleValue(cxoVar *var, uint32_t arrayPos)
+PyObject *cxoVar_getSingleValue(cxoVar *var, dpiData *data, uint32_t arrayPos)
 {
     PyObject *value, *result;
-    dpiData *data;
+    uint32_t numReturnedRows;
+    dpiData *returnedData;
 
-    // ensure we do not exceed the number of allocated elements
-    if (arrayPos >= var->allocatedElements) {
-        PyErr_SetString(PyExc_IndexError,
-                "cxoVar_getSingleValue: array size exceeded");
-        return NULL;
+    // handle DML returning
+    if (!data && var->getReturnedData) {
+        if (cxoFutureObj && cxoFutureObj->dmlReturningArray) {
+            if (dpiVar_getReturnedData(var->handle, arrayPos, &numReturnedRows,
+                    &returnedData) < 0)
+                return cxoError_raiseAndReturnNull();
+            return cxoVar_getArrayValue(var, numReturnedRows, returnedData);
+        }
+        if (dpiVar_getReturnedData(var->handle, 0, &numReturnedRows,
+                &data) < 0)
+            return cxoError_raiseAndReturnNull();
+        if (arrayPos >= numReturnedRows) {
+            PyErr_SetString(PyExc_IndexError,
+                    "cxoVar_getSingleValue: array size exceeded");
+            return NULL;
+        }
     }
 
-    // return the value
-    data = &var->data[arrayPos];
+    // in all other cases, just get the value stored at specified position
+    if (data)
+        data = &data[arrayPos];
+    else data = &var->data[arrayPos];
     if (data->isNull)
         Py_RETURN_NONE;
     value = cxoTransform_toPython(var->type->transformNum, var->connection,
@@ -432,33 +485,6 @@ PyObject *cxoVar_getSingleValue(cxoVar *var, uint32_t arrayPos)
 
 
 //-----------------------------------------------------------------------------
-// cxoVar_getArrayValue()
-//   Return the value of the variable as an array.
-//-----------------------------------------------------------------------------
-static PyObject *cxoVar_getArrayValue(cxoVar *var,
-        uint32_t numElements)
-{
-    PyObject *value, *singleValue;
-    uint32_t i;
-
-    value = PyList_New(numElements);
-    if (!value)
-        return NULL;
-
-    for (i = 0; i < numElements; i++) {
-        singleValue = cxoVar_getSingleValue(var, i);
-        if (!singleValue) {
-            Py_DECREF(value);
-            return NULL;
-        }
-        PyList_SET_ITEM(value, i, singleValue);
-    }
-
-    return value;
-}
-
-
-//-----------------------------------------------------------------------------
 // cxoVar_getValue()
 //   Return the value of the variable.
 //-----------------------------------------------------------------------------
@@ -469,10 +495,14 @@ PyObject *cxoVar_getValue(cxoVar *var, uint32_t arrayPos)
     if (var->isArray) {
         if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
             return cxoError_raiseAndReturnNull();
-        return cxoVar_getArrayValue(var, numElements);
+        return cxoVar_getArrayValue(var, numElements, var->data);
     }
-
-    return cxoVar_getSingleValue(var, arrayPos);
+    if (arrayPos >= var->allocatedElements) {
+        PyErr_SetString(PyExc_IndexError,
+                "cxoVar_getSingleValue: array size exceeded");
+        return NULL;
+    }
+    return cxoVar_getSingleValue(var, NULL, arrayPos);
 }
 
 
@@ -659,6 +689,7 @@ static int cxoVar_setArrayValue(cxoVar *var, PyObject *value)
 //-----------------------------------------------------------------------------
 int cxoVar_setValue(cxoVar *var, uint32_t arrayPos, PyObject *value)
 {
+    var->isValueSet = 1;
     if (var->isArray) {
         if (arrayPos > 0) {
             PyErr_SetString(cxoNotSupportedErrorException,
@@ -737,9 +768,10 @@ static PyObject *cxoVar_externalGetValue(cxoVar *var, PyObject *args,
 static PyObject *cxoVar_externalGetActualElements(cxoVar *var,
         void *unused)
 {
-    uint32_t numElements;
+    uint32_t numElements = var->allocatedElements;
 
-    if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
+    if (var->isArray &&
+            dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
         return cxoError_raiseAndReturnNull();
     return PyInt_FromLong(numElements);
 }
@@ -751,11 +783,12 @@ static PyObject *cxoVar_externalGetActualElements(cxoVar *var,
 //-----------------------------------------------------------------------------
 static PyObject *cxoVar_externalGetValues(cxoVar *var, void *unused)
 {
-    uint32_t numElements;
+    uint32_t numElements = var->allocatedElements;
 
-    if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
+    if (var->isArray &&
+            dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
         return cxoError_raiseAndReturnNull();
-    return cxoVar_getArrayValue(var, numElements);
+    return cxoVar_getArrayValue(var, numElements, NULL);
 }
 
 
@@ -771,10 +804,10 @@ static PyObject *cxoVar_repr(cxoVar *var)
     if (var->isArray) {
         if (dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
             return cxoError_raiseAndReturnNull();
-        value = cxoVar_getArrayValue(var, numElements);
+        value = cxoVar_getArrayValue(var, numElements, var->data);
     } else if (var->allocatedElements == 1)
-        value = cxoVar_getSingleValue(var, 0);
-    else value = cxoVar_getArrayValue(var, var->allocatedElements);
+        value = cxoVar_getSingleValue(var, NULL, 0);
+    else value = cxoVar_getArrayValue(var, var->allocatedElements, NULL);
     if (!value)
         return NULL;
     if (cxoUtils_getModuleAndName(Py_TYPE(var), &module, &name) < 0) {
