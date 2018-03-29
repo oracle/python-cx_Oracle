@@ -681,6 +681,11 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_TIMESTAMP:
         case CXO_TRANSFORM_TIMESTAMP_LTZ:
             timestamp = &dbValue->asTimestamp;
+#if PY_MAJOR_VERSION < 3
+            if (timestamp->year < 1 || timestamp->year > 9999)
+                return PyErr_Format(PyExc_ValueError,
+                        "year %d is out of range", timestamp->year);
+#endif
             return PyDateTime_FromDateAndTime(timestamp->year,
                     timestamp->month, timestamp->day, timestamp->hour,
                     timestamp->minute, timestamp->second,
