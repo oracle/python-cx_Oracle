@@ -70,22 +70,41 @@ classifiers = [
 sourceDir = "src"
 sources = [os.path.join(sourceDir, n) \
         for n in sorted(os.listdir(sourceDir)) if n.endswith(".c")]
+depends = ["src/cxoModule.h"]
 
-# define ODPI-C sources
-dpiSourceDir = os.path.join("odpi", "src")
-dpiSources = [os.path.join(dpiSourceDir, n) \
-        for n in sorted(os.listdir(dpiSourceDir)) if n.endswith(".c")]
+
+# define ODPI-C sources, libraries and include directories; if the environment
+# variables ODPIC_INC_DIR and ODPIC_LIB_DIR are both set, assume these
+# locations contain a compiled installation of ODPI-C; otherwise, use the
+# source of ODPI-C found in the odpi subdirectory
+dpiIncludeDir = os.environ.get("ODPIC_INC_DIR")
+dpiLibDir = os.environ.get("ODPIC_LIB_DIR")
+if dpiIncludeDir and dpiLibDir:
+    dpiSources = []
+    includeDirs = [dpiIncludeDir]
+    libraries = ["odpic"]
+    libraryDirs = [dpiLibDir]
+else:
+    includeDirs = ["odpi/include", "odpi/src"]
+    dpiSourceDir = os.path.join("odpi", "src")
+    dpiSources = [os.path.join(dpiSourceDir, n) \
+            for n in sorted(os.listdir(dpiSourceDir)) if n.endswith(".c")]
+    depends.extend(["odpi/include/dpi.h", "odpi/src/dpiImpl.h",
+            "odpi/src/dpiErrorMessages.h"])
+    libraries = []
+    libraryDirs = []
 
 # setup the extension
 extension = Extension(
         name = "cx_Oracle",
-        include_dirs = ["odpi/include", "odpi/src"],
+        include_dirs = includeDirs,
         extra_compile_args = extraCompileArgs,
         define_macros = [("CXO_BUILD_VERSION", BUILD_VERSION)],
         extra_link_args = extraLinkArgs,
         sources = sources + dpiSources,
-        depends = ["src/cxoModule.h", "odpi/include/dpi.h",
-                "odpi/src/dpiImpl.h", "odpi/src/dpiErrorMessages.h"])
+        depends = depends,
+        libraries = libraries,
+        library_dirs = libraryDirs)
 
 # perform the setup
 setup(
