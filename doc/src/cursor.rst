@@ -191,6 +191,10 @@ Cursor Object
     retrieved from Oracle after the method has completed. The row counts can
     then be retrieved using :meth:`~Cursor.getarraydmlrowcounts()`.
 
+    Both the batcherrors parameter and the arraydmlrowcounts parameter can only
+    be true when executing an insert, update, delete or merge statement; in all
+    other cases an error will be raised.
+
     For maximum efficiency, it is best to use the
     :meth:`~Cursor.setinputsizes()` method to specify the parameter types and
     sizes ahead of time; in particular, None is assumed to be a string of
