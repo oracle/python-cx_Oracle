@@ -498,7 +498,7 @@ static int cxoConnectionParams_finalize(cxoConnectionParams *params)
 int cxoConnection_isConnected(cxoConnection *conn)
 {
     if (!conn->handle) {
-        PyErr_SetString(cxoInterfaceErrorException, "not connected");
+        cxoError_raiseFromString(cxoInterfaceErrorException, "not connected");
         return -1;
     }
     return 0;

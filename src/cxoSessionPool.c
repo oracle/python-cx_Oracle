@@ -189,12 +189,12 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
             &dpiCommonParams.nencoding, &editionObj))
         return -1;
     if (!PyType_Check(connectionType)) {
-        PyErr_SetString(cxoProgrammingErrorException,
+        cxoError_raiseFromString(cxoProgrammingErrorException,
                 "connectiontype must be a type");
         return -1;
     }
     if (!PyType_IsSubtype(connectionType, &cxoPyTypeConnection)) {
-        PyErr_SetString(cxoProgrammingErrorException,
+        cxoError_raiseFromString(cxoProgrammingErrorException,
                 "connectiontype must be a subclass of Connection");
         return -1;
     }
@@ -320,11 +320,9 @@ static PyObject *cxoSessionPool_acquire(cxoSessionPool *pool, PyObject *args,
             &passwordLength, &cclassObj, &purityObj, &tagObj, &matchAnyTagObj,
             &shardingKeyObj, &superShardingKeyObj))
         return NULL;
-    if (pool->homogeneous && username) {
-        PyErr_SetString(cxoProgrammingErrorException,
+    if (pool->homogeneous && username)
+        return cxoError_raiseFromString(cxoProgrammingErrorException,
                 "pool is homogeneous. Proxy authentication is not possible.");
-        return NULL;
-    }
 
     // create arguments
     if (keywordArgs)

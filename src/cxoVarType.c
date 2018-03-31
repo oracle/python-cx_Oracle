@@ -168,7 +168,7 @@ cxoVarType *cxoVarType_fromDataTypeInfo(dpiDataTypeInfo *info)
     if (transformNum == CXO_TRANSFORM_UNSUPPORTED) {
         snprintf(message, sizeof(message), "Oracle type %d not supported.",
                 info->oracleTypeNum);
-        PyErr_SetString(cxoNotSupportedErrorException, message);
+        cxoError_raiseFromString(cxoNotSupportedErrorException, message);
         return NULL;
     }
     return &cxoAllVarTypes[transformNum];
@@ -189,7 +189,7 @@ cxoVarType *cxoVarType_fromPythonType(PyTypeObject *type)
     if (transformNum == CXO_TRANSFORM_UNSUPPORTED) {
         snprintf(message, sizeof(message), "Python type %s not supported.",
                 type->tp_name);
-        PyErr_SetString(cxoNotSupportedErrorException, message);
+        cxoError_raiseFromString(cxoNotSupportedErrorException, message);
         return NULL;
     }
     return &cxoAllVarTypes[transformNum];
@@ -264,7 +264,8 @@ cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
             if (tempTransformNum == CXO_TRANSFORM_UNSUPPORTED) {
                 snprintf(message, sizeof(message),
                         "element %u value is unsupported", (unsigned) i);
-                PyErr_SetString(cxoNotSupportedErrorException, message);
+                cxoError_raiseFromString(cxoNotSupportedErrorException,
+                        message);
                 return NULL;
             } else if (transformNum == CXO_TRANSFORM_NONE) {
                 transformNum = tempTransformNum;
@@ -272,7 +273,8 @@ cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
                 snprintf(message, sizeof(message),
                         "element %u value is not the same type as previous "
                         "elements", (unsigned) i);
-                PyErr_SetString(cxoNotSupportedErrorException, message);
+                cxoError_raiseFromString(cxoNotSupportedErrorException,
+                        message);
                 return NULL;
             }
             tempSize = cxoVarType_calculateSize(elementValue,
@@ -291,7 +293,7 @@ cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
         snprintf(message, sizeof(message),
                 "Python value of type %s not supported.",
                 Py_TYPE(value)->tp_name);
-        PyErr_SetString(cxoNotSupportedErrorException, message);
+        cxoError_raiseFromString(cxoNotSupportedErrorException, message);
         return NULL;
     }
     *size = cxoVarType_calculateSize(value, transformNum);

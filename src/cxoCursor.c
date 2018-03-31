@@ -263,7 +263,7 @@ static void cxoCursor_free(cxoCursor *cursor)
 static int cxoCursor_isOpen(cxoCursor *cursor)
 {
     if (!cursor->isOpen) {
-        PyErr_SetString(cxoInterfaceErrorException, "not open");
+        cxoError_raiseFromString(cxoInterfaceErrorException, "not open");
         return -1;
     }
     return cxoConnection_isConnected(cursor->connection);
@@ -297,7 +297,7 @@ static int cxoCursor_verifyFetch(cxoCursor *cursor)
 
     // make sure the cursor is for a query
     if (!cursor->fetchVariables) {
-        PyErr_SetString(cxoInterfaceErrorException, "not a query");
+        cxoError_raiseFromString(cxoInterfaceErrorException, "not a query");
         return -1;
     }
 
@@ -737,7 +737,7 @@ int cxoCursor_setBindVariables(cxoCursor *cursor, PyObject *parameters,
     if (cursor->bindVariables) {
         origBoundByPos = PyList_Check(cursor->bindVariables);
         if (boundByPos != origBoundByPos) {
-            PyErr_SetString(cxoProgrammingErrorException,
+            cxoError_raiseFromString(cxoProgrammingErrorException,
                     "positional and named binds cannot be intermixed");
             return -1;
         }
@@ -908,7 +908,7 @@ static int cxoCursor_internalPrepare(cxoCursor *cursor, PyObject *statement,
 
     // make sure we don't get a situation where nothing is to be executed
     if (statement == Py_None && !cursor->statement) {
-        PyErr_SetString(cxoProgrammingErrorException,
+        cxoError_raiseFromString(cxoProgrammingErrorException,
                 "no statement specified and no prior statement prepared");
         return -1;
     }
@@ -1078,7 +1078,8 @@ static int cxoCursor_callCalculateSize(PyObject *name,
     // error if the number of arguments exceeds this value; more than this
     // number would probably be unusable in any case!
     if (numPositionalArgs + numKeywordArgs > 10000) {
-        PyErr_SetString(cxoInterfaceErrorException, "too many arguments");
+        cxoError_raiseFromString(cxoInterfaceErrorException,
+                "too many arguments");
         return -1;
     }
 
@@ -1346,11 +1347,8 @@ static PyObject *cxoCursor_execute(cxoCursor *cursor, PyObject *args,
     if (executeArgs && keywordArgs) {
         if (PyDict_Size(keywordArgs) == 0)
             keywordArgs = NULL;
-        else {
-            PyErr_SetString(cxoInterfaceErrorException,
-                    "expecting argument or keyword arguments, not both");
-            return NULL;
-        }
+        else return cxoError_raiseFromString(cxoInterfaceErrorException,
+                "expecting argument or keyword arguments, not both");
     }
     if (keywordArgs)
         executeArgs = keywordArgs;
@@ -1446,11 +1444,9 @@ static PyObject *cxoCursor_executeMany(cxoCursor *cursor, PyObject *args,
     numRows = (uint32_t) PyList_GET_SIZE(listOfArguments);
     for (i = 0; i < numRows; i++) {
         arguments = PyList_GET_ITEM(listOfArguments, i);
-        if (!PyDict_Check(arguments) && !PySequence_Check(arguments)) {
-            PyErr_SetString(cxoInterfaceErrorException,
+        if (!PyDict_Check(arguments) && !PySequence_Check(arguments))
+            return cxoError_raiseFromString(cxoInterfaceErrorException,
                     "expecting a list of dictionaries or sequences");
-            return NULL;
-        }
         if (cxoCursor_setBindVariables(cursor, arguments, numRows, i,
                 (i < numRows - 1)) < 0)
             return NULL;
@@ -1624,11 +1620,9 @@ static PyObject *cxoCursor_fetchRaw(cxoCursor *cursor, PyObject *args,
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|i", keywordList,
             &numRowsToFetch))
         return NULL;
-    if (numRowsToFetch > cursor->fetchArraySize) {
-        PyErr_SetString(cxoInterfaceErrorException,
+    if (numRowsToFetch > cursor->fetchArraySize)
+        return cxoError_raiseFromString(cxoInterfaceErrorException,
                 "rows to fetch exceeds array size");
-        return NULL;
-    }
 
     // perform the fetch
     if (dpiStmt_fetchRows(cursor->handle, numRowsToFetch, &bufferRowIndex,
@@ -1671,11 +1665,8 @@ static PyObject *cxoCursor_scroll(cxoCursor *cursor, PyObject *args,
         mode = DPI_MODE_FETCH_FIRST;
     else if (strcmp(strMode, "last") == 0)
         mode = DPI_MODE_FETCH_LAST;
-    else {
-        PyErr_SetString(cxoInterfaceErrorException,
-                "mode must be one of relative, absolute, first or last");
-        return NULL;
-    }
+    else return cxoError_raiseFromString(cxoInterfaceErrorException,
+            "mode must be one of relative, absolute, first or last");
 
     // make sure the cursor is open
     if (cxoCursor_isOpen(cursor) < 0)
@@ -1713,11 +1704,9 @@ static PyObject *cxoCursor_setInputSizes(cxoCursor *cursor, PyObject *args,
 
     // only expect keyword arguments or positional arguments, not both
     numPositionalArgs = PyTuple_Size(args);
-    if (keywordArgs && numPositionalArgs > 0) {
-        PyErr_SetString(cxoInterfaceErrorException,
+    if (keywordArgs && numPositionalArgs > 0)
+        return cxoError_raiseFromString(cxoInterfaceErrorException,
                 "expecting arguments or keyword arguments, not both");
-        return NULL;
-    }
 
     // make sure the cursor is open
     if (cxoCursor_isOpen(cursor) < 0)
@@ -1898,11 +1887,9 @@ static PyObject *cxoCursor_bindNames(cxoCursor *cursor, PyObject *args)
         return NULL;
 
     // ensure that a statement has already been prepared
-    if (!cursor->statement) {
-        PyErr_SetString(cxoProgrammingErrorException,
+    if (!cursor->statement)
+        return cxoError_raiseFromString(cxoProgrammingErrorException,
                 "statement must be prepared first");
-        return NULL;
-    }
 
     // determine the number of binds
     if (dpiStmt_getBindCount(cursor->handle, &numBinds) < 0)
@@ -2015,7 +2002,7 @@ static PyObject* cxoCursor_getBatchErrors(cxoCursor *cursor)
     result = PyList_New(numErrors);
     if (result) {
         for (i = 0; i < numErrors; i++) {
-            error = cxoError_internalNew(&errors[i]);
+            error = cxoError_newFromInfo(&errors[i]);
             if (!error) {
                 Py_CLEAR(result);
                 break;
@@ -2075,10 +2062,9 @@ static PyObject *cxoCursor_getImplicitResults(cxoCursor *cursor)
         return NULL;
 
     // make sure we have a statement executed (handle defined)
-    if (!cursor->handle) {
-        PyErr_SetString(cxoInterfaceErrorException, "no statement executed");
-        return NULL;
-    }
+    if (!cursor->handle)
+        return cxoError_raiseFromString(cxoInterfaceErrorException,
+                "no statement executed");
 
     // create result
     result = PyList_New(0);

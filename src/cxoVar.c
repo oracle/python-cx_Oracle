@@ -295,7 +295,7 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
     uint32_t numElements;
 
     if (PyList_GET_SIZE(value) != 2) {
-        PyErr_SetString(cxoProgrammingErrorException,
+        cxoError_raiseFromString(cxoProgrammingErrorException,
                 "expecting an array of two elements [type, numelems]");
         return NULL;
     }
@@ -303,7 +303,7 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
     typeObj = PyList_GET_ITEM(value, 0);
     numElementsObj = PyList_GET_ITEM(value, 1);
     if (!PyInt_Check(numElementsObj)) {
-        PyErr_SetString(cxoProgrammingErrorException,
+        cxoError_raiseFromString(cxoProgrammingErrorException,
                 "number of elements must be an integer");
         return NULL;
     }
@@ -692,7 +692,7 @@ int cxoVar_setValue(cxoVar *var, uint32_t arrayPos, PyObject *value)
     var->isValueSet = 1;
     if (var->isArray) {
         if (arrayPos > 0) {
-            PyErr_SetString(cxoNotSupportedErrorException,
+            cxoError_raiseFromString(cxoNotSupportedErrorException,
                     "arrays of arrays are not supported by the OCI");
             return -1;
         }
@@ -713,11 +713,9 @@ static PyObject *cxoVar_externalCopy(cxoVar *targetVar, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "Oii", &sourceVar, &sourcePos, &targetPos))
         return NULL;
-    if (Py_TYPE(targetVar) != Py_TYPE(sourceVar)) {
-        PyErr_SetString(cxoProgrammingErrorException,
+    if (Py_TYPE(targetVar) != Py_TYPE(sourceVar))
+        return cxoError_raiseFromString(cxoProgrammingErrorException,
                 "source and target variable type must match");
-        return NULL;
-    }
     if (dpiVar_copyData(targetVar->handle, targetPos, sourceVar->handle,
             sourcePos) < 0)
         return cxoError_raiseAndReturnNull();

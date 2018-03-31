@@ -213,8 +213,8 @@ static PyObject *cxoObject_getAttributeValue(cxoObject *obj,
     if (attribute->transformNum == CXO_TRANSFORM_UNSUPPORTED) {
         snprintf(message, sizeof(message), "Oracle type %d not supported.",
                 attribute->oracleTypeNum);
-        PyErr_SetString(cxoNotSupportedErrorException, message);
-        return NULL;
+        return cxoError_raiseFromString(cxoNotSupportedErrorException,
+                message);
     }
     cxoTransform_getTypeInfo(attribute->transformNum, &oracleTypeNum,
             &nativeTypeNum);
@@ -367,8 +367,8 @@ static PyObject *cxoObject_internalGetElementByIndex(cxoObject *obj,
     if (obj->objectType->elementTransformNum == CXO_TRANSFORM_UNSUPPORTED) {
         snprintf(message, sizeof(message), "Oracle type %d not supported.",
                 obj->objectType->elementOracleTypeNum);
-        PyErr_SetString(cxoNotSupportedErrorException, message);
-        return NULL;
+        return cxoError_raiseFromString(cxoNotSupportedErrorException,
+                message);
     }
     cxoTransform_getTypeInfo(obj->objectType->elementTransformNum,
             &oracleTypeNum, &nativeTypeNum);

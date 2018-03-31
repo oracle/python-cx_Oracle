@@ -107,11 +107,44 @@ static void cxoError_free(cxoError *error)
 
 
 //-----------------------------------------------------------------------------
-// cxoError_internalNew()
+// cxoError_new()
+//   Create a new error object. This is intended to only be used by the
+// unpickling routine, and not by direct creation!
+//-----------------------------------------------------------------------------
+static PyObject *cxoError_new(PyTypeObject *type, PyObject *args,
+        PyObject *keywordArgs)
+{
+    PyObject *message, *context;
+    int isRecoverable, code;
+    cxoError *error;
+    unsigned offset;
+
+    isRecoverable = 0;
+    if (!PyArg_ParseTuple(args, "OiIO|i", &message, &code, &offset, &context,
+            &isRecoverable))
+        return NULL;
+    error = (cxoError*) type->tp_alloc(type, 0);
+    if (!error)
+        return NULL;
+
+    error->code = code;
+    error->offset = offset;
+    error->isRecoverable = (char) isRecoverable;
+    Py_INCREF(message);
+    error->message = message;
+    Py_INCREF(context);
+    error->context = context;
+
+    return (PyObject*) error;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoError_newFromInfo()
 //   Internal method for creating an error object from the DPI error
 // information.
 //-----------------------------------------------------------------------------
-cxoError *cxoError_internalNew(dpiErrorInfo *errorInfo)
+cxoError *cxoError_newFromInfo(dpiErrorInfo *errorInfo)
 {
     cxoError *error;
 
@@ -149,35 +182,26 @@ cxoError *cxoError_internalNew(dpiErrorInfo *errorInfo)
 
 
 //-----------------------------------------------------------------------------
-// cxoError_new()
-//   Create a new error object. This is intended to only be used by the
-// unpickling routine, and not by direct creation!
+// cxoError_newFromString()
+//   Internal method for creating an error object from the DPI error
+// information.
 //-----------------------------------------------------------------------------
-static PyObject *cxoError_new(PyTypeObject *type, PyObject *args,
-        PyObject *keywordArgs)
+static cxoError *cxoError_newFromString(const char *message)
 {
-    PyObject *message, *context;
-    int isRecoverable, code;
     cxoError *error;
-    unsigned offset;
 
-    isRecoverable = 0;
-    if (!PyArg_ParseTuple(args, "OiIO|i", &message, &code, &offset, &context,
-            &isRecoverable))
-        return NULL;
-    error = (cxoError*) type->tp_alloc(type, 0);
+    error = (cxoError*) cxoPyTypeError.tp_alloc(&cxoPyTypeError, 0);
     if (!error)
         return NULL;
+    Py_INCREF(Py_None);
+    error->context = Py_None;
+    error->message = cxoPyString_fromAscii(message);
+    if (!error->message) {
+        Py_DECREF(error);
+        return NULL;
+    }
 
-    error->code = code;
-    error->offset = offset;
-    error->isRecoverable = (char) isRecoverable;
-    Py_INCREF(message);
-    error->message = message;
-    Py_INCREF(context);
-    error->context = context;
-
-    return (PyObject*) error;
+    return error;
 }
 
 
@@ -217,7 +241,7 @@ int cxoError_raiseFromInfo(dpiErrorInfo *errorInfo)
     PyObject *exceptionType;
     cxoError *error;
 
-    error = cxoError_internalNew(errorInfo);
+    error = cxoError_newFromInfo(errorInfo);
     if (!error)
         return -1;
     switch (errorInfo->code) {
@@ -262,6 +286,25 @@ int cxoError_raiseFromInfo(dpiErrorInfo *errorInfo)
     PyErr_SetObject(exceptionType, (PyObject*) error);
     Py_DECREF(error);
     return -1;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoError_raiseFromString()
+//   Internal method for raising an exception given an error information
+// structure from DPI. Return -1 as a convenience to the caller.
+//-----------------------------------------------------------------------------
+PyObject *cxoError_raiseFromString(PyObject *exceptionType,
+        const char *message)
+{
+    cxoError *error;
+
+    error = cxoError_newFromString(message);
+    if (!error)
+        return NULL;
+    PyErr_SetObject(exceptionType, (PyObject*) error);
+    Py_DECREF(error);
+    return NULL;
 }
 
 

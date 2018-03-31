@@ -406,10 +406,12 @@ cxoDeqOptions *cxoDeqOptions_new(cxoConnection *connection);
 
 cxoEnqOptions *cxoEnqOptions_new(cxoConnection *connection);
 
-cxoError *cxoError_internalNew(dpiErrorInfo *errorInfo);
+cxoError *cxoError_newFromInfo(dpiErrorInfo *errorInfo);
 int cxoError_raiseAndReturnInt(void);
 PyObject *cxoError_raiseAndReturnNull(void);
 int cxoError_raiseFromInfo(dpiErrorInfo *errorInfo);
+PyObject *cxoError_raiseFromString(PyObject *exceptionType,
+        const char *message);
 
 PyObject *cxoLob_new(cxoConnection *connection, dpiOracleTypeNum oracleTypeNum,
         dpiLob *handle);

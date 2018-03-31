@@ -155,9 +155,8 @@ static PyObject* cxoModule_clientVersion(PyObject* self, PyObject* args)
 //-----------------------------------------------------------------------------
 static PyObject* cxoModule_time(PyObject* self, PyObject* args)
 {
-    PyErr_SetString(cxoNotSupportedErrorException,
+    return cxoError_raiseFromString(cxoNotSupportedErrorException,
             "Oracle does not support time only variables");
-    return NULL;
 }
 
 
@@ -167,9 +166,8 @@ static PyObject* cxoModule_time(PyObject* self, PyObject* args)
 //-----------------------------------------------------------------------------
 static PyObject* cxoModule_timeFromTicks(PyObject* self, PyObject* args)
 {
-    PyErr_SetString(cxoNotSupportedErrorException,
+    return cxoError_raiseFromString(cxoNotSupportedErrorException,
             "Oracle does not support time only variables");
-    return NULL;
 }
 
 

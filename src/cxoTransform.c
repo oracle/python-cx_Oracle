@@ -355,7 +355,7 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
             break;
     }
 
-    PyErr_SetString(cxoNotSupportedErrorException,
+    cxoError_raiseFromString(cxoNotSupportedErrorException,
             "Python value cannot be converted to a database value");
     return -1;
 }
@@ -754,8 +754,7 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
             break;
     }
 
-    PyErr_SetString(cxoNotSupportedErrorException,
+    return cxoError_raiseFromString(cxoNotSupportedErrorException,
             "Database value cannot be converted to a Python value");
-    return NULL;
 }
 
