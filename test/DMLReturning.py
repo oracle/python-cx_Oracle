@@ -217,3 +217,20 @@ class TestDMLReturning(BaseTestCase):
             cx_Oracle.__future__.dml_ret_array_val = False
         self.connection.rollback()
 
+    def testDeleteReturningDecreasingRowsReturned(self):
+        "test delete returning multiple times with decreasing number of rows"
+        data = [(i, "Test String %d" % i) for i in range(1, 11)]
+        self.cursor.execute("truncate table TestTempTable")
+        self.cursor.executemany("insert into TestTempTable values (:1, :2)",
+                data)
+        results = []
+        intVar = self.cursor.var(int)
+        self.cursor.setinputsizes(None, intVar)
+        for intVal in (5, 8, 10):
+            self.cursor.execute("""
+                    delete from TestTempTable
+                    where IntCol < :1
+                    returning IntCol into :2""", [intVal])
+            results.append(intVar.values)
+        self.assertEqual(results, [ [1, 2, 3, 4], [5, 6, 7], [8, 9] ])
+
