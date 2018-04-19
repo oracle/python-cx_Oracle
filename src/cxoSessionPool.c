@@ -169,9 +169,13 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
             NULL };
 
     // parse arguments and keywords
-    externalAuthObj = editionObj = NULL;
+    usernameObj = passwordObj = dsnObj = editionObj = Py_None;
+    externalAuthObj = NULL;
     threadedObj = eventsObj = homogeneousObj = passwordObj = NULL;
     connectionType = &cxoPyTypeConnection;
+    minSessions = 1;
+    maxSessions = 2;
+    sessionIncrement = 1;
     if (cxoUtils_initializeDPI() < 0)
         return -1;
     if (dpiContext_initCommonCreateParams(cxoDpiContext, &dpiCommonParams) < 0)
@@ -181,11 +185,11 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
             (uint32_t) strlen(dpiCommonParams.driverName);
     if (dpiContext_initPoolCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OOOiii|OObOOOssO",
-            keywordList, &usernameObj, &passwordObj, &dsnObj,
-            &minSessions, &maxSessions, &sessionIncrement, &connectionType,
-            &threadedObj, &dpiCreateParams.getMode, &eventsObj,
-            &homogeneousObj, &externalAuthObj, &dpiCommonParams.encoding,
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OOOiiiOObOOOssO",
+            keywordList, &usernameObj, &passwordObj, &dsnObj, &minSessions,
+            &maxSessions, &sessionIncrement, &connectionType, &threadedObj,
+            &dpiCreateParams.getMode, &eventsObj, &homogeneousObj,
+            &externalAuthObj, &dpiCommonParams.encoding,
             &dpiCommonParams.nencoding, &editionObj))
         return -1;
     if (!PyType_Check(connectionType)) {
@@ -228,18 +232,14 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
 
     // populate parameters
     encoding = cxoUtils_getAdjustedEncoding(dpiCommonParams.encoding);
-    if (cxoBuffer_fromObject(&userNameBuffer, pool->username, encoding) < 0)
-        return -1;
-    if (cxoBuffer_fromObject(&passwordBuffer, passwordObj, encoding) < 0) {
-        cxoBuffer_clear(&userNameBuffer);
-        return -1;
-    }
-    if (cxoBuffer_fromObject(&dsnBuffer, pool->dsn, encoding) < 0) {
-        cxoBuffer_clear(&userNameBuffer);
-        cxoBuffer_clear(&passwordBuffer);
-        return -1;
-    }
-    if (cxoBuffer_fromObject(&editionBuffer, editionObj, encoding) < 0) {
+    cxoBuffer_init(&userNameBuffer);
+    cxoBuffer_init(&passwordBuffer);
+    cxoBuffer_init(&dsnBuffer);
+    cxoBuffer_init(&editionBuffer);
+    if (cxoBuffer_fromObject(&userNameBuffer, usernameObj, encoding) < 0 ||
+            cxoBuffer_fromObject(&passwordBuffer, passwordObj, encoding) < 0 ||
+            cxoBuffer_fromObject(&dsnBuffer, dsnObj, encoding) < 0 ||
+            cxoBuffer_fromObject(&editionBuffer, editionObj, encoding) < 0) {
         cxoBuffer_clear(&userNameBuffer);
         cxoBuffer_clear(&passwordBuffer);
         cxoBuffer_clear(&dsnBuffer);

@@ -176,8 +176,8 @@ Module Interface
         This method is an extension to the DB API definition.
 
 
-.. function:: SessionPool(user, password, dsn, min, max, increment, \
-        connectiontype=cx_Oracle.Connection, threaded=False, \
+.. function:: SessionPool(user=None, password=None, dsn=None, min=1, max=2, \
+        increment=1, connectiontype=cx_Oracle.Connection, threaded=False, \
         getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, events=False, \
         homogeneous=True, externalauth=False, encoding=None, nencoding=None, \
         edition=None)

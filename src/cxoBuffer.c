@@ -23,7 +23,7 @@
 int cxoBuffer_fromObject(cxoBuffer *buf, PyObject *obj, const char *encoding)
 {
     cxoBuffer_init(buf);
-    if (!obj)
+    if (!obj || obj == Py_None)
         return 0;
     if (PyUnicode_Check(obj)) {
         buf->obj = PyUnicode_AsEncodedString(obj, encoding, NULL);
