@@ -176,9 +176,9 @@ sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
           <p>Review the code contained in <code>db_config.py</code> and <code>db_config.sql</code>:</p>
            <code>db_config.py</code>
           <pre>
-user="pythonhol"
-pw="welcome"
-dsn="localhost/orclpdb"
+user = "pythonhol"
+pw = "welcome"
+dsn = "localhost/orclpdb"
 </pre>
  <code>db_config.sql</code>
            <pre>
@@ -205,9 +205,9 @@ print("Database version:", con.version)
           accessing the Oracle database. Many inbuilt and third party
           modules can be included in this way in Python scripts.</p>
 
-          <p> The <code>connect()</code> method is passed the username
-          "pythonhol", the password "welcome" and the connection
-          string. In this case, Oracle's Easy Connect connection
+          <p> The <code>connect()</code> method is passed the username,
+          the password and the connection string that you configured in
+          the db_config.py module. In this case, Oracle's Easy Connect connection
           string syntax is used. It consists of the hostname of your
           machine, <code>localhost</code>, and the database service name
           <code>orclpdb</code>. </p>
@@ -452,7 +452,7 @@ print("All done!")
 </pre>
 
           <p>The <code>SessionPool()</code> function creates a pool of
-          Oracle "sessions" for the "pythonhol" user.  Sessions in the pool
+          Oracle "sessions" for the user.  Sessions in the pool
           can be used by cx_Oracle connections by calling
           <code>pool.acquire()</code>.  The initial pool size is 2 sessions.
           The maximum size is 5 sessions.  When the pool needs to grow, 1 new
