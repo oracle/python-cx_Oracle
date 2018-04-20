@@ -13,7 +13,7 @@
 
 set echo off termout on feedback off verify off
 
-define main_user = "pythonhol"         -- $CX_ORACLE_SAMPLES_MAIN_USER
+define main_user = "pythonhol2"         -- $CX_ORACLE_SAMPLES_MAIN_USER
 define main_password = "welcome"       -- $CX_ORACLE_SAMPLES_MAIN_PASSWORD
 
 prompt ************************************************************************

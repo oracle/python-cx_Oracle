@@ -8,7 +8,7 @@
 
 set echo on
 
-connect pythonhol/welcome@localhost/orclpdb
+@@db_config.sql
 
 create or replace procedure myproc(v1_p in number, v2_p out number) as
 begin

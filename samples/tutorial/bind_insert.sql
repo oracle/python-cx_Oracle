@@ -8,9 +8,19 @@
 
 set echo on
 
-connect pythonhol/welcome@localhost/orclpdb
+@@db_config.sql
 
-drop table mytab;
+connect &user/&pw@&connect_string
+
+begin
+  execute immediate 'drop table mytab';
+exception
+when others then
+  if sqlcode not in (-00942) then
+    raise;
+  end if;
+end;
+/
 
 create table mytab (id number, data varchar2(20), constraint my_pk primary key (id));
 
