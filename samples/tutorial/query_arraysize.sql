@@ -8,9 +8,18 @@
 
 set echo on
 
-connect pythonhol/welcome@localhost/orclpdb
+@@db_config.sql
+connect &user/&pw@&connect_string
 
-drop table bigtab;
+begin
+  execute immediate 'drop table bigtab';
+exception
+when others then
+  if sqlcode not in (-00942) then
+    raise;
+  end if;
+end;
+/
 
 create table bigtab (mycol varchar2(20));
 begin
