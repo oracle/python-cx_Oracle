@@ -17,16 +17,18 @@
 
   <ul>
     <li><a href="#preface" >Preface</a></li>
+    <li><a href="#connectioninformation" >Connection Information</a></li>
     <li><a href="#overview" >Overview</a></li>
     <li><a href="#lab" >Using Python cx_Oracle 6 with Oracle Database 12c</a></li>
     <ul>
       <li><a href="#connecting">1. Connecting to Oracle</a>
         <ul>
-          <li>1.1 Creating a basic connection</li>
-          <li>1.2 Indentation indicates code structure</li>
-          <li>1.3 Executing a query</li>
-          <li>1.4 Closing connections</li>
-          <li>1.5 Checking versions</li>
+          <li>1.1 Set the connection values</li>
+          <li>1.2 Creating a basic connection</li>
+          <li>1.3 Indentation indicates code structure</li>
+          <li>1.4 Executing a query</li>
+          <li>1.5 Closing connections</li>
+          <li>1.6 Checking versions</li>
         </ul>
       </li>
       <li><a href="#pooling">2. Connection Pooling</a>
@@ -123,7 +125,7 @@
 sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
 </pre>
 
-  <h2><a name="overview">Connection Information</a></h2>
+  <h2><a name="connectioninformation">Connection Information</a></h2>
 
   <p>The database connection information is set in two files:
     <ul>
@@ -333,7 +335,9 @@ for row in res:
 
           <pre><strong>python query.py</strong></pre>
 
-          <p>This gives the error "cx_Oracle.DatabaseError: DPI-1054: connection cannot be closed when open statements or LOBs exist".</p>
+          <p>If you are using cx_Oracle 6.2+ the connection will close and you can skip ahead to section 1.6.</p>
+
+          <p>If you are using an older version of cx_Oracle, this gives the error "cx_Oracle.DatabaseError: DPI-1054: connection cannot be closed when open statements or LOBs exist".</p>
 
           <p>To fix this, edit the file and close the cursor:</p>
 
@@ -362,7 +366,7 @@ con.close()
         </li>
 
         <li>
-          <h4>1.5 Checking versions</h4>
+          <h4>1.6 Checking versions</h4>
 
           <p>Review the code contained in <code>versions.py</code>:</p>
 
@@ -628,7 +632,7 @@ print("Database version:", con.version)
 import cx_Oracle
 import threading
 
-pool = cx_Oracle.SessionPool(db_config.user, db_config.pw, db_config.dsn + "<strong>:pooled</strong>",
+pool = cx_Oracle.SessionPool(db_config.user, db_config.pw, db_config.dsn <strong>+ ":pooled"</strong>,
                              min = 2, max = 5, increment = 1, threaded = True)
 
 def Query():
@@ -1850,6 +1854,7 @@ for row in rows:
 
   <pre>
 import cx_Oracle
+import db_config
 
 class MyConnection(cx_Oracle.Connection):
 
@@ -1894,6 +1899,7 @@ print("Number of rows:", count)
 
 <pre>
 import cx_Oracle
+import db_config
 
 class MyConnection(cx_Oracle.Connection):
 
