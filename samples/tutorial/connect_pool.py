@@ -12,7 +12,7 @@ import cx_Oracle
 import threading
 import db_config
 
-con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn,
+pool = cx_Oracle.SessionPool(db_config.user, db_config.pw, db_config.dsn,
                              min = 2, max = 5, increment = 1, threaded = True)
 
 def Query():
