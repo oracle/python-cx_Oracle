@@ -9,6 +9,7 @@
 set echo on
 
 @@db_config.sql
+connect &user/&pw@&connect_string
 
 begin
   execute immediate 'drop table ptab';
