@@ -103,24 +103,42 @@
   preconfigured with Oracle Database, Python 3.6, cx_Oracle 6.0, a
   text editor, and access to a terminal console.</p>
 
-  <p>To set up a similar environment yourself, install:</p>
+  <p>To set up a similar environment yourself, install the following required software:</p>
 
-  <ul>
-    <li>Python 3.6</li>
-    <li>cx_Oracle 6.0</li>
-    <li>Oracle Database 12c</li>
-  </ul>
+<ol>
+  <li><a target="_blank" href="https://www.python.org/">Python</a> (3.6 preferred but 2.7 should work)</li>
+  <li>cx_Oracle (6.2.1 preferred any 6.x should work) and Oracle Instant Client Package - Basic (12.2 preferred 12.1 should work)
+    <ul>
+      <li><a target="_blank" href="http://cx-oracle.readthedocs.io/en/latest/installation.html#installing-cx-oracle-on-linux">Linux</a></li>
+      <li><a target="_blank" href="http://cx-oracle.readthedocs.io/en/latest/installation.html#installing-cx-oracle-on-macos">macOS</a> - please note the special instructions for macOS in the link.</li>
+      <li><a target="_blank" href="http://cx-oracle.readthedocs.io/en/latest/installation.html#installing-cx-oracle-on-windows">Windows</a></li>
+    </ul>
+  </li>
+  <li>Oracle <a target="_blank" href="http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html">Instant Client Package - SQL*Plus</a> OR Oracle <a target="_blank" href="http://www.oracle.com/technetwork/developer-tools/sqlcl/downloads/index.html">SQLcl</a></li>
+</ol>
 
-  <p>It is easist to have a local pluggable database with the service
-  'orclpdb' configured.  If your database is not local, or has a
-  different service, you will need to modify the connect string in all
-  samples.</p>
-
-  <p>To create the schema run:</p>
+<p>To create the schema run:</p>
 
 <pre>
 sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
 </pre>
+
+  <h2><a name="overview">Connection Information</a></h2>
+
+  <p>The database connection information is set in two files:
+    <ul>
+      <li>db_config.py which is imported by the other Python modules.</li>
+      <li>db_config.sql which is used by the other SQL scripts.</li>
+    </ul>
+  </p>
+
+  <p>The username is "pythonhol" with
+  the password "welcome".  The connect string is "localhost/orclpdb".
+  See <code>sql/SampleEnv.sql</code>.</p>
+
+  <p>It is easist to have a local pluggable database with the service
+  'orclpdb' configured.  If your database is not local, or has a
+  different service, you will need to modify the connection information in db_config.py and db_config.sql.</p>
 
   <p>The following sections may need adjusting, depending on how you
   have set up your environment.</p>
@@ -138,10 +156,6 @@ sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
 
   <p>Use the Desktop icons to start editors and terminal windows.</p>
 
-  <p> A pre-created schema exists.  The username is "pythonhol" with
-  the password "welcome".  The connect string is "localhost/orclpdb".
-  See <code>sql/SampleEnv.sql</code>.</p>
-
   <p>If you are new to Python review the <a href="#primer">Appendix:
   Python Primer</a> to gain an understanding of the language. </p>
 
@@ -156,11 +170,32 @@ sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
       <h3><a name="connecting">1. Connecting to Oracle</a></h3>
       <ul>
         <li>
-          <h4>1.1 Creating a basic connection</h4>
+          <h4>1.1 Set the connection values</h4>
+          <p>Review the code contained in <code>db_config.py</code> and <code>db_config.sql</code>:</p>
+           <code>db_config.py</code>
+          <pre>
+user="pythonhol"
+pw="welcome"
+dsn="localhost/orclpdb"
+</pre>
+ <code>db_config.sql</code>
+           <pre>
+def user = "pythonhol"
+def pw = "welcome"
+def connect_string = "localhost/orclpdb"
+</pre>
+          <p>Modify the values in both files to match the connection information for your environment.</p>
+
+        </li>
+
+        <li>
+          <h4>1.2 Creating a basic connection</h4>
           <p>Review the code contained in <code>connect.py</code>:</p>
           <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 print("Database version:", con.version)
 </pre>
 
@@ -192,7 +227,7 @@ print("Database version:", con.version)
         </li>
 
         <li>
-          <h4>1.2 Indentation indicates code structure</h4>
+          <h4>1.3 Indentation indicates code structure</h4>
 
           <p>There are no statement terminators or begin/end keywords
           or braces to indicate blocks of code.</p>
@@ -202,7 +237,9 @@ print("Database version:", con.version)
 
           <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
   print("Database version:", con.version)
 </pre>
 
@@ -224,20 +261,24 @@ con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
         </li>
 
         <li>
-          <h4>1.3 Executing a query</h4>
+          <h4>1.4 Executing a query</h4>
 
           <p>Open <code>query.py</code> in an editor.  It looks like:</p>
 
           <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 </pre>
 
           <p>Edit the file and add the code shown in bold below:</p>
 
           <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 
 <strong>cur = con.cursor()
 cur.execute("select * from dept order by deptno")
@@ -261,7 +302,7 @@ for row in res:
         </li>
 
         <li>
-          <h4>1.4 Closing connections</h4>
+          <h4>1.5 Closing connections</h4>
 
           <p>Connections and other resources used by cx_Oracle will
           automatically be closed at the end of scope.  This is a common
@@ -275,7 +316,9 @@ for row in res:
 
           <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 
 cur = con.cursor()
 cur.execute("select * from dept order by deptno")
@@ -296,7 +339,9 @@ for row in res:
 
           <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 
 cur = con.cursor()
 cur.execute("select * from dept order by deptno")
@@ -323,7 +368,9 @@ con.close()
 
           <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 
 print(cx_Oracle.version)</pre>
 
@@ -337,7 +384,9 @@ print(cx_Oracle.version)</pre>
 
           <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 
 print(cx_Oracle.version)
 <strong>print("Database version:", con.version)
@@ -373,8 +422,9 @@ Client version: (12, 2, 0, 1, 0)
       <pre>
 import cx_Oracle
 import threading
+import db_config
 
-pool = cx_Oracle.<strong>SessionPool</strong>("pythonhol", "welcome", "localhost/orclpdb",
+pool = cx_Oracle.<strong>SessionPool</strong>(db_config.user, db_config.pw, db_config.dsn,
                              min = 2, max = 5, increment = 1, threaded = True)
 
 def Query():
@@ -445,8 +495,9 @@ of threads:</p>
 <pre>
 import cx_Oracle
 import threading
+import db_config
 
-pool = cx_Oracle.SessionPool("pythonhol", "welcome", "localhost/orclpdb",
+pool = cx_Oracle.SessionPool(db_config.user, db_config.pw, db_config.dsn,
                              min = 2, max = 5, increment = 1, threaded = True)
 
 def Query():
@@ -533,7 +584,9 @@ is available.</p>
 
   <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb<strong>:pooled</strong>",
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn + "<strong>:pooled</strong>",
                         cclass=&quot;PYTHONHOL&quot;, purity=cx_Oracle.ATTR_PURITY_SELF)
 print("Database version:", con.version)
 </pre>
@@ -575,7 +628,7 @@ print("Database version:", con.version)
 import cx_Oracle
 import threading
 
-pool = cx_Oracle.SessionPool("pythonhol", "welcome", "localhost/orclpdb<strong>:pooled</strong>",
+pool = cx_Oracle.SessionPool(db_config.user, db_config.pw, db_config.dsn + "<strong>:pooled</strong>",
                              min = 2, max = 5, increment = 1, threaded = True)
 
 def Query():
@@ -658,7 +711,9 @@ import time</pre>
 
 <pre>
 import cx_Oracle
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+import db_config
+
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 
 cur = con.cursor()
 cur.execute("select * from dept order by deptno")
@@ -691,8 +746,9 @@ for deptno, dname, loc in cur:
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 cur.execute("select * from dept order by deptno")
@@ -720,8 +776,9 @@ print(row)
 
   <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 cur.execute("select * from dept order by deptno")
@@ -761,8 +818,9 @@ print(res)
 
     <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor(scrollable = True)
 
 cur.execute("select * from dept order by deptno")
@@ -826,8 +884,9 @@ commit;
 <pre>
 import cx_Oracle
 import time
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 
 start = time.time()
 
@@ -898,8 +957,9 @@ print(elapsed, "seconds")
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 cur.prepare("select * from dept where deptno = :id order by deptno")
@@ -952,8 +1012,9 @@ create table mytab (id number, data varchar2(20), constraint my_pk primary key (
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 rows = [ (1, &quot;First&quot; ), (2, &quot;Second&quot; ),
@@ -1018,8 +1079,9 @@ rows = [ (1, &quot;First&quot; ), (2, &quot;Second&quot; ),
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 rows = [ (1, &quot;First&quot; ), (2, &quot;Second&quot; ),
@@ -1067,6 +1129,7 @@ print(res)
   Spatial Data Objects (SDO).</p>
 
   <p>In a terminal window, start SQL*Plus:</p>
+  <p>(Modify the following command to use your connection values.)</p>
 
   <pre>
 sqlplus pythonhol/welcome@localhost/orclpdb
@@ -1094,8 +1157,9 @@ desc MDSYS.SDO_GEOMETRY
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 # Create table
@@ -1257,8 +1321,9 @@ create or replace function myfunc(d_p in varchar2, i_p in number) return number 
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 res = cur.callfunc('myfunc', int, ('abc', 2))
@@ -1302,8 +1367,9 @@ end;
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 myvar = cur.var(int)
@@ -1350,8 +1416,9 @@ print(myvar.getvalue())
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 print("Standard output...")
@@ -1407,8 +1474,9 @@ for row in cur.execute("select * from dept"):
 
       <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 for value, in cur.execute("select 0.1 from dual"):
@@ -1429,8 +1497,9 @@ for value, in cur.execute("select 0.1 from dual"):
 <pre>
 import cx_Oracle
 <strong>import decimal</strong>
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 <strong>def ReturnNumbersAsDecimal(cursor, name, defaultType, size, precision, scale):
@@ -1481,8 +1550,9 @@ def ReturnNumbersAsDecimal(cursor, name, defaultType, size, precision, scale):
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 # Create table
@@ -1600,8 +1670,9 @@ an Oracle object from the Python object values.  The
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 print("Inserting data...")
@@ -1648,8 +1719,9 @@ print("CLOB data:", clobdata)
 
 <pre>
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 print("Inserting data...")
@@ -1704,8 +1776,9 @@ print("CLOB data:", clobdata)</strong>
 <pre>
 import collections
 import cx_Oracle
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 cur.execute("select deptno, dname from dept")
@@ -1782,7 +1855,7 @@ class MyConnection(cx_Oracle.Connection):
 
     def __init__(self):
         print("Connecting to database")
-        return super(MyConnection, self).__init__("pythonhol", "welcome", "localhost/orclpdb")
+        return super(MyConnection, self).__init__(db_config.user, db_config.pw, db_config.dsn)
 
 con = MyConnection()
 cur = con.cursor()
@@ -1826,7 +1899,7 @@ class MyConnection(cx_Oracle.Connection):
 
     def __init__(self):
         print("Connecting to database")
-        return super(MyConnection, self).__init__("pythonhol", "welcome", "localhost/orclpdb")
+        return super(MyConnection, self).__init__(db_config.user, db_config.pw, db_config.dsn)
 
 <strong>    def cursor(self):
         return MyCursor(self)
@@ -1879,8 +1952,9 @@ invoke the parent methods to do the actual statement execution.</p>
 <pre>
 import cx_Oracle
 import decimal
+import db_config
 
-con = cx_Oracle.connect("pythonhol", "welcome", "localhost/orclpdb")
+con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
 BOOK_TYPE_NAME = "UDT_BOOK"

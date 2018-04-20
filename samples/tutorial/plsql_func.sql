@@ -8,7 +8,17 @@
 
 set echo on
 
-connect pythonhol/welcome@localhost/orclpdb
+@@db_config.sql
+
+begin
+  execute immediate 'drop table ptab';
+exception
+when others then
+  if sqlcode not in (-00942) then
+    raise;
+  end if;
+end;
+/
 
 create table ptab (mydata varchar(20), myid number);
 
