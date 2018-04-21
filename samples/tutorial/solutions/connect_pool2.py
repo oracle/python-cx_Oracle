@@ -11,8 +11,9 @@ from __future__ import print_function
 import cx_Oracle
 import threading
 import time
+import db_config
 
-pool = cx_Oracle.SessionPool("pythonhol", "welcome", "localhost/orclpdb:pooled",
+pool = cx_Oracle.SessionPool(db_config.user, db_config.pw, db_config.dsn + ":pooled",
                              min = 2, max = 5, increment = 1, threaded = True)
 
 def Query():
