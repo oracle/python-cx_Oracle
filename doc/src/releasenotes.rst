@@ -8,6 +8,69 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.3 (April 2018)
+------------------------
+
+#)  Update to `ODPI-C 2.3.1
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-2-3-1-april-25-2018>`__.
+
+    - Fixed binding of LONG data (values exceeding 32KB) when using the
+      function :meth:`Cursor.executemany()`.
+    - Added code to verify that a CQN subscription is open before permitting it
+      to be used. Error "DPI-1060: subscription was already closed" will now be
+      raised if an attempt is made to use a subscription that was closed
+      earlier.
+    - Stopped attempting to unregister a CQN subscription before it was
+      completely registered. This prevents errors encountered during
+      registration from being masked by an error stating that the subscription
+      has not been registered!
+    - Added error "DPI-1061: edition is not supported when a new password is
+      specified" to clarify the fact that specifying an edition and a new
+      password at the same time is not supported when creating a connection.
+      Previously the edition value was simply ignored.
+    - Improved error message when older OCI client libraries are being used
+      that don't have the method OCIClientVersion().
+    - Fixed the handling of ANSI types REAL and DOUBLE PRECISION as
+      implemented by Oracle. These types are just subtypes of NUMBER and are
+      different from BINARY_FLOAT and BINARY_DOUBLE
+      (`issue 163 <https://github.com/oracle/python-cx_Oracle/issues/163>`__).
+    - Fixed support for true heterogeneous session pools that use different
+      user/password combinations for each session acquired from the pool.
+    - Added error message indicating that setting either of the parameters
+      arraydmlrowcounts and batcherrors to True in :meth:`Cursor.executemany()`
+      is only supported with insert, update, delete and merge statements.
+
+#)  Fixed support for getting the OUT values of bind variables bound to a DML
+    Returning statement when calling the function :meth:`Cursor.executemany()`.
+    Note that the attribute dml_ret_array_val in :attr:`cx_Oracle.__future__`
+    must be set to True first.
+#)  Added support for binding integers and floats as cx_Oracle.NATIVE_FLOAT.
+#)  A :attr:`cx_Oracle._Error` object is now the value of all cx_Oracle
+    exceptions raised by cx_Oracle.
+    (`issue 51 <https://github.com/oracle/python-cx_Oracle/issues/51>`__).
+#)  Added support for building cx_Oracle with a pre-compiled version of ODPI-C,
+    as requested
+    (`issue 103 <https://github.com/oracle/python-cx_Oracle/issues/103>`__).
+#)  Default values are now provided for all parameters to
+    :meth:`cx_Oracle.SessionPool`.
+#)  Improved error message when an unsupported Oracle type is encountered.
+#)  The Python GIL is now prevented from being held while performing a round
+    trip for the call to get the attribute :attr:`Connection.version`
+    (`issue 158 <https://github.com/oracle/python-cx_Oracle/issues/158>`__).
+#)  Added check for the validity of the year for Python 2.x since it doesn't do
+    that itself like Python 3.x does
+    (`issue 166 <https://github.com/oracle/python-cx_Oracle/issues/166>`__).
+#)  Adjusted documentation to provide additional information on the use of
+    :meth:`Cursor.executemany()` as requested
+    (`issue 153 <https://github.com/oracle/python-cx_Oracle/issues/153>`__).
+#)  Adjusted documentation to state that batch errors and array DML row counts
+    can only be used with insert, update, delete and merge statements
+    (`issue 31 <https://github.com/oracle/python-cx_Oracle/issues/31>`__).
+#)  Updated tutorial to import common connection information from files in
+    order to make setup a bit more generic.
+
+
 Version 6.2.1 (March 2018)
 --------------------------
 
@@ -100,7 +163,7 @@ Version 6.1 (December 2017)
     - Variables of string/raw types are restricted to 2 bytes less than 1 GB
       (1,073,741,822 bytes), since OCI cannot handle more than that currently.
     - Support was added for identifying the id of the transaction which spawned
-      a subscription message, as requested
+      a CQN subscription message, as requested
       (`ODPI-C issue 32 <https://github.com/oracle/odpi/issues/32>`__).
     - Corrected use of subscription port number (`issue 115
       <https://github.com/oracle/python-cx_Oracle/issues/115>`__).
@@ -198,7 +261,7 @@ Version 6.0.1 (August 2017)
       be exposed (`ODPI-C issue 28
       <https://github.com/oracle/odpi/issues/28>`__). It will be dropped in
       version 6.1.
-    - Add support for DML returning statements that require dynamically
+    - Add support for DML Returning statements that require dynamically
       allocated variable data (such as CLOBs being returned as strings).
 
 #)  Correct packaging of Python 2.7 UCS4 wheels on Linux
@@ -358,7 +421,7 @@ Version 6.0 beta 1 (April 2017)
 #)  Added support for
     `universal rowids <https://github.com/oracle/python-cx_Oracle/blob/master/
     samples/UniversalRowids.py>`__.
-#)  Added support for `DML returning of multiple rows
+#)  Added support for `DML Returning of multiple rows
     <https://github.com/oracle/python-cx_Oracle/blob/master/samples/
     DMLReturningMultipleRows.py>`__.
 #)  Added attributes :attr:`Variable.actualElements` and
