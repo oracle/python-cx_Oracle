@@ -18,7 +18,8 @@
 # is being used to combine and work with geospatial data from numerous
 # additional sources such as files and web services.
 #
-# This script requires cx_Oracle 5.3 and higher.
+# This script requires cx_Oracle (5.3 and higher) as well as GeoPandas and its
+# dependencies (see http://geopandas.org/install.html).
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
