@@ -443,11 +443,14 @@ PyObject *cxoVar_getSingleValue(cxoVar *var, dpiData *data, uint32_t arrayPos)
         if (dpiVar_getReturnedData(var->handle, 0, &numReturnedRows,
                 &data) < 0)
             return cxoError_raiseAndReturnNull();
-        if (arrayPos >= numReturnedRows) {
+        if (arrayPos >= var->allocatedElements &&
+                arrayPos >= numReturnedRows) {
             PyErr_SetString(PyExc_IndexError,
                     "cxoVar_getSingleValue: array size exceeded");
             return NULL;
         }
+        if (arrayPos >= numReturnedRows)
+            data = var->data;
     }
 
     // in all other cases, just get the value stored at specified position
@@ -497,7 +500,7 @@ PyObject *cxoVar_getValue(cxoVar *var, uint32_t arrayPos)
             return cxoError_raiseAndReturnNull();
         return cxoVar_getArrayValue(var, numElements, var->data);
     }
-    if (arrayPos >= var->allocatedElements) {
+    if (arrayPos >= var->allocatedElements && !var->getReturnedData) {
         PyErr_SetString(PyExc_IndexError,
                 "cxoVar_getSingleValue: array size exceeded");
         return NULL;

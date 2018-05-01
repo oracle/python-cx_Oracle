@@ -112,6 +112,8 @@ class TestDMLReturning(BaseTestCase):
                 strVar = strVar)
         self.assertEqual(intVar.values, [])
         self.assertEqual(strVar.values, [])
+        self.assertEqual(intVar.getvalue(), None)
+        self.assertEqual(strVar.getvalue(), None)
         cx_Oracle.__future__.dml_ret_array_val = True
         try:
             self.assertEqual(intVar.values, [[]])
@@ -141,6 +143,8 @@ class TestDMLReturning(BaseTestCase):
                 "The final value of string 9",
                 "The final value of string 10"
         ])
+        self.assertEqual(intVar.getvalue(1), 24)
+        self.assertEqual(strVar.getvalue(2), "The final value of string 10")
         cx_Oracle.__future__.dml_ret_array_val = True
         try:
             self.assertEqual(intVar.values, [[23, 24, 25]])
