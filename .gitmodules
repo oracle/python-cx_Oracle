@@ -1,3 +1,4 @@
 [submodule "odpi"]
 	path = odpi
 	url = https://github.com/oracle/odpi.git
+    branch = v2.3.x
