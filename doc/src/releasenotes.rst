@@ -8,6 +8,23 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.3.1 (May 2018)
+------------------------
+
+#)  Update to `ODPI-C 2.3.2
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-2-3-2-may-7-2018>`__.
+
+    - Ensure that a call to unregister a subscription only occurs if the
+      subscription is still registered.
+    - Ensure that before a statement is executed any buffers used for DML
+      returning statments are reset.
+
+#)  Ensure that behavior with cx_Oracle.__future__.dml_ret_array_val not
+    set or False is the same as the behavior in cx_Oracle 6.2
+    (`issue 176 <https://github.com/oracle/python-cx_Oracle/issues/176>`__).
+
+
 Version 6.3 (April 2018)
 ------------------------
 
