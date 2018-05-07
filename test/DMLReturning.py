@@ -158,10 +158,11 @@ class TestDMLReturning(BaseTestCase):
 
     def testUpdateMultipleRowsExecuteMany(self):
         "test update multiple rows with DML returning (executeMany)"
+        data = [(i, "The initial value of string %d" % i) \
+                for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
-        for i in range(1, 11):
-            self.cursor.execute("insert into TestTempTable values (:1, :2)",
-                    (i, "The initial value of string %d" % i))
+        self.cursor.executemany("insert into TestTempTable values (:1, :2)",
+                data)
         intVar = self.cursor.var(cx_Oracle.NUMBER, arraysize = 3)
         strVar = self.cursor.var(str, arraysize = 3)
         self.cursor.setinputsizes(None, intVar, strVar)
@@ -237,4 +238,19 @@ class TestDMLReturning(BaseTestCase):
                     returning IntCol into :2""", [intVal])
             results.append(intVar.values)
         self.assertEqual(results, [ [1, 2, 3, 4], [5, 6, 7], [8, 9] ])
+
+    def testDeleteReturningNoRowsAfterManyRows(self):
+        "test delete returning no rows after initially returning many rows"
+        data = [(i, "Test String %d" % i) for i in range(1, 11)]
+        self.cursor.execute("truncate table TestTempTable")
+        self.cursor.executemany("insert into TestTempTable values (:1, :2)",
+                data)
+        intVar = self.cursor.var(int)
+        self.cursor.execute("""
+                delete from TestTempTable
+                where IntCol < :1
+                returning IntCol into :2""", [5, intVar])
+        self.assertEqual(intVar.values, [1, 2, 3, 4])
+        self.cursor.execute(None, [4, intVar])
+        self.assertEqual(intVar.values, [])
 
