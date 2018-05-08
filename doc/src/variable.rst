@@ -14,10 +14,8 @@ Variable Objects
     This read-only attribute returns the actual number of elements in the
     variable. This corresponds to the number of elements in a PL/SQL index-by
     table for variables that are created using the method
-    :func:`Cursor.arrayvar()`. For output variables in a DML returning
-    statement this value corresponds to the number of rows returned. For all
-    other variables this value will be identical to the attribute
-    :attr:`~Variable.numElements`.
+    :func:`Cursor.arrayvar()`. For all other variables this value will be
+    identical to the attribute :attr:`~Variable.numElements`.
 
 .. attribute:: Variable.bufferSize
 
