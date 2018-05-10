@@ -100,6 +100,22 @@ class TestCursor(BaseTestCase):
         results = self.cursor.callfunc("func_TestNoArgs", cx_Oracle.NUMBER)
         self.assertEqual(results, 712)
 
+    def testCallFuncNegative(self):
+        """test executing a stored function with wrong parameters"""
+        funcName = "func_Test"
+        self.assertRaises(TypeError, self.cursor.callfunc, cx_Oracle.NUMBER,
+                funcName, ("hi", 5))
+        self.assertRaises(cx_Oracle.DatabaseError, self.cursor.callfunc,
+                funcName, cx_Oracle.NUMBER, ("hi", 5, 7))
+        self.assertRaises(TypeError, self.cursor.callfunc, funcName,
+                cx_Oracle.NUMBER, "hi", 7)
+        self.assertRaises(cx_Oracle.DatabaseError, self.cursor.callfunc,
+                funcName, cx_Oracle.NUMBER, [5, "hi"])
+        self.assertRaises(cx_Oracle.DatabaseError, self.cursor.callfunc,
+                funcName, cx_Oracle.NUMBER)
+        self.assertRaises(TypeError, self.cursor.callfunc, funcName,
+                cx_Oracle.NUMBER, 5)
+
     def testExecuteManyByName(self):
         """test executing a statement multiple times (named args)"""
         self.cursor.execute("truncate table TestTempTable")
@@ -486,10 +502,12 @@ class TestCursor(BaseTestCase):
                 self.assertEqual(cursor.rowcount,
                         15 + numRows + numRowsFetched + numRows - 6)
 
-    def testSetInputSizesMultipleMethod(self):
-        """test setting input sizes with both positional and keyword args"""
+    def testSetInputSizesNegative(self):
+        "test cursor.setinputsizes() with invalid parameters"
+        val = decimal.Decimal(5)
         self.assertRaises(cx_Oracle.InterfaceError,
-                self.cursor.setinputsizes, 5, x = 5)
+                self.cursor.setinputsizes, val, x = val)
+        self.assertRaises(TypeError, self.cursor.setinputsizes, val)
 
     def testSetInputSizesByPosition(self):
         """test setting input sizes with positional args"""
@@ -522,4 +540,12 @@ class TestCursor(BaseTestCase):
         self.assertEqual(self.cursor.statement, sql)
         self.assertEqual(self.cursor.description,
                 [ ('LONGINTCOL', cx_Oracle.NUMBER, 17, None, 16, 0, 0) ])
+
+    def testVarNegative(self):
+        "test cursor.var() with invalid parameters"
+        self.assertRaises(TypeError, self.cursor.var, 5)
+
+    def testArrayVarNegative(self):
+        "test cursor.arrayvar() with invalid parameters"
+        self.assertRaises(TypeError, self.cursor.arrayvar, 5, 1)
 

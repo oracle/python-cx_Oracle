@@ -293,25 +293,28 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
     PyObject *typeObj, *numElementsObj;
     cxoVarType *varType;
     uint32_t numElements;
+    int ok;
 
-    if (PyList_GET_SIZE(value) != 2) {
+    // validate parameters
+    ok = (PyList_GET_SIZE(value) == 2);
+    if (ok) {
+        typeObj = PyList_GET_ITEM(value, 0);
+        ok = PyType_Check(typeObj);
+    }
+    if (ok) {
+        numElementsObj = PyList_GET_ITEM(value, 1);
+        ok = PyInt_Check(numElementsObj);
+    }
+    if (!ok) {
         cxoError_raiseFromString(cxoProgrammingErrorException,
                 "expecting an array of two elements [type, numelems]");
         return NULL;
     }
 
-    typeObj = PyList_GET_ITEM(value, 0);
-    numElementsObj = PyList_GET_ITEM(value, 1);
-    if (!PyInt_Check(numElementsObj)) {
-        cxoError_raiseFromString(cxoProgrammingErrorException,
-                "number of elements must be an integer");
-        return NULL;
-    }
-
+    // create variable
     varType = cxoVarType_fromPythonType((PyTypeObject*) typeObj);
     if (!varType)
         return NULL;
-
     numElements = PyInt_AsLong(numElementsObj);
     if (PyErr_Occurred())
         return NULL;
@@ -349,10 +352,16 @@ cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
     }
 
     // everything else ought to be a Python type
-    varType = cxoVarType_fromPythonType((PyTypeObject*) value);
-    if (!varType)
-        return NULL;
-    return cxoVar_new(cursor, numElements, varType, varType->size, 0, NULL);
+    if (PyType_Check(value)) {
+        varType = cxoVarType_fromPythonType((PyTypeObject*) value);
+        if (!varType)
+            return NULL;
+        return cxoVar_new(cursor, numElements, varType, varType->size, 0,
+                NULL);
+    }
+
+    PyErr_SetString(PyExc_TypeError, "expecting type");
+    return NULL;
 }
 
 

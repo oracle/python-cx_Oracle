@@ -1711,13 +1711,15 @@ static PyObject *cxoCursor_scroll(cxoCursor *cursor, PyObject *args,
 static PyObject *cxoCursor_setInputSizes(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
-    Py_ssize_t numPositionalArgs, i;
+    Py_ssize_t numPositionalArgs, numKeywordArgs = 0, i;
     PyObject *key, *value;
     cxoVar *var;
 
     // only expect keyword arguments or positional arguments, not both
     numPositionalArgs = PyTuple_Size(args);
-    if (keywordArgs && numPositionalArgs > 0)
+    if (keywordArgs)
+        numKeywordArgs = PyDict_Size(keywordArgs);
+    if (numKeywordArgs > 0 && numPositionalArgs > 0)
         return cxoError_raiseFromString(cxoInterfaceErrorException,
                 "expecting arguments or keyword arguments, not both");
 
@@ -1727,7 +1729,7 @@ static PyObject *cxoCursor_setInputSizes(cxoCursor *cursor, PyObject *args,
 
     // eliminate existing bind variables
     Py_CLEAR(cursor->bindVariables);
-    if (keywordArgs)
+    if (numKeywordArgs > 0)
         cursor->bindVariables = PyDict_New();
     else cursor->bindVariables = PyList_New(numPositionalArgs);
     if (!cursor->bindVariables)
@@ -1735,7 +1737,7 @@ static PyObject *cxoCursor_setInputSizes(cxoCursor *cursor, PyObject *args,
     cursor->setInputSizes = 1;
 
     // process each input
-    if (keywordArgs) {
+    if (numKeywordArgs > 0) {
         i = 0;
         while (PyDict_Next(keywordArgs, &i, &key, &value)) {
             var = cxoVar_newByType(cursor, value, cursor->bindArraySize);
@@ -1803,9 +1805,9 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
     size = 0;
     arraySize = cursor->bindArraySize;
     inConverter = outConverter = typeNameObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOO", keywordList,
-            &type, &size, &arraySize, &inConverter, &outConverter,
-            &typeNameObj))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|iiOOO",
+            keywordList, &PyType_Type, &type, &size, &arraySize, &inConverter,
+            &outConverter, &typeNameObj))
         return NULL;
 
     // determine the type of variable
@@ -1847,7 +1849,7 @@ static PyObject *cxoCursor_arrayVar(cxoCursor *cursor, PyObject *args)
 
     // parse arguments
     size = 0;
-    if (!PyArg_ParseTuple(args, "OO|i", &type, &value, &size))
+    if (!PyArg_ParseTuple(args, "O!O|i", &PyType_Type, &type, &value, &size))
         return NULL;
 
     // determine the type of variable
