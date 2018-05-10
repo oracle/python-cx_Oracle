@@ -47,6 +47,8 @@ to &main_user;
 
 grant execute on dbms_aqadm to &main_user;
 
+grant execute on dbms_transform to &main_user;
+
 -- create types
 create type &main_user..udt_SubObject as object (
     SubNumberValue                      number,
@@ -217,6 +219,19 @@ begin
             '&main_user..UDT_BOOK');
     dbms_aqadm.create_queue('&main_user..BOOKS', '&main_user..BOOK_QUEUE');
     dbms_aqadm.start_queue('&main_user..BOOKS');
+end;
+/
+
+-- create transformations
+begin
+    dbms_transform.create_transformation('&main_user', 'transform1',
+            '&main_user', 'UDT_BOOK', '&main_user', 'UDT_BOOK',
+            '&main_user..UDT_BOOK(source.user_data.TITLE, ' ||
+                    'source.user_data.AUTHORS, source.user_data.PRICE + 5)');
+    dbms_transform.create_transformation('&main_user', 'transform2',
+            '&main_user', 'UDT_BOOK', '&main_user', 'UDT_BOOK',
+            '&main_user..UDT_BOOK(source.user_data.TITLE, ' ||
+                    'source.user_data.AUTHORS, source.user_data.PRICE + 10)');
 end;
 /
 

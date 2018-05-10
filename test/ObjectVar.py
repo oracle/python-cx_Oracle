@@ -304,3 +304,24 @@ class TestObjectVar(BaseTestCase):
         self.assertEqual(str(objType.attributes[0]),
                 "<cx_Oracle.ObjectAttribute NUMBERVALUE>")
 
+    def testTrimCollectionList(self):
+        "test Trim number of elements from collection"
+        subObjType = self.connection.gettype("UDT_SUBOBJECT")
+        arrayType = self.connection.gettype("UDT_OBJECTARRAY")
+        data = [(1, "AB"), (2, "CDE"), (3, "FGH"), (4, "IJK")]
+        arrayObj = arrayType()
+        for numVal, strVal in data:
+            subObj = subObjType()
+            subObj.SUBNUMBERVALUE = numVal
+            subObj.SUBSTRINGVALUE = strVal
+            arrayObj.append(subObj)
+        self.assertEqual(self.__GetObjectAsTuple(arrayObj), data)
+        arrayObj.trim(2)
+        self.assertEqual(self.__GetObjectAsTuple(arrayObj), data[:2])
+        arrayObj.trim(1)
+        self.assertEqual(self.__GetObjectAsTuple(arrayObj), data[:1])
+        arrayObj.trim(0)
+        self.assertEqual(self.__GetObjectAsTuple(arrayObj), data[:1])
+        arrayObj.trim(1)
+        self.assertEqual(self.__GetObjectAsTuple(arrayObj), [])
+
