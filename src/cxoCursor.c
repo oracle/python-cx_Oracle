@@ -1278,7 +1278,8 @@ static PyObject *cxoCursor_callFunc(cxoCursor *cursor, PyObject *args,
         return NULL;
 
     // call the function
-    if (cxoCursor_call(cursor, var, name, listOfArguments, keywordArguments) < 0)
+    if (cxoCursor_call(cursor, var, name, listOfArguments,
+            keywordArguments) < 0)
         return NULL;
 
     // determine the results
