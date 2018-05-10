@@ -184,6 +184,52 @@ class TestCursor(BaseTestCase):
                 statement, rows)
         self.assertEqual(self.cursor.rowcount, 3)
 
+    def testExecuteManyWithInvalidParameters(self):
+        "test calling executemany() with invalid parameters"
+        self.assertRaises(TypeError, self.cursor.executemany,
+                "insert into TestTempTable values (:1, :2)",
+                "These are not valid parameters")
+
+    def testExecuteManyNoParameters(self):
+        "test calling executemany() without any bind parameters"
+        numRows = 5
+        self.cursor.execute("truncate table TestTempTable")
+        self.cursor.executemany("""
+                declare
+                    t_Id          number;
+                begin
+                    select nvl(count(*), 0) + 1 into t_Id
+                    from TestTempTable;
+
+                    insert into TestTempTable
+                    values (t_Id, 'Test String ' || t_Id);
+                end;""", numRows)
+        self.cursor.execute("select count(*) from TestTempTable")
+        count, = self.cursor.fetchone()
+        self.assertEqual(count, numRows)
+
+    def testExecuteManyBoundEarlier(self):
+        "test calling executemany() with binds performed earlier"
+        numRows = 9
+        self.cursor.execute("truncate table TestTempTable")
+        var = self.cursor.var(int, arraysize = numRows)
+        self.cursor.setinputsizes(var)
+        self.cursor.executemany("""
+                declare
+                    t_Id          number;
+                begin
+                    select nvl(count(*), 0) + 1 into t_Id
+                    from TestTempTable;
+
+                    insert into TestTempTable
+                    values (t_Id, 'Test String ' || t_Id);
+
+                    select sum(IntCol) into :1
+                    from TestTempTable;
+                end;""", numRows)
+        expectedData = [1, 3, 6, 10, 15, 21, 28, 36, 45]
+        self.assertEqual(var.values, expectedData)
+
     def testPrepare(self):
         """test preparing a statement and executing it multiple times"""
         self.assertEqual(self.cursor.statement, None)

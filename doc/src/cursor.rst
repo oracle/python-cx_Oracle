@@ -182,6 +182,10 @@ Cursor Object
     size of each element being allocated in the buffer. If you receive this
     error, decrease the number of elements in the sequence parameters.
 
+    If there are no parameters, or parameters have previously been bound, the
+    number of iterations can be specified as an integer instead of needing to
+    provide a list of empty mappings or sequences.
+
     When true, the batcherrors parameter enables batch error support within
     Oracle and ensures that the call succeeds even if an exception takes place
     in one or more of the sequence of parameters. The errors can then be
@@ -213,6 +217,10 @@ Cursor Object
     .. note::
 
         The DB API definition does not define this method.
+
+    .. deprecated:: 6.4
+        Use :meth:`~Cursor.executemany()` instead with None for the statement
+        argument and an integer for the parameters argument.
 
 
 .. method:: Cursor.fetchall()

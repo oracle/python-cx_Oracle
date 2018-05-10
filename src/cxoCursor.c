@@ -1406,7 +1406,8 @@ static PyObject *cxoCursor_execute(cxoCursor *cursor, PyObject *args,
 //-----------------------------------------------------------------------------
 // cxoCursor_executeMany()
 //   Execute the statement many times. The number of times is equivalent to the
-// number of elements in the array of dictionaries.
+// number of elements in the list of parameters, or the provided integer if no
+// parameters are required.
 //-----------------------------------------------------------------------------
 static PyObject *cxoCursor_executeMany(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
@@ -1414,15 +1415,22 @@ static PyObject *cxoCursor_executeMany(cxoCursor *cursor, PyObject *args,
     static char *keywordList[] = { "statement", "parameters", "batcherrors",
             "arraydmlrowcounts", NULL };
     int arrayDMLRowCountsEnabled = 0, batchErrorsEnabled = 0;
-    PyObject *arguments, *listOfArguments, *statement;
+    PyObject *arguments, *parameters, *statement;
     uint32_t mode, i, numRows;
     int status;
 
-    // expect statement text (optional) plus list of sequences/mappings
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO!|ii", keywordList,
-            &statement, &PyList_Type, &listOfArguments,
-            &batchErrorsEnabled, &arrayDMLRowCountsEnabled))
+    // validate parameters
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO|ii", keywordList,
+            &statement, &parameters, &batchErrorsEnabled,
+            &arrayDMLRowCountsEnabled))
         return NULL;
+    if (!PyList_Check(parameters) && !PyInt_Check(parameters)) {
+        PyErr_SetString(PyExc_TypeError,
+                "parameters should be a list of sequences/dictionaries "
+                "or an integer specifying the number of times to execute "
+                "the statement");
+        return NULL;
+    }
 
     // make sure the cursor is open
     if (cxoCursor_isOpen(cursor) < 0)
@@ -1440,16 +1448,20 @@ static PyObject *cxoCursor_executeMany(cxoCursor *cursor, PyObject *args,
     if (cxoCursor_internalPrepare(cursor, statement, NULL) < 0)
         return NULL;
 
-    // perform binds
-    numRows = (uint32_t) PyList_GET_SIZE(listOfArguments);
-    for (i = 0; i < numRows; i++) {
-        arguments = PyList_GET_ITEM(listOfArguments, i);
-        if (!PyDict_Check(arguments) && !PySequence_Check(arguments))
-            return cxoError_raiseFromString(cxoInterfaceErrorException,
-                    "expecting a list of dictionaries or sequences");
-        if (cxoCursor_setBindVariables(cursor, arguments, numRows, i,
-                (i < numRows - 1)) < 0)
-            return NULL;
+    // perform binds, as required
+    if (PyInt_Check(parameters))
+        numRows = (uint32_t) PyInt_AsLong(parameters);
+    else {
+        numRows = (uint32_t) PyList_GET_SIZE(parameters);
+        for (i = 0; i < numRows; i++) {
+            arguments = PyList_GET_ITEM(parameters, i);
+            if (!PyDict_Check(arguments) && !PySequence_Check(arguments))
+                return cxoError_raiseFromString(cxoInterfaceErrorException,
+                        "expecting a list of dictionaries or sequences");
+            if (cxoCursor_setBindVariables(cursor, arguments, numRows, i,
+                    (i < numRows - 1)) < 0)
+                return NULL;
+        }
     }
     if (cxoCursor_performBind(cursor) < 0)
         return NULL;
