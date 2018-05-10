@@ -48,6 +48,29 @@ class TestConnection(TestCase):
                 self.tnsentry)
         self.verifyArgs(connection)
 
+    def testAppContext(self):
+        "test use of application context"
+        namespace = "CLIENTCONTEXT"
+        appContextEntries = [
+            ( namespace, "ATTR1", "VALUE1" ),
+            ( namespace, "ATTR2", "VALUE2" ),
+            ( namespace, "ATTR3", "VALUE3" )
+        ]
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry, appcontext = appContextEntries)
+        cursor = connection.cursor()
+        for namespace, name, value in appContextEntries:
+            cursor.execute("select sys_context(:1, :2) from dual",
+                    (namespace, name))
+            actualValue, = cursor.fetchone()
+            self.assertEqual(actualValue, value)
+
+    def testAppContextNegative(self):
+        "test invalid use of application context"
+        self.assertRaises(TypeError, cx_Oracle.connect, self.username,
+                self.password, self.tnsentry,
+                appcontext =  [('userenv', 'action')])
+
     def testAttributes(self):
         "test connection end-to-end tracing attributes"
         connection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY)
@@ -110,6 +133,14 @@ class TestConnection(TestCase):
         cconnection = cx_Oracle.connect(self.username, newPassword,
                 self.tnsentry)
         connection.changepassword(newPassword, self.password)
+
+    def testChangePasswordNegative(self):
+        "test changing password to an invalid value"
+        newPassword = "1" * 150
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        self.assertRaises(cx_Oracle.DatabaseError, connection.changepassword,
+                self.password, newPassword)
 
     def testEncodings(self):
         "connection with only encoding or nencoding specified should work"
@@ -301,7 +332,8 @@ class TestConnection(TestCase):
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry, encoding = "UTF-8")
         self.assertEqual(connection.maxBytesPerCharacter, 4)
-        self.assertEqual(connection.ltxid, b'')
+        if CLIENT_VERSION >= (12, 1):
+            self.assertEqual(connection.ltxid, b'')
         self.assertEqual(connection.current_schema, None)
         connection.current_schema = "test_schema"
         self.assertEqual(connection.current_schema, "test_schema")
@@ -314,6 +346,19 @@ class TestConnection(TestCase):
         self.assertEqual(connection.stmtcachesize, 30)
         self.assertRaises(TypeError, connection.stmtcachesize, 20.5)
         self.assertRaises(TypeError, connection.stmtcachesize, "value")
+
+    def testClosedConnectionAttributes(self):
+        "test closed connection attribute values"
+        connection = cx_Oracle.connect(self.username, self.password,
+                self.tnsentry)
+        connection.close()
+        attrNames = ["current_schema", "edition", "external_name",
+                "internal_name", "stmtcachesize"]
+        if CLIENT_VERSION >= (12, 1):
+            attrNames.append("ltxid")
+        for name in attrNames:
+            self.assertRaises(cx_Oracle.DatabaseError, getattr, connection,
+                    name)
 
     def testPing(self):
         "test connection ping"

@@ -541,6 +541,10 @@ class TestCursor(BaseTestCase):
         self.assertEqual(self.cursor.description,
                 [ ('LONGINTCOL', cx_Oracle.NUMBER, 17, None, 16, 0, 0) ])
 
+    def testSetOutputSize(self):
+        "test cursor.setoutputsize() does not fail (but does nothing)"
+        self.cursor.setoutputsize(100, 2)
+
     def testVarNegative(self):
         "test cursor.var() with invalid parameters"
         self.assertRaises(TypeError, self.cursor.var, 5)
