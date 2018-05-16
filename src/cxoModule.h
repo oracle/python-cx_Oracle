@@ -359,6 +359,7 @@ struct cxoSubscr {
     PyObject *callback;
     uint32_t namespace;
     uint32_t protocol;
+    PyObject *ipAddress;
     uint32_t port;
     uint32_t timeout;
     uint32_t operations;
@@ -430,8 +431,9 @@ cxoObjectType *cxoObjectType_newByName(cxoConnection *connection,
         PyObject *name);
 
 cxoSubscr *cxoSubscr_new(cxoConnection *connection, uint32_t namespace,
-        uint32_t protocol, uint32_t port, PyObject *callback, uint32_t timeout,
-        uint32_t operations, uint32_t qos);
+        uint32_t protocol, PyObject *ipAddress, uint32_t port,
+        PyObject *callback, uint32_t timeout, uint32_t operations,
+        uint32_t qos);
 
 PyObject *cxoTransform_dateFromTicks(PyObject *args);
 int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,

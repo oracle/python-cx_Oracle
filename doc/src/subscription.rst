@@ -43,6 +43,13 @@ Subscription Object
     subscription.
 
 
+.. attribute:: Subscription.ipAddress
+
+    This read-only attribute returns the IP address used for callback
+    notifications from the database server. If not set during construction,
+    this value is None.
+
+
 .. attribute:: Subscription.port
 
     This read-only attribute returns the port used for callback notifications

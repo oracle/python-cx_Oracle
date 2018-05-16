@@ -1456,21 +1456,21 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
         PyObject* keywordArgs)
 {
     static char *keywordList[] = { "namespace", "protocol", "callback",
-            "timeout", "operations", "port", "qos", NULL };
+            "timeout", "operations", "port", "qos", "ipAddress", NULL };
     uint32_t namespace, protocol, port, timeout, operations, qos;
-    PyObject *callback;
+    PyObject *callback, *ipAddress;
 
-    callback = NULL;
     timeout = port = qos = 0;
+    callback = ipAddress = NULL;
     namespace = DPI_SUBSCR_NAMESPACE_DBCHANGE;
     protocol = DPI_SUBSCR_PROTO_CALLBACK;
     operations = DPI_OPCODE_ALL_OPS;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiii",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiiiO",
             keywordList, &namespace, &protocol, &callback, &timeout,
-            &operations, &port, &qos))
+            &operations, &port, &qos, &ipAddress))
         return NULL;
-    return (PyObject*) cxoSubscr_new(conn, namespace, protocol, port, callback,
-            timeout, operations, qos);
+    return (PyObject*) cxoSubscr_new(conn, namespace, protocol, ipAddress,
+            port, callback, timeout, operations, qos);
 }
 
 

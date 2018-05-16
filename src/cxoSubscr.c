@@ -34,6 +34,7 @@ static PyMemberDef cxoSubscrTypeMembers[] = {
             READONLY },
     { "namespace", T_INT, offsetof(cxoSubscr, namespace), READONLY },
     { "protocol", T_INT, offsetof(cxoSubscr, protocol), READONLY },
+    { "ipAddress", T_OBJECT, offsetof(cxoSubscr, ipAddress), READONLY },
     { "port", T_INT, offsetof(cxoSubscr, port), READONLY },
     { "timeout", T_INT, offsetof(cxoSubscr, timeout), READONLY },
     { "operations", T_INT, offsetof(cxoSubscr, operations), READONLY },
@@ -517,11 +518,13 @@ static void cxoSubscr_callback(cxoSubscr *subscr,
 //   Allocate a new subscription object.
 //-----------------------------------------------------------------------------
 cxoSubscr *cxoSubscr_new(cxoConnection *connection, uint32_t namespace,
-        uint32_t protocol, uint32_t port, PyObject *callback, uint32_t timeout,
-        uint32_t operations, uint32_t qos)
+        uint32_t protocol, PyObject *ipAddress, uint32_t port,
+        PyObject *callback, uint32_t timeout, uint32_t operations,
+        uint32_t qos)
 {
     dpiSubscrCreateParams params;
     cxoSubscr *subscr;
+    cxoBuffer buffer;
 
     subscr = (cxoSubscr*) cxoPyTypeSubscr.tp_alloc(&cxoPyTypeSubscr, 0);
     if (!subscr)
@@ -532,6 +535,8 @@ cxoSubscr *cxoSubscr_new(cxoConnection *connection, uint32_t namespace,
     subscr->callback = callback;
     subscr->namespace = namespace;
     subscr->protocol = protocol;
+    Py_XINCREF(ipAddress);
+    subscr->ipAddress = ipAddress;
     subscr->port = port;
     subscr->timeout = timeout;
     subscr->operations = operations;
@@ -539,10 +544,20 @@ cxoSubscr *cxoSubscr_new(cxoConnection *connection, uint32_t namespace,
 
     if (dpiContext_initSubscrCreateParams(cxoDpiContext, &params) < 0) {
         cxoError_raiseAndReturnNull();
+        Py_DECREF(subscr);
         return NULL;
     }
     params.subscrNamespace = namespace;
     params.protocol = protocol;
+    if (ipAddress) {
+        if (cxoBuffer_fromObject(&buffer, ipAddress,
+                connection->encodingInfo.encoding) < 0) {
+            Py_DECREF(subscr);
+            return NULL;
+        }
+        params.ipAddress = buffer.ptr;
+        params.ipAddressLength = buffer.size;
+    }
     params.portNumber = port;
     if (callback) {
         params.callback = (dpiSubscrCallback) cxoSubscr_callback;

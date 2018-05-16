@@ -480,7 +480,7 @@ Connection Object
         This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0)
+.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0, ipAddress=None)
 
     Return a new :ref:`subscription object <subscrobj>` using the connection.
     Currently the namespace and protocol parameters cannot have any other
@@ -509,6 +509,10 @@ Connection Object
     :data:`cx_Oracle.SUBSCR_QOS_ROWIDS`,
     :data:`cx_Oracle.SUBSCR_QOS_QUERY`,
     :data:`cx_Oracle.SUBSCR_QOS_BEST_EFFORT`.
+
+    The ipAddress specifies the IP address (IPv4 or IPv6) to bind for callback
+    notifications from the database server. If not specified, the client IP
+    address will be determined by the Oracle Client libraries.
 
     .. note::
 
