@@ -1456,21 +1456,28 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
         PyObject* keywordArgs)
 {
     static char *keywordList[] = { "namespace", "protocol", "callback",
-            "timeout", "operations", "port", "qos", "ipAddress", NULL };
+            "timeout", "operations", "port", "qos", "ipAddress",
+            "groupingClass", "groupingValue", "groupingType", NULL };
     uint32_t namespace, protocol, port, timeout, operations, qos;
+    uint8_t groupingClass, groupingType;
     PyObject *callback, *ipAddress;
+    uint32_t groupingValue;
 
-    timeout = port = qos = 0;
+    groupingClass = 0;
     callback = ipAddress = NULL;
+    timeout = port = qos = groupingValue = 0;
+    groupingType = DPI_SUBSCR_GROUPING_TYPE_SUMMARY;
     namespace = DPI_SUBSCR_NAMESPACE_DBCHANGE;
     protocol = DPI_SUBSCR_PROTO_CALLBACK;
     operations = DPI_OPCODE_ALL_OPS;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiiiO",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiiiObib",
             keywordList, &namespace, &protocol, &callback, &timeout,
-            &operations, &port, &qos, &ipAddress))
+            &operations, &port, &qos, &ipAddress, &groupingClass,
+            &groupingValue, &groupingType))
         return NULL;
     return (PyObject*) cxoSubscr_new(conn, namespace, protocol, ipAddress,
-            port, callback, timeout, operations, qos);
+            port, callback, timeout, operations, qos, groupingClass,
+            groupingValue, groupingType);
 }
 
 

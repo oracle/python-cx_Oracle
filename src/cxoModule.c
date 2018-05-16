@@ -439,6 +439,16 @@ static PyObject *cxoModule_initialize(void)
     CXO_ADD_INT_CONSTANT("SUBSCR_NAMESPACE_DBCHANGE",
             DPI_SUBSCR_NAMESPACE_DBCHANGE)
 
+    // add constants for subscription grouping classes
+    CXO_ADD_INT_CONSTANT("SUBSCR_GROUPING_CLASS_TIME",
+            DPI_SUBSCR_GROUPING_CLASS_TIME)
+
+    // add constants for subscription grouping types
+    CXO_ADD_INT_CONSTANT("SUBSCR_GROUPING_TYPE_SUMMARY",
+            DPI_SUBSCR_GROUPING_TYPE_SUMMARY)
+    CXO_ADD_INT_CONSTANT("SUBSCR_GROUPING_TYPE_LAST",
+            DPI_SUBSCR_GROUPING_TYPE_LAST)
+
     // add constants for event types
     CXO_ADD_INT_CONSTANT("EVENT_NONE", DPI_EVENT_NONE)
     CXO_ADD_INT_CONSTANT("EVENT_STARTUP", DPI_EVENT_STARTUP)

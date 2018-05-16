@@ -520,7 +520,8 @@ static void cxoSubscr_callback(cxoSubscr *subscr,
 cxoSubscr *cxoSubscr_new(cxoConnection *connection, uint32_t namespace,
         uint32_t protocol, PyObject *ipAddress, uint32_t port,
         PyObject *callback, uint32_t timeout, uint32_t operations,
-        uint32_t qos)
+        uint32_t qos, uint8_t groupingClass, uint32_t groupingValue,
+        uint8_t groupingType)
 {
     dpiSubscrCreateParams params;
     cxoSubscr *subscr;
@@ -541,6 +542,9 @@ cxoSubscr *cxoSubscr_new(cxoConnection *connection, uint32_t namespace,
     subscr->timeout = timeout;
     subscr->operations = operations;
     subscr->qos = qos;
+    subscr->groupingClass = groupingClass;
+    subscr->groupingValue = groupingValue;
+    subscr->groupingType = groupingType;
 
     if (dpiContext_initSubscrCreateParams(cxoDpiContext, &params) < 0) {
         cxoError_raiseAndReturnNull();
@@ -566,6 +570,9 @@ cxoSubscr *cxoSubscr_new(cxoConnection *connection, uint32_t namespace,
     params.timeout = timeout;
     params.operations = operations;
     params.qos = qos;
+    params.groupingClass = groupingClass;
+    params.groupingValue = groupingValue;
+    params.groupingType = groupingType;
     if (dpiConn_newSubscription(connection->handle, &params, &subscr->handle,
             &subscr->id) < 0) {
         cxoError_raiseAndReturnNull();

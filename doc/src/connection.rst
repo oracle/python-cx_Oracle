@@ -480,7 +480,7 @@ Connection Object
         This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0, ipAddress=None)
+.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0, ipAddress=None, groupingClass=0, groupingValue=0, groupingType=cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY)
 
     Return a new :ref:`subscription object <subscrobj>` using the connection.
     Currently the namespace and protocol parameters cannot have any other
@@ -498,9 +498,9 @@ Connection Object
     (insert, update, delete). The default value will send notifications for all
     operations.
 
-    The port specifies the listening port for callback notifications from the
-    database server. If not specified, an unused port will be selected by the
-    database.
+    The port parameter specifies the listening port for callback notifications
+    from the database server. If not specified, an unused port will be selected
+    by the database.
 
     The qos parameter specifies quality of service options. It should be one or
     more of the following flags, OR'ed together:
@@ -510,9 +510,20 @@ Connection Object
     :data:`cx_Oracle.SUBSCR_QOS_QUERY`,
     :data:`cx_Oracle.SUBSCR_QOS_BEST_EFFORT`.
 
-    The ipAddress specifies the IP address (IPv4 or IPv6) to bind for callback
-    notifications from the database server. If not specified, the client IP
-    address will be determined by the Oracle Client libraries.
+    The ipAddress parameter specifies the IP address (IPv4 or IPv6) to bind for
+    callback notifications from the database server. If not specified, the
+    client IP address will be determined by the Oracle Client libraries.
+
+    The groupingClass parameter specifies what type of grouping of
+    notifications should take place. Currently, if set, this value can only be
+    set to the value :data:`cx_Oracle.SUBSCR_GROUPING_CLASS_TIME`, which
+    will group notifications by the number of seconds specified in the
+    groupingValue parameter. The groupingType parameter should be one of the
+    values :data:`cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY` (the default) or
+    :data:`cx_Oracle.SUBSCR_GROUPING_TYPE_LAST`.
+
+    *New in version 6.4:* The parameters ipAddress, groupingClass,
+    groupingValue and groupingType were added.
 
     .. note::
 

@@ -781,6 +781,39 @@ in database resident connection pooling (DRCP).
     need not be new and may have prior session state.
 
 
+Subscription Grouping Classes
+-----------------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the groupingClass parameter of the :meth:`Connection.subscribe()`
+method.
+
+.. data:: SUBSCR_GROUPING_CLASS_TIME
+
+    This constant is used to specify that events are to be grouped by the
+    period of time in which they are received.
+
+
+Subscription Grouping Types
+---------------------------
+
+These constants are extensions to the DB API definition. They are possible
+values for the groupingType parameter of the :meth:`Connection.subscribe()`
+method.
+
+.. data:: SUBSCR_GROUPING_TYPE_SUMMARY
+
+    This constant is used to specify that when events are grouped a summary of
+    the events should be sent instead of the individual events. This is the
+    default value.
+
+.. data:: SUBSCR_GROUPING_TYPE_LAST
+
+    This constant is used to specify that when events are grouped the last
+    event that makes up the group should be sent instead of the individual
+    events.
+
+
 Subscription Namespaces
 -----------------------
 
