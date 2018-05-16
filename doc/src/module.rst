@@ -180,7 +180,7 @@ Module Interface
         increment=1, connectiontype=cx_Oracle.Connection, threaded=False, \
         getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, events=False, \
         homogeneous=True, externalauth=False, encoding=None, nencoding=None, \
-        edition=None)
+        edition=None, timeout=0, waitTimeout=0, maxLifetimeSession=0)
 
     Create and return a :ref:`session pool object <sesspool>`. This
     allows for very fast connections to the database and is of primary use in a
@@ -215,6 +215,26 @@ Module Interface
     The edition parameter is expected to be a string, if specified, and sets
     the edition to use for the sessions in the pool. It is only relevant if
     both the client and the server are at least Oracle Database 11.2.
+
+    The timeout parameter is expected to be an integer, if specified, and sets
+    the length of time (in seconds) after which idle sessions in the pool are
+    terminated. Note that termination only occurs when another session is
+    released back to the pool. The default value of 0 means that no idle
+    are terminated.
+
+    The waitTimeout parameter is expected to be an integer, if specified, and
+    sets the length of time (in milliseconds) that the caller should wait for
+    a session to become available in the pool before returning with an error.
+    This value is only used if the getmode parameter is set to the value
+    :data:`cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT`.
+
+    The maxLifetimeSession parameter is expected to be an integer, if
+    specified, and sets the length of time (in seconds) a session may remain
+    in the pool. Sessions in the pool are terminated after they have been in
+    the pool for the specified period of time. Note that termination only
+    occurs when another session is released back to the pool. The default value
+    is 0 which means that there is no maximum length of time that a session may
+    exist in the pool.
 
     .. note::
 
@@ -752,6 +772,12 @@ values for the getmode parameter of the :meth:`SessionPool()` method.
     This constant is used to specify that the caller should wait until a
     session is available if there are no free sessions available in the pool.
 
+
+.. data:: SPOOL_ATTRVAL_TIMEDWAIT
+
+    This constant is used to specify that the caller should wait for a period
+    of time (defined by the waitTimeout parameter) for a session to become
+    available before returning with an error.
 
 
 Session Pool Purity

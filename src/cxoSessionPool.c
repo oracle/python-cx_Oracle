@@ -29,11 +29,13 @@ static PyObject *cxoSessionPool_getMaxLifetimeSession(cxoSessionPool*, void*);
 static PyObject *cxoSessionPool_getOpenCount(cxoSessionPool*, void*);
 static PyObject *cxoSessionPool_getStmtCacheSize(cxoSessionPool*, void*);
 static PyObject *cxoSessionPool_getTimeout(cxoSessionPool*, void*);
+static PyObject *cxoSessionPool_getWaitTimeout(cxoSessionPool*, void*);
 static int cxoSessionPool_setGetMode(cxoSessionPool*, PyObject*, void*);
 static int cxoSessionPool_setMaxLifetimeSession(cxoSessionPool*, PyObject*,
         void*);
 static int cxoSessionPool_setStmtCacheSize(cxoSessionPool*, PyObject*, void*);
 static int cxoSessionPool_setTimeout(cxoSessionPool*, PyObject*, void*);
+static int cxoSessionPool_setWaitTimeout(cxoSessionPool*, PyObject*, void*);
 
 
 //-----------------------------------------------------------------------------
@@ -80,6 +82,8 @@ static PyGetSetDef cxoSessionPoolCalcMembers[] = {
             (setter) cxoSessionPool_setMaxLifetimeSession, 0, 0 },
     { "stmtcachesize", (getter) cxoSessionPool_getStmtCacheSize,
             (setter) cxoSessionPool_setStmtCacheSize, 0, 0 },
+    { "wait_timeout", (getter) cxoSessionPool_getWaitTimeout,
+            (setter) cxoSessionPool_setWaitTimeout, 0, 0 },
     { NULL }
 };
 
@@ -166,7 +170,7 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     static char *keywordList[] = { "user", "password", "dsn", "min", "max",
             "increment", "connectiontype", "threaded", "getmode", "events",
             "homogeneous", "externalauth", "encoding", "nencoding", "edition",
-            NULL };
+            "timeout", "waitTimeout", "maxLifetimeSession", NULL };
 
     // parse arguments and keywords
     usernameObj = passwordObj = dsnObj = editionObj = Py_None;
@@ -185,12 +189,13 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
             (uint32_t) strlen(dpiCommonParams.driverName);
     if (dpiContext_initPoolCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OOOiiiOObOOOssO",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OOOiiiOObOOOssOiii",
             keywordList, &usernameObj, &passwordObj, &dsnObj, &minSessions,
             &maxSessions, &sessionIncrement, &connectionType, &threadedObj,
             &dpiCreateParams.getMode, &eventsObj, &homogeneousObj,
             &externalAuthObj, &dpiCommonParams.encoding,
-            &dpiCommonParams.nencoding, &editionObj))
+            &dpiCommonParams.nencoding, &editionObj, &dpiCreateParams.timeout,
+            &dpiCreateParams.waitTimeout, &dpiCreateParams.maxLifetimeSession))
         return -1;
     if (!PyType_Check(connectionType)) {
         cxoError_raiseFromString(cxoProgrammingErrorException,
@@ -530,6 +535,17 @@ static PyObject *cxoSessionPool_getTimeout(cxoSessionPool *pool, void *unused)
 
 
 //-----------------------------------------------------------------------------
+// cxoSessionPool_getWaitTimeout()
+//   Return the wait timeout for connections in the session pool.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSessionPool_getWaitTimeout(cxoSessionPool *pool,
+        void *unused)
+{
+    return cxoSessionPool_getAttribute(pool, dpiPool_getWaitTimeout);
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoSessionPool_setGetMode()
 //   Set the "get" mode for connections in the session pool.
 //-----------------------------------------------------------------------------
@@ -580,5 +596,16 @@ static int cxoSessionPool_setTimeout(cxoSessionPool *pool, PyObject *value,
         void *unused)
 {
     return cxoSessionPool_setAttribute(pool, value, dpiPool_setTimeout);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSessionPool_setWaitTimeout()
+//   Set the wait timeout for connections in the session pool.
+//-----------------------------------------------------------------------------
+static int cxoSessionPool_setWaitTimeout(cxoSessionPool *pool, PyObject *value,
+        void *unused)
+{
+    return cxoSessionPool_setAttribute(pool, value, dpiPool_setWaitTimeout);
 }
 
