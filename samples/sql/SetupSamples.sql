@@ -257,6 +257,19 @@ begin
 end;
 /
 
+create or replace procedure &main_user..myrefcursorproc (
+    a_StartingValue                     number,
+    a_EndingValue                       number,
+    a_RefCursor                         out sys_refcursor
+) as
+begin
+    open a_RefCursor for
+        select *
+        from TestStrings
+        where IntCol between a_StartingValue and a_EndingValue;
+end;
+/
+
 
 --
 -- Create package for demoing PL/SQL collections and records.
