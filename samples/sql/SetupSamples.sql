@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2017, 2018, Oracle and/or its affiliates. All rights reserved.
  *---------------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------------
@@ -202,27 +202,27 @@ begin
 end;
 /
 
-insert into &main_user..ParentTable values (1, 'Parent 1');
-insert into &main_user..ParentTable values (2, 'Parent 2');
-insert into &main_user..ParentTable values (3, 'Parent 3');
-insert into &main_user..ParentTable values (4, 'Parent 4');
-insert into &main_user..ParentTable values (5, 'Parent 5');
+insert into &main_user..ParentTable values (10, 'Parent 10');
+insert into &main_user..ParentTable values (20, 'Parent 20');
+insert into &main_user..ParentTable values (30, 'Parent 30');
+insert into &main_user..ParentTable values (40, 'Parent 40');
+insert into &main_user..ParentTable values (50, 'Parent 50');
 
-insert into &main_user..ChildTable values (1001, 1, 'Child 1 of Parent 1');
-insert into &main_user..ChildTable values (1002, 2, 'Child 1 of Parent 2');
-insert into &main_user..ChildTable values (1003, 2, 'Child 2 of Parent 2');
-insert into &main_user..ChildTable values (1004, 2, 'Child 3 of Parent 2');
-insert into &main_user..ChildTable values (1005, 3, 'Child 1 of Parent 3');
-insert into &main_user..ChildTable values (1006, 3, 'Child 2 of Parent 3');
-insert into &main_user..ChildTable values (1007, 4, 'Child 1 of Parent 4');
-insert into &main_user..ChildTable values (1008, 4, 'Child 2 of Parent 4');
-insert into &main_user..ChildTable values (1009, 4, 'Child 3 of Parent 4');
-insert into &main_user..ChildTable values (1010, 4, 'Child 4 of Parent 4');
-insert into &main_user..ChildTable values (1011, 4, 'Child 5 of Parent 4');
-insert into &main_user..ChildTable values (1012, 5, 'Child 1 of Parent 5');
-insert into &main_user..ChildTable values (1013, 5, 'Child 2 of Parent 5');
-insert into &main_user..ChildTable values (1014, 5, 'Child 3 of Parent 5');
-insert into &main_user..ChildTable values (1015, 5, 'Child 4 of Parent 5');
+insert into &main_user..ChildTable values (1001, 10, 'Child A of Parent 10');
+insert into &main_user..ChildTable values (1002, 20, 'Child A of Parent 20');
+insert into &main_user..ChildTable values (1003, 20, 'Child B of Parent 20');
+insert into &main_user..ChildTable values (1004, 20, 'Child C of Parent 20');
+insert into &main_user..ChildTable values (1005, 30, 'Child A of Parent 30');
+insert into &main_user..ChildTable values (1006, 30, 'Child B of Parent 30');
+insert into &main_user..ChildTable values (1007, 40, 'Child A of Parent 40');
+insert into &main_user..ChildTable values (1008, 40, 'Child B of Parent 40');
+insert into &main_user..ChildTable values (1009, 40, 'Child C of Parent 40');
+insert into &main_user..ChildTable values (1010, 40, 'Child D of Parent 40');
+insert into &main_user..ChildTable values (1011, 40, 'Child E of Parent 40');
+insert into &main_user..ChildTable values (1012, 50, 'Child A of Parent 50');
+insert into &main_user..ChildTable values (1013, 50, 'Child B of Parent 50');
+insert into &main_user..ChildTable values (1014, 50, 'Child C of Parent 50');
+insert into &main_user..ChildTable values (1015, 50, 'Child D of Parent 50');
 
 insert into &main_user..SampleQueryTab values (1, 'Anthony');
 insert into &main_user..SampleQueryTab values (2, 'Barbie');

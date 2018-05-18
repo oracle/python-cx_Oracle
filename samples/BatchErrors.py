@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright 2016, 2018, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -25,14 +25,14 @@ cursor = connection.cursor()
 
 # define data to insert
 dataToInsert = [
-    (1016, 1, 'Child 2 of Parent 1'),
-    (1017, 1, 'Child 3 of Parent 1'),
-    (1018, 2, 'Child 4 of Parent 2'),
-    (1018, 2, 'Child 4 of Parent 2'),       # duplicate key
-    (1019, 3, 'Child 3 of Parent 3'),
-    (1020, 3, 'Child 4 of Parent 4'),
-    (1021, 6, 'Child 1 of Parent 6'),       # parent does not exist
-    (1022, 4, 'Child 6 of Parent 4'),
+    (1016, 10, 'Child B of Parent 10'),
+    (1017, 10, 'Child C of Parent 10'),
+    (1018, 20, 'Child D of Parent 20'),
+    (1018, 20, 'Child D of Parent 20'),       # duplicate key
+    (1019, 30, 'Child C of Parent 30'),
+    (1020, 30, 'Child D of Parent 40'),
+    (1021, 60, 'Child A of Parent 60'),       # parent does not exist
+    (1022, 40, 'Child F of Parent 40'),
 ]
 
 # retrieve the number of rows in the table

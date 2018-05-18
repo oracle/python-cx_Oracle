@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright 2016, 2018, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ connection = Connection()
 cursor = connection.cursor()
 
 # demonstrate that the subclassed connection and cursor are being used
-cursor.execute("select count(*) from ChildTable where ParentId = :1", (3,))
+cursor.execute("select count(*) from ChildTable where ParentId = :1", (30,))
 count, = cursor.fetchone()
 print("COUNT:", int(count))
 

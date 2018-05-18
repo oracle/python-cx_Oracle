@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright 2016, 2018, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ for parentId, count in cursor.execute("""
 print()
 
 # delete the following parent IDs only
-parentIdsToDelete = [2, 3, 5]
+parentIdsToDelete = [20, 30, 50]
 
 print("Deleting Parent IDs:", parentIdsToDelete)
 print()
