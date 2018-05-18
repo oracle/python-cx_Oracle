@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright 2016, 2018, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -8,11 +8,12 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# ReturnLongs.py
-#   Returns all CLOB values as long strings and BLOB values as long raws. This
-# is only useful if the lengths of the CLOB and BLOB values are well known but
-# it can improve performance because there is no need to return to the database
-# to get the actual values.
+# ReturnLobsAsStrings.py
+#   Returns all CLOB values as strings and BLOB values as bytes. The
+# performance of this technique is significantly better than fetching the LOBs
+# and then reading the contents of the LOBs as it avoids round-trips to the
+# database. Be aware, however, that this method requires contiguous memory so
+# is not usable for very large LOBs.
 #
 # This script requires cx_Oracle 5.0 and higher.
 #------------------------------------------------------------------------------
@@ -49,7 +50,7 @@ for i in range(10):
 connection.commit()
 
 # fetch the data and show the results
-print("CLOBS returned as longs")
+print("CLOBS returned as strings")
 cursor.execute("""
         select
           IntCol,
@@ -59,7 +60,7 @@ cursor.execute("""
 for intCol, value in cursor:
     print("Row:", intCol, "string of length", len(value))
 print()
-print("BLOBS returned as longs")
+print("BLOBS returned as bytes")
 cursor.execute("""
         select
           IntCol,
