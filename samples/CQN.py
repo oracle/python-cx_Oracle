@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright 2016, 2018, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -8,10 +8,10 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# QueryChangeNotification.py
-#   This script demonstrates using query change notification in Python, a
-# feature that is available in Oracle 11g. Once this script is running, use
-# another session to insert, update or delete rows from the table
+# CQN.py
+#   This script demonstrates using continuous query notification in Python, a
+# feature that is available in Oracle 11g and later. Once this script is
+# running, use another session to insert, update or delete rows from the table
 # cx_Oracle.TestTempTable and you will see the notification of that change.
 #
 # This script requires cx_Oracle 5.3 and higher.
