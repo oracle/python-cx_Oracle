@@ -361,7 +361,7 @@ static int cxoConnectionParams_processShardingKeyValue(
 {
     cxoTransformNum transformNum;
 
-    transformNum = cxoTransform_getNumFromValue(value);
+    transformNum = cxoTransform_getNumFromValue(value, 0);
     if (cxoTransform_fromPython(transformNum, value, &column->value, buffer,
             params->encoding, params->nencoding, NULL, 0) < 0)
         return -1;

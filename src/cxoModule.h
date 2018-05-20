@@ -445,7 +445,7 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
         const char *nencoding, cxoVar *var, uint32_t arrayPos);
 cxoTransformNum cxoTransform_getNumFromDataTypeInfo(dpiDataTypeInfo *info);
 cxoTransformNum cxoTransform_getNumFromType(PyTypeObject *type);
-cxoTransformNum cxoTransform_getNumFromValue(PyObject *value);
+cxoTransformNum cxoTransform_getNumFromValue(PyObject *value, int plsql);
 void cxoTransform_getTypeInfo(cxoTransformNum transformNum,
         dpiOracleTypeNum *oracleTypeNum, dpiNativeTypeNum *nativeTypeNum);
 int cxoTransform_init(void);
@@ -464,7 +464,7 @@ int cxoUtils_initializeDPI(void);
 cxoVarType *cxoVarType_fromDataTypeInfo(dpiDataTypeInfo *info);
 cxoVarType *cxoVarType_fromPythonType(PyTypeObject *type);
 cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
-        Py_ssize_t *size, Py_ssize_t *numElements);
+        Py_ssize_t *size, Py_ssize_t *numElements, int plsql);
 
 int cxoVar_bind(cxoVar *var, cxoCursor *cursor, PyObject *name, uint32_t pos);
 int cxoVar_check(PyObject *object);

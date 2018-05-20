@@ -243,7 +243,7 @@ static Py_ssize_t cxoVarType_calculateSize(PyObject *value,
 // does not have a corresponding variable type.
 //-----------------------------------------------------------------------------
 cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
-        Py_ssize_t *size, Py_ssize_t *numElements)
+        Py_ssize_t *size, Py_ssize_t *numElements, int plsql)
 {
     cxoTransformNum transformNum, tempTransformNum;
     PyObject *elementValue;
@@ -260,7 +260,7 @@ cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
         transformNum = CXO_TRANSFORM_NONE;
         for (i = 0; i < PyList_GET_SIZE(value); i++) {
             elementValue = PyList_GET_ITEM(value, i);
-            tempTransformNum = cxoTransform_getNumFromValue(elementValue);
+            tempTransformNum = cxoTransform_getNumFromValue(elementValue, 1);
             if (tempTransformNum == CXO_TRANSFORM_UNSUPPORTED) {
                 snprintf(message, sizeof(message),
                         "element %u value is unsupported", (unsigned) i);
@@ -288,7 +288,7 @@ cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
     }
 
     // handle scalar values
-    transformNum = cxoTransform_getNumFromValue(value);
+    transformNum = cxoTransform_getNumFromValue(value, plsql);
     if (transformNum == CXO_TRANSFORM_UNSUPPORTED) {
         snprintf(message, sizeof(message),
                 "Python value of type %s not supported.",

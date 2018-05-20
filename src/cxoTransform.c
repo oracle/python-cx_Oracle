@@ -518,14 +518,14 @@ cxoTransformNum cxoTransform_getNumFromType(PyTypeObject *type)
 // cxoTransform_getNumFromValue()
 //   Get the appropriate transformation to use for the specified Python object.
 //-----------------------------------------------------------------------------
-cxoTransformNum cxoTransform_getNumFromValue(PyObject *value)
+cxoTransformNum cxoTransform_getNumFromValue(PyObject *value, int plsql)
 {
     cxoLob *lob;
 
     if (value == Py_None)
         return CXO_TRANSFORM_NONE;
     if (PyBool_Check(value)) {
-        if (cxoClientVersionInfo.versionNum < 12)
+        if (cxoClientVersionInfo.versionNum < 12 || !plsql)
             return CXO_TRANSFORM_NATIVE_INT;
         return CXO_TRANSFORM_BOOLEAN;
     }

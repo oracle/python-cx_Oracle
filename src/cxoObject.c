@@ -173,7 +173,7 @@ static int cxoObject_convertFromPython(cxoObject *obj, PyObject *value,
     }
 
     // convert the different Python types
-    transformNum = cxoTransform_getNumFromValue(value);
+    transformNum = cxoTransform_getNumFromValue(value, 1);
     if (cxoTransform_fromPython(transformNum, value, &data->value, buffer,
             obj->objectType->connection->encodingInfo.encoding,
             obj->objectType->connection->encodingInfo.nencoding, NULL, 0) < 0)

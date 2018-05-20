@@ -553,3 +553,14 @@ class TestCursor(BaseTestCase):
         "test cursor.arrayvar() with invalid parameters"
         self.assertRaises(TypeError, self.cursor.arrayvar, 5, 1)
 
+    def testBooleanWithoutPlsql(self):
+        "test binding boolean data without the use of PL/SQL"
+        self.cursor.execute("truncate table TestTempTable")
+        self.cursor.execute("insert into TestTempTable values (:1, :2)",
+                (False, "Value should be 0"))
+        self.cursor.execute("insert into TestTempTable values (:1, :2)",
+                (True, "Value should be 1"))
+        self.cursor.execute("select * from TestTempTable order by IntCol")
+        self.assertEqual(self.cursor.fetchall(),
+                [ (0, "Value should be 0"), (1, "Value should be 1") ])
+

@@ -272,7 +272,8 @@ cxoVar *cxoVar_newByValue(cxoCursor *cursor, PyObject *value,
     }
 
     // default processing
-    varType = cxoVarType_fromPythonValue(value, &isArray, &size, &numElements);
+    varType = cxoVarType_fromPythonValue(value,
+            &isArray, &size, &numElements, cursor->stmtInfo.isPLSQL);
     if (!varType)
         return NULL;
     if (varType->transformNum == CXO_TRANSFORM_OBJECT) {
