@@ -222,6 +222,38 @@ class TestDMLReturning(BaseTestCase):
             cx_Oracle.__future__.dml_ret_array_val = False
         self.connection.rollback()
 
+    def testInsertAndReturnRowid(self):
+        "test inserting a row and returning a rowid"
+        self.cursor.execute("truncate table TestTempTable")
+        var = self.cursor.var(cx_Oracle.ROWID)
+        self.cursor.execute("""
+                insert into TestTempTable values (278, 'String 278')
+                returning rowid into :1""", (var,))
+        rowid = var.getvalue()
+        self.cursor.execute("select * from TestTempTable where rowid = :1",
+                (rowid,))
+        self.assertEqual(self.cursor.fetchall(), [(278, 'String 278')])
+
+    def testInsertWithRefCursor(self):
+        "test inserting with a REF cursor and returning a rowid"
+        self.cursor.execute("truncate table TestTempTable")
+        var = self.cursor.var(cx_Oracle.ROWID)
+        inCursor = self.connection.cursor()
+        inCursor.execute("""
+                select StringCol
+                from TestStrings
+                where IntCol >= 5
+                order by IntCol""")
+        self.cursor.execute("""
+                insert into TestTempTable
+                values (187, pkg_TestRefCursors.TestInCursor(:1))
+                returning rowid into :2""", (inCursor, var))
+        rowid = var.getvalue()
+        self.cursor.execute("select * from TestTempTable where rowid = :1",
+                (rowid,))
+        self.assertEqual(self.cursor.fetchall(),
+                [(187, 'String 7 (Modified)')])
+
     def testDeleteReturningDecreasingRowsReturned(self):
         "test delete returning multiple times with decreasing number of rows"
         data = [(i, "Test String %d" % i) for i in range(1, 11)]

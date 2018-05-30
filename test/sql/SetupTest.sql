@@ -671,7 +671,7 @@ create or replace package body &main_user..pkg_TestDateArrays as
 end;
 /
 
-create or replace package &main_user..pkg_TestOutCursors as
+create or replace package &main_user..pkg_TestRefCursors as
 
     type udt_RefCursor is ref cursor;
 
@@ -680,10 +680,14 @@ create or replace package &main_user..pkg_TestOutCursors as
         a_Cursor                        out udt_RefCursor
     );
 
+    function TestInCursor (
+        a_Cursor                        udt_RefCursor
+    ) return varchar2;
+
 end;
 /
 
-create or replace package body &main_user..pkg_TestOutCursors as
+create or replace package body &main_user..pkg_TestRefCursors as
 
     procedure TestOutCursor (
         a_MaxIntValue                   number,
@@ -697,6 +701,15 @@ create or replace package body &main_user..pkg_TestOutCursors as
             from TestStrings
             where IntCol <= a_MaxIntValue
             order by IntCol;
+    end;
+
+    function TestInCursor (
+        a_Cursor                        udt_RefCursor
+    ) return varchar2 is
+        t_String                        varchar2(100);
+    begin
+        fetch a_Cursor into t_String;
+        return t_String || ' (Modified)';
     end;
 
 end;

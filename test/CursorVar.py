@@ -31,7 +31,7 @@ class TestCursorVar(BaseTestCase):
         "test binding in a cursor from a package"
         cursor = self.connection.cursor()
         self.assertEqual(cursor.description, None)
-        self.cursor.callproc("pkg_TestOutCursors.TestOutCursor", (2, cursor))
+        self.cursor.callproc("pkg_TestRefCursors.TestOutCursor", (2, cursor))
         self.assertEqual(cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
                   ('STRINGCOL', cx_Oracle.STRING, 20, 20 * CS_RATIO, None,
