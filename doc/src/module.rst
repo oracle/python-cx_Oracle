@@ -218,9 +218,8 @@ Module Interface
 
     The timeout parameter is expected to be an integer, if specified, and sets
     the length of time (in seconds) after which idle sessions in the pool are
-    terminated. Note that termination only occurs when another session is
-    released back to the pool. The default value of 0 means that no idle
-    sessions are terminated.
+    terminated. Note that termination only occurs when the pool is accessed.
+    The default value of 0 means that no idle sessions are terminated.
 
     The waitTimeout parameter is expected to be an integer, if specified, and
     sets the length of time (in milliseconds) that the caller should wait for
@@ -229,12 +228,13 @@ Module Interface
     :data:`cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT`.
 
     The maxLifetimeSession parameter is expected to be an integer, if
-    specified, and sets the maximum length of time (in seconds) a session may
-    exist in the pool. Sessions in the pool are terminated after they have
-    been in the pool for the specified period of time. Note that termination
-    only occurs when another session is released back to the pool. The default
-    value is 0 which means that there is no maximum length of time that a
-    session may exist in the pool.
+    specified, and sets the maximum length of time (in seconds) a pooled
+    session may exist. Sessions that are in use will not be closed. They become
+    candidates for termination only when they are released back to the pool and
+    have existed for longer than maxLifetimeSession seconds. Note that
+    termination only occurs when the pool is accessed. The default value is 0
+    which means that there is no maximum length of time that a pooled session
+    may exist.
 
     .. note::
 

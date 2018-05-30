@@ -78,11 +78,16 @@ SessionPool Object
 
 .. attribute:: SessionPool.max_lifetime_session
 
-    This read-write attribute returns the lifetime (in seconds) for all of the
-    sessions in the pool. Sessions in the pool are terminated when they have
-    reached their lifetime. If timeout is also set, the session will be
-    terminated if either the idle timeout happens or the max lifetime setting
-    is exceeded. This attribute is only available in Oracle Database 12.1.
+    This read-write attribute returns the maximum length of time (in seconds)
+    that a pooled session may exist. Sessions that are in use will not be
+    closed. They become candidates for termination only when they are released
+    back to the pool and have existed for longer than max_lifetime_session
+    seconds. Note that termination only occurs when the pool is accessed. A
+    value of 0 means that there is no maximum length of time that a pooled
+    session may exist. This attribute is only available in Oracle Database
+    12.1.
+
+
 
     .. versionadded:: 5.3
 
@@ -141,9 +146,10 @@ SessionPool Object
 
 .. attribute:: SessionPool.timeout
 
-    This read-write attribute indicates the time (in seconds) after which idle
+    This read-write attribute specifies the time (in seconds) after which idle
     sessions will be terminated in order to maintain an optimum number of open
-    sessions.
+    sessions. Note that termination only occurs when the pool is accessed. A
+    value of 0 means that no idle sessions are terminated.
 
 
 .. attribute:: SessionPool.tnsentry
@@ -156,4 +162,15 @@ SessionPool Object
 
     This read-only attribute returns the name of the user which established the
     connection to the database.
+
+
+.. attribute:: SessionPool.wait_timeout
+
+    This read-write attribute specifies the time (in milliseconds) that the
+    caller should wait for a session to become available in the pool before
+    returning with an error. This value is only used if the getmode parameter
+    to :meth:`cx_Oracle.SessionPool()` was the value
+    :data:`cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT`.
+
+    .. versionadded:: 6.4
 
