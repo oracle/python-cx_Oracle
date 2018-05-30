@@ -30,6 +30,23 @@ Subscription Object
         This attribute was never intended to be exposed.
 
 
+.. attribute:: Subscription.ipAddress
+
+    This read-only attribute returns the IP address used for callback
+    notifications from the database server. If not set during construction,
+    this value is None.
+
+    .. versionadded:: 6.4
+
+
+.. attribute:: Subscription.name
+
+    This read-only attribute returns the name used to register the subscription
+    when it was created.
+
+    .. versionadded:: 6.4
+
+
 .. attribute:: Subscription.namespace
 
     This read-only attribute returns the namespace used to register the
@@ -41,13 +58,6 @@ Subscription Object
     This read-only attribute returns the operations that will send
     notifications for each table or query that is registered using this
     subscription.
-
-
-.. attribute:: Subscription.ipAddress
-
-    This read-only attribute returns the IP address used for callback
-    notifications from the database server. If not set during construction,
-    this value is None.
 
 
 .. attribute:: Subscription.port
@@ -103,18 +113,31 @@ Message Objects
     the notification.
 
 
-.. attribute:: Message.txid
-
-    This read-only attribute returns the id of the transaction that generated
-    the notification.
-
-
 .. attribute:: Message.queries
 
     This read-only attribute returns a list of message query objects that give
     information about query result sets changed for this notification. This
     attribute will be None if the qos parameter did not include the flag
     :data:`~cx_Oracle.SUBSCR_QOS_QUERY` when the subscription was created.
+
+
+.. attribute:: Message.queueName
+
+    This read-only attribute returns the name of the queue which generated the
+    notification. It will only be populated if the subscription was created
+    with the namespace :data:`cx_Oracle.SUBSCR_NAMESPACE_AQ`.
+
+    .. versionadded:: 6.4
+
+
+.. attribute:: Message.consumerName
+
+    This read-only attribute returns the name of the consumer which generated
+    the notification. It will be populated if the subscription was created with
+    the namespace :data:`cx_Oracle.SUBSCR_NAMESPACE_AQ` and the queue is a
+    multiple consumer queue.
+
+    .. versionadded:: 6.4
 
 
 .. attribute:: Message.subscription
@@ -129,6 +152,12 @@ Message Objects
     information about the tables changed for this notification. This
     attribute will be None if the qos parameter included the flag
     :data:`~cx_Oracle.SUBSCR_QOS_QUERY` when the subscription was created.
+
+
+.. attribute:: Message.txid
+
+    This read-only attribute returns the id of the transaction that generated
+    the notification.
 
 
 .. attribute:: Message.type

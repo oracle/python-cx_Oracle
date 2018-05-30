@@ -33,6 +33,7 @@ static PyMemberDef cxoSubscrTypeMembers[] = {
     { "connection", T_OBJECT, offsetof(cxoSubscr, connection),
             READONLY },
     { "namespace", T_INT, offsetof(cxoSubscr, namespace), READONLY },
+    { "name", T_OBJECT, offsetof(cxoSubscr, name), READONLY },
     { "protocol", T_INT, offsetof(cxoSubscr, protocol), READONLY },
     { "ipAddress", T_OBJECT, offsetof(cxoSubscr, ipAddress), READONLY },
     { "port", T_INT, offsetof(cxoSubscr, port), READONLY },
@@ -51,6 +52,8 @@ static PyMemberDef cxoMessageTypeMembers[] = {
     { "txid", T_OBJECT, offsetof(cxoMessage, txId), READONLY },
     { "tables", T_OBJECT, offsetof(cxoMessage, tables), READONLY },
     { "queries", T_OBJECT, offsetof(cxoMessage, queries), READONLY },
+    { "queueName", T_OBJECT, offsetof(cxoMessage, queueName), READONLY },
+    { "consumerName", T_OBJECT, offsetof(cxoMessage, consumerName), READONLY },
     { NULL }
 };
 
@@ -413,6 +416,18 @@ static int cxoMessage_initialize(cxoMessage *messageObj,
         if (!messageObj->txId)
             return -1;
     }
+    if (message->queueName) {
+        messageObj->queueName = cxoPyString_fromEncodedString(
+                message->queueName, message->queueNameLength, encoding);
+        if (!messageObj->queueName)
+            return -1;
+    }
+    if (message->consumerName) {
+        messageObj->consumerName = cxoPyString_fromEncodedString(
+                message->consumerName, message->consumerNameLength, encoding);
+        if (!messageObj->consumerName)
+            return -1;
+    }
     switch (message->eventType) {
         case DPI_EVENT_OBJCHANGE:
             messageObj->tables = PyList_New(message->numTables);
@@ -494,8 +509,7 @@ static int cxoSubscr_callbackHandler(cxoSubscr *subscr,
 // cxoSubscr_callback()
 //   Routine that is called when a callback needs to be invoked.
 //-----------------------------------------------------------------------------
-static void cxoSubscr_callback(cxoSubscr *subscr,
-        dpiSubscrMessage *message)
+void cxoSubscr_callback(cxoSubscr *subscr, dpiSubscrMessage *message)
 {
 #ifdef WITH_THREAD
     PyGILState_STATE gstate = PyGILState_Ensure();
@@ -510,77 +524,6 @@ static void cxoSubscr_callback(cxoSubscr *subscr,
 #ifdef WITH_THREAD
     PyGILState_Release(gstate);
 #endif
-}
-
-
-//-----------------------------------------------------------------------------
-// cxoSubscr_new()
-//   Allocate a new subscription object.
-//-----------------------------------------------------------------------------
-cxoSubscr *cxoSubscr_new(cxoConnection *connection, uint32_t namespace,
-        uint32_t protocol, PyObject *ipAddress, uint32_t port,
-        PyObject *callback, uint32_t timeout, uint32_t operations,
-        uint32_t qos, uint8_t groupingClass, uint32_t groupingValue,
-        uint8_t groupingType)
-{
-    dpiSubscrCreateParams params;
-    cxoSubscr *subscr;
-    cxoBuffer buffer;
-
-    subscr = (cxoSubscr*) cxoPyTypeSubscr.tp_alloc(&cxoPyTypeSubscr, 0);
-    if (!subscr)
-        return NULL;
-    Py_INCREF(connection);
-    subscr->connection = connection;
-    Py_XINCREF(callback);
-    subscr->callback = callback;
-    subscr->namespace = namespace;
-    subscr->protocol = protocol;
-    Py_XINCREF(ipAddress);
-    subscr->ipAddress = ipAddress;
-    subscr->port = port;
-    subscr->timeout = timeout;
-    subscr->operations = operations;
-    subscr->qos = qos;
-    subscr->groupingClass = groupingClass;
-    subscr->groupingValue = groupingValue;
-    subscr->groupingType = groupingType;
-
-    if (dpiContext_initSubscrCreateParams(cxoDpiContext, &params) < 0) {
-        cxoError_raiseAndReturnNull();
-        Py_DECREF(subscr);
-        return NULL;
-    }
-    params.subscrNamespace = namespace;
-    params.protocol = protocol;
-    if (ipAddress) {
-        if (cxoBuffer_fromObject(&buffer, ipAddress,
-                connection->encodingInfo.encoding) < 0) {
-            Py_DECREF(subscr);
-            return NULL;
-        }
-        params.ipAddress = buffer.ptr;
-        params.ipAddressLength = buffer.size;
-    }
-    params.portNumber = port;
-    if (callback) {
-        params.callback = (dpiSubscrCallback) cxoSubscr_callback;
-        params.callbackContext = subscr;
-    }
-    params.timeout = timeout;
-    params.operations = operations;
-    params.qos = qos;
-    params.groupingClass = groupingClass;
-    params.groupingValue = groupingValue;
-    params.groupingType = groupingType;
-    if (dpiConn_newSubscription(connection->handle, &params, &subscr->handle,
-            &subscr->id) < 0) {
-        cxoError_raiseAndReturnNull();
-        Py_DECREF(subscr);
-        return NULL;
-    }
-
-    return subscr;
 }
 
 
@@ -719,6 +662,8 @@ static void cxoMessage_free(cxoMessage *message)
     Py_CLEAR(message->dbname);
     Py_CLEAR(message->tables);
     Py_CLEAR(message->queries);
+    Py_CLEAR(message->queueName);
+    Py_CLEAR(message->consumerName);
     Py_TYPE(message)->tp_free((PyObject*) message);
 }
 

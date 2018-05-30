@@ -68,6 +68,13 @@ create or replace type &main_user..udt_Building as object (
 );
 /
 
+create or replace type &main_user..udt_Book as object (
+    Title                               varchar2(100),
+    Authors                             varchar2(100),
+    Price                               number(5,2)
+);
+/
+
 -- create tables
 
 create table &main_user..TestNumbers (
@@ -146,6 +153,15 @@ create table &main_user..Ptab (
     myid                  number,
     mydata                varchar(20)
 );
+
+-- create queue table and queues for demonstrating advanced queuing
+begin
+    dbms_aqadm.create_queue_table('&main_user..BOOK_QUEUE',
+            '&main_user..UDT_BOOK');
+    dbms_aqadm.create_queue('&main_user..BOOKS', '&main_user..BOOK_QUEUE');
+    dbms_aqadm.start_queue('&main_user..BOOKS');
+end;
+/
 
 -- populate tables
 

@@ -651,6 +651,12 @@ values for the :attr:`Message.type` attribute of the messages that are sent
 for subscriptions created by the :meth:`Connection.subscribe()` method.
 
 
+.. data:: EVENT_AQ
+
+    This constant is used to specify that one or more messages are available
+    for dequeuing on the queue specified when the subscription was created.
+
+
 .. data:: EVENT_DEREG
 
     This constant is used to specify that the subscription has been
@@ -847,12 +853,15 @@ These constants are extensions to the DB API definition. They are possible
 values for the namespace parameter of the :meth:`Connection.subscribe()`
 method.
 
+.. data:: SUBSCR_NAMESPACE_AQ
+
+    This constant is used to specify that notifications should be sent when a
+    queue has messages available to dequeue.
 
 .. data:: SUBSCR_NAMESPACE_DBCHANGE
 
     This constant is used to specify that database change notification or query
-    change notification messages are to be sent. This is the default value and
-    currently the only value that is supported.
+    change notification messages are to be sent. This is the default value.
 
 
 Subscription Protocols

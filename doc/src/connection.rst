@@ -480,11 +480,18 @@ Connection Object
         This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0, ipAddress=None, groupingClass=0, groupingValue=0, groupingType=cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY)
+.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0, ipAddress=None, groupingClass=0, groupingValue=0, groupingType=cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY, name=None)
 
-    Return a new :ref:`subscription object <subscrobj>` using the connection.
-    Currently the namespace and protocol parameters cannot have any other
-    meaningful values.
+    Return a new :ref:`subscription object <subscrobj>` that receives
+    notifications for events that take place in the database that match the
+    given parameters.
+
+    The namespace parameter specifies the namespace the subscription uses. It
+    can be one of :data:`cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE` or
+    :data:`cx_Oracle.SUBSCR_NAMESPACE_AQ`.
+
+    The protocol parameter specifies the protocol to use when notifications are
+    sent. Currently the only valid value is :data:`cx_Oracle.SUBSCR_PROTO_OCI`.
 
     The callback is expected to be a callable that accepts a single parameter.
     A :ref:`message object <msgobjects>` is passed to this callback whenever a
@@ -496,11 +503,12 @@ Connection Object
 
     The operations parameter enables filtering of the messages that are sent
     (insert, update, delete). The default value will send notifications for all
-    operations.
+    operations. This parameter is only used when the namespace is set to
+    :data:`cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE`.
 
     The port parameter specifies the listening port for callback notifications
     from the database server. If not specified, an unused port will be selected
-    by the database.
+    by the Oracle Client libraries.
 
     The qos parameter specifies quality of service options. It should be one or
     more of the following flags, OR'ed together:
@@ -510,9 +518,10 @@ Connection Object
     :data:`cx_Oracle.SUBSCR_QOS_QUERY`,
     :data:`cx_Oracle.SUBSCR_QOS_BEST_EFFORT`.
 
-    The ipAddress parameter specifies the IP address (IPv4 or IPv6) to bind for
-    callback notifications from the database server. If not specified, the
-    client IP address will be determined by the Oracle Client libraries.
+    The ipAddress parameter specifies the IP address (IPv4 or IPv6) in standard
+    string notation to bind for callback notifications from the database
+    server. If not specified, the client IP address will be determined by the
+    Oracle Client libraries.
 
     The groupingClass parameter specifies what type of grouping of
     notifications should take place. Currently, if set, this value can only be
@@ -522,8 +531,18 @@ Connection Object
     values :data:`cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY` (the default) or
     :data:`cx_Oracle.SUBSCR_GROUPING_TYPE_LAST`.
 
+    The name parameter is used to identify the subscription and is specific to
+    the selected namespace. If the namespace parameter is
+    :data:`cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE` then the name is optional and
+    can be any value. If the namespace parameter is
+    :data:`cx_Oracle.SUBSCR_NAMESPACE_AQ`, however, the name must be in the
+    format '<QUEUE_NAME>' for single consumer queues and
+    '<QUEUE_NAME>:<CONSUMER_NAME>' for multiple consumer queues, and identifies
+    the queue that will be monitored for messages. The queue name may include
+    the schema, if needed.
+
     *New in version 6.4:* The parameters ipAddress, groupingClass,
-    groupingValue and groupingType were added.
+    groupingValue, groupingType and name were added.
 
     .. note::
 
@@ -531,9 +550,11 @@ Connection Object
 
     .. note::
 
-        Do not close the connection before the subscription object is deleted
-        or the subscription object will not be deregistered in the database.
-        This is done automatically if connection.close() is never called.
+        The subscription can be deregistered in the database by calling the
+        function :meth:`~Connection.unsubscribe()`. If this method is not
+        called and the connection that was used to create the subscription is
+        explictly closed using the function :meth:`~Connection.close()`, the
+        subscription will not be deregistered in the database.
 
 
 .. attribute:: Connection.tnsentry
@@ -544,6 +565,16 @@ Connection Object
     .. note::
 
         This attribute is an extension to the DB API definition.
+
+
+.. method:: Connection.unsubscribe(subscr)
+
+    Unsubscribe from events in the database that were originally subscribed to
+    using :meth:`~Connection.subscribe()`. The connection used to unsubscribe
+    should be the same one used to create the subscription, or should access
+    the same database and be connected as the same user name.
+
+    .. versionadded:: 6.4
 
 
 .. attribute:: Connection.username

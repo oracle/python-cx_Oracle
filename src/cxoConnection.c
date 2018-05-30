@@ -1457,27 +1457,91 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
 {
     static char *keywordList[] = { "namespace", "protocol", "callback",
             "timeout", "operations", "port", "qos", "ipAddress",
-            "groupingClass", "groupingValue", "groupingType", NULL };
-    uint32_t namespace, protocol, port, timeout, operations, qos;
-    uint8_t groupingClass, groupingType;
-    PyObject *callback, *ipAddress;
-    uint32_t groupingValue;
+            "groupingClass", "groupingValue", "groupingType", "name", NULL };
+    PyObject *callback, *ipAddress, *name;
+    cxoBuffer ipAddressBuffer, nameBuffer;
+    dpiSubscrCreateParams params;
+    cxoSubscr *subscr;
 
-    groupingClass = 0;
-    callback = ipAddress = NULL;
-    timeout = port = qos = groupingValue = 0;
-    groupingType = DPI_SUBSCR_GROUPING_TYPE_SUMMARY;
-    namespace = DPI_SUBSCR_NAMESPACE_DBCHANGE;
-    protocol = DPI_SUBSCR_PROTO_CALLBACK;
-    operations = DPI_OPCODE_ALL_OPS;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiiiObib",
-            keywordList, &namespace, &protocol, &callback, &timeout,
-            &operations, &port, &qos, &ipAddress, &groupingClass,
-            &groupingValue, &groupingType))
+    // get default values for subscription parameters
+    if (dpiContext_initSubscrCreateParams(cxoDpiContext, &params) < 0)
+        return cxoError_raiseAndReturnNull();
+
+    // validate parameters
+    callback = name = ipAddress = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiiiObibO",
+            keywordList, &params.subscrNamespace, &params.protocol, &callback,
+            &params.timeout, &params.operations, &params.portNumber,
+            &params.qos, &ipAddress, &params.groupingClass,
+            &params.groupingValue, &params.groupingType, &name))
         return NULL;
-    return (PyObject*) cxoSubscr_new(conn, namespace, protocol, ipAddress,
-            port, callback, timeout, operations, qos, groupingClass,
-            groupingValue, groupingType);
+
+    // populate IP address in parameters, if applicable
+    cxoBuffer_init(&ipAddressBuffer);
+    if (ipAddress) {
+        if (cxoBuffer_fromObject(&ipAddressBuffer, ipAddress,
+                conn->encodingInfo.encoding) < 0)
+            return NULL;
+        params.ipAddress = ipAddressBuffer.ptr;
+        params.ipAddressLength = ipAddressBuffer.size;
+    }
+
+    // populate name in parameters, if applicable
+    cxoBuffer_init(&nameBuffer);
+    if (name) {
+        if (cxoBuffer_fromObject(&nameBuffer, name,
+                conn->encodingInfo.encoding) < 0) {
+            cxoBuffer_clear(&ipAddressBuffer);
+            return NULL;
+        }
+        params.name = nameBuffer.ptr;
+        params.nameLength = nameBuffer.size;
+    }
+
+    // create Python subscription object
+    subscr = (cxoSubscr*) cxoPyTypeSubscr.tp_alloc(&cxoPyTypeSubscr, 0);
+    if (!subscr) {
+        cxoBuffer_clear(&ipAddressBuffer);
+        cxoBuffer_clear(&nameBuffer);
+        return NULL;
+    }
+    Py_INCREF(conn);
+    subscr->connection = conn;
+    Py_XINCREF(callback);
+    subscr->callback = callback;
+    subscr->namespace = params.subscrNamespace;
+    subscr->protocol = params.protocol;
+    Py_XINCREF(ipAddress);
+    subscr->ipAddress = ipAddress;
+    Py_XINCREF(name);
+    subscr->name = name;
+    subscr->port = params.portNumber;
+    subscr->timeout = params.timeout;
+    subscr->operations = params.operations;
+    subscr->qos = params.qos;
+    subscr->groupingClass = params.groupingClass;
+    subscr->groupingValue = params.groupingValue;
+    subscr->groupingType = params.groupingType;
+
+    // populate callback in parameters, if applicable
+    if (callback) {
+        params.callback = (dpiSubscrCallback) cxoSubscr_callback;
+        params.callbackContext = subscr;
+    }
+
+    // create ODPI-C subscription
+    if (dpiConn_newSubscription(conn->handle, &params, &subscr->handle,
+            &subscr->id) < 0) {
+        cxoError_raiseAndReturnNull();
+        cxoBuffer_clear(&ipAddressBuffer);
+        cxoBuffer_clear(&nameBuffer);
+        Py_DECREF(subscr);
+        return NULL;
+    }
+    cxoBuffer_clear(&ipAddressBuffer);
+    cxoBuffer_clear(&nameBuffer);
+
+    return (PyObject*) subscr;
 }
 
 

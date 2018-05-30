@@ -279,6 +279,8 @@ struct cxoMessage {
     PyObject *txId;
     PyObject *tables;
     PyObject *queries;
+    PyObject *queueName;
+    PyObject *consumerName;
 };
 
 struct cxoMessageQuery {
@@ -358,6 +360,7 @@ struct cxoSubscr {
     cxoConnection *connection;
     PyObject *callback;
     uint32_t namespace;
+    PyObject *name;
     uint32_t protocol;
     PyObject *ipAddress;
     uint32_t port;
@@ -433,11 +436,7 @@ cxoObjectType *cxoObjectType_new(cxoConnection *connection,
 cxoObjectType *cxoObjectType_newByName(cxoConnection *connection,
         PyObject *name);
 
-cxoSubscr *cxoSubscr_new(cxoConnection *connection, uint32_t namespace,
-        uint32_t protocol, PyObject *ipAddress, uint32_t port,
-        PyObject *callback, uint32_t timeout, uint32_t operations,
-        uint32_t qos, uint8_t groupingClass, uint32_t groupingValue,
-        uint8_t groupingType);
+void cxoSubscr_callback(cxoSubscr *subscr, dpiSubscrMessage *message);
 
 PyObject *cxoTransform_dateFromTicks(PyObject *args);
 int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
