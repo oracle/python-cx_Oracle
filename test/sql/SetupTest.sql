@@ -673,15 +673,13 @@ end;
 
 create or replace package &main_user..pkg_TestRefCursors as
 
-    type udt_RefCursor is ref cursor;
-
     procedure TestOutCursor (
         a_MaxIntValue                   number,
-        a_Cursor                        out udt_RefCursor
+        a_Cursor                        out sys_refcursor
     );
 
     function TestInCursor (
-        a_Cursor                        udt_RefCursor
+        a_Cursor                        sys_refcursor
     ) return varchar2;
 
 end;
@@ -691,7 +689,7 @@ create or replace package body &main_user..pkg_TestRefCursors as
 
     procedure TestOutCursor (
         a_MaxIntValue                   number,
-        a_Cursor                        out udt_RefCursor
+        a_Cursor                        out sys_refcursor
     ) is
     begin
         open a_Cursor for
@@ -704,7 +702,7 @@ create or replace package body &main_user..pkg_TestRefCursors as
     end;
 
     function TestInCursor (
-        a_Cursor                        udt_RefCursor
+        a_Cursor                        sys_refcursor
     ) return varchar2 is
         t_String                        varchar2(100);
     begin
