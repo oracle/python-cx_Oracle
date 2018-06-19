@@ -1469,7 +1469,7 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
 
     // validate parameters
     callback = name = ipAddress = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiOiiiiObibO",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|IIOIIIIObIbO",
             keywordList, &params.subscrNamespace, &params.protocol, &callback,
             &params.timeout, &params.operations, &params.portNumber,
             &params.qos, &ipAddress, &params.groupingClass,
