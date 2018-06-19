@@ -360,17 +360,6 @@ Cursor Object
         mentioned in PEP 249 as an optional extension.
 
 
-.. method:: Cursor.next()
-
-    Fetch the next row of a query result set, using the same semantics as the
-    method fetchone().
-
-    .. note::
-
-        This method is an extension to the DB API definition but it is
-        mentioned in PEP 249 as an optional extension.
-
-
 .. attribute:: Cursor.outputtypehandler
 
     This read-write attribute specifies a method called for each column that is
