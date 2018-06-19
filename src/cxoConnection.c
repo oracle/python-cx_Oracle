@@ -47,6 +47,8 @@ static PyObject *cxoConnection_ping(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_shutdown(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_startup(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_subscribe(cxoConnection*, PyObject*, PyObject*);
+static PyObject *cxoConnection_unsubscribe(cxoConnection*, PyObject*,
+        PyObject*);
 static PyObject *cxoConnection_getLTXID(cxoConnection*, void*);
 static PyObject *cxoConnection_getHandle(cxoConnection*, void*);
 static PyObject *cxoConnection_getCurrentSchema(cxoConnection*, void*);
@@ -87,6 +89,8 @@ static PyMethodDef cxoConnectionMethods[] = {
     { "startup", (PyCFunction) cxoConnection_startup,
             METH_VARARGS | METH_KEYWORDS},
     { "subscribe", (PyCFunction) cxoConnection_subscribe,
+            METH_VARARGS | METH_KEYWORDS},
+    { "unsubscribe", (PyCFunction) cxoConnection_unsubscribe,
             METH_VARARGS | METH_KEYWORDS},
     { "changepassword", (PyCFunction) cxoConnection_changePassword,
             METH_VARARGS },
@@ -1541,6 +1545,36 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
     cxoBuffer_clear(&nameBuffer);
 
     return (PyObject*) subscr;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoConnection_unsubscribe()
+//   Destroy a subscription to events that take place in the database.
+//-----------------------------------------------------------------------------
+static PyObject *cxoConnection_unsubscribe(cxoConnection *conn, PyObject* args,
+        PyObject* keywordArgs)
+{
+    static char *keywordList[] = { "subscription", NULL };
+    PyObject *subscrObj;
+    cxoSubscr *subscr;
+    int status;
+
+    // validate parameters
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!", keywordList,
+            &cxoPyTypeSubscr, &subscrObj))
+        return NULL;
+
+    // destroy ODPI-C subscription
+    subscr = (cxoSubscr*) subscrObj;
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiConn_unsubscribe(conn->handle, subscr->handle);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
+        return cxoError_raiseAndReturnNull();
+    subscr->handle = NULL;
+
+    Py_RETURN_NONE;
 }
 
 
