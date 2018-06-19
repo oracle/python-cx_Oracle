@@ -54,6 +54,7 @@ static PyMemberDef cxoMessageTypeMembers[] = {
     { "queries", T_OBJECT, offsetof(cxoMessage, queries), READONLY },
     { "queueName", T_OBJECT, offsetof(cxoMessage, queueName), READONLY },
     { "consumerName", T_OBJECT, offsetof(cxoMessage, consumerName), READONLY },
+    { "registered", T_BOOL, offsetof(cxoMessage, registered), READONLY },
     { NULL }
 };
 
@@ -406,6 +407,7 @@ static int cxoMessage_initialize(cxoMessage *messageObj,
     messageObj->subscription = subscription;
     encoding = subscription->connection->encodingInfo.encoding;
     messageObj->type = message->eventType;
+    messageObj->registered = message->registered;
     messageObj->dbname = cxoPyString_fromEncodedString(message->dbName,
             message->dbNameLength, encoding);
     if (!messageObj->dbname)

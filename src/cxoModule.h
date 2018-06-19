@@ -281,6 +281,7 @@ struct cxoMessage {
     PyObject *queries;
     PyObject *queueName;
     PyObject *consumerName;
+    int registered;
 };
 
 struct cxoMessageQuery {

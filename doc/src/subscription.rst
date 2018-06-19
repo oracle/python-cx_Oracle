@@ -107,6 +107,16 @@ Message Objects
     to the callback procedure specified when a subscription is created.
 
 
+.. attribute:: Message.consumerName
+
+    This read-only attribute returns the name of the consumer which generated
+    the notification. It will be populated if the subscription was created with
+    the namespace :data:`cx_Oracle.SUBSCR_NAMESPACE_AQ` and the queue is a
+    multiple consumer queue.
+
+    .. versionadded:: 6.4
+
+
 .. attribute:: Message.dbname
 
     This read-only attribute returns the name of the database that generated
@@ -130,12 +140,13 @@ Message Objects
     .. versionadded:: 6.4
 
 
-.. attribute:: Message.consumerName
+.. attribute:: Message.registered
 
-    This read-only attribute returns the name of the consumer which generated
-    the notification. It will be populated if the subscription was created with
-    the namespace :data:`cx_Oracle.SUBSCR_NAMESPACE_AQ` and the queue is a
-    multiple consumer queue.
+    This read-only attribute returns whether the subscription which generated
+    this notification is still registered with the database. The subscription
+    is automatically deregistered with the database when the subscription
+    timeout value is reached or when the first notification is sent (when the
+    quality of service flag :data:`cx_Oracle.SUBSCR_QOS_DEREG_NFY` is used).
 
     .. versionadded:: 6.4
 

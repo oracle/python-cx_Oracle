@@ -29,7 +29,7 @@ registered = True
 def callback(message):
     global registered
     print("Message type:", message.type)
-    if message.type == cx_Oracle.EVENT_DEREG:
+    if not message.registered:
         print("Deregistration has taken place...")
         registered = False
         return
