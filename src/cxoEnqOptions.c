@@ -138,7 +138,8 @@ static PyObject *cxoEnqOptions_getTransformation(cxoEnqOptions *self,
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxoPyString_fromEncodedString(value, valueLength, self->encoding);
+    return cxoPyString_fromEncodedString(value, valueLength, self->encoding,
+            NULL);
 }
 
 

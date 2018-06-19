@@ -649,7 +649,7 @@ PyObject *cxoTransform_timestampFromTicks(PyObject *args)
 //-----------------------------------------------------------------------------
 PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         cxoConnection *connection, cxoObjectType *objType,
-        dpiDataBuffer *dbValue)
+        dpiDataBuffer *dbValue, const char *encodingErrors)
 {
     const cxoTransform *transform;
     PyObject *stringObj, *result;
@@ -706,7 +706,7 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_DECIMAL:
             bytes = &dbValue->asBytes;
             stringObj = cxoPyString_fromEncodedString(bytes->ptr,
-                    bytes->length, bytes->encoding);
+                    bytes->length, bytes->encoding, encodingErrors);
             if (!stringObj)
                 return NULL;
             result = PyObject_CallFunctionObjArgs(
@@ -717,7 +717,7 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_NSTRING:
             bytes = &dbValue->asBytes;
             return PyUnicode_Decode(bytes->ptr, bytes->length, bytes->encoding,
-                    NULL);
+                    encodingErrors);
         case CXO_TRANSFORM_FLOAT:
         case CXO_TRANSFORM_NATIVE_DOUBLE:
             return PyFloat_FromDouble(dbValue->asDouble);
@@ -729,7 +729,7 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_LONG_INT:
             bytes = &dbValue->asBytes;
             stringObj = cxoPyString_fromEncodedString(bytes->ptr,
-                    bytes->length, NULL);
+                    bytes->length, NULL, NULL);
             if (!stringObj)
                 return NULL;
 #if PY_MAJOR_VERSION >= 3
@@ -750,13 +750,13 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
                     &rowidLength) < 0)
                 return cxoError_raiseAndReturnNull();
             return cxoPyString_fromEncodedString(rowid, rowidLength,
-                    connection->encodingInfo.encoding);
+                    connection->encodingInfo.encoding, NULL);
         case CXO_TRANSFORM_FIXED_CHAR:
         case CXO_TRANSFORM_STRING:
         case CXO_TRANSFORM_LONG_STRING:
             bytes = &dbValue->asBytes;
             return cxoPyString_fromEncodedString(bytes->ptr, bytes->length,
-                    bytes->encoding);
+                    bytes->encoding, encodingErrors);
         case CXO_TRANSFORM_TIMEDELTA:
             intervalDS = &dbValue->asIntervalDS; 
             seconds = intervalDS->hours * 60 * 60 + intervalDS->minutes * 60 +

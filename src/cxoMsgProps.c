@@ -200,7 +200,8 @@ static PyObject *cxoMsgProps_getCorrelation(cxoMsgProps *props, void *unused)
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxoPyString_fromEncodedString(value, valueLength, props->encoding);
+    return cxoPyString_fromEncodedString(value, valueLength, props->encoding,
+            NULL);
 }
 
 
@@ -238,7 +239,8 @@ static PyObject *cxoMsgProps_getEnqTime(cxoMsgProps *props, void *unused)
 
     if (dpiMsgProps_getEnqTime(props->handle, &buffer.asTimestamp) < 0)
         return cxoError_raiseAndReturnNull();
-    return cxoTransform_toPython(CXO_TRANSFORM_DATETIME, NULL, NULL, &buffer);
+    return cxoTransform_toPython(CXO_TRANSFORM_DATETIME, NULL, NULL, &buffer,
+            NULL);
 }
 
 
@@ -255,7 +257,8 @@ static PyObject *cxoMsgProps_getExceptionQ(cxoMsgProps *props, void *unused)
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxoPyString_fromEncodedString(value, valueLength, props->encoding);
+    return cxoPyString_fromEncodedString(value, valueLength, props->encoding,
+            NULL);
 }
 
 

@@ -527,7 +527,7 @@ static PyObject *cxoConnection_getAttrText(cxoConnection *conn,
     if (!value)
         Py_RETURN_NONE;
     return cxoPyString_fromEncodedString(value, valueLength,
-            conn->encodingInfo.encoding);
+            conn->encodingInfo.encoding, NULL);
 }
 
 

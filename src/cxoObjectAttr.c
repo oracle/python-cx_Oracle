@@ -87,7 +87,7 @@ static int cxoObjectAttr_initialize(cxoObjectAttr *attr,
     attr->transformNum = cxoTransform_getNumFromDataTypeInfo(&info.typeInfo);
     attr->oracleTypeNum = info.typeInfo.oracleTypeNum;
     attr->name = cxoPyString_fromEncodedString(info.name, info.nameLength,
-            connection->encodingInfo.encoding);
+            connection->encodingInfo.encoding, NULL);
     if (!attr->name)
         return -1;
     if (info.typeInfo.objectType) {

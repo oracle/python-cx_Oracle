@@ -189,6 +189,8 @@ static void cxoVar_free(cxoVar *var)
         Py_END_ALLOW_THREADS
         var->handle = NULL;
     }
+    if (var->encodingErrors)
+        PyMem_Free((void*) var->encodingErrors);
     Py_CLEAR(var->connection);
     Py_CLEAR(var->inConverter);
     Py_CLEAR(var->outConverter);
@@ -470,7 +472,7 @@ PyObject *cxoVar_getSingleValue(cxoVar *var, dpiData *data, uint32_t arrayPos)
     if (data->isNull)
         Py_RETURN_NONE;
     value = cxoTransform_toPython(var->type->transformNum, var->connection,
-            var->objectType, &data->value);
+            var->objectType, &data->value, var->encodingErrors);
     if (value) {
         switch (var->type->transformNum) {
             case CXO_TRANSFORM_BFILE:

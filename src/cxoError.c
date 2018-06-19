@@ -158,7 +158,7 @@ cxoError *cxoError_newFromInfo(dpiErrorInfo *errorInfo)
 
     // create message
     error->message = cxoPyString_fromEncodedString(errorInfo->message,
-            errorInfo->messageLength, errorInfo->encoding);
+            errorInfo->messageLength, errorInfo->encoding, NULL);
     if (!error->message) {
         Py_DECREF(error);
         return NULL;

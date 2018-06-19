@@ -324,7 +324,7 @@ static int cxoMessageRow_initialize(cxoMessageRow *rowObj,
 {
     rowObj->operation = row->operation;
     rowObj->rowid = cxoPyString_fromEncodedString(row->rowid, row->rowidLength,
-            encoding);
+            encoding, NULL);
     if (!rowObj->rowid)
         return -1;
 
@@ -344,7 +344,7 @@ static int cxoMessageTable_initialize(cxoMessageTable *tableObj,
 
     tableObj->operation = table->operation;
     tableObj->name = cxoPyString_fromEncodedString(table->name,
-            table->nameLength, encoding);
+            table->nameLength, encoding, NULL);
     tableObj->rows = PyList_New(table->numRows);
     if (!tableObj->rows)
         return -1;
@@ -409,7 +409,7 @@ static int cxoMessage_initialize(cxoMessage *messageObj,
     messageObj->type = message->eventType;
     messageObj->registered = message->registered;
     messageObj->dbname = cxoPyString_fromEncodedString(message->dbName,
-            message->dbNameLength, encoding);
+            message->dbNameLength, encoding, NULL);
     if (!messageObj->dbname)
         return -1;
     if (message->txId) {
@@ -420,13 +420,14 @@ static int cxoMessage_initialize(cxoMessage *messageObj,
     }
     if (message->queueName) {
         messageObj->queueName = cxoPyString_fromEncodedString(
-                message->queueName, message->queueNameLength, encoding);
+                message->queueName, message->queueNameLength, encoding, NULL);
         if (!messageObj->queueName)
             return -1;
     }
     if (message->consumerName) {
         messageObj->consumerName = cxoPyString_fromEncodedString(
-                message->consumerName, message->consumerNameLength, encoding);
+                message->consumerName, message->consumerNameLength, encoding,
+                NULL);
         if (!messageObj->consumerName)
             return -1;
     }

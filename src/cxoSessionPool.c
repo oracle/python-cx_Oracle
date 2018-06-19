@@ -278,7 +278,8 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     pool->encodingInfo.nencoding =
             cxoUtils_getAdjustedEncoding(pool->encodingInfo.nencoding);
     pool->name = cxoPyString_fromEncodedString(dpiCreateParams.outPoolName,
-            dpiCreateParams.outPoolNameLength, pool->encodingInfo.encoding);
+            dpiCreateParams.outPoolNameLength, pool->encodingInfo.encoding,
+            NULL);
     if (!pool->name)
         return -1;
 

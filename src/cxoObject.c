@@ -194,7 +194,7 @@ static PyObject *cxoObject_convertToPython(cxoObject *obj,
     if (data->isNull)
         Py_RETURN_NONE;
     return cxoTransform_toPython(transformNum, obj->objectType->connection,
-            objType, &data->value);
+            objType, &data->value, NULL);
 }
 
 

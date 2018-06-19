@@ -113,11 +113,11 @@ static int cxoObjectType_initialize(cxoObjectType *objType,
     Py_INCREF(connection);
     objType->connection = connection;
     objType->schema = cxoPyString_fromEncodedString(info.schema,
-            info.schemaLength, connection->encodingInfo.encoding);
+            info.schemaLength, connection->encodingInfo.encoding, NULL);
     if (!objType->schema)
         return -1;
     objType->name = cxoPyString_fromEncodedString(info.name, info.nameLength,
-            connection->encodingInfo.encoding);
+            connection->encodingInfo.encoding, NULL);
     if (!objType->name)
         return -1;
     objType->isCollection = info.isCollection;

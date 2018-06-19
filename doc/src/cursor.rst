@@ -497,23 +497,39 @@ Cursor Object
 
 
 .. method:: Cursor.var(dataType, [size, arraysize, inconverter, outconverter, \
-        typename])
+        typename, encodingErrors])
 
-    Create a variable associated with the cursor of the given type and
-    characteristics and return a :ref:`variable object <varobj>`. If the size
-    is not specified and the type is a string or binary, 4000 bytes is
-    allocated; if the size is not specified and the type is a long string or
-    long binary, 128KB is allocated. If the arraysize is not specified, the
-    bind array size (usually 1) is used. The inconverter and outconverter
-    specify methods used for converting values to/from the database. More
-    information can be found in the section on variable objects.
+    Create a variable with the specified charactistics. This method was
+    designed for use with PL/SQL in/out variables where the length or type
+    cannot be determined automatically from the Python object passed in or for
+    use in input and output type handlers defined on cursors or connections.
 
-    To create an empty SQL object variable, specify the typename parameter.
+    The dataType parameter specifies the type of data that should be stored in
+    the variable. This should be one of the types defined at the module level
+    (such as :data:`cx_Oracle.STRING`) or a Python type that cx_Oracle knows
+    how to process (such as str).
 
-    This method was designed for use with PL/SQL in/out variables where the
-    length or type cannot be determined automatically from the Python object
-    passed in or for use in input and output type handlers defined on cursors
-    or connections.
+    The size parameter specifies the length of string and raw variables and is
+    ignored in all other cases. If not specified for string and raw variables,
+    the value 4000 is used.
+
+    The arraysize parameter specifies the number of elements the variable will
+    have. If not specified the bind array size (usually 1) is used. When a
+    variable is created in an output type handler this parameter should be set
+    to the cursor's array size.
+
+    The inconverter and outconverter parameters specify methods used for
+    converting values to/from the database. More information can be found in
+    the section on :ref:`variable objects<varobj>`.
+
+    The typename parameter specifies the name of a SQL object type and must be
+    specified when using type :data:`cx_Oracle.OBJECT`.
+
+    The encodingErrors parameter specifies what should happen when decoding
+    byte strings fetched from the database into strings (Python 3) or unicode
+    objects (Python 2). It should be one of the values noted in the builtin
+    `decode <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__
+    function.
 
     .. note::
 

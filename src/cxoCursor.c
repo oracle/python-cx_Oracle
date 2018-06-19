@@ -515,7 +515,8 @@ static PyObject *cxoCursor_itemDescription(cxoCursor *cursor, uint32_t pos)
 
     // set each of the items in the tuple
     PyTuple_SET_ITEM(tuple, 0, cxoPyString_fromEncodedString(queryInfo.name,
-            queryInfo.nameLength, cursor->connection->encodingInfo.encoding));
+            queryInfo.nameLength, cursor->connection->encodingInfo.encoding,
+            NULL));
     Py_INCREF(varType->pythonType);
     PyTuple_SET_ITEM(tuple, 1, (PyObject*) varType->pythonType);
     if (displaySize)
@@ -1793,9 +1794,11 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "type", "size", "arraysize",
-            "inconverter", "outconverter", "typename", NULL };
+            "inconverter", "outconverter", "typename", "encodingErrors",
+            NULL };
     PyObject *inConverter, *outConverter, *typeNameObj;
     cxoObjectType *objType = NULL;
+    const char *encodingErrors;
     cxoVarType *varType;
     int size, arraySize;
     PyObject *type;
@@ -1803,11 +1806,12 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
 
     // parse arguments
     size = 0;
+    encodingErrors = NULL;
     arraySize = cursor->bindArraySize;
     inConverter = outConverter = typeNameObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|iiOOO",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|iiOOOz",
             keywordList, &PyType_Type, &type, &size, &arraySize, &inConverter,
-            &outConverter, &typeNameObj))
+            &outConverter, &typeNameObj, &encodingErrors))
         return NULL;
 
     // determine the type of variable
@@ -1831,6 +1835,16 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
     var->inConverter = inConverter;
     Py_XINCREF(outConverter);
     var->outConverter = outConverter;
+
+    // assign encoding errors, if applicable
+    if (encodingErrors) {
+        var->encodingErrors = PyMem_Malloc(strlen(encodingErrors) + 1);
+        if (!var->encodingErrors) {
+            Py_DECREF(var);
+            return NULL;
+        }
+        strcpy((char*) var->encodingErrors, encodingErrors);
+    }
 
     return (PyObject*) var;
 }
@@ -1937,7 +1951,7 @@ static PyObject *cxoCursor_bindNames(cxoCursor *cursor, PyObject *args)
     if (namesList) {
         for (i = 0; i < numBinds; i++) {
             temp = cxoPyString_fromEncodedString(names[i], nameLengths[i],
-                    cursor->connection->encodingInfo.encoding);
+                    cursor->connection->encodingInfo.encoding, NULL);
             if (!temp) {
                 Py_CLEAR(namesList);
                 break;

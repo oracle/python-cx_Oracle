@@ -38,15 +38,15 @@
     #define cxoPyTypeString             PyUnicode_Type
     #define cxoPyString_fromAscii(str) \
         PyUnicode_DecodeASCII(str, strlen(str), NULL)
-    #define cxoPyString_fromEncodedString(buffer, numBytes, encoding) \
-        PyUnicode_Decode(buffer, numBytes, encoding, NULL)
+    #define cxoPyString_fromEncodedString(buffer, numBytes, encoding, errors) \
+        PyUnicode_Decode(buffer, numBytes, encoding, errors)
 #else
     #define CXO_BASE_EXCEPTION          PyExc_StandardError
     #define cxoPyTypeBinary             PyBuffer_Type
     #define cxoPyTypeString             PyString_Type
     #define cxoPyString_fromAscii(str) \
         PyBytes_FromString(str)
-    #define cxoPyString_fromEncodedString(buffer, numBytes, encoding) \
+    #define cxoPyString_fromEncodedString(buffer, numBytes, encoding, errors) \
         PyBytes_FromStringAndSize(buffer, numBytes)
 #endif
 
@@ -382,6 +382,7 @@ struct cxoVar {
     PyObject *inConverter;
     PyObject *outConverter;
     cxoObjectType *objectType;
+    const char *encodingErrors;
     uint32_t allocatedElements;
     uint32_t size;
     uint32_t bufferSize;
@@ -452,7 +453,7 @@ int cxoTransform_init(void);
 PyObject *cxoTransform_timestampFromTicks(PyObject *args);
 PyObject *cxoTransform_toPython(cxoTransformNum transformNum, 
         cxoConnection *connection, cxoObjectType *objType,
-        dpiDataBuffer *dbValue);
+        dpiDataBuffer *dbValue, const char *encodingErrors);
 
 PyObject *cxoUtils_formatString(const char *format, PyObject *args);
 const char *cxoUtils_getAdjustedEncoding(const char *encoding);

@@ -165,8 +165,8 @@ static PyObject *cxoDeqOptions_getAttrText(cxoDeqOptions *options,
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxoPyString_fromEncodedString(value, valueLength,
-            options->encoding);
+    return cxoPyString_fromEncodedString(value, valueLength, options->encoding,
+            NULL);
 }
 
 
