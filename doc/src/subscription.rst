@@ -23,11 +23,11 @@ Subscription Object
 
 .. attribute:: Subscription.id
 
-    This read-only attribute returns the registration ID returned by the
-    database when the subscription was created.
+    This read-only attribute returns the value 0.
 
     .. deprecated:: 6.0
-        This attribute was never intended to be exposed.
+        This attribute was never intended to be exposed and will be removed
+        in cx_Oracle 7.
 
 
 .. attribute:: Subscription.ipAddress

@@ -1530,8 +1530,7 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
     }
 
     // create ODPI-C subscription
-    if (dpiConn_newSubscription(conn->handle, &params, &subscr->handle,
-            &subscr->id) < 0) {
+    if (dpiConn_subscribe(conn->handle, &params, &subscr->handle) < 0) {
         cxoError_raiseAndReturnNull();
         cxoBuffer_clear(&ipAddressBuffer);
         cxoBuffer_clear(&nameBuffer);
