@@ -28,6 +28,19 @@ class TestConnection(TestCase):
         self.assertRaises(cx_Oracle.DatabaseError, cursor.execute,
                 "select 1 / 0 from dual")
 
+    def __VerifyConnection(self, connection, expectedUser,
+            expectedProxyUser = None):
+        cursor = connection.cursor()
+        cursor.execute("""
+                select
+                    sys_context('userenv', 'session_user'),
+                    sys_context('userenv', 'proxy_user')
+                from dual""")
+        actualUser, actualProxyUser = cursor.fetchone()
+        self.assertEqual(actualUser, expectedUser.upper())
+        self.assertEqual(actualProxyUser,
+                expectedProxyUser and expectedProxyUser.upper())
+
     def testPool(self):
         """test that the pool is created and has the right attributes"""
         pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
@@ -55,6 +68,8 @@ class TestConnection(TestCase):
         self.assertEqual(pool.busy, 1, "busy not 1 after del")
         pool.getmode = cx_Oracle.SPOOL_ATTRVAL_NOWAIT
         self.assertEqual(pool.getmode, cx_Oracle.SPOOL_ATTRVAL_NOWAIT)
+        pool.getmode = cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT
+        self.assertEqual(pool.getmode, cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT)
         pool.stmtcachesize = 50
         self.assertEqual(pool.stmtcachesize, 50)
         pool.timeout = 10
@@ -180,4 +195,45 @@ class TestConnection(TestCase):
         self.assertEqual(pool.opened, 2, "opened (3)")
         pool.drop(connection)
         self.assertEqual(pool.opened, 1, "opened (4)")
+
+    def testHeterogeneous(self):
+        """test heterogeneous pool with user and password specified"""
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING,
+                homogeneous = False)
+        self.assertEqual(pool.homogeneous, 0)
+        self.__VerifyConnection(pool.acquire(), USERNAME)
+        self.__VerifyConnection(pool.acquire(USERNAME, PASSWORD), USERNAME)
+        self.__VerifyConnection(pool.acquire(PROXY_USERNAME, PROXY_PASSWORD),
+                PROXY_USERNAME)
+        userStr = "%s[%s]" % (USERNAME, PROXY_USERNAME)
+        self.__VerifyConnection(pool.acquire(userStr, PASSWORD),
+                PROXY_USERNAME, USERNAME)
+
+    def testHeterogenousWithoutUser(self):
+        """test heterogeneous pool without user and password specified"""
+        pool = cx_Oracle.SessionPool("", "", TNSENTRY, 2, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING,
+                homogeneous = False)
+        self.__VerifyConnection(pool.acquire(USERNAME, PASSWORD), USERNAME)
+        self.__VerifyConnection(pool.acquire(PROXY_USERNAME, PROXY_PASSWORD),
+                PROXY_USERNAME)
+        userStr = "%s[%s]" % (USERNAME, PROXY_USERNAME)
+        self.__VerifyConnection(pool.acquire(userStr, PASSWORD),
+                PROXY_USERNAME, USERNAME)
+
+    def testHeterogenousWithoutPassword(self):
+        """test heterogeneous pool without password"""
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING,
+                homogeneous = False)
+        self.assertRaises(cx_Oracle.DatabaseError,  pool.acquire, USERNAME)
+
+    def testHeterogeneousWrongPassword(self):
+        """test heterogeneous pool with wrong password specified"""
+        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
+                encoding = ENCODING, nencoding = NENCODING,
+                homogeneous = False)
+        self.assertRaises(cx_Oracle.DatabaseError, pool.acquire,
+                PROXY_USERNAME, "this is the wrong password")
 

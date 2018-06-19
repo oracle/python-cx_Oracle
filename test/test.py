@@ -103,6 +103,7 @@ for name in moduleNames:
     setattr(module, "USERNAME", TestEnv.MAIN_USER)
     setattr(module, "PASSWORD", TestEnv.MAIN_PASSWORD)
     setattr(module, "PROXY_USERNAME", TestEnv.PROXY_USER)
+    setattr(module, "PROXY_PASSWORD", TestEnv.PROXY_PASSWORD)
     setattr(module, "TNSENTRY", TestEnv.CONNECT_STRING)
     setattr(module, "ENCODING", TestEnv.ENCODING)
     setattr(module, "NENCODING", TestEnv.NENCODING)
