@@ -86,7 +86,8 @@ Dequeue Options
     This attribute specifies the transactional behavior of the dequeue request.
     It should be one of the values :data:`~cx_Oracle.DEQ_ON_COMMIT` (default)
     or :data:`~cx_Oracle.DEQ_IMMEDIATE`. This attribute is ignored when using
-    the :data:`~cx_Oracle.DEQ_BROWSE` mode.
+    the :data:`~cx_Oracle.DEQ_BROWSE` mode. Note the value of
+    :attr:`~Connection.autocommit` is always ignored.
 
 
 .. attribute:: DeqOptions.wait
@@ -130,7 +131,8 @@ Enqueue Options
 
     This attribute specifies the transactional behavior of the enqueue request.
     It should be one of the values :data:`~cx_Oracle.ENQ_ON_COMMIT` (default)
-    or :data:`~cx_Oracle.ENQ_IMMEDIATE`.
+    or :data:`~cx_Oracle.ENQ_IMMEDIATE`. Note the value of
+    :attr:`~Connection.autocommit` is ignored.
 
 
 .. _msgproperties:

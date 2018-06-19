@@ -176,11 +176,16 @@ combination may result in runtime errors. These include:
 Installing cx_Oracle on Linux
 =============================
 
+This section discusses the generic installation method on Linux.
+Using Python and cx_Oracle RPM packages on Oracle Linux is discussed
+in :ref:`oraclelinux`.
+
 Install cx_Oracle
 -----------------
 
-Use Python's `Pip <http://pip.readthedocs.io/en/latest/installing/>`__
-package to install cx_Oracle from `PyPI
+The generic way to install cx_Oracle on Linux is to use Python's `Pip
+<http://pip.readthedocs.io/en/latest/installing/>`__ package to
+install cx_Oracle from `PyPI
 <https://pypi.python.org/pypi/cx_Oracle>`__::
 
     python -m pip install cx_Oracle --upgrade
@@ -334,6 +339,19 @@ Python architecture.
    accessible directory.  Then set the environment variable
    ``TNS_ADMIN`` to that directory name.
 
+
+.. _oraclelinux:
+
+Installing cx_Oracle on Oracle Linux
+====================================
+
+Python packages are available for Oracle Linux from Oracle's `public
+yum repository <http://yum.oracle.com/>`__.  Various versions
+of Python are easily installed.  Packages for cx_Oracle are also
+available, making it easy to keep up to date.
+
+Installation instructions are at `Oracle Linux for Python
+Developers <https://yum.oracle.com/oracle-linux-python.html>`__.
 
 Installing cx_Oracle on Windows
 ===============================
