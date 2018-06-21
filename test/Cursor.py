@@ -564,3 +564,12 @@ class TestCursor(BaseTestCase):
         self.assertEqual(self.cursor.fetchall(),
                 [ (0, "Value should be 0"), (1, "Value should be 1") ])
 
+    def testAsContextManager(self):
+        "test using a cursor as a context manager"
+        with self.cursor as cursor:
+            cursor.execute("truncate table TestTempTable")
+            cursor.execute("select count(*) from TestTempTable")
+            count, = cursor.fetchone()
+            self.assertEqual(count, 0)
+        self.assertRaises(cx_Oracle.InterfaceError, self.cursor.close)
+

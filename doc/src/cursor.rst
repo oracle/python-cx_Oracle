@@ -5,6 +5,24 @@ Cursor Object
 *************
 
 
+.. method:: Cursor.__enter__()
+
+    The entry point for the cursor as a context manager. It returns itself.
+
+    .. note::
+
+        This method is an extension to the DB API definition.
+
+
+.. method:: Cursor.__exit__()
+
+    The exit point for the cursor as a context manager. It closes the cursor.
+
+    .. note::
+
+        This method is an extension to the DB API definition.
+
+
 .. attribute:: Cursor.arraysize
 
     This read-write attribute specifies the number of rows to fetch at a time

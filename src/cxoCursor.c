@@ -45,6 +45,8 @@ static PyObject *cxoCursor_repr(cxoCursor*);
 static PyObject* cxoCursor_getBatchErrors(cxoCursor*);
 static PyObject *cxoCursor_getArrayDMLRowCounts(cxoCursor*);
 static PyObject *cxoCursor_getImplicitResults(cxoCursor*);
+static PyObject *cxoCursor_contextManagerEnter(cxoCursor*, PyObject*);
+static PyObject *cxoCursor_contextManagerExit(cxoCursor*, PyObject*);
 static int cxoCursor_performDefine(cxoCursor*, uint32_t);
 
 
@@ -83,6 +85,8 @@ static PyMethodDef cxoCursorMethods[] = {
               METH_NOARGS },
     { "getimplicitresults", (PyCFunction) cxoCursor_getImplicitResults,
               METH_NOARGS },
+    { "__enter__", (PyCFunction) cxoCursor_contextManagerEnter, METH_NOARGS },
+    { "__exit__", (PyCFunction) cxoCursor_contextManagerExit, METH_VARARGS },
     { NULL, NULL }
 };
 
@@ -2122,5 +2126,39 @@ static PyObject *cxoCursor_getImplicitResults(cxoCursor *cursor)
     }
 
     return result;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoCursor_contextManagerEnter()
+//   Called when the cursor is used as a context manager and simply returns it
+// to the caller.
+//-----------------------------------------------------------------------------
+static PyObject *cxoCursor_contextManagerEnter(cxoCursor *cursor,
+        PyObject* args)
+{
+    Py_INCREF(cursor);
+    return (PyObject*) cursor;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoCursor_contextManagerExit()
+//   Called when the cursor is used as a context manager and simply closes the
+// cursor.
+//-----------------------------------------------------------------------------
+static PyObject *cxoCursor_contextManagerExit(cxoCursor *cursor,
+        PyObject* args)
+{
+    PyObject *excType, *excValue, *excTraceback, *result;
+
+    if (!PyArg_ParseTuple(args, "OOO", &excType, &excValue, &excTraceback))
+        return NULL;
+    result = cxoCursor_close(cursor, NULL);
+    if (!result)
+        return NULL;
+    Py_DECREF(result);
+    Py_INCREF(Py_False);
+    return Py_False;
 }
 
