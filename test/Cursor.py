@@ -573,3 +573,19 @@ class TestCursor(BaseTestCase):
             self.assertEqual(count, 0)
         self.assertRaises(cx_Oracle.InterfaceError, self.cursor.close)
 
+    def testQueryRowCount(self):
+        "test that the rowcount attribute is reset to zero on query execute"
+        sql = "select * from dual where 1 = :s"
+        self.cursor.execute(sql, [0])
+        self.cursor.fetchone()
+        self.assertEqual(self.cursor.rowcount, 0)
+        self.cursor.execute(sql, [1])
+        self.cursor.fetchone()
+        self.assertEqual(self.cursor.rowcount, 1)
+        self.cursor.execute(sql, [1])
+        self.cursor.fetchone()
+        self.assertEqual(self.cursor.rowcount, 1)
+        self.cursor.execute(sql, [0])
+        self.cursor.fetchone()
+        self.assertEqual(self.cursor.rowcount, 0)
+
