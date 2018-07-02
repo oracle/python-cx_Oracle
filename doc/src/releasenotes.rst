@@ -8,6 +8,73 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.4 (July 2018)
+-----------------------
+
+#)  Update to `ODPI-C 2.4.1
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-2-4-1-july-2-2018>`__.
+
+    - Added support for grouping subscriptions. See parameters groupingClass,
+      groupingValue and groupingType to function
+      :meth:`Connection.subscribe()`.
+    - Added support for specifying the IP address a subscription should use
+      instead of having the Oracle Client library determine the IP address on
+      its own. See parameter ipAddress to function
+      :meth:`Connection.subscribe()`.
+    - Added support for subscribing to notifications when messages are
+      available to dequeue in an AQ queue. The new constant
+      :data:`cx_Oracle.SUBSCR_NAMESPACE_AQ` should be passed to the namespace
+      parameter of function :meth:`Connection.subscribe()` in order to get this
+      functionality. Attributes :attr:`Message.queueName` and
+      :attr:`Message.consumerName` will be populated in notification messages
+      that are received when this namespace is used.
+    - Added attribute :attr:`Message.registered` to let the notification
+      callback know when the subscription that generated the notification is no
+      longer registered with the database.
+    - Added support for timed waits when acquiring a session from a session
+      pool. Use the new constant :data:`cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT` in
+      the parameter getmode to function :meth:`cx_Oracle.SessionPool` along
+      with the new parameter waitTimeout.
+    - Added support for specifying the timeout and maximum lifetime session for
+      session pools when they are created using function
+      :meth:`cx_Oracle.SessionPool`. Previously the pool had to be created
+      before these values could be changed.
+    - Avoid memory leak when dequeuing from an empty queue.
+    - Ensure that the row count for queries is reset to zero when the statement
+      is executed
+      (`issue 193 <https://github.com/oracle/python-cx_Oracle/issues/193>`__).
+    - If the statement should be deleted from the statement cache, first check
+      to see that there is a statement cache currently being used; otherwise,
+      the error "ORA-24300: bad value for mode" will be raised under certain
+      conditions.
+
+#)  Added support for using the cursor as a context manager
+    (`issue 190 <https://github.com/oracle/python-cx_Oracle/issues/190>`__).
+#)  Added support for specifying the "errors" parameter to the decode() that
+    takes place internally when fetching strings from the database
+    (`issue 162 <https://github.com/oracle/python-cx_Oracle/issues/162>`__).
+#)  Added support for specifying an integer for the parameters argument to
+    :meth:`Cursor.executemany()`. This allows for batch execution when no
+    parameters are required or when parameters have previously been bound. This
+    replaces Cursor.executemanyprepared() (which is now deprecated and will be
+    removed in cx_Oracle 7).
+#)  Adjusted the binding of booleans so that outside of PL/SQL they are bound
+    as integers
+    (`issue 181 <https://github.com/oracle/python-cx_Oracle/issues/181>`__).
+#)  Added support for binding decimal.Decimal values to cx_Oracle.NATIVE_FLOAT
+    as requested
+    (`issue 184 <https://github.com/oracle/python-cx_Oracle/issues/184>`__).
+#)  Added checks on passing invalid type parameters to methods
+    :meth:`Cursor.arrayvar()`, :meth:`Cursor.callfunc()` and
+    :meth:`Cursor.setinputsizes()`.
+#)  Corrected handling of cursors and rowids in DML Returning statements.
+#)  Added sample from David Lapp demonstrating the use of GeoPandas with
+    SDO_GEOMETRY and a sample for demonstrating the use of REF cursors.
+#)  Adjusted samples and documentation for clarity.
+#)  Added additional test cases.
+
+
 Version 6.3.1 (May 2018)
 ------------------------
 
