@@ -1739,7 +1739,10 @@ static PyObject *cxoCursor_setInputSizes(cxoCursor *cursor, PyObject *args,
     else cursor->bindVariables = PyList_New(numPositionalArgs);
     if (!cursor->bindVariables)
         return NULL;
-    cursor->setInputSizes = 1;
+
+    // retain bind variables if any were set
+    if (numKeywordArgs > 0 || numPositionalArgs > 0)
+        cursor->setInputSizes = 1;
 
     // process each input
     if (numKeywordArgs > 0) {

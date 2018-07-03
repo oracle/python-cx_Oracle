@@ -509,6 +509,12 @@ class TestCursor(BaseTestCase):
                 self.cursor.setinputsizes, val, x = val)
         self.assertRaises(TypeError, self.cursor.setinputsizes, val)
 
+    def testSetInputSizesNoParameters(self):
+        "test setting input sizes without any parameters"
+        self.cursor.setinputsizes()
+        self.cursor.execute("select :val from dual", val = "Test Value")
+        self.assertEqual(self.cursor.fetchall(), [("Test Value",)])
+
     def testSetInputSizesByPosition(self):
         """test setting input sizes with positional args"""
         var = self.cursor.var(cx_Oracle.STRING, 100)
