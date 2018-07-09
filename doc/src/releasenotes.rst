@@ -8,6 +8,24 @@ cx_Oracle Release Notes
 
 .. _releasenotes60:
 
+Version 6.4.1 (July 2018)
+-------------------------
+
+#)  Update to `ODPI-C 2.4.2
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-2-4-2-july-9-2018>`__.
+
+    - Avoid buffer overrun due to improper calculation of length byte when
+      converting some negative 39 digit numbers from string to the internal
+      Oracle number format
+      (`ODPI-C issue 67 <https://github.com/oracle/odpi/issues/67>`__).
+
+#)  Prevent error "cx_Oracle.ProgrammingError: positional and named binds
+    cannot be intermixed" when calling cursor.setinputsizes() without any
+    parameters and then calling cursor.execute() with named bind parameters
+    (`issue 199 <https://github.com/oracle/python-cx_Oracle/issues/199>`__).
+
+
 Version 6.4 (July 2018)
 -----------------------
 
