@@ -68,6 +68,18 @@ Connection Object
         This method is an extension to the DB API definition.
 
 
+.. attribute:: Connection.callTimeout
+
+    This read-write attribute specifies the amount of time (in milliseconds)
+    that a single round-trip to the database may take before a timeout will
+    occur. A value of 0 means that no timeout will take place.
+
+    .. note::
+
+        This attribute is an extension to the DB API definition and is only
+        available in Oracle Client 18c and higher.
+
+
 .. method:: Connection.cancel()
 
     Cancel a long-running transaction.

@@ -28,6 +28,7 @@ static PyObject *cxoConnection_prepare(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_rollback(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_newCursor(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_cancel(cxoConnection*, PyObject*);
+static PyObject *cxoConnection_getCallTimeout(cxoConnection*, void*);
 static PyObject *cxoConnection_getVersion(cxoConnection*, void*);
 static PyObject *cxoConnection_getEncoding(cxoConnection*, void*);
 static PyObject *cxoConnection_getNationalEncoding(cxoConnection*, void*);
@@ -56,6 +57,7 @@ static PyObject *cxoConnection_getEdition(cxoConnection*, void*);
 static PyObject *cxoConnection_getExternalName(cxoConnection*, void*);
 static PyObject *cxoConnection_getInternalName(cxoConnection*, void*);
 static PyObject *cxoConnection_getException(cxoConnection*, void*);
+static int cxoConnection_setCallTimeout(cxoConnection*, PyObject*, void*);
 static int cxoConnection_setStmtCacheSize(cxoConnection*, PyObject*, void*);
 static int cxoConnection_setAction(cxoConnection*, PyObject*, void*);
 static int cxoConnection_setClientIdentifier(cxoConnection*, PyObject*, void*);
@@ -133,6 +135,8 @@ static PyGetSetDef cxoConnectionCalcMembers[] = {
     { "version", (getter) cxoConnection_getVersion, 0, 0, 0 },
     { "encoding", (getter) cxoConnection_getEncoding, 0, 0, 0 },
     { "nencoding", (getter) cxoConnection_getNationalEncoding, 0, 0, 0 },
+    { "callTimeout", (getter) cxoConnection_getCallTimeout,
+            (setter) cxoConnection_setCallTimeout, 0, 0 },
     { "maxBytesPerCharacter", (getter) cxoConnection_getMaxBytesPerCharacter,
             0, 0, 0 },
     { "stmtcachesize", (getter) cxoConnection_getStmtCacheSize,
@@ -892,6 +896,44 @@ static int cxoConnection_setStmtCacheSize(cxoConnection* conn, PyObject *value,
     }
     cacheSize = (uint32_t) PyInt_AsLong(value);
     if (dpiConn_setStmtCacheSize(conn->handle, cacheSize) < 0)
+        return cxoError_raiseAndReturnInt();
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoConnection_getCallTimeout()
+//   Return the call timeout (in milliseconds) for round-trips performed with
+// this connection.
+//-----------------------------------------------------------------------------
+static PyObject *cxoConnection_getCallTimeout(cxoConnection* conn, void* arg)
+{
+    uint32_t callTimeout;
+
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
+    if (dpiConn_getCallTimeout(conn->handle, &callTimeout) < 0)
+        return cxoError_raiseAndReturnNull();
+    return PyInt_FromLong(callTimeout);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoConnection_setCallTimeout()
+//   Set the call timeout (in milliseconds) for round-trips performed with this
+// connection.
+//-----------------------------------------------------------------------------
+static int cxoConnection_setCallTimeout(cxoConnection* conn, PyObject *value,
+        void* arg)
+{
+    uint32_t callTimeout;
+
+    if (cxoConnection_isConnected(conn) < 0)
+        return -1;
+    callTimeout = (uint32_t) PyLong_AsLong(value);
+    if (PyErr_Occurred())
+        return -1;
+    if (dpiConn_setCallTimeout(conn->handle, callTimeout) < 0)
         return cxoError_raiseAndReturnInt();
     return 0;
 }
