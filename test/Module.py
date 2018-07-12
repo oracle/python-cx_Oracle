@@ -18,9 +18,6 @@ class TestModule(BaseTestCase):
 
     def testFutureObj(self):
         "test management of __future__ object"
-        self.assertEqual(cx_Oracle.__future__.ctx_mgr_close, False)
-        cx_Oracle.__future__.ctx_mgr_close = True
-        self.assertEqual(cx_Oracle.__future__.ctx_mgr_close, True)
         self.assertEqual(cx_Oracle.__future__.dummy, None)
         cx_Oracle.__future__.dummy = "Unimportant"
         self.assertEqual(cx_Oracle.__future__.dummy, None)

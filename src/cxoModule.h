@@ -260,8 +260,6 @@ struct cxoEnqOptions {
 
 struct cxoFuture {
     PyObject_HEAD
-    int contextManagerClose;
-    int dmlReturningArray;
 };
 
 struct cxoLob {

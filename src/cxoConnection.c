@@ -1346,12 +1346,7 @@ static PyObject *cxoConnection_contextManagerExit(cxoConnection *conn,
 
     if (!PyArg_ParseTuple(args, "OOO", &excType, &excValue, &excTraceback))
         return NULL;
-    if (cxoFutureObj && cxoFutureObj->contextManagerClose)
-        result = cxoConnection_close(conn, NULL);
-    else if (excType == Py_None && excValue == Py_None &&
-            excTraceback == Py_None)
-        result = cxoConnection_commit(conn, NULL);
-    else result = cxoConnection_rollback(conn, NULL);
+    result = cxoConnection_close(conn, NULL);
     if (!result)
         return NULL;
     Py_DECREF(result);

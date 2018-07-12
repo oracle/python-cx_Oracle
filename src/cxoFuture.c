@@ -62,21 +62,7 @@ static void cxoFuture_free(cxoFuture *obj)
 //-----------------------------------------------------------------------------
 static PyObject *cxoFuture_getAttr(cxoFuture *obj, PyObject *nameObject)
 {
-    cxoBuffer buffer;
-    PyObject *result;
-
-    if (cxoBuffer_fromObject(&buffer, nameObject, NULL) < 0)
-        return NULL;
-    if (strncmp(buffer.ptr, "ctx_mgr_close", buffer.size) == 0)
-        result = PyBool_FromLong(obj->contextManagerClose);
-    else if (strncmp(buffer.ptr, "dml_ret_array_val", buffer.size) == 0)
-        result = PyBool_FromLong(obj->dmlReturningArray);
-    else {
-        Py_INCREF(Py_None);
-        result = Py_None;
-    }
-    cxoBuffer_clear(&buffer);
-    return result;
+    Py_RETURN_NONE;
 }
 
 
@@ -87,16 +73,6 @@ static PyObject *cxoFuture_getAttr(cxoFuture *obj, PyObject *nameObject)
 static int cxoFuture_setAttr(cxoFuture *obj, PyObject *nameObject,
         PyObject *value)
 {
-    cxoBuffer buffer;
-    int result = 0;
-
-    if (cxoBuffer_fromObject(&buffer, nameObject, NULL) < 0)
-        return -1;
-    if (strncmp(buffer.ptr, "ctx_mgr_close", buffer.size) == 0)
-        result = cxoUtils_getBooleanValue(value, 0, &obj->contextManagerClose);
-    else if (strncmp(buffer.ptr, "dml_ret_array_val", buffer.size) == 0)
-        result = cxoUtils_getBooleanValue(value, 0, &obj->dmlReturningArray);
-    cxoBuffer_clear(&buffer);
-    return result;
+    return 0;
 }
 

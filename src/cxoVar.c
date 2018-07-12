@@ -409,14 +409,6 @@ static PyObject *cxoVar_getArrayValue(cxoVar *var, uint32_t numElements,
     PyObject *value, *singleValue;
     uint32_t i;
 
-    // use the first set of returned values if DML returning as array is not
-    // enabled
-    if (!(cxoFutureObj && cxoFutureObj->dmlReturningArray) &&
-            var->getReturnedData && !data) {
-        if (dpiVar_getReturnedData(var->handle, 0, &numElements, &data) < 0)
-            return cxoError_raiseAndReturnNull();
-    }
-
     value = PyList_New(numElements);
     if (!value)
         return NULL;
@@ -446,23 +438,10 @@ PyObject *cxoVar_getSingleValue(cxoVar *var, dpiData *data, uint32_t arrayPos)
 
     // handle DML returning
     if (!data && var->getReturnedData) {
-        if (cxoFutureObj && cxoFutureObj->dmlReturningArray) {
-            if (dpiVar_getReturnedData(var->handle, arrayPos, &numReturnedRows,
-                    &returnedData) < 0)
-                return cxoError_raiseAndReturnNull();
-            return cxoVar_getArrayValue(var, numReturnedRows, returnedData);
-        }
-        if (dpiVar_getReturnedData(var->handle, 0, &numReturnedRows,
-                &data) < 0)
+        if (dpiVar_getReturnedData(var->handle, arrayPos, &numReturnedRows,
+                &returnedData) < 0)
             return cxoError_raiseAndReturnNull();
-        if (arrayPos >= var->allocatedElements &&
-                arrayPos >= numReturnedRows) {
-            PyErr_SetString(PyExc_IndexError,
-                    "cxoVar_getSingleValue: array size exceeded");
-            return NULL;
-        }
-        if (arrayPos >= numReturnedRows)
-            data = var->data;
+        return cxoVar_getArrayValue(var, numReturnedRows, returnedData);
     }
 
     // in all other cases, just get the value stored at specified position

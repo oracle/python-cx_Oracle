@@ -19,14 +19,8 @@ class TestDMLReturning(BaseTestCase):
                 strVal = strVal,
                 intVar = intVar,
                 strVar = strVar)
-        self.assertEqual(intVar.values, [intVal])
-        self.assertEqual(strVar.values, [strVal])
-        cx_Oracle.__future__.dml_ret_array_val = True
-        try:
-            self.assertEqual(intVar.values, [[intVal]])
-            self.assertEqual(strVar.values, [[strVal]])
-        finally:
-            cx_Oracle.__future__.dml_ret_array_val = False
+        self.assertEqual(intVar.values, [[intVal]])
+        self.assertEqual(strVar.values, [[strVal]])
 
     def testInsertMany(self):
         "test insert statement (multiple rows) with DML returning"
@@ -41,14 +35,8 @@ class TestDMLReturning(BaseTestCase):
                 insert into TestTempTable
                 values (:intVal, :strVal)
                 returning IntCol, StringCol into :intVar, :strVar""", data)
-        self.assertEqual(intVar.values, [intValues[0]])
-        self.assertEqual(strVar.values, [strValues[0]])
-        cx_Oracle.__future__.dml_ret_array_val = True
-        try:
-            self.assertEqual(intVar.values, [[v] for v in intValues])
-            self.assertEqual(strVar.values, [[v] for v in strValues])
-        finally:
-            cx_Oracle.__future__.dml_ret_array_val = False
+        self.assertEqual(intVar.values, [[v] for v in intValues])
+        self.assertEqual(strVar.values, [[v] for v in strValues])
 
     def testInsertWithSmallSize(self):
         "test insert statement with DML returning into too small a variable"
@@ -83,14 +71,8 @@ class TestDMLReturning(BaseTestCase):
                 strVal = strVal,
                 intVar = intVar,
                 strVar = strVar)
-        self.assertEqual(intVar.values, [intVal])
-        self.assertEqual(strVar.values, [strVal])
-        cx_Oracle.__future__.dml_ret_array_val = True
-        try:
-            self.assertEqual(intVar.values, [[intVal]])
-            self.assertEqual(strVar.values, [[strVal]])
-        finally:
-            cx_Oracle.__future__.dml_ret_array_val = False
+        self.assertEqual(intVar.values, [[intVal]])
+        self.assertEqual(strVar.values, [[strVal]])
 
     def testUpdateNoRows(self):
         "test update no rows statement with DML returning"
@@ -110,16 +92,10 @@ class TestDMLReturning(BaseTestCase):
                 strVal = strVal,
                 intVar = intVar,
                 strVar = strVar)
-        self.assertEqual(intVar.values, [])
-        self.assertEqual(strVar.values, [])
-        self.assertEqual(intVar.getvalue(), None)
-        self.assertEqual(strVar.getvalue(), None)
-        cx_Oracle.__future__.dml_ret_array_val = True
-        try:
-            self.assertEqual(intVar.values, [[]])
-            self.assertEqual(strVar.values, [[]])
-        finally:
-            cx_Oracle.__future__.dml_ret_array_val = False
+        self.assertEqual(intVar.values, [[]])
+        self.assertEqual(strVar.values, [[]])
+        self.assertEqual(intVar.getvalue(), [])
+        self.assertEqual(strVar.getvalue(), [])
 
     def testUpdateMultipleRows(self):
         "test update multiple rows statement with DML returning"
@@ -137,24 +113,12 @@ class TestDMLReturning(BaseTestCase):
                 intVar = intVar,
                 strVar = strVar)
         self.assertEqual(self.cursor.rowcount, 3)
-        self.assertEqual(intVar.values, [23, 24, 25])
-        self.assertEqual(strVar.values, [
+        self.assertEqual(intVar.values, [[23, 24, 25]])
+        self.assertEqual(strVar.values, [[
                 "The final value of string 8",
                 "The final value of string 9",
                 "The final value of string 10"
-        ])
-        self.assertEqual(intVar.getvalue(1), 24)
-        self.assertEqual(strVar.getvalue(2), "The final value of string 10")
-        cx_Oracle.__future__.dml_ret_array_val = True
-        try:
-            self.assertEqual(intVar.values, [[23, 24, 25]])
-            self.assertEqual(strVar.values, [[
-                    "The final value of string 8",
-                    "The final value of string 9",
-                    "The final value of string 10"
-            ]])
-        finally:
-            cx_Oracle.__future__.dml_ret_array_val = False
+        ]])
 
     def testUpdateMultipleRowsExecuteMany(self):
         "test update multiple rows with DML returning (executeMany)"
@@ -173,32 +137,23 @@ class TestDMLReturning(BaseTestCase):
                 where IntCol < :inVal
                 returning IntCol, StringCol into :intVar, :strVar""",
                 [[3], [8], [11]])
-        self.assertEqual(intVar.values, [26, 27])
-        self.assertEqual(strVar.values, [
-                "Updated value of string 1",
-                "Updated value of string 2"
+        self.assertEqual(intVar.values, [
+                [26, 27],
+                [28, 29, 30, 31, 32],
+                [33, 34, 35]
         ])
-        cx_Oracle.__future__.dml_ret_array_val = True
-        try:
-            self.assertEqual(intVar.values, [
-                    [26, 27],
-                    [28, 29, 30, 31, 32],
-                    [33, 34, 35]
-            ])
-            self.assertEqual(strVar.values, [
-                    [ "Updated value of string 1",
-                      "Updated value of string 2" ],
-                    [ "Updated value of string 3",
-                      "Updated value of string 4",
-                      "Updated value of string 5",
-                      "Updated value of string 6",
-                      "Updated value of string 7" ],
-                    [ "Updated value of string 8",
-                      "Updated value of string 9",
-                      "Updated value of string 10" ]
-            ])
-        finally:
-            cx_Oracle.__future__.dml_ret_array_val = False
+        self.assertEqual(strVar.values, [
+                [ "Updated value of string 1",
+                  "Updated value of string 2" ],
+                [ "Updated value of string 3",
+                  "Updated value of string 4",
+                  "Updated value of string 5",
+                  "Updated value of string 6",
+                  "Updated value of string 7" ],
+                [ "Updated value of string 8",
+                  "Updated value of string 9",
+                  "Updated value of string 10" ]
+        ])
 
     def testInsertAndReturnObject(self):
         "test inserting an object with DML returning"
@@ -212,14 +167,8 @@ class TestDMLReturning(BaseTestCase):
                 values (4, :obj)
                 returning ObjectCol into :outObj""",
                 obj = obj, outObj = outVar)
-        result = outVar.getvalue()
+        result, = outVar.getvalue()
         self.assertEqual(result.STRINGVALUE, stringValue)
-        cx_Oracle.__future__.dml_ret_array_val = True
-        try:
-            result, = outVar.getvalue()
-            self.assertEqual(result.STRINGVALUE, stringValue)
-        finally:
-            cx_Oracle.__future__.dml_ret_array_val = False
         self.connection.rollback()
 
     def testInsertAndReturnRowid(self):
@@ -229,7 +178,7 @@ class TestDMLReturning(BaseTestCase):
         self.cursor.execute("""
                 insert into TestTempTable values (278, 'String 278')
                 returning rowid into :1""", (var,))
-        rowid = var.getvalue()
+        rowid, = var.getvalue()
         self.cursor.execute("select * from TestTempTable where rowid = :1",
                 (rowid,))
         self.assertEqual(self.cursor.fetchall(), [(278, 'String 278')])
@@ -248,7 +197,7 @@ class TestDMLReturning(BaseTestCase):
                 insert into TestTempTable
                 values (187, pkg_TestRefCursors.TestInCursor(:1))
                 returning rowid into :2""", (inCursor, var))
-        rowid = var.getvalue()
+        rowid, = var.getvalue()
         self.cursor.execute("select * from TestTempTable where rowid = :1",
                 (rowid,))
         self.assertEqual(self.cursor.fetchall(),
@@ -268,7 +217,7 @@ class TestDMLReturning(BaseTestCase):
                     delete from TestTempTable
                     where IntCol < :1
                     returning IntCol into :2""", [intVal])
-            results.append(intVar.values)
+            results.append(intVar.getvalue())
         self.assertEqual(results, [ [1, 2, 3, 4], [5, 6, 7], [8, 9] ])
 
     def testDeleteReturningNoRowsAfterManyRows(self):
@@ -282,7 +231,7 @@ class TestDMLReturning(BaseTestCase):
                 delete from TestTempTable
                 where IntCol < :1
                 returning IntCol into :2""", [5, intVar])
-        self.assertEqual(intVar.values, [1, 2, 3, 4])
+        self.assertEqual(intVar.getvalue(), [1, 2, 3, 4])
         self.cursor.execute(None, [4, intVar])
-        self.assertEqual(intVar.values, [])
+        self.assertEqual(intVar.getvalue(), [])
 

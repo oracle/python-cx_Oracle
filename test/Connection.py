@@ -273,16 +273,12 @@ class TestConnection(TestCase):
         "test context manager - close"
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
-        cx_Oracle.__future__.ctx_mgr_close = True
-        try:
-            with connection:
-                cursor = connection.cursor()
-                cursor.execute("truncate table TestTempTable")
-                cursor.execute("insert into TestTempTable values (1, null)")
-                connection.commit()
-                cursor.execute("insert into TestTempTable values (2, null)")
-        finally:
-            cx_Oracle.__future__.ctx_mgr_close = False
+        with connection:
+            cursor = connection.cursor()
+            cursor.execute("truncate table TestTempTable")
+            cursor.execute("insert into TestTempTable values (1, null)")
+            connection.commit()
+            cursor.execute("insert into TestTempTable values (2, null)")
         self.assertRaises(cx_Oracle.DatabaseError, connection.ping)
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)
@@ -290,39 +286,6 @@ class TestConnection(TestCase):
         cursor.execute("select count(*) from TestTempTable")
         count, = cursor.fetchone()
         self.assertEqual(count, 1)
-
-    def testCtxMgrCommitOnSuccess(self):
-        "test context manager - commit on success"
-        connection = cx_Oracle.connect(self.username, self.password,
-                self.tnsentry)
-        cursor = connection.cursor()
-        cursor.execute("truncate table TestTempTable")
-        with connection:
-            cursor.execute("""
-                    insert into TestTempTable (IntCol, StringCol)
-                    values (1, null)""")
-        connection.rollback()
-        cursor.execute("select count(*) from TestTempTable")
-        count, = cursor.fetchone()
-        self.assertEqual(count, 1)
-
-    def testCtxMgrRollbackOnFailure(self):
-        "test context manager - rollback on failure"
-        connection = cx_Oracle.connect(self.username, self.password,
-                self.tnsentry)
-        cursor = connection.cursor()
-        cursor.execute("truncate table TestTempTable")
-        cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol)
-                values (1, null)""")
-        try:
-            with connection:
-                1 / 0
-        except:
-            pass
-        cursor.execute("select count(*) from TestTempTable")
-        count, = cursor.fetchone()
-        self.assertEqual(count, 0)
 
     def testConnectionAttributes(self):
         "test connection attribute values"

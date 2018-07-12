@@ -9,19 +9,9 @@ Module Interface
 .. data:: __future__
 
     Special object which contains attributes which control the behavior of
-    cx_Oracle, allowing for opting in for new features. The following
-    attributes are supported:
-
-    - ctx_mgr_close -- if this value is True, the context manager will close
-      the connection when the block is completed. This will become the default
-      behavior in cx_Oracle 7.
-
-    - dml_ret_array_val -- if this value is True, variables bound to a DML
-      returning statement (and have not had any values set on them) will return
-      an array. This will become the default behavior in cx_Oracle 7.
-
-    All other attributes will silently ignore being set and will always appear
-    to have the value None.
+    cx_Oracle, allowing for opting in for new features. No attributes are
+    currently supported so all attributes will silently ignore being set and
+    will always appear to have the value None.
 
     .. note::
 
