@@ -468,6 +468,9 @@ Python architecture.
 Installing cx_Oracle on macOS
 =============================
 
+Install Python
+--------------
+
 Make sure you are not using the bundled Python.  This has restricted
 entitlements and will fail to load Oracle client libraries.  Instead
 use `Homebrew <https://brew.sh>`__ or `Python.org
