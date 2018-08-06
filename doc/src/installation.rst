@@ -168,7 +168,8 @@ combination may result in runtime errors. These include:
       Implicit results cannot be returned to client"
 
     - when attempting to get array DML row counts with Oracle Client
-      11.2 you will get the error "DPI-1013: not supported"
+      11.2 you will get the error "DPI-1050: Oracle Client library must be at
+      version 12.1 or higher"
 
 
 Installing cx_Oracle on Linux
