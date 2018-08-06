@@ -1,7 +1,7 @@
 .. _installation:
 
 ************************
-cx_Oracle 6 Installation
+cx_Oracle 7 Installation
 ************************
 
 .. contents:: :local:
@@ -9,7 +9,7 @@ cx_Oracle 6 Installation
 Overview
 ========
 
-To use cx_Oracle 6 with Python and Oracle Database you need:
+To use cx_Oracle 7 with Python and Oracle Database you need:
 
 - Python 2.7 or 3.4 and higher.  Older versions of cx_Oracle may work
   with older versions of Python.
@@ -18,8 +18,8 @@ To use cx_Oracle 6 with Python and Oracle Database you need:
   Client
   <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__,
   or those included in Oracle Database if Python is on the same
-  machine as the database.  Oracle client libraries versions 12.2,
-  12.1 and 11.2 are supported on Linux, Windows and macOS.  Users have
+  machine as the database.  Oracle client libraries versions 18, 12,
+  and 11.2 are supported on Linux, Windows and macOS.  Users have
   also reported success with other platforms.
 
 - An Oracle Database. Oracle's standard client-server version
@@ -31,7 +31,7 @@ Quick Start cx_Oracle Installation
 ==================================
 
 - An installation of `Python <https://www.python.org/downloads>`__ is
-  needed. Python 2.7 and Python 3.4 and higher are supported by cx_Oracle 6.
+  needed. Python 2.7 and Python 3.4 and higher are supported by cx_Oracle 7.
 
 - Install cx_Oracle from `PyPI
   <https://pypi.python.org/pypi/cx_Oracle>`__ with::
@@ -42,12 +42,12 @@ Quick Start cx_Oracle Installation
   the source package will be downloaded instead. This will be compiled
   and the resulting binary installed.
 
-- Add Oracle 12.2, 12.1 or 11.2 client libraries to your operating
+- Add Oracle 18, 12 or 11.2 client libraries to your operating
   system library search path such as ``PATH`` on Windows or
   ``LD_LIBRARY_PATH`` on Linux.  On macOS move the files to ``~/lib``
   or ``/usr/local/lib``.
 
-    - If your database is remote, then download and unzip the client
+    - If your database is on a remote computer, then download and unzip the client
       libraries from the free `Oracle Instant Client
       <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
       "Basic" or "Basic Light" package for your operating system
@@ -64,7 +64,7 @@ Quick Start cx_Oracle Installation
       <http://www.oracle.com/technetwork/database/database-technologies/express-edition/overview/index.html>`__
       release.
 
-  Version 12.2 client libraries can connect to Oracle Database 11.2 or
+  Version 18 and 12.2 client libraries can connect to Oracle Database 11.2 or
   greater. Version 12.1 client libraries can connect to Oracle Database
   10.2 or greater. Version 11.2 client libraries can connect to Oracle
   Database 9.2 or greater.
@@ -132,7 +132,7 @@ connections between different versions of Oracle Client libraries and
 Oracle Database.  For certified configurations see Oracle Support's
 `Doc ID 207303.1
 <https://support.oracle.com/epmos/faces/DocumentDisplay?id=207303.1>`__.
-In summary, Oracle Client 12.2 can connect to Oracle Database 11.2 or
+In summary, Oracle Client 18 and 12.2 can connect to Oracle Database 11.2 or
 greater. Oracle Client 12.1 can connect to Oracle Database 10.2 or
 greater. Oracle Client 11.2 can connect to Oracle Database 9.2 or
 greater.  The technical restrictions on creating connections may be
@@ -146,12 +146,10 @@ Since a single cx_Oracle binary can use different client versions and
 also access multiple database versions, it is important your
 application is tested in your intended release environments.  Newer
 Oracle clients support new features, such as the `oraaccess.xml
-<https://docs.oracle.com/database/122/LNOCI/
-more-oci-advanced-topics.htm#LNOCI73052>`__ external configuration
-file available with 12.1 or later clients, and `session pool
-enhancements
-<http://docs.oracle.com/database/122/LNOCI/release-changes.htm#LNOCI005>`__
-to dead connection detection in 12.2 clients.
+<http://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9D12F489-EC02-46BE-8CD4-5AECED0E2BA2>`__ external configuration
+file available with 12.1 or later clients, session pool improvements,
+call timeouts with 18 or later clients, and `other enhancements
+<http://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D60519C3-406F-4588-8DA1-D475D5A3E1F6>`__.
 
 The cx_Oracle function :func:`~cx_Oracle.clientversion()` can be used
 to determine which Oracle Client version is in use and the attribute
@@ -203,10 +201,10 @@ Install Oracle Client
 
 Using cx_Oracle requires Oracle Client libraries to be installed.
 These provide the necessary network connectivity allowing cx_Oracle
-to access an Oracle Database instance. Oracle Client versions 12.2,
-12.1 and 11.2 are supported.
+to access an Oracle Database instance. Oracle Client versions 18,
+12 and 11.2 are supported.
 
-    - If your database is remote, then download the free `Oracle
+    - If your database is on a remote computer, then download the free `Oracle
       Instant Client
       <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
       "Basic" or "Basic Light" package for your operating system
@@ -223,7 +221,7 @@ Oracle Instant Client Zip Files
 
 To use cx_Oracle with Oracle Instant Client zip files:
 
-1. Download an Oracle 11.2, 12.1 or 12.2 "Basic" or "Basic Light" zip file: `64-bit
+1. Download an Oracle 18, 12, or 11.2 "Basic" or "Basic Light" zip file: `64-bit
    <http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html>`__
    or `32-bit
    <http://www.oracle.com/technetwork/topics/linuxsoft-082809.html>`__, matching your
@@ -274,7 +272,7 @@ Oracle Instant Client RPMs
 
 To use cx_Oracle with Oracle Instant Client RPMs:
 
-1. Download an Oracle 11.2, 12.1 or 12.2 "Basic" or "Basic Light" RPM: `64-bit
+1. Download an Oracle 18, 12, or 11.2 "Basic" or "Basic Light" RPM: `64-bit
    <http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html>`__
    or `32-bit
    <http://www.oracle.com/technetwork/topics/linuxsoft-082809.html>`__, matching your
@@ -316,7 +314,7 @@ To use cx_Oracle with Oracle Instant Client RPMs:
 Local Database or Full Oracle Client
 ++++++++++++++++++++++++++++++++++++
 
-cx_Oracle applications can use Oracle Client 11.2, 12.1 or 12.2 libraries
+cx_Oracle applications can use Oracle Client 18, 12, or 11.2 libraries
 from a local Oracle Database or full Oracle Client installation.
 
 The libraries must be either 32-bit or 64-bit, matching your
@@ -375,10 +373,10 @@ Install Oracle Client
 
 Using cx_Oracle requires Oracle Client libraries to be installed.
 These provide the necessary network connectivity allowing cx_Oracle
-to access an Oracle Database instance. Oracle Client versions 12.2,
-12.1 and 11.2 are supported.
+to access an Oracle Database instance. Oracle Client versions 18,
+12 and 11.2 are supported.
 
-    - If your database is remote, then download the free `Oracle
+    - If your database is on a remote computer, then download the free `Oracle
       Instant Client
       <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
       "Basic" or "Basic Light" package for your operating system
@@ -395,7 +393,7 @@ Oracle Instant Client Zip Files
 
 To use cx_Oracle with Oracle Instant Client zip files:
 
-1. Download an Oracle 11.2, 12.1 or 12.2 "Basic" or "Basic Light" zip
+1. Download an Oracle 18, 12, or 11.2 "Basic" or "Basic Light" zip
    file: `64-bit
    <http://www.oracle.com/technetwork/topics/winx64soft-089540.html>`__
    or `32-bit
@@ -421,9 +419,9 @@ To use cx_Oracle with Oracle Instant Client zip files:
 
 4. Oracle Instant Client libraries require a Visual Studio redistributable with a 64-bit or 32-bit architecture to match Instant Client's architecture.  Each Instant Client version requires a different redistributable version:
 
-       - For Instant Client 11.2 install `VS 2005 64-bit <https://www.microsoft.com/en-us/download/details.aspx?id=18471>`__ or `VS 2005 32-bit <https://www.microsoft.com/en-ca/download/details.aspx?id=3387>`__
+       - For Instant Client 18 or 12.2 install `VS 2013 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2013>`__
        - For Instant Client 12.1 install `VS 2010 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2010>`__
-       - For Instant Client 12.2 install `VS 2013 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2013>`__
+       - For Instant Client 11.2 install `VS 2005 64-bit <https://www.microsoft.com/en-us/download/details.aspx?id=18471>`__ or `VS 2005 32-bit <https://www.microsoft.com/en-ca/download/details.aspx?id=3387>`__
 
 5. If you intend to co-locate optional Oracle configuration files such
    as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
@@ -441,7 +439,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
 Local Database or Full Oracle Client
 ++++++++++++++++++++++++++++++++++++
 
-cx_Oracle applications can use Oracle Client 11.2, 12.1 or 12.2
+cx_Oracle applications can use Oracle Client 18, 12, or 11.2
 libraries libraries from a local Oracle Database or full Oracle
 Client.
 
@@ -493,11 +491,11 @@ Install Oracle Instant Client
 cx_Oracle requires Oracle Client libraries, which are found in Oracle
 Instant Client for macOS. These provide the necessary network
 connectivity allowing cx_Oracle to access an Oracle Database
-instance. Oracle Client versions 12.2, 12.1 and 11.2 are supported.
+instance. Oracle Client versions 18, 12 and 11.2 are supported.
 
 To use cx_Oracle with Oracle Instant Client zip files:
 
-1. Download the 11.2, 12.1 or 12.2 "Basic" or "Basic Light" zip file from `here
+1. Download the 18, 12, or 11.2 "Basic" or "Basic Light" zip file from `here
    <http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html>`__.
    Choose either a 64-bit or 32-bit package, matching your
    Python architecture.
@@ -566,6 +564,13 @@ which the following commands should be run::
     python setup.py build
     python setup.py install
 
+Upgrading from cx_Oracle 6
+==========================
+
+Review the `releasenotes
+<http://cx-oracle.readthedocs.io/en/latest/releasenotes.html>`__ for
+deprecations and modify any affected code.
+
 Upgrading from cx_Oracle 5
 ==========================
 
@@ -578,7 +583,8 @@ If you are upgrading from cx_Oracle 5 note these installation changes:
       client library.
 
     - PyPI no longer allows Windows installers or Linux RPMs to be
-      hosted.  Use the supplied cx_Oracle Wheels instead.
+      hosted.  Use the supplied cx_Oracle Wheels instead, or use RPMs
+      from Oracle, see :ref:`oraclelinux`.
 
 Installing cx_Oracle 5.3
 ========================
