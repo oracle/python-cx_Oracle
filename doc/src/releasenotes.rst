@@ -562,11 +562,11 @@ Version 6.0 beta 1 (April 2017)
 #)  Dropped deprecated attributes cqqos and rowids from
     :ref:`subscription objects <subscrobj>`. Use the qos attribute instead as
     shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
-    master/samples/QueryChangeNotification.py>`__.
+    master/samples/CQN.py>`__.
 #)  Dropped deprecated parameters cqqos and rowids from the
     :meth:`Connection.subscribe()` method. Use the qos parameter instead as
     shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
-    master/samples/QueryChangeNotification.py>`__.
+    master/samples/CQN.py>`__.
 
 
 5.x releases
