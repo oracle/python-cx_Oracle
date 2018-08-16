@@ -344,10 +344,9 @@ Python architecture.
 Installing cx_Oracle on Oracle Linux
 ====================================
 
-Python packages are available for Oracle Linux from Oracle's `public
-yum repository <http://yum.oracle.com/>`__.  Various versions
-of Python are easily installed.  Packages for cx_Oracle are also
-available, making it easy to keep up to date.
+Python packages are available from the `Oracle Linux yum server
+<http://yum.oracle.com/>`__.  Various versions of Python are easily installed.
+Packages for cx_Oracle are also available, making it easy to keep up to date.
 
 Installation instructions are at `Oracle Linux for Python
 Developers <https://yum.oracle.com/oracle-linux-python.html>`__.
