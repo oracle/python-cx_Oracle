@@ -66,6 +66,12 @@ Object Objects
     collection.
 
 
+.. method:: Object.asdict()
+
+    Return a dictionary where the collection's indexes are the keys and the
+    elements are its values.
+
+
 .. method:: Object.aslist()
 
     Return a list of each of the collection's elements in index order.

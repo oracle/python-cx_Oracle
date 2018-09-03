@@ -22,6 +22,7 @@ static PyObject *cxoObject_getAttr(cxoObject*, PyObject*);
 static PyObject *cxoObject_repr(cxoObject*);
 static int cxoObject_setAttr(cxoObject*, PyObject*, PyObject*);
 static PyObject *cxoObject_append(cxoObject*, PyObject*);
+static PyObject *cxoObject_asDict(cxoObject*, PyObject*);
 static PyObject *cxoObject_asList(cxoObject*, PyObject*);
 static PyObject *cxoObject_copy(cxoObject*, PyObject*);
 static PyObject *cxoObject_delete(cxoObject*, PyObject*);
@@ -42,6 +43,7 @@ static PyObject *cxoObject_trim(cxoObject*, PyObject*);
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoObjectMethods[] = {
     { "append", (PyCFunction) cxoObject_append, METH_O },
+    { "asdict", (PyCFunction) cxoObject_asDict, METH_NOARGS },
     { "aslist", (PyCFunction) cxoObject_asList, METH_NOARGS },
     { "copy", (PyCFunction) cxoObject_copy, METH_NOARGS },
     { "delete", (PyCFunction) cxoObject_delete, METH_VARARGS },
@@ -381,6 +383,59 @@ static PyObject *cxoObject_internalGetElementByIndex(cxoObject *obj,
         return cxoError_raiseAndReturnNull();
     return cxoObject_convertToPython(obj, obj->objectType->elementTransformNum,
             &data, (cxoObjectType*) obj->objectType->elementType);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoObject_asDict()
+//   Returns a collection as a dictionary. If the object is not a collection,
+// an error is returned.
+//-----------------------------------------------------------------------------
+static PyObject *cxoObject_asDict(cxoObject *obj, PyObject *args)
+{
+    PyObject *dict, *key, *value;
+    int32_t index, nextIndex;
+    int exists;
+
+    // create the result dictionary
+    dict = PyDict_New();
+    if (!dict)
+        return NULL;
+
+    // populate it with each of the elements in the collection
+    if (dpiObject_getFirstIndex(obj->handle, &index, &exists) < 0) {
+        Py_DECREF(dict);
+        return cxoError_raiseAndReturnNull();
+    }
+    while (exists) {
+        value = cxoObject_internalGetElementByIndex(obj, index);
+        if (!value) {
+            Py_DECREF(dict);
+            return NULL;
+        }
+        key = PyInt_FromLong(index);
+        if (!key) {
+            Py_DECREF(value);
+            Py_DECREF(dict);
+            return NULL;
+        }
+        if (PyDict_SetItem(dict, key, value) < 0) {
+            Py_DECREF(key);
+            Py_DECREF(value);
+            Py_DECREF(dict);
+            return NULL;
+        }
+        Py_DECREF(key);
+        Py_DECREF(value);
+        if (dpiObject_getNextIndex(obj->handle, index, &nextIndex,
+                &exists) < 0) {
+            Py_DECREF(dict);
+            return cxoError_raiseAndReturnNull();
+        }
+        index = nextIndex;
+    }
+
+    return dict;
 }
 
 

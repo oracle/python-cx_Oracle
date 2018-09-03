@@ -243,9 +243,17 @@ class TestFeatures12_1(BaseTestCase):
         self.assertEqual(obj.aslist(),
                 ["First element", "Second element", "Third element",
                  "Fourth element"])
+        self.assertEqual(obj.asdict(),
+                { -1048576 : 'First element',
+                  -576 : 'Second element',
+                  284 : 'Third element',
+                  8388608: 'Fourth element' })
         obj.delete(-576)
         obj.delete(284)
         self.assertEqual(obj.aslist(), ["First element", "Fourth element"])
+        self.assertEqual(obj.asdict(),
+                { -1048576 : 'First element',
+                  8388608: 'Fourth element' })
 
     def testExceptionInIteration(self):
         "test executing with arraydmlrowcounts with exception"
