@@ -21,6 +21,7 @@ static PyObject *cxoSessionPool_new(PyTypeObject*, PyObject*, PyObject*);
 static int cxoSessionPool_init(cxoSessionPool*, PyObject*, PyObject*);
 static void cxoSessionPool_free(cxoSessionPool*);
 static PyObject *cxoSessionPool_acquire(cxoSessionPool*, PyObject*, PyObject*);
+static PyObject *cxoSessionPool_close(cxoSessionPool*, PyObject*, PyObject*);
 static PyObject *cxoSessionPool_drop(cxoSessionPool*, PyObject*);
 static PyObject *cxoSessionPool_release(cxoSessionPool*, PyObject*, PyObject*);
 static PyObject *cxoSessionPool_getBusyCount(cxoSessionPool*, void*);
@@ -43,6 +44,8 @@ static int cxoSessionPool_setWaitTimeout(cxoSessionPool*, PyObject*, void*);
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoSessionPoolMethods[] = {
     { "acquire", (PyCFunction) cxoSessionPool_acquire,
+            METH_VARARGS | METH_KEYWORDS },
+    { "close", (PyCFunction) cxoSessionPool_close,
             METH_VARARGS | METH_KEYWORDS },
     { "drop", (PyCFunction) cxoSessionPool_drop, METH_VARARGS },
     { "release", (PyCFunction) cxoSessionPool_release,
@@ -348,6 +351,39 @@ static PyObject *cxoSessionPool_acquire(cxoSessionPool *pool, PyObject *args,
     Py_DECREF(createKeywordArgs);
 
     return result;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSessionPool_close()
+//   Close the session pool and make it unusable.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSessionPool_close(cxoSessionPool *pool, PyObject *args,
+        PyObject *keywordArgs)
+{
+    static char *keywordList[] = { "force", NULL };
+    PyObject *forceObj;
+    uint32_t closeMode;
+    int temp, status;
+
+    // parse arguments
+    forceObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|O", keywordList,
+            &forceObj))
+        return NULL;
+    if (cxoUtils_getBooleanValue(forceObj, 0, &temp) < 0)
+        return NULL;
+    closeMode = (temp) ? DPI_MODE_POOL_CLOSE_FORCE :
+            DPI_MODE_POOL_CLOSE_DEFAULT;
+
+    // close pool
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiPool_close(pool->handle, closeMode);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
+        return cxoError_raiseAndReturnNull();
+
+    Py_RETURN_NONE;
 }
 
 

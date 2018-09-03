@@ -45,6 +45,15 @@ SessionPool Object
     This read-only attribute returns the number of sessions currently acquired.
 
 
+.. method:: SessionPool.close(force=False)
+
+    Close the session pool now, rather than when the last reference to it is
+    released, which makes it unsable for further work.
+
+    If any connections have been acquired and not released back to the pool
+    this method will fail unless the force parameter is set to True.
+
+
 .. method:: SessionPool.drop(connection)
 
     Drop the connection from the pool which is useful if the connection is no
