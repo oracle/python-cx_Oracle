@@ -28,15 +28,9 @@ Variable Objects
     Return the value at the given position in the variable. For variables
     created using the method :func:`Cursor.arrayvar()` the value returned will
     be a list of each of the values in the PL/SQL index-by table. For variables
-    bound to DML returning statements where the attribute
-    `cx_Oracle.__future__.dml_ret_array_val` is set to the value True, the
-    value returned will also be a list corresponding to the returned data for
-    the given execution of the statement (as identified by the pos parameter).
-    For variables bound to DML returning statements and the attribute
-    `cx_Oracle.__future__.dml_ret_array_val` is not set or is set to the value
-    False, the value returned depends on the number of rows returned by the
-    first execution of the statement. If pos is a valid index into that array
-    then the value at that index will be returned; otherwise, None is returned.
+    bound to DML returning statements, the value returned will also be a list
+    corresponding to the returned data for the given execution of the statement
+    (as identified by the pos parameter).
 
 
 .. attribute:: Variable.inconverter
@@ -84,11 +78,7 @@ Variable Objects
 .. attribute:: Variable.values
 
     This read-only attribute returns a copy of the value of all actual
-    positions in the variable as a list. For variables bound to DML returning
-    statements where the attribute `cx_Oracle.__future__.dml_ret_array_val` is
-    not set or set to the value False, this will be the returned data for the
-    first execution of the statement. In all other cases the elements returned
-    will be the equivalent of calling :meth:`~Variable.getvalue()` for each
-    valid position and the length will correspond to the value of the
-    :attr:`~Variable.actualElements` attribute.
+    positions in the variable as a list. This is the equivalent of calling
+    :meth:`~Variable.getvalue()` for each valid position and the length will
+    correspond to the value of the :attr:`~Variable.actualElements` attribute.
 
