@@ -50,6 +50,7 @@ static PyObject *cxoConnection_startup(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_subscribe(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_unsubscribe(cxoConnection*, PyObject*,
         PyObject*);
+static PyObject *cxoConnection_getSodaDatabase(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_getLTXID(cxoConnection*, void*);
 static PyObject *cxoConnection_getHandle(cxoConnection*, void*);
 static PyObject *cxoConnection_getCurrentSchema(cxoConnection*, void*);
@@ -108,6 +109,8 @@ static PyMethodDef cxoConnectionMethods[] = {
     { "enq", (PyCFunction) cxoConnection_enqueue,
             METH_VARARGS | METH_KEYWORDS },
     { "createlob", (PyCFunction) cxoConnection_createLob, METH_O },
+    { "getSodaDatabase", (PyCFunction) cxoConnection_getSodaDatabase,
+            METH_NOARGS },
     { NULL }
 };
 
@@ -495,6 +498,22 @@ static int cxoConnectionParams_finalize(cxoConnectionParams *params)
         params->superShardingKeyBuffers = NULL;
     }
     return -1;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoConnection_getSodaFlags()
+//   Get the flags to use for SODA. This checks the autocommit flag and enables
+// atomic commit if set to a true value. It also checks to ensure that the
+// connection is valid.
+//-----------------------------------------------------------------------------
+int cxoConnection_getSodaFlags(cxoConnection *conn, uint32_t *flags)
+{
+    if (cxoConnection_isConnected(conn) < 0)
+        return -1;
+    *flags = (conn->autocommit) ? DPI_SODA_FLAGS_ATOMIC_COMMIT :
+            DPI_SODA_FLAGS_DEFAULT;
+    return 0;
 }
 
 
@@ -1612,6 +1631,19 @@ static PyObject *cxoConnection_unsubscribe(cxoConnection *conn, PyObject* args,
     subscr->handle = NULL;
 
     Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoConnection_commit()
+//   Commit the transaction on the connection.
+//-----------------------------------------------------------------------------
+static PyObject *cxoConnection_getSodaDatabase(cxoConnection *conn,
+        PyObject *args)
+{
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
+    return (PyObject*) cxoSodaDatabase_new(conn);
 }
 
 

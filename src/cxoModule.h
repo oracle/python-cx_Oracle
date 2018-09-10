@@ -80,6 +80,11 @@ typedef struct cxoObject cxoObject;
 typedef struct cxoObjectAttr cxoObjectAttr;
 typedef struct cxoObjectType cxoObjectType;
 typedef struct cxoSessionPool cxoSessionPool;
+typedef struct cxoSodaCollection cxoSodaCollection;
+typedef struct cxoSodaDatabase cxoSodaDatabase;
+typedef struct cxoSodaDoc cxoSodaDoc;
+typedef struct cxoSodaDocCursor cxoSodaDocCursor;
+typedef struct cxoSodaOperation cxoSodaOperation;
 typedef struct cxoSubscr cxoSubscr;
 typedef struct cxoVar cxoVar;
 typedef struct cxoVarType cxoVarType;
@@ -137,6 +142,11 @@ extern PyTypeObject cxoPyTypeObjectType;
 extern PyTypeObject cxoPyTypeObjectVar;
 extern PyTypeObject cxoPyTypeRowidVar;
 extern PyTypeObject cxoPyTypeSessionPool;
+extern PyTypeObject cxoPyTypeSodaCollection;
+extern PyTypeObject cxoPyTypeSodaDatabase;
+extern PyTypeObject cxoPyTypeSodaDoc;
+extern PyTypeObject cxoPyTypeSodaDocCursor;
+extern PyTypeObject cxoPyTypeSodaOperation;
 extern PyTypeObject cxoPyTypeStringVar;
 extern PyTypeObject cxoPyTypeSubscr;
 extern PyTypeObject cxoPyTypeTimestampVar;
@@ -144,6 +154,10 @@ extern PyTypeObject cxoPyTypeTimestampVar;
 // datetime types
 extern PyTypeObject *cxoPyTypeDate;
 extern PyTypeObject *cxoPyTypeDateTime;
+
+// JSON dump and load functions for use with SODA
+extern PyObject *cxoJsonDumpFunction;
+extern PyObject *cxoJsonLoadFunction;
 
 // ODPI-C context and version information
 extern dpiContext *cxoDpiContext;
@@ -353,6 +367,43 @@ struct cxoSessionPool {
     PyTypeObject *connectionType;
 };
 
+struct cxoSodaCollection {
+    PyObject_HEAD
+    dpiSodaColl *handle;
+    cxoSodaDatabase *db;
+    PyObject *name;
+};
+
+struct cxoSodaDatabase {
+    PyObject_HEAD
+    dpiSodaDb *handle;
+    cxoConnection *connection;
+};
+
+struct cxoSodaDoc {
+    PyObject_HEAD
+    cxoSodaDatabase *db;
+    dpiSodaDoc *handle;
+};
+
+struct cxoSodaDocCursor {
+    PyObject_HEAD
+    cxoSodaDatabase *db;
+    dpiSodaDocCursor *handle;
+};
+
+struct cxoSodaOperation {
+    PyObject_HEAD
+    cxoSodaCollection *coll;
+    dpiSodaOperOptions options;
+    uint32_t numKeyBuffers;
+    cxoBuffer *keyBuffers;
+    cxoBuffer keyBuffer;
+    cxoBuffer versionBuffer;
+    cxoBuffer filterBuffer;
+};
+
+
 struct cxoSubscr {
     PyObject_HEAD
     dpiSubscr *handle;
@@ -403,6 +454,7 @@ struct cxoVarType {
 int cxoBuffer_fromObject(cxoBuffer *buf, PyObject *obj, const char *encoding);
 int cxoBuffer_init(cxoBuffer *buf);
 
+int cxoConnection_getSodaFlags(cxoConnection *conn, uint32_t *flags);
 int cxoConnection_isConnected(cxoConnection *conn);
 
 int cxoCursor_performBind(cxoCursor *cursor);
@@ -436,6 +488,18 @@ cxoObjectType *cxoObjectType_new(cxoConnection *connection,
 cxoObjectType *cxoObjectType_newByName(cxoConnection *connection,
         PyObject *name);
 
+cxoSodaCollection *cxoSodaCollection_new(cxoSodaDatabase *db,
+        dpiSodaColl *handle);
+
+cxoSodaDatabase *cxoSodaDatabase_new(cxoConnection *connection);
+
+cxoSodaDoc *cxoSodaDoc_new(cxoSodaDatabase *db, dpiSodaDoc *handle);
+
+cxoSodaDocCursor *cxoSodaDocCursor_new(cxoSodaDatabase *db,
+        dpiSodaDocCursor *handle);
+
+cxoSodaOperation *cxoSodaOperation_new(cxoSodaCollection *collection);
+
 void cxoSubscr_callback(cxoSubscr *subscr, dpiSubscrMessage *message);
 
 PyObject *cxoTransform_dateFromTicks(PyObject *args);
@@ -459,6 +523,9 @@ int cxoUtils_getBooleanValue(PyObject *obj, int defaultValue, int *value);
 int cxoUtils_getModuleAndName(PyTypeObject *type, PyObject **module,
         PyObject **name);
 int cxoUtils_initializeDPI(void);
+int cxoUtils_processJsonArg(PyObject *arg, cxoBuffer *buffer);
+int cxoUtils_processSodaDocArg(cxoSodaDatabase *db, PyObject *arg,
+        cxoSodaDoc **doc);
 
 cxoVarType *cxoVarType_fromDataTypeInfo(dpiDataTypeInfo *info);
 cxoVarType *cxoVarType_fromPythonType(PyTypeObject *type);

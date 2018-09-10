@@ -280,6 +280,26 @@ Connection Object
         This attribute is an extension to the DB API definition.
 
 
+.. method:: Connection.getSodaDatabase()
+
+    Return a :ref:`SodaDatabase <sodadb>` object for Simple Oracle Document
+    Access (SODA). All SODA operations are performed either on the returned
+    SodaDatabase object or from objects created by SodaDatabase. See
+    `here <http://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-BE42F8D3-B86B-43B4-B2A3-5760A4DF79FB>`__  for
+    additional information on SODA.
+
+    SODA support in cx_Oracle is in Preview status and should not be used in
+    production. It will be supported with a future version of Oracle Client
+    libraries.
+
+    .. versionadded:: 7.0
+
+    .. note::
+
+        This method is an extension to the DB API definition.
+
+
 .. method:: Connection.gettype(name)
 
     Return a :ref:`type object <objecttype>` given its name. This can then be

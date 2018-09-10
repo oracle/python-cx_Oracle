@@ -39,6 +39,19 @@ to &main_user;
 grant execute on dbms_aqadm to &main_user;
 grant execute on dbms_lock to &main_user;
 
+begin
+
+    for r in
+            ( select role
+              from dba_roles
+              where role in ('SODA_APP')
+            ) loop
+        execute immediate 'grant ' || r.role || ' to &main_user';
+    end loop;
+
+end;
+/
+
 create user &edition_user identified by &edition_password;
 
 grant

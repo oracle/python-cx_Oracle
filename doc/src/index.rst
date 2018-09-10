@@ -24,6 +24,11 @@ Contents:
     lob.rst
     objecttype.rst
     aq.rst
+    sodadb.rst
+    sodacoll.rst
+    sodaop.rst
+    sodadoc.rst
+    sodadoccur.rst
     whatsnew.rst
     releasenotes.rst
     license.rst

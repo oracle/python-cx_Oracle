@@ -46,6 +46,8 @@ PyObject *cxoIntegrityErrorException = NULL;
 PyObject *cxoInternalErrorException = NULL;
 PyObject *cxoProgrammingErrorException = NULL;
 PyObject *cxoNotSupportedErrorException = NULL;
+PyObject *cxoJsonDumpFunction = NULL;
+PyObject *cxoJsonLoadFunction = NULL;
 cxoFuture *cxoFutureObj = NULL;
 dpiContext *cxoDpiContext = NULL;
 dpiVersionInfo cxoClientVersionInfo;
@@ -277,6 +279,11 @@ static PyObject *cxoModule_initialize(void)
     CXO_MAKE_TYPE_READY(&cxoPyTypeObjectVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeRowidVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSessionPool);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeSodaCollection);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeSodaDatabase);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeSodaDoc);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeSodaDocCursor);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeSodaOperation);
     CXO_MAKE_TYPE_READY(&cxoPyTypeStringVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSubscr);
     CXO_MAKE_TYPE_READY(&cxoPyTypeTimestampVar);
@@ -339,6 +346,11 @@ static PyObject *cxoModule_initialize(void)
     CXO_ADD_TYPE_OBJECT("EnqOptions", &cxoPyTypeEnqOptions)
     CXO_ADD_TYPE_OBJECT("DeqOptions", &cxoPyTypeDeqOptions)
     CXO_ADD_TYPE_OBJECT("MessageProperties", &cxoPyTypeMsgProps)
+    CXO_ADD_TYPE_OBJECT("SodaCollection", &cxoPyTypeSodaCollection)
+    CXO_ADD_TYPE_OBJECT("SodaDatabase", &cxoPyTypeSodaDatabase)
+    CXO_ADD_TYPE_OBJECT("SodaDoc", &cxoPyTypeSodaDoc)
+    CXO_ADD_TYPE_OBJECT("SodaDocCursor", &cxoPyTypeSodaDocCursor)
+    CXO_ADD_TYPE_OBJECT("SodaOperation", &cxoPyTypeSodaOperation)
 
     // the name "connect" is required by the DB API
     CXO_ADD_TYPE_OBJECT("connect", &cxoPyTypeConnection)

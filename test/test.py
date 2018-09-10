@@ -60,6 +60,9 @@ else:
     if clientVersion[:2] >= (12, 1):
         moduleNames.append("BooleanVar")
         moduleNames.append("Features12_1")
+    if clientVersion[:2] >= (18, 3):
+        moduleNames.append("SodaDatabase")
+        moduleNames.append("SodaCollection")
 
 class BaseTestCase(unittest.TestCase):
 
