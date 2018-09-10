@@ -1,3 +1,7 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
+#------------------------------------------------------------------------------
+
 """Module for testing DML returning clauses."""
 
 import sys

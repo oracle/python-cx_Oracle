@@ -8,7 +8,7 @@
  *---------------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------------
- * Copyright 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
  *---------------------------------------------------------------------------*/
 
 set echo off termout on feedback off verify off

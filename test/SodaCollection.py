@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 """Module for testing Simple Oracle Document Access (SODA) Collections"""
