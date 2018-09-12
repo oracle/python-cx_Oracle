@@ -50,6 +50,8 @@ print("Adding row to table...")
 cur.execute("insert into testgeometry values (1, :objbv)", objbv = obj)
 print("Row added!")
 
+# (Change below here)
+
 # Define a function to dump the contents of an Oracle object
 def dumpobject(obj, prefix = "  "):
     if obj.type.iscollection:

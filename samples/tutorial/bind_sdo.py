@@ -43,6 +43,8 @@ print("Adding row to table...")
 cur.execute("insert into testgeometry values (1, :obj)", obj = obj)
 print("Row added!")
 
+# (Change below here)
+
 # Query the row
 print("Querying row just inserted...")
 cur.execute("select id, geometry from testgeometry");

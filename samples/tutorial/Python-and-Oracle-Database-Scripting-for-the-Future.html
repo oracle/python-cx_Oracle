@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>Python and Oracle Database 12c: Scripting for the Future</title>
+<title>Python and Oracle Database: Scripting for the Future</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 
 <link rel="stylesheet" href="resources/base.css" type="text/css"/>
@@ -9,7 +9,7 @@
 </head>
 <body bgcolor="#ffffff" text="#000000">
 
-  <h1>Python and Oracle Database 12c: Scripting for the Future</h1>
+  <h1>Python and Oracle Database: Scripting for the Future</h1>
 
   <img src="resources/community-py-200.png" alt="Python cx_Oracle logo">
 
@@ -19,11 +19,11 @@
     <li><a href="#preface" >Preface</a></li>
     <li><a href="#connectioninformation" >Connection Information</a></li>
     <li><a href="#overview" >Overview</a></li>
-    <li><a href="#lab" >Using Python cx_Oracle 6 with Oracle Database 12c</a></li>
+    <li><a href="#lab" >Using Python cx_Oracle 7 with Oracle Database</a></li>
     <ul>
       <li><a href="#connecting">1. Connecting to Oracle</a>
         <ul>
-          <li>1.1 Set the connection values</li>
+          <li>1.1 Review the connection credentials</li>
           <li>1.2 Creating a basic connection</li>
           <li>1.3 Indentation indicates code structure</li>
           <li>1.4 Executing a query</li>
@@ -100,23 +100,18 @@
 
   <h2><a name="preface">Preface</a></h2>
 
-  <p>This tutorial was originally run as a 'Hands on Lab' at Oracle
-  OpenWorld 2017.  Attendees used a presupplied virtual machine
-  preconfigured with Oracle Database, Python 3.6, cx_Oracle 6.0, a
-  text editor, and access to a terminal console.</p>
-
-  <p>To set up a similar environment yourself, install the following required software:</p>
+  <p>If you are running this tutorial in your own environment, install the following required software:</p>
 
 <ol>
   <li><a target="_blank" href="https://www.python.org/">Python</a> (3.6 preferred but 2.7 should work)</li>
-  <li>cx_Oracle (6.2.1 preferred any 6.x should work) and Oracle Instant Client Package - Basic (12.2 preferred 12.1 should work)
+  <li>cx_Oracle (version 7 preferred but 6.3 or later should work) and Oracle Instant Client Package - Basic (version 18.3 preferred 12.2 should work)
     <ul>
       <li><a target="_blank" href="http://cx-oracle.readthedocs.io/en/latest/installation.html#installing-cx-oracle-on-linux">Linux</a></li>
       <li><a target="_blank" href="http://cx-oracle.readthedocs.io/en/latest/installation.html#installing-cx-oracle-on-macos">macOS</a> - please note the special instructions for macOS in the link.</li>
       <li><a target="_blank" href="http://cx-oracle.readthedocs.io/en/latest/installation.html#installing-cx-oracle-on-windows">Windows</a></li>
     </ul>
   </li>
-  <li>Oracle <a target="_blank" href="http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html">Instant Client Package - SQL*Plus</a> OR Oracle <a target="_blank" href="http://www.oracle.com/technetwork/developer-tools/sqlcl/downloads/index.html">SQLcl</a></li>
+  <li>Oracle <a target="_blank" href="http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html">Instant Client Package - SQL*Plus</a>.</li>
 </ol>
 
 <p>To create the schema run:</p>
@@ -152,16 +147,17 @@ sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
   be done in any order.  Choose the content that interests you and
   your skill level.</p>
 
-  <p>Follow the steps in this document.  The home directory has
-  scripts to run and modify.  The <code>solutions</code> directory has
-  scripts with the suggested code changes.</p>
+  <p>Follow the steps in this document.  The <code>tutorial</code>
+  directory has scripts to run and modify.  The
+  <code>tutorial/solutions</code> directory has scripts with the
+  suggested code changes.</p>
 
   <p>Use the Desktop icons to start editors and terminal windows.</p>
 
   <p>If you are new to Python review the <a href="#primer">Appendix:
   Python Primer</a> to gain an understanding of the language. </p>
 
-  <h2><a name="lab">Using Python cx_Oracle 6 with Oracle Database 12c</a></h2>
+  <h2><a name="lab">Using Python cx_Oracle 7 with Oracle Database</a></h2>
 
   <p>Python is a popular general purpose dynamic scripting language.
   The cx_Oracle interface provides Python API to access Oracle
@@ -172,8 +168,8 @@ sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
       <h3><a name="connecting">1. Connecting to Oracle</a></h3>
       <ul>
         <li>
-          <h4>1.1 Set the connection values</h4>
-          <p>Review the code contained in <code>db_config.py</code> and <code>db_config.sql</code>:</p>
+          <h4>1.1 Review the connection credentials</h4>
+          <p>Review <code>db_config.py</code> and <code>db_config.sql</code>.  These are included in other Python and SQL files in this tutorial:</p>
            <code>db_config.py</code>
           <pre>
 user = "pythonhol"
@@ -185,8 +181,9 @@ dsn = "localhost/orclpdb"
 def user = "pythonhol"
 def pw = "welcome"
 def connect_string = "localhost/orclpdb"
-</pre>
-          <p>Modify the values in both files to match the connection information for your environment.</p>
+          </pre>
+
+          <p>By default they connect to the 'orclpdb' database service on the same machine as Python.  You can modify the values in both files to match the connection information for your environment.</p>
 
         </li>
 
@@ -212,7 +209,11 @@ print("Database version:", con.version)
           machine, <code>localhost</code>, and the database service name
           <code>orclpdb</code>. </p>
 
-          <p>Open a command terminal and run:</p>
+          <p>Open a command terminal and change to the <code>tutorial</code> directory:</p>
+
+          <pre><strong>cd tutorial</strong></pre>
+
+          <p>Run the Python script:</p>
 
           <pre><strong>python connect.py</strong></pre>
 
@@ -223,8 +224,8 @@ print("Database version:", con.version)
 
           <p>cx_Oracle also supports "external authentication", which
           allows connections without needing usernames and passwords
-          to be embedded in the code. Authentication will instead be
-          performed by, for example, LDAP.</p>
+          to be embedded in the code. Authentication would then
+          instead be performed by, for example, LDAP.</p>
 
         </li>
 
@@ -235,7 +236,7 @@ print("Database version:", con.version)
           or braces to indicate blocks of code.</p>
 
           <p>Open <code>connect.py</code> in an editor. Indent the
-          print statement with some spaces and save the file:</p>
+          print statement with some spaces:</p>
 
           <pre>
 import cx_Oracle
@@ -245,7 +246,7 @@ con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
   print("Database version:", con.version)
 </pre>
 
-          <p>Run the script again:</p>
+          <p>Save the script and run it again:</p>
 
           <pre><strong>python connect.py</strong> </pre>
 
@@ -289,7 +290,7 @@ for row in res:
     print(row)</strong>
 </pre>
 
-          <p><i>Make sure the <code>print(row)</code> line is indented.</i></p>
+          <p><i>Make sure the <code>print(row)</code> line is indented.  This lab uses spaces, not tabs.</i></p>
 
           <p>The code executes a query and fetches all data.</p>
 
@@ -307,39 +308,17 @@ for row in res:
           <h4>1.5 Closing connections</h4>
 
           <p>Connections and other resources used by cx_Oracle will
-          automatically be closed at the end of scope.  This is a common
-          programming style.</p>
+          automatically be closed at the end of scope.  This is a
+          common programming style that takes care of the correct
+          order of resource closure.</p>
 
           <p>Resources can also be explicitly closed to free up
-          database resources if they are no longer needed.</p>
+          database resources if they are no longer needed.  This may
+          be useful in blocks of code that remain active for some
+          time.</p>
 
-          <p>Open <code>query.py</code> in an editor and add a call to
-          <code>close()</code> like:</p>
-
-          <pre>
-import cx_Oracle
-import db_config
-
-con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
-
-cur = con.cursor()
-cur.execute("select * from dept order by deptno")
-res = cur.fetchall()
-for row in res:
-    print(row)
-
-<strong>con.close()</strong>
-</pre>
-
-          <p>Run the script:</p>
-
-          <pre><strong>python query.py</strong></pre>
-
-          <p>If you are using cx_Oracle 6.2+ the connection will close and you can skip ahead to section 1.6.</p>
-
-          <p>If you are using an older version of cx_Oracle, this gives the error "cx_Oracle.DatabaseError: DPI-1054: connection cannot be closed when open statements or LOBs exist".</p>
-
-          <p>To fix this, edit the file and close the cursor:</p>
+          <p>Open <code>query.py</code> in an editor and add calls to
+          close the cursor and connection like:</p>
 
           <pre>
 import cx_Oracle
@@ -354,15 +333,14 @@ for row in res:
     print(row)
 
 <strong>cur.close()</strong>
-con.close()
+<strong>con.close()</strong>
 </pre>
 
-          <p>If you run the script again, it will succeed without
-          error.</p>
+          <p>Running the script completes without error:</p>
 
-          <p>In your own applications, you may prefer to let cx_Oracle
-          automatically close resources at end of scope.</p>
+          <pre><strong>python query.py</strong></pre>
 
+          <p>If you swap the order of the two <code>close()</code> calls you will see an error.</p>
         </li>
 
         <li>
@@ -400,17 +378,17 @@ print("Client version:", cx_Oracle.clientversion())</strong>
           <p>When the script is run, it will display:</p>
 
           <pre>
-6.0.2
-Database version: 12.2.0.1.0
-Client version: (12, 2, 0, 1, 0)
+7.0.0
+Database version: 18.3.0.0.0
+Client version: (18, 3, 0, 0, 0)
 </pre>
 
           <p>Note the client version is a tuple.</p>
 
-          <p>An application can support multiple Oracle versions.  By
-          checking the Oracle Database and client versions numbers,
-          the application can make use of the best Oracle features
-          available.</p>
+          <p>Any cx_Oracle installation can connect to older and newer
+          Oracle Database versions.  By checking the Oracle Database
+          and client versions numbers, the application can make use of
+          the best Oracle features available.</p>
 
         </li>
 
@@ -473,7 +451,7 @@ print("All done!")
           <p>The <code>seqval, = cur.fetchone()</code> line fetches a
           row and puts the single value contained in the result tuple
           into the variable <code>seqval</code>.  Without the comma,
-          the value in seqval would be a tuple like
+          the value in <code>seqval</code> would be a tuple like
           "<code>(1,)</code>".</p>
 
           <p>Two threads are created, each invoking the
@@ -494,7 +472,7 @@ run.</p>
 
 
 <p>Review <code>connect_pool2.py</code>, which has a loop for the number
-of threads:</p>
+of threads, each iteration invoking the <code>Query()</code> method:</p>
 
 <pre>
 import cx_Oracle
@@ -540,6 +518,11 @@ cx_Oracle.SPOOL_ATTRVAL_WAIT</code> to the
 <code>cx_Oracle.SessionPool()</code> call will prevent the exception
 from taking place, but will cause the thread to wait until a session
 is available.</p>
+
+<p>Pool configurations where <code>min</code> is the same as
+<code>max</code> (and <code>increment = 0</code>) are often
+recommended as a way to avoid connection storms on the database
+server.</p>
 
 </li>
 
@@ -627,7 +610,7 @@ print("Database version:", con.version)
 
       <p>DRCP works well with session pooling.</p>
 
-  <p>Edit <code>connect_pool2.py</code> and modify it to use DRCP:</p>
+  <p>Edit <code>connect_pool2.py</code>, reset any changed pool options, and modify it to use DRCP:</p>
   <pre>
 import cx_Oracle
 import threading
@@ -664,6 +647,13 @@ print("All done!")
 
       <pre><strong>python connect_pool2.py</strong></pre>
 
+      <p>If you get the error "ORA-24418: Cannot open further
+      sessions", it is because connection requests are being made
+      while the pool is starting or growing.  Add the argument
+      <code>getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT</code> to the
+      <code>cx_Oracle.SessionPool()</code> call so connection
+      requests wait for pooled sessions to be available.</p>
+
       <p>Open a new a terminal window and invoke SQL*Plus:</p>
 
       <pre><strong>sqlplus /nolog @drcp_query.sql</strong></pre>
@@ -681,19 +671,20 @@ print("All done!")
       <h4>2.5 More DRCP investigation</h4>
 
       <p>To explore the behaviors of session and DRCP pooling futher,
-      you could include the <code>time</code> module at the file
+      you could try changing the purity to
+      <code>cx_Oracle.ATTR_PURITY_NEW</code> to see the effect on the
+      DRCP NUM_MISSES statistic.</p>
+
+      <p>Another experiement is to include the <code>time</code> module at the file
       top:</p>
 
       <pre>
 import time</pre>
 
       <p>and add calls to <code>time.sleep(1)</code> in the code, for
-      example in the query loop.  Then use
-      <code>drcp_query.sql</code> to monitor pooled behavior.</p>
+      example in the query loop.  Then look at the way the threads execute.  Use
+      <code>drcp_query.sql</code> to monitor the pool's behavior.</p>
 
-      <p>Also try changing the purity to
-      <code>cx_Oracle.ATTR_PURITY_NEW</code> to see the effect on the
-      DRCP NUM_MISSES statistic.</p>
 
     </li>
   </ul>
@@ -790,10 +781,11 @@ res = cur.fetchmany(numRows = 3)
 print(res)
 </pre>
 
-  <p>The <code>fetchmany()</code> method returns a list of
-  tuples. By default the number of rows returned is specified by the
-  cursor attribute <code>arraysize</code>. Here the <code>numRows</code>
-  parameter specifies that three rows should be returned.</p>
+  <p>The <code>fetchmany()</code> method returns a list of tuples. By
+  default the number of rows returned is specified by the cursor
+  attribute <code>arraysize</code> (which defaults to 100).  Here the
+  <code>numRows</code> parameter specifies that three rows should be
+  returned.</p>
 
   <p>Run the script in a terminal window:</p>
 
@@ -933,13 +925,13 @@ print(elapsed, "seconds")
     to use different arraysizes than those given here to see a
     meaningful time difference.</p>
 
-    <p>The default arraysize used by cx_Oracle 6 is 100. There is a
+    <p>The default arraysize used by cx_Oracle 7 is 100. There is a
     time/space tradeoff for increasing the arraysize. Larger
     arraysizes will require more memory in Python for buffering the
     records.</p>
 
-    <p>If you know a query only returns a few records, consider
-    decreasing the arraysize from the default to reduce memory
+    <p>If you know a query only returns a few records,
+    decrease the arraysize from the default to reduce memory
     usage.</p>
 
   </ul>
@@ -1112,8 +1104,9 @@ print(res)
       <pre><strong>python bind_insert.py</strong></pre>
 
       <p>The new code shows the offending duplicate row: "ORA-00001:
-      unique constraint (PYTHONHOL.MY_PK) violated at row offset
-      6"</p>
+      unique constraint (PYTHONHOL.MY_PK) violated at row offset 6".
+      This indicates the 6th data value (counting from 0) had a
+      problem.</p>
 
       <p>The other data gets inserted and is queried back.</p>
 
@@ -1132,8 +1125,7 @@ print(res)
   <p>cx_Oracle can fetch and bind named object types such as Oracle's
   Spatial Data Objects (SDO).</p>
 
-  <p>In a terminal window, start SQL*Plus:</p>
-  <p>(Modify the following command to use your connection values.)</p>
+  <p>In a terminal window, start SQL*Plus using the lab credentials and connection string, such as:</p>
 
   <pre>
 sqlplus pythonhol/welcome@localhost/orclpdb
@@ -1216,11 +1208,14 @@ SDO_ELEM_INFO_ARRAY are set with <code>extend()</code>.</p>
 
 <pre>(1, &lt;cx_Oracle.Object MDSYS.SDO_GEOMETRY at 0x104a76230&gt;)</pre>
 
-<p>To show the attribute values, edit the file so the query code
-(below the existing comment "<code># Query the row</code>") is
-like:</p>
+<p>To show the attribute values, edit the the query code section at
+the end of the file.  Add a new method that traverses the object.  The
+file below the existing comment "<code># (Change below here)</code>")
+should look like:</p>
 
 <pre>
+# (Change below here)
+
 # Define a function to dump the contents of an Oracle object
 def dumpobject(obj, prefix = "  "):
     if obj.type.iscollection:
@@ -1259,21 +1254,21 @@ for id, obj in cur:
 Querying row just inserted...
 Id:  1
    {
-    SDO_GTYPE : 2003.0
+    SDO_GTYPE : 2003
     SDO_SRID : None
     SDO_POINT : None
     SDO_ELEM_INFO :
        [
-         1.0
-         1003.0
-         3.0
+         1
+         1003
+         3
        ]
     SDO_ORDINATES :
        [
-         1.0
-         1.0
-         5.0
-         7.0
+         1
+         1
+         5
+         7
        ]
    }
 </pre>
@@ -1338,7 +1333,7 @@ print(res)
       The second parameter is the type of the returned value. It should be one
       of the types supported by cx_Oracle or one of the type constants defined
       by cx_Oracle (such as cx_Oracle.NUMBER). The two PL/SQL function
-      parameters are passed as a tuple and bound to the function parameter
+      parameters are passed as a tuple, binding them to the function parameter
       arguments.</p>
 
       <p>From a terminal window, run:</p>
@@ -1437,7 +1432,7 @@ for row in cur.execute("select * from dept"):
       <p>This shows the department number represented as digits like
       <code>10</code>.</p>
 
-      <p>Add an output type handler to the bottom of file:</p>
+      <p>Add an output type handler to the bottom of the file:</p>
 
 <pre>
 <strong>def ReturnNumbersAsStrings(cursor, name, defaultType, size, precision, scale):
@@ -1521,7 +1516,7 @@ for value, in cur.execute("select 0.1 from dual"):
       from <code>decimal.Decimal</code> is returned in the output
       tuple.  </p>
 
-      <p>Run the file:</p>
+      <p>Run the file again:</p>
 
       <pre><strong>python type_converter.py</strong></pre>
 
@@ -1719,7 +1714,8 @@ print("CLOB data:", clobdata)
       <p>For CLOBs small enough to fit in the application memory, it
       is much faster to fetch them directly as strings.</p>
 
-      <p>Review the code contained in <code>clob_string.py</code>:</p>
+      <p>Review the code contained in <code>clob_string.py</code>.
+      The differences from <code>clob.py</code> are shown in bold:</p>
 
 <pre>
 import cx_Oracle
@@ -1809,7 +1805,7 @@ for c1, c2 in rows:
   <p>Both access methods gives the same results.</p>
 
   <p>To use a rowfactory function, edit <code>rowfactory.py</code> and
-  add:</p>
+  add this code at the bottom:</p>
 
 <pre>
 <strong>print('Rowfactory:')
@@ -2084,6 +2080,11 @@ dequeue <code>options.wait</code> value to
 
     </ul>
 
+    <p>When you run scripts, Python automatically creates bytecode
+    versions of them in a folder called <code>__pycache__</code>.
+    These improve performance of scripts that are run multiple times.
+    They are automatically recreated if the source file changes.</p>
+
     <h4>Indentation</h4>
 
     <p> Whitespace indentation is significant in Python.  When copying
@@ -2146,7 +2147,8 @@ print('Value:', count)</pre>
     <P>Note the <a
     href="https://docs.python.org/3.0/whatsnew/3.0.html#print-is-a-function"
     ><code>print</code></a> syntax and output is different in Python
-    2.</p>
+    2.  Examples in this lab use <code>from __future__ import print_function
+</code> so that they run with Python 2 and Python 3.</p>
 
     <h4>Data Structures</h4>
 

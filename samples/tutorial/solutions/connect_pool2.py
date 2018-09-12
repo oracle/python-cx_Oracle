@@ -14,7 +14,8 @@ import time
 import db_config
 
 pool = cx_Oracle.SessionPool(db_config.user, db_config.pw, db_config.dsn + ":pooled",
-                             min = 2, max = 5, increment = 1, threaded = True)
+                             min = 2, max = 5, increment = 1, threaded = True,
+                             getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT)
 
 def Query():
     con = pool.acquire(cclass="PYTHONHOL", purity=cx_Oracle.ATTR_PURITY_SELF)
