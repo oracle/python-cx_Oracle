@@ -3,6 +3,56 @@
 cx_Oracle Release Notes
 =======================
 
+7.x releases
+############
+
+.. _releasenotes70:
+
+Version 7.0 (September 2018)
+----------------------------
+
+#)  Update to `ODPI-C 3.0
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-3-0-0-september-13-2018>`__.
+#)  Added support for Oracle Client 18 libraries.
+#)  Added support for SODA (as preview). See :ref:`SODA Database <sodadb>`,
+    :ref:`SODA Collection <sodacoll>` and :ref:`SODA Document <sodadoc>` for
+    more information.
+#)  Added support for call timeouts available in Oracle Client 18.1 and
+    higher. See :attr:`Connection.callTimeout`.
+#)  Added support for getting the contents of a SQL collection object as a
+    dictionary, where the keys are the indices of the collection and the values
+    are the elements of the collection. See function :meth:`Object.asdict()`.
+#)  Added support for closing a session pool via the function
+    :meth:`SessionPool.close()`. Once closed, further attempts to use any
+    connection that was acquired from the pool will result in the error
+    "DPI-1010: not connected".
+#)  Added support for setting a LOB attribute of an object with a string or
+    bytes (instead of requiring a temporary LOB to be created).
+#)  Added support for the packed decimal type used by object attributes with
+    historical types DECIMAL and NUMERIC
+    (`issue 212 <https://github.com/oracle/python-cx_Oracle/issues/212>`__).
+#)  On Windows, first attempt to load oci.dll from the same directory as
+    the cx_Oracle module.
+#)  SQL objects that are created or fetched from the database are now tracked
+    and marked unusable when a connection is closed. This was done in order
+    to avoid a segfault under certain circumstances.
+#)  Re-enabled pool pinging functionality for Oracle Client 12.2 and higher
+    to handle classes of connection errors such as resource profile limits.
+#)  Improved error messages when the Oracle Client or Oracle Database need to
+    be at a minimum version in order to support a particular feature.
+#)  When a connection is used as a context manager, the connection is now
+    closed when the block ends. Attempts to set
+    ``cx_Oracle.__future__.ctx_mgr_close`` are now ignored.
+#)  When a DML returning statement is executed, variables bound to it will
+    return an array when calling :meth:`Variable.getvalue()`. Attempts to set
+    ``cx_Oracle.__future__.dml_ret_array_val`` are now ignored.
+#)  Support for Python 3.4 has been dropped.
+#)  Added additional test cases.
+#)  Improved documentation.
+
+
+
 6.x releases
 ############
 

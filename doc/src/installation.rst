@@ -570,7 +570,7 @@ which the following commands should be run::
 Upgrading from cx_Oracle 6
 ==========================
 
-Review the `releasenotes
+Review the `release notes
 <http://cx-oracle.readthedocs.io/en/latest/releasenotes.html>`__ for
 deprecations and modify any affected code.
 
