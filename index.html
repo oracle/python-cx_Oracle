@@ -11,7 +11,7 @@
 <body>
 <div id="container">
 <div id="header">
-    <h1>cx_Oracle version 6.3</h1>
+    <h1>cx_Oracle version 7.0</h1>
 </div>
 <div id="menu">
     <a href="http://cx-oracle.readthedocs.io/en/latest/index.html">Documentation</a> ·
@@ -35,11 +35,11 @@ href="http://www.python.org/topics/database/DatabaseAPI-2.0.html">
 specification</a> with a considerable number of additions and a
 couple of exclusions.</p>
 
-<p>cx_Oracle 6 has been tested with Python version 2.7, and with
-versions 3.4 and higher. You can use cx_Oracle with Oracle 11.2, 12.1
-and 12.2 client libraries. Oracle's standard client-server version
+<p>cx_Oracle 7 has been tested with Python version 2.7, and with
+versions 3.5 through 3.7. You can use cx_Oracle with Oracle 11.2, 12.1
+and 12.2 and 18.3 client libraries. Oracle's standard client-server version
 interoperability allows connection to both older and newer databases.
-For example Oracle 12.2 client libraries can connect to Oracle
+For example Oracle 18.3 client libraries can connect to Oracle
 Database 11.2.</p>
 
 </div> <!-- /description -->
@@ -121,11 +121,11 @@ See <a href="https://github.com/oracle/python-cx_Oracle/blob/master/CONTRIBUTING
 
 <li><p>Support for Python 2 and 3.</p></li>
 
-<li><p>Support for Oracle Client 11.2, 12.1 and 12.2.  Oracle's
+<li><p>Support for Oracle Client 11.2, 12.1, 12.2 and 18.3.  Oracle's
 standard cross-version interoperability, allows easy upgrades and
 connectivity to different Oracle Database versions.</p></li>
 
-<li><p>Connect to Oracle Database 9.2, 10, 11 or 12 (depending on the
+<li><p>Connect to Oracle Database 9.2, 10, 11, 12 or 18 (depending on the
 Oracle Client version used).</p></li>
 
 <li><p>SQL and PL/SQL Execution. The underlying Oracle Client
@@ -141,6 +141,8 @@ support (CLOB and BLOB).</p></li>
 
 <li><p>Direct binding to SQL objects.  One great use case is binding
 Python objects to Oracle Spatial SDO objects.</p></li>
+
+<li><p>SODA (Simple Oracle Document Access)</p></li>
 
 <li><p>Array operations for efficient INSERT and UPDATEs.</p></li>
 
