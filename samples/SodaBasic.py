@@ -7,7 +7,9 @@
 #   A basic Simple Oracle Document Access (SODA) example.
 #
 # This script requires cx_Oracle 7.0 and higher.
-# The user must have been granted the SODA_APP privilege
+# Oracle Client must be at 18.3 or higher.
+# Oracle Database must be at 18.1 or higher.
+# The user must have been granted the SODA_APP privilege.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
