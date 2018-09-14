@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# soda1.py
+# SodaBasic.py
 #   A basic Simple Oracle Document Access (SODA) example.
 #
 # This script requires cx_Oracle 7.0 and higher.
@@ -34,7 +34,7 @@ indexSpec = { 'name': 'CITY_IDX',
                     'order': 'asc' } ] }
 collection.createIndex(indexSpec)
 
-# Insert a documents.
+# Insert a document.
 # A system generated key is created by default.
 content = {'name': 'Matilda', 'address': {'city': 'Melbourne'}}
 doc = collection.insertOneAndGet(content)
