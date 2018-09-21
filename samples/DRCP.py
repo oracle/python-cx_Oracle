@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -33,7 +33,7 @@ from __future__ import print_function
 import cx_Oracle
 import SampleEnv
 
-conn = cx_Oracle.Connection(SampleEnv.DRCP_CONNECT_STRING, cclass = "PYCLASS",
+conn = cx_Oracle.connect(SampleEnv.DRCP_CONNECT_STRING, cclass = "PYCLASS",
         purity = cx_Oracle.ATTR_PURITY_SELF)
 cursor = conn.cursor()
 print("Performing query using DRCP...")

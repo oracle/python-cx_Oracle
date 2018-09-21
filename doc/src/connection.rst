@@ -461,7 +461,7 @@ Connection Object
 
         import cx_Oracle
 
-        connection = cx_Oracle.Connection(mode = cx_Oracle.SYSDBA)
+        connection = cx_Oracle.connect(mode = cx_Oracle.SYSDBA)
         connection.shutdown(mode = cx_Oracle.DBSHUTDOWN_IMMEDIATE)
         cursor = connection.cursor()
         cursor.execute("alter database close normal")
@@ -484,10 +484,10 @@ Connection Object
 
         import cx_Oracle
 
-        connection = cx_Oracle.Connection(
-                mode = cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
+        connection = cx_Oracle.connect(
+                mode=cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
         connection.startup()
-        connection = cx_Oracle.connect(mode = cx_Oracle.SYSDBA)
+        connection = cx_Oracle.connect(mode=cx_Oracle.SYSDBA)
         cursor = connection.cursor()
         cursor.execute("alter database mount")
         cursor.execute("alter database open")

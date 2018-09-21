@@ -29,7 +29,7 @@ def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
     if defaultType == cx_Oracle.BLOB:
         return cursor.var(cx_Oracle.LONG_BINARY, arraysize = cursor.arraysize)
 
-connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
 connection.outputtypehandler = OutputTypeHandler
 cursor = connection.cursor()
 

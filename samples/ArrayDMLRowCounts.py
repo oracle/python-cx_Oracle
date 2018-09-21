@@ -18,7 +18,7 @@ from __future__ import print_function
 import cx_Oracle
 import SampleEnv
 
-connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
 cursor = connection.cursor()
 
 # show the number of rows for each parent ID as a means of verifying the

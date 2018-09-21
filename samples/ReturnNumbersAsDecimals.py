@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
     if defaultType == cx_Oracle.NUMBER:
         return cursor.var(decimal.Decimal, arraysize = cursor.arraysize)
 
-connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
 connection.outputtypehandler = OutputTypeHandler
 cursor = connection.cursor()
 cursor.execute("select * from TestNumbers")

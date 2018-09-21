@@ -31,7 +31,7 @@ def callback(message):
     print("Queue name:", message.queueName)
     print("Consumer name:", message.consumerName)
 
-connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING, events = True)
+connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING, events = True)
 sub = connection.subscribe(namespace = cx_Oracle.SUBSCR_NAMESPACE_AQ,
         name = "BOOKS", callback = callback, timeout = 300)
 print("Subscription:", sub)

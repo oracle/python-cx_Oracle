@@ -26,7 +26,7 @@ import SampleEnv
 import decimal
 
 # connect to database
-connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
 cursor = connection.cursor()
 
 # dequeue all existing messages to ensure the queue is empty, just so that

@@ -26,7 +26,7 @@ print("File:", cx_Oracle.__file__)
 print("Client Version:", ".".join(str(i) for i in cx_Oracle.clientversion()))
 sys.stdout.flush()
 
-connection = cx_Oracle.Connection(TestEnv.MAIN_USER, TestEnv.MAIN_PASSWORD,
+connection = cx_Oracle.connect(TestEnv.MAIN_USER, TestEnv.MAIN_PASSWORD,
         TestEnv.CONNECT_STRING, encoding = TestEnv.ENCODING,
         nencoding = TestEnv.NENCODING)
 print("Server Version:", connection.version)
@@ -69,7 +69,7 @@ class BaseTestCase(unittest.TestCase):
     def getConnection(self, **kwargs):
         import cx_Oracle
         import TestEnv
-        return cx_Oracle.Connection(TestEnv.MAIN_USER, TestEnv.MAIN_PASSWORD,
+        return cx_Oracle.connect(TestEnv.MAIN_USER, TestEnv.MAIN_PASSWORD,
                 TestEnv.CONNECT_STRING, encoding = TestEnv.ENCODING,
                 nencoding = TestEnv.NENCODING, **kwargs)
 

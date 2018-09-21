@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -28,7 +28,7 @@ class Test(object):
         self.b = b
         self.c = c
 
-connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
 cursor = connection.cursor()
 
 # change this to False if you want to create the table yourself using SQL*Plus

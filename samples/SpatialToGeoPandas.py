@@ -30,7 +30,7 @@ from shapely.wkb import loads
 import geopandas as gpd
 
 # create Oracle connection and cursor objects
-connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
 cursor = connection.cursor()
 
 # enable autocommit to avoid the additional round trip to the database to

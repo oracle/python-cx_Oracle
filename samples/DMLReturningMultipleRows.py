@@ -22,7 +22,7 @@ import datetime
 import SampleEnv
 
 # truncate table first so that script can be rerun
-connection = cx_Oracle.Connection(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
 cursor = connection.cursor()
 print("Truncating table...")
 cursor.execute("truncate table TestTempTable")
