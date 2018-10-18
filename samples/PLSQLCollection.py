@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -9,7 +9,8 @@
 # procedure.
 #
 # This feature is new in cx_Oracle 5.3 and is only available in Oracle
-# Database 12.1 and higher.
+# Database 12.1 and higher. The ability to get the collection as a dictionary
+# is new in cx_Oracle 7.0.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
@@ -39,4 +40,10 @@ print()
 # show the values as a simple list
 print("Values of collection as list:")
 print(obj.aslist())
+print()
+
+# show the values as a simple dictionary
+print("Values of collection as dictionary:")
+print(obj.asdict())
+print()
 
