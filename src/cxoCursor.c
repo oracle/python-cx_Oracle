@@ -1827,7 +1827,7 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
         return NULL;
     if (size == 0)
         size = varType->size;
-    if (typeNameObj) {
+    if (typeNameObj && typeNameObj != Py_None) {
         objType = cxoObjectType_newByName(cursor->connection, typeNameObj);
         if (!objType)
             return NULL;

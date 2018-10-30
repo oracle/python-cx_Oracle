@@ -595,3 +595,9 @@ class TestCursor(BaseTestCase):
         self.cursor.fetchone()
         self.assertEqual(self.cursor.rowcount, 0)
 
+    def testVarTypeNameNone(self):
+        valueToSet = 5
+        var = self.cursor.var(int, typename=None)
+        var.setvalue(0, valueToSet)
+        self.assertEqual(var.getvalue(), valueToSet)
+
