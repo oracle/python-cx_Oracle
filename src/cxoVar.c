@@ -294,6 +294,7 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
         PyObject *value)
 {
     PyObject *typeObj, *numElementsObj;
+    cxoObjectType *objType;
     cxoVarType *varType;
     uint32_t numElements;
     int ok;
@@ -315,13 +316,13 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
     }
 
     // create variable
-    varType = cxoVarType_fromPythonType((PyTypeObject*) typeObj);
+    varType = cxoVarType_fromPythonType(typeObj, &objType);
     if (!varType)
         return NULL;
     numElements = PyInt_AsLong(numElementsObj);
     if (PyErr_Occurred())
         return NULL;
-    return cxoVar_new(cursor, numElements, varType, varType->size, 1, NULL);
+    return cxoVar_new(cursor, numElements, varType, varType->size, 1, objType);
 }
 
 
@@ -332,6 +333,7 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
 cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
         uint32_t numElements)
 {
+    cxoObjectType *objType;
     cxoVarType *varType;
     long size;
 
@@ -340,8 +342,9 @@ cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
         size = PyInt_AsLong(value);
         if (PyErr_Occurred())
             return NULL;
-        varType = cxoVarType_fromPythonType(&cxoPyTypeString);
-        return cxoVar_new(cursor, numElements, varType, size, 0, NULL);
+        varType = cxoVarType_fromPythonType((PyObject*) &cxoPyTypeString,
+                &objType);
+        return cxoVar_new(cursor, numElements, varType, size, 0, objType);
     }
 
     // passing an array of two elements to define an array
@@ -356,11 +359,11 @@ cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
 
     // everything else ought to be a Python type
     if (PyType_Check(value)) {
-        varType = cxoVarType_fromPythonType((PyTypeObject*) value);
+        varType = cxoVarType_fromPythonType(value, &objType);
         if (!varType)
             return NULL;
         return cxoVar_new(cursor, numElements, varType, varType->size, 0,
-                NULL);
+                objType);
     }
 
     PyErr_SetString(PyExc_TypeError, "expecting type");

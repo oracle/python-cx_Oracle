@@ -1804,8 +1804,8 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
             "inconverter", "outconverter", "typename", "encodingErrors",
             NULL };
     PyObject *inConverter, *outConverter, *typeNameObj;
-    cxoObjectType *objType = NULL;
     const char *encodingErrors;
+    cxoObjectType *objType;
     cxoVarType *varType;
     int size, arraySize;
     PyObject *type;
@@ -1816,18 +1816,19 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
     encodingErrors = NULL;
     arraySize = cursor->bindArraySize;
     inConverter = outConverter = typeNameObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|iiOOOz",
-            keywordList, &PyType_Type, &type, &size, &arraySize, &inConverter,
-            &outConverter, &typeNameObj, &encodingErrors))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOOz",
+            keywordList, &type, &size, &arraySize, &inConverter, &outConverter,
+            &typeNameObj, &encodingErrors))
         return NULL;
 
     // determine the type of variable
-    varType = cxoVarType_fromPythonType((PyTypeObject*) type);
+    varType = cxoVarType_fromPythonType(type, &objType);
     if (!varType)
         return NULL;
+    Py_XINCREF(objType);
     if (size == 0)
         size = varType->size;
-    if (typeNameObj && typeNameObj != Py_None) {
+    if (typeNameObj && typeNameObj != Py_None && !objType) {
         objType = cxoObjectType_newByName(cursor->connection, typeNameObj);
         if (!objType)
             return NULL;
@@ -1865,6 +1866,7 @@ static PyObject *cxoCursor_arrayVar(cxoCursor *cursor, PyObject *args)
 {
     uint32_t size, numElements;
     PyObject *type, *value;
+    cxoObjectType *objType;
     cxoVarType *varType;
     cxoVar *var;
 
@@ -1874,7 +1876,7 @@ static PyObject *cxoCursor_arrayVar(cxoCursor *cursor, PyObject *args)
         return NULL;
 
     // determine the type of variable
-    varType = cxoVarType_fromPythonType((PyTypeObject*) type);
+    varType = cxoVarType_fromPythonType(type, &objType);
     if (!varType)
         return NULL;
     if (size == 0)
@@ -1894,7 +1896,7 @@ static PyObject *cxoCursor_arrayVar(cxoCursor *cursor, PyObject *args)
     }
 
     // create the variable
-    var = cxoVar_new(cursor, numElements, varType, size, 1, NULL);
+    var = cxoVar_new(cursor, numElements, varType, size, 1, objType);
     if (!var)
         return NULL;
 

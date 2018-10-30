@@ -596,8 +596,21 @@ class TestCursor(BaseTestCase):
         self.assertEqual(self.cursor.rowcount, 0)
 
     def testVarTypeNameNone(self):
+        "test that the typename attribute can be passed a value of None"
         valueToSet = 5
         var = self.cursor.var(int, typename=None)
         var.setvalue(0, valueToSet)
         self.assertEqual(var.getvalue(), valueToSet)
+
+    def testVarTypeWithObjectType(self):
+        "test that an object type can be used as type in cursor.var()"
+        objType = self.connection.gettype("UDT_OBJECT")
+        var = self.cursor.var(objType)
+        self.cursor.callproc("pkg_TestBindObject.BindObjectOut",
+                (28, "Bind obj out", var))
+        obj = var.getvalue()
+        result = self.cursor.callfunc("pkg_TestBindObject.GetStringRep", str,
+                (obj,))
+        self.assertEqual(result,
+                "udt_Object(28, 'Bind obj out', null, null, null, null, null)")
 

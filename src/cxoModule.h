@@ -528,7 +528,7 @@ int cxoUtils_processSodaDocArg(cxoSodaDatabase *db, PyObject *arg,
         cxoSodaDoc **doc);
 
 cxoVarType *cxoVarType_fromDataTypeInfo(dpiDataTypeInfo *info);
-cxoVarType *cxoVarType_fromPythonType(PyTypeObject *type);
+cxoVarType *cxoVarType_fromPythonType(PyObject *type, cxoObjectType **objType);
 cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
         Py_ssize_t *size, Py_ssize_t *numElements, int plsql);
 

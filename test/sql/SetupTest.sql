@@ -804,6 +804,12 @@ create or replace package &main_user..pkg_TestBindObject as
         a_Object                        udt_Object
     ) return varchar2;
 
+    procedure BindObjectOut (
+        a_NumberValue                   number,
+        a_StringValue                   varchar2,
+        a_Object                        out nocopy udt_Object
+    );
+
 end;
 /
 
@@ -863,6 +869,17 @@ create or replace package body &main_user..pkg_TestBindObject as
                         ''', ''YYYY-MM-DD HH24:MI:SS'')' end || ', ' ||
                 GetStringRep(a_Object.SubObjectValue) || ', ' ||
                 GetStringRep(a_Object.SubObjectArray) || ')';
+    end;
+
+    procedure BindObjectOut (
+        a_NumberValue                   number,
+        a_StringValue                   varchar2,
+        a_Object                        out nocopy udt_Object
+    ) is
+    begin
+        a_Object := udt_Object(a_NumberValue, a_StringValue, null, null, null,
+                null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null);
     end;
 
 end;

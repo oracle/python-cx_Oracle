@@ -178,19 +178,31 @@ cxoVarType *cxoVarType_fromDataTypeInfo(dpiDataTypeInfo *info)
 //-----------------------------------------------------------------------------
 // cxoVarType_fromPythonType()
 //   Return a variable type given a Python type object or NULL if the Python
-// type does not have a corresponding variable type.
+// type does not have a corresponding variable type. If the type provided is an
+// object type, return that as well.
 //-----------------------------------------------------------------------------
-cxoVarType *cxoVarType_fromPythonType(PyTypeObject *type)
+cxoVarType *cxoVarType_fromPythonType(PyObject *type, cxoObjectType **objType)
 {
     cxoTransformNum transformNum;
+    PyTypeObject *pyType;
     char message[250];
 
-    transformNum = cxoTransform_getNumFromType(type);
-    if (transformNum == CXO_TRANSFORM_UNSUPPORTED) {
-        snprintf(message, sizeof(message), "Python type %s not supported.",
-                type->tp_name);
-        cxoError_raiseFromString(cxoNotSupportedErrorException, message);
+    if (Py_TYPE(type) == &cxoPyTypeObjectType) {
+        transformNum = CXO_TRANSFORM_OBJECT;
+        *objType = (cxoObjectType*) type;
+    } else if (Py_TYPE(type) != &PyType_Type) {
+        PyErr_SetString(PyExc_TypeError, "expecting type");
         return NULL;
+    } else {
+        *objType = NULL;
+        pyType = (PyTypeObject*) type;
+        transformNum = cxoTransform_getNumFromType(pyType);
+        if (transformNum == CXO_TRANSFORM_UNSUPPORTED) {
+            snprintf(message, sizeof(message), "Python type %s not supported.",
+                    pyType->tp_name);
+            cxoError_raiseFromString(cxoNotSupportedErrorException, message);
+            return NULL;
+        }
     }
     return &cxoAllVarTypes[transformNum];
 }

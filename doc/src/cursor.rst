@@ -525,7 +525,8 @@ Cursor Object
     The dataType parameter specifies the type of data that should be stored in
     the variable. This should be one of the types defined at the module level
     (such as :data:`cx_Oracle.STRING`) or a Python type that cx_Oracle knows
-    how to process (such as str).
+    how to process (such as str) or an object type returned from the method
+    :meth:`Connection.gettype()`.
 
     The size parameter specifies the length of string and raw variables and is
     ignored in all other cases. If not specified for string and raw variables,
@@ -541,7 +542,8 @@ Cursor Object
     the section on :ref:`variable objects<varobj>`.
 
     The typename parameter specifies the name of a SQL object type and must be
-    specified when using type :data:`cx_Oracle.OBJECT`.
+    specified when using type :data:`cx_Oracle.OBJECT` unless the type object
+    was passed directly as the first parameter.
 
     The encodingErrors parameter specifies what should happen when decoding
     byte strings fetched from the database into strings (Python 3) or unicode
