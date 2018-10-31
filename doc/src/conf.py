@@ -40,9 +40,9 @@ author = 'Oracle'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '7.0'
+version = '7.1'
 # The full version, including alpha/beta/rc tags.
-release = '7.0.0'
+release = '7.1.0-dev'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
