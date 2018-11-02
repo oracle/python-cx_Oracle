@@ -77,7 +77,8 @@ class TestConnection(TestCase):
         if CLIENT_VERSION >= (12, 1):
             self.__VerifyAttributes(connection, "dbop", "cx_OracleTest_DBOP",
                     "select dbop_name from v$sql_monitor "
-                    "where sid = sys_context('userenv', 'sid')")
+                    "where sid = sys_context('userenv', 'sid')"
+                    "and status = 'EXECUTING'")
         self.__VerifyAttributes(connection, "action", "cx_OracleTest_Action",
                 "select sys_context('userenv', 'action') from dual")
         self.__VerifyAttributes(connection, "module", "cx_OracleTest_Module",
