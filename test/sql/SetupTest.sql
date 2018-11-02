@@ -79,6 +79,7 @@ create type &main_user..udt_Object as object (
     FixedCharValue                      char(10),
     NStringValue                        nvarchar2(60),
     NFixedCharValue                     nchar(10),
+    RawValue                            raw(16),
     IntValue                            integer,
     SmallIntValue                       smallint,
     RealValue                           real,
@@ -351,7 +352,8 @@ end;
 
 insert into &main_user..TestObjects values (1,
     &main_user..udt_Object(1, 'First row', 'First', 'N First Row', 'N First',
-        2, 5, 12.125, 0.5, 12.5, 25.25, 50.125, to_date(20070306, 'YYYYMMDD'),
+        '52617720446174612031', 2, 5, 12.125, 0.5, 12.5, 25.25, 50.125,
+        to_date(20070306, 'YYYYMMDD'),
         to_timestamp('20080912 16:40:00', 'YYYYMMDD HH24:MI:SS'),
         to_timestamp_tz('20091013 17:50:00 00:00',
                 'YYYYMMDD HH24:MI:SS TZH:TZM'),
@@ -370,7 +372,8 @@ insert into &main_user..TestObjects values (2, null,
 
 insert into &main_user..TestObjects values (3,
     &main_user..udt_Object(3, 'Third row', 'Third', 'N Third Row', 'N Third',
-        4, 10, 6.5, 0.75, 43.25, 86.5, 192.125, to_date(20070621, 'YYYYMMDD'),
+        '52617720446174612033', 4, 10, 6.5, 0.75, 43.25, 86.5, 192.125,
+        to_date(20070621, 'YYYYMMDD'),
         to_timestamp('20071213 07:30:45', 'YYYYMMDD HH24:MI:SS'),
         to_timestamp_tz('20170621 23:18:45 00:00',
                 'YYYYMMDD HH24:MI:SS TZH:TZM'),
@@ -879,7 +882,7 @@ create or replace package body &main_user..pkg_TestBindObject as
     begin
         a_Object := udt_Object(a_NumberValue, a_StringValue, null, null, null,
                 null, null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
     end;
 
 end;

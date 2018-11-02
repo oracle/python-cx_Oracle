@@ -123,8 +123,8 @@ class TestObjectVar(BaseTestCase):
                   ('OBJECTCOL', cx_Oracle.OBJECT, None, None, None, None, 1),
                   ('ARRAYCOL', cx_Oracle.OBJECT, None, None, None, None, 1) ])
         self.__TestData(1, (1, 'First row', 'First     ', 'N First Row',
-                'N First   ', 2, 5, 12.125, 0.5, 12.5, 25.25, 50.125,
-                cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0),
+                'N First   ', b'Raw Data 1', 2, 5, 12.125, 0.5, 12.5, 25.25,
+                50.125, cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0),
                 cx_Oracle.Timestamp(2008, 9, 12, 16, 40),
                 cx_Oracle.Timestamp(2009, 10, 13, 17, 50),
                 cx_Oracle.Timestamp(2010, 11, 14, 18, 55),
@@ -134,8 +134,8 @@ class TestObjectVar(BaseTestCase):
                 [5, 10, None, 20])
         self.__TestData(2, None, [3, None, 9, 12, 15])
         self.__TestData(3, (3, 'Third row', 'Third     ', 'N Third Row',
-                'N Third   ', 4, 10, 6.5, 0.75, 43.25, 86.5, 192.125,
-                cx_Oracle.Timestamp(2007, 6, 21, 0, 0, 0),
+                'N Third   ', b'Raw Data 3', 4, 10, 6.5, 0.75, 43.25, 86.5,
+                192.125, cx_Oracle.Timestamp(2007, 6, 21, 0, 0, 0),
                 cx_Oracle.Timestamp(2007, 12, 13, 7, 30, 45),
                 cx_Oracle.Timestamp(2017, 6, 21, 23, 18, 45),
                 cx_Oracle.Timestamp(2017, 7, 21, 8, 27, 13),
@@ -153,7 +153,7 @@ class TestObjectVar(BaseTestCase):
         self.assertEqual(typeObj.name, "UDT_OBJECT")
         expectedAttributeNames = ["NUMBERVALUE", "STRINGVALUE",
                 "FIXEDCHARVALUE", "NSTRINGVALUE", "NFIXEDCHARVALUE",
-                "INTVALUE", "SMALLINTVALUE", "REALVALUE",
+                "RAWVALUE", "INTVALUE", "SMALLINTVALUE", "REALVALUE",
                 "DOUBLEPRECISIONVALUE", "FLOATVALUE", "BINARYFLOATVALUE",
                 "BINARYDOUBLEVALUE", "DATEVALUE", "TIMESTAMPVALUE",
                 "TIMESTAMPTZVALUE", "TIMESTAMPLTZVALUE", "CLOBVALUE",
@@ -202,6 +202,7 @@ class TestObjectVar(BaseTestCase):
         obj.FIXEDCHARVALUE = "Fixed str"
         obj.NSTRINGVALUE = "A NCHAR string"
         obj.NFIXEDCHARVALUE = "Fixed N"
+        obj.RAWVALUE = b"Raw Value"
         obj.INTVALUE = 27
         obj.SMALLINTVALUE = 13
         obj.REALVALUE = 184.875
@@ -228,8 +229,8 @@ class TestObjectVar(BaseTestCase):
                 from TestObjects
                 where IntCol = 4""")
         self.__TestData(4, (5, 'A string', 'Fixed str ', 'A NCHAR string',
-                'Fixed N   ', 27, 13, 184.875, 1.375, 23.75, 14.25, 29.1625,
-                cx_Oracle.Timestamp(2017, 5, 9, 0, 0, 0),
+                'Fixed N   ', b'Raw Value', 27, 13, 184.875, 1.375, 23.75,
+                14.25, 29.1625, cx_Oracle.Timestamp(2017, 5, 9, 0, 0, 0),
                 cx_Oracle.Timestamp(2017, 5, 9, 9, 41, 13),
                 cx_Oracle.Timestamp(1986, 8, 2, 15, 27, 38),
                 cx_Oracle.Timestamp(1999, 11, 12, 23, 5, 2),
