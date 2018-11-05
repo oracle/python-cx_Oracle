@@ -5,7 +5,7 @@ This directory contains samples for cx_Oracle.
    [sql/SetupSamples.sql][1]. The
    syntax is:
 
-        sqlplus / as sysdba @sql/SetupSamples.sql
+        sqlplus sys/syspassword@hostname/servicename as sysdba @sql/SetupSamples.sql
 
    The script will create users `pythondemo` and `pythoneditions` and
    will create an edition called `python_e1`.
@@ -23,7 +23,7 @@ This directory contains samples for cx_Oracle.
    dropped by running the SQL script [sql/DropSamples.sql][3]. The
    syntax is
 
-        sqlplus / as sysdba @sql/DropSamples.sql
+        sqlplus sys/syspassword@hostname/servicename as sysdba @sql/DropSamples.sql
 
 [1]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/SetupSamples.sql
 [2]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/SampleEnv.sql
