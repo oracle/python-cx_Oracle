@@ -233,7 +233,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
 
        mkdir -p /opt/oracle
        cd /opt/oracle
-       unzip instantclient-basic-linux.x64-12.2.0.1.0.zip
+       unzip instantclient-basic-linux.x64-18.3.0.0.0dbru.zip
 
 3. Install the ``libaio`` package with sudo or as the root user. For example::
 
@@ -245,19 +245,20 @@ To use cx_Oracle with Oracle Instant Client zip files:
    impacted, permanently add Instant Client to the runtime link
    path. For example, with sudo or as the root user::
 
-       sudo sh -c "echo /opt/oracle/instantclient_12_2 > /etc/ld.so.conf.d/oracle-instantclient.conf"
+       sudo sh -c "echo /opt/oracle/instantclient_18_3 > /etc/ld.so.conf.d/oracle-instantclient.conf"
        sudo ldconfig
 
    Alternatively, set the environment variable ``LD_LIBRARY_PATH`` to
    the appropriate directory for the Instant Client version. For
    example::
 
-       export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
+       export LD_LIBRARY_PATH=/opt/oracle/instantclient_18_3:$LD_LIBRARY_PATH
 
 5. If you intend to co-locate optional Oracle configuration files such
    as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
-   Instant Client, then create a ``network/admin`` subdirectory.  For
-   example::
+   Instant Client, then put them in the ``network/admin``
+   subdirectory.  With Instant Client 12.2 or earlier, create this
+   manually.  For example::
 
        mkdir -p /opt/oracle/instantclient_12_2/network/admin
 
@@ -281,7 +282,7 @@ To use cx_Oracle with Oracle Instant Client RPMs:
 
 2. Install the downloaded RPM with sudo or as the root user. For example::
 
-       sudo yum install oracle-instantclient12.2-basic-12.2.0.1.0-1.x86_64.rpm
+       sudo yum install oracle-instantclient18.3-basic-18.3.0.0.0-1.x86_64.rpm
 
    Yum will automatically install required dependencies, such as ``libaio``.
 
@@ -289,19 +290,20 @@ To use cx_Oracle with Oracle Instant Client RPMs:
    impacted, permanently add Instant Client to the runtime link
    path. For example, with sudo or as the root user::
 
-       sudo sh -c "echo /usr/lib/oracle/12.2/client64/lib > /etc/ld.so.conf.d/oracle-instantclient.conf"
+       sudo sh -c "echo /usr/lib/oracle/18.3/client64/lib > /etc/ld.so.conf.d/oracle-instantclient.conf"
        sudo ldconfig
 
    Alternatively, set the environment variable ``LD_LIBRARY_PATH`` to
    the appropriate directory for the Instant Client version. For
    example::
 
-       export LD_LIBRARY_PATH=/usr/lib/oracle/12.2/client64/lib:$LD_LIBRARY_PATH
+       export LD_LIBRARY_PATH=/usr/lib/oracle/18.3/client64/lib:$LD_LIBRARY_PATH
 
 4. If you intend to co-locate optional Oracle configuration files such
    as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
-   Instant Client, then create a ``network/admin`` subdirectory under
-   ``lib/``.  For example::
+   Instant Client, then put them in the ``network/admin`` subdirectory
+   under ``lib/``.  With Instant Client 12.2 or earlier, create this
+   manually.  For example::
 
        sudo mkdir -p /usr/lib/oracle/12.2/client64/lib/network/admin
 
@@ -401,7 +403,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
    Python architecture.
 
 2. Unzip the package into a single directory that is accessible to your
-   application, for example ``C:\oracle\instantclient_12_2``.
+   application, for example ``C:\oracle\instantclient_18_3``.
 
 3. Set the environment variable ``PATH`` to include the path that you
    created in step 2. For example, on Windows 7, update ``PATH`` in
@@ -412,7 +414,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
 
    If you have other Oracle software installed, then when you use
    Python you will need to make sure that the Instant Client
-   directory, e.g. ``C:\oracle\instantclient_12_2``, occurs in
+   directory, e.g. ``C:\oracle\instantclient_18_3``, occurs in
    ``PATH`` before any other Oracle directories.
 
    Restart any open command prompt windows.
@@ -426,7 +428,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
 5. If you intend to co-locate optional Oracle configuration files such
    as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
    Instant Client, then create a ``network\admin`` subdirectory, for example
-   ``C:\oracle\instantclient_12_2\network\admin``.
+   ``C:\oracle\instantclient_18_3\network\admin``.
 
    This is the default Oracle configuration directory for executables
    linked with this Instant Client.
@@ -498,7 +500,7 @@ instance. Oracle Client versions 18, 12 and 11.2 are supported.
 
 To use cx_Oracle with Oracle Instant Client zip files:
 
-1. Download the 18, 12, or 11.2 "Basic" or "Basic Light" zip file from `here
+1. Download the Oracle 12 or 11.2 "Basic" or "Basic Light" zip file from `here
    <http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html>`__.
    Choose either a 64-bit or 32-bit package, matching your
    Python architecture.
@@ -513,7 +515,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
    applications to find the library. For example::
 
        mkdir ~/lib
-       ln -s /opt/oracle/instantclient_12_2/libclntsh.dylib.12.1 ~/lib/
+       ln -s /opt/oracle/instantclient_12_2/libclntsh.dylib ~/lib/
 
    Alternatively, copy the required OCI libraries. For example::
 
