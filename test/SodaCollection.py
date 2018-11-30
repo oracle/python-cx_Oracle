@@ -6,6 +6,12 @@
 
 class TestSodaDocuments(BaseTestCase):
 
+    def __testSkip(self, coll, numToSkip, expectedContent):
+        filterSpec = {'$orderby': [{'path': 'name', 'order': 'desc'}]}
+        doc = coll.find().filter(filterSpec).skip(numToSkip).getOne()
+        content = doc.getContent() if doc is not None else None
+        self.assertEqual(content, expectedContent)
+
     def testInvalidJson(self):
         "test inserting invalid JSON value into SODA collection"
         invalidJson = "{testKey:testValue}"
@@ -38,25 +44,24 @@ class TestSodaDocuments(BaseTestCase):
         coll.drop()
 
     def testSkipDocuments(self):
-        "test skip documents from SODA collection"
+        "test skipping documents in a SODA collection"
         sodaDatabase = self.connection.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoSkipDocs")
         coll.find().remove()
         valuesToInsert = [
-            { "name" : "Matthew", "age" : 28 },
-            { "name" : "Martha", "age" : 43 },
+            { "name" : "Anna", "age" : 62 },
             { "name" : "Mark", "age" : 37 },
-            { "name" : "Anna", "age" : 62 }
+            { "name" : "Martha", "age" : 43 },
+            { "name" : "Matthew", "age" : 28 }
         ]
         for value in valuesToInsert:
             coll.insertOne(value)
         self.connection.commit()
-        self.assertEqual(coll.find().skip(1).getOne().getContent(),
-                valuesToInsert[1])
-        self.assertEqual(coll.find().skip(3).getOne().getContent(),
-                valuesToInsert[3])
-        self.assertEqual(coll.find().skip(4).getOne(), None)
-        self.assertEqual(coll.find().skip(125).getOne(), None)
+        self.__testSkip(coll, 0, valuesToInsert[3])
+        self.__testSkip(coll, 1, valuesToInsert[2])
+        self.__testSkip(coll, 3, valuesToInsert[0])
+        self.__testSkip(coll, 4, None)
+        self.__testSkip(coll, 125, None)
 
     def testReplaceDocument(self):
         "test replace documents in SODA collection"
@@ -191,4 +196,78 @@ class TestSodaDocuments(BaseTestCase):
         fetchedKeys = list(sorted(d.key for d in coll.find().getCursor()))
         self.assertEqual(fetchedKeys, insertedKeys)
         coll.drop()
+
+    def testMultipleDocumentRemove(self):
+        "test removing multiple documents using multiple keys"
+        sodaDatabase = self.connection.getSodaDatabase()
+        coll = sodaDatabase.createCollection("cxoRemoveMultipleDocs")
+        coll.find().remove()
+        data = [
+            {'name': 'John', 'address': {'city': 'Bangalore'}},
+            {'name': 'Johnson', 'address': {'city': 'Banaras'}},
+            {'name': 'Joseph', 'address': {'city': 'Mangalore'}},
+            {'name': 'Jibin', 'address': {'city': 'Secunderabad'}},
+            {'name': 'Andrew', 'address': {'city': 'Hyderabad'}},
+            {'name': 'Matthew', 'address': {'city': 'Mumbai'}}
+        ]
+        docs = [coll.insertOneAndGet(v) for v in data]
+        keys = [docs[i].key for i in (1, 3, 5)]
+        numRemoved = coll.find().keys(keys).remove()
+        self.assertEqual(numRemoved, len(keys))
+        self.assertEqual(coll.find().count(), len(data) - len(keys))
+        self.connection.commit()
+        coll.drop()
+
+    def testDocumentVersion(self):
+        "test using version to get documents and remove them"
+        sodaDatabase = self.connection.getSodaDatabase()
+        coll = sodaDatabase.createCollection("cxoDocumentVersion")
+        coll.find().remove()
+        content = {'name': 'John', 'address': {'city': 'Bangalore'}}
+        insertedDoc = coll.insertOneAndGet(content)
+        key = insertedDoc.key
+        version = insertedDoc.version
+        doc = coll.find().key(key).version(version).getOne()
+        self.assertEqual(doc.getContent(), content)
+        newContent = {'name': 'James', 'address': {'city': 'Delhi'}}
+        replacedDoc = coll.find().key(key).replaceOneAndGet(newContent)
+        newVersion = replacedDoc.version
+        doc = coll.find().key(key).version(version).getOne()
+        self.assertEqual(doc, None)
+        doc = coll.find().key(key).version(newVersion).getOne()
+        self.assertEqual(doc.getContent(), newContent)
+        self.assertEqual(coll.find().key(key).version(version).remove(), 0)
+        self.assertEqual(coll.find().key(key).version(newVersion).remove(), 1)
+        self.assertEqual(coll.find().count(), 0)
+        self.connection.commit()
+        coll.drop()
+
+    def testGetCursor(self):
+        "test keys with GetCursor"
+        sodaDatabase = self.connection.getSodaDatabase()
+        coll = sodaDatabase.createCollection("cxoKeysWithGetCursor")
+        coll.find().remove()
+        data = [
+            {'name': 'John', 'address': {'city': 'Bangalore'}},
+            {'name': 'Johnson', 'address': {'city': 'Banaras'}},
+            {'name': 'Joseph', 'address': {'city': 'Mangalore'}},
+            {'name': 'Jibin', 'address': {'city': 'Secunderabad'}},
+            {'name': 'Andrew', 'address': {'city': 'Hyderabad'}},
+            {'name': 'Matthew', 'address': {'city': 'Mumbai'}}
+        ]
+        docs = [coll.insertOneAndGet(v) for v in data]
+        keys = [docs[i].key for i in (2, 4, 5)]
+        fetchedKeys = [d.key for d in coll.find().keys(keys).getCursor()]
+        self.assertEqual(list(sorted(fetchedKeys)), list(sorted(keys)))
+        self.connection.commit()
+        coll.drop()
+
+    def testCreatedOn(self):
+        "test createdOn attribute of Document"
+        sodaDatabase = self.connection.getSodaDatabase()
+        coll = sodaDatabase.createCollection("cxoCreatedOn")
+        coll.find().remove()
+        data = {'name': 'John', 'address': {'city': 'Bangalore'}}
+        doc = coll.insertOneAndGet(data)
+        self.assertEqual(doc.createdOn, doc.lastModified)
 
