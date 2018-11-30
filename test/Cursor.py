@@ -173,6 +173,13 @@ class TestCursor(BaseTestCase):
         data = [[decimal.Decimal("25.8")], [decimal.Decimal("30.0")]]
         cursor.executemany("declare t number; begin t := :1; end;", data)
 
+    def testExecuteManyMultipleBatches(self):
+        "test executing a statement multiple times (with multiple batches)"
+        self.cursor.execute("truncate table TestTempTable")
+        sql = "insert into TestTempTable values (:1, :2)"
+        self.cursor.executemany(sql, [(1, None), (2, None)])
+        self.cursor.executemany(sql, [(3, None), (4, "Testing")])
+
     def testExecuteManyWithResize(self):
         """test executing a statement multiple times (with resize)"""
         self.cursor.execute("truncate table TestTempTable")

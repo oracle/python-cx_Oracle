@@ -663,10 +663,19 @@ static int cxoCursor_setBindVariableHelper(cxoCursor *cursor,
         } else {
             varToSet = origVar;
 
-            // if the number of elements has changed, create a new variable
-            // this is only necessary for executemany() since execute() always
-            // passes a value of 1 for the number of elements
-            if (numElements > origVar->allocatedElements) {
+            // first check to see if the variable transform is for None (which
+            // can happen if all of the values in a previous invocation of
+            // executemany() were None) and there is now a value; in this case,
+            // discard the original variable and have a new one created
+            if (origVar->type->transformNum == CXO_TRANSFORM_NONE &&
+                    value != Py_None) {
+                origVar = NULL;
+                varToSet = NULL;
+
+            // otherwise, if the number of elements has changed, create a new
+            // variable this is only necessary for executemany() since
+            // execute() always passes a value of 1 for the number of elements
+            } else if (numElements > origVar->allocatedElements) {
                 *newVar = cxoVar_new(cursor, numElements, origVar->type,
                         origVar->size, origVar->isArray, origVar->objectType);
                 if (!*newVar)
@@ -675,7 +684,7 @@ static int cxoCursor_setBindVariableHelper(cxoCursor *cursor,
             }
 
             // attempt to set the value
-            if (cxoVar_setValue(varToSet, arrayPos, value) < 0) {
+            if (varToSet && cxoVar_setValue(varToSet, arrayPos, value) < 0) {
 
                 // executemany() should simply fail after the first element
                 if (arrayPos > 0)
