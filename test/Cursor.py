@@ -167,6 +167,7 @@ class TestCursor(BaseTestCase):
         self.assertEqual(count, len(rows))
 
     def testExecuteManyWithInputSizesWrong(self):
+        "test executing a statement multiple times (with input sizes wrong)"
         cursor = self.connection.cursor()
         cursor.setinputsizes(cx_Oracle.NUMBER)
         data = [[decimal.Decimal("25.8")], [decimal.Decimal("30.0")]]
