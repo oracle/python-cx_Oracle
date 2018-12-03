@@ -626,3 +626,16 @@ class TestCursor(BaseTestCase):
         self.assertEqual(result,
                 "udt_Object(28, 'Bind obj out', null, null, null, null, null)")
 
+    def testFetchXMLType(self):
+        "test that fetching an XMLType returns a string contains its contents"
+        intVal = 5
+        label = "IntCol"
+        expectedResult = "<%s>%s</%s>" % (label, intVal, label)
+        self.cursor.execute("""
+                select XMLElement("%s", IntCol)
+                from TestStrings
+                where IntCol = :intVal""" % label,
+                intVal = intVal)
+        result, = self.cursor.fetchone()
+        self.assertEqual(result, expectedResult)
+
