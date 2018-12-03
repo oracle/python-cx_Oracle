@@ -176,7 +176,7 @@ class TestCursor(BaseTestCase):
     def testExecuteManyMultipleBatches(self):
         "test executing a statement multiple times (with multiple batches)"
         self.cursor.execute("truncate table TestTempTable")
-        sql = "insert into TestTempTable values (:1, :2)"
+        sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
         self.cursor.executemany(sql, [(1, None), (2, None)])
         self.cursor.executemany(sql, [(3, None), (4, "Testing")])
 
@@ -211,7 +211,7 @@ class TestCursor(BaseTestCase):
     def testExecuteManyWithInvalidParameters(self):
         "test calling executemany() with invalid parameters"
         self.assertRaises(TypeError, self.cursor.executemany,
-                "insert into TestTempTable values (:1, :2)",
+                "insert into TestTempTable (IntCol, StringCol) values (:1, :2)",
                 "These are not valid parameters")
 
     def testExecuteManyNoParameters(self):
@@ -225,7 +225,7 @@ class TestCursor(BaseTestCase):
                     select nvl(count(*), 0) + 1 into t_Id
                     from TestTempTable;
 
-                    insert into TestTempTable
+                    insert into TestTempTable (IntCol, StringCol)
                     values (t_Id, 'Test String ' || t_Id);
                 end;""", numRows)
         self.cursor.execute("select count(*) from TestTempTable")
@@ -245,7 +245,7 @@ class TestCursor(BaseTestCase):
                     select nvl(count(*), 0) + 1 into t_Id
                     from TestTempTable;
 
-                    insert into TestTempTable
+                    insert into TestTempTable (IntCol, StringCol)
                     values (t_Id, 'Test String ' || t_Id);
 
                     select sum(IntCol) into :1
@@ -487,7 +487,9 @@ class TestCursor(BaseTestCase):
         """test scrolling with differing array sizes and fetch array sizes"""
         self.cursor.execute("truncate table TestTempTable")
         for i in range(30):
-            self.cursor.execute("insert into TestTempTable values (:1, null)",
+            self.cursor.execute("""
+                    insert into TestTempTable (IntCol, StringCol)
+                    values (:1, null)""",
                     (i + 1,))
         for arraySize in range(1, 6):
             cursor = self.connection.cursor(scrollable = True)
@@ -570,11 +572,13 @@ class TestCursor(BaseTestCase):
     def testBooleanWithoutPlsql(self):
         "test binding boolean data without the use of PL/SQL"
         self.cursor.execute("truncate table TestTempTable")
-        self.cursor.execute("insert into TestTempTable values (:1, :2)",
-                (False, "Value should be 0"))
-        self.cursor.execute("insert into TestTempTable values (:1, :2)",
-                (True, "Value should be 1"))
-        self.cursor.execute("select * from TestTempTable order by IntCol")
+        sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
+        self.cursor.execute(sql, (False, "Value should be 0"))
+        self.cursor.execute(sql, (True, "Value should be 1"))
+        self.cursor.execute("""
+                select IntCol, StringCol
+                from TestTempTable
+                order by IntCol""")
         self.assertEqual(self.cursor.fetchall(),
                 [ (0, "Value should be 0"), (1, "Value should be 1") ])
 

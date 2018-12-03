@@ -97,19 +97,15 @@ class TestConnection(TestCase):
         otherConnection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY)
         otherCursor = otherConnection.cursor()
         cursor.execute("truncate table TestTempTable")
-        cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol)
-                values (1, null)""")
-        otherCursor.execute("select * from TestTempTable")
+        cursor.execute("insert into TestTempTable (IntCol) values (1)")
+        otherCursor.execute("select IntCol from TestTempTable")
         rows = otherCursor.fetchall()
         self.assertEqual(rows, [])
         connection.autocommit = True
-        cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol)
-                values (2, null)""")
-        otherCursor.execute("select * from TestTempTable order by IntCol")
+        cursor.execute("insert into TestTempTable (IntCol) values (2)")
+        otherCursor.execute("select IntCol from TestTempTable order by IntCol")
         rows = otherCursor.fetchall()
-        self.assertEqual(rows, [(1, None), (2, None)])
+        self.assertEqual(rows, [(1,), (2,)])
 
     def testBadConnectString(self):
         "connection to database with bad connect string"
@@ -183,8 +179,9 @@ class TestConnection(TestCase):
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
         intValue = random.randint(1, 32768)
-        cursor.execute("insert into TestTempTable values (:val, null)",
-                val = intValue)
+        cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (:val, null)""", val = intValue)
         connection2 = cx_Oracle.connect(handle = connection.handle)
         cursor = connection2.cursor()
         cursor.execute("select IntCol from TestTempTable")
@@ -277,9 +274,9 @@ class TestConnection(TestCase):
         with connection:
             cursor = connection.cursor()
             cursor.execute("truncate table TestTempTable")
-            cursor.execute("insert into TestTempTable values (1, null)")
+            cursor.execute("insert into TestTempTable (IntCol) values (1)")
             connection.commit()
-            cursor.execute("insert into TestTempTable values (2, null)")
+            cursor.execute("insert into TestTempTable (IntCol) values (2)")
         self.assertRaises(cx_Oracle.DatabaseError, connection.ping)
         connection = cx_Oracle.connect(self.username, self.password,
                 self.tnsentry)

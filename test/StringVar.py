@@ -339,7 +339,9 @@ class TestStringVar(BaseTestCase):
                 "𢞵 𢫕 𢭃 𢯊 𢱑 𢱕 𢳂 𢴈 𢵌 𢵧 𢺳 𣲷 𤓓 𤶸 𤷪 𥄫 𦉘 𦟌 𦧲 " \
                 "𦧺 𧨾 𨅝 𨈇 𨋢 𨳊 𨳍 𨳒 𩶘"
         self.cursor.execute("truncate table TestTempTable")
-        self.cursor.execute("insert into TestTempTable values (:1, :2)",
+        self.cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (:1, :2)""",
                 (1, supplementalChars))
         self.connection.commit()
         self.cursor.execute("select StringCol from TestTempTable")
@@ -349,11 +351,18 @@ class TestStringVar(BaseTestCase):
     def testBindTwiceWithLargeStringSecond(self):
         "test binding twice with a larger string the second time"
         self.cursor.execute("truncate table TestTempTable")
-        self.cursor.execute("insert into TestTempTable values (:1, :2)",
-                (1, "short string"))
-        self.cursor.execute("insert into TestTempTable values (:1, :2)",
-                (2, "long string " * 30))
+        sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
+        shortString = "short string"
+        longString = "long string " * 30
+        self.cursor.execute(sql, (1, shortString))
+        self.cursor.execute(sql, (2, longString))
         self.connection.commit()
+        self.cursor.execute("""
+                select IntCol, StringCol
+                from TestTempTable
+                order by IntCol""")
+        self.assertEqual(self.cursor.fetchall(),
+                [(1, shortString), (2, longString)])
 
     def testIssue50(self):
         "test issue 50 - avoid error ORA-24816"

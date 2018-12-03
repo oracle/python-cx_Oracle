@@ -56,7 +56,9 @@ class Subscription(BaseTestCase):
         cursor = connection.cursor()
 
         # insert statement
-        cursor.execute("insert into TestTempTable values (1, 'test')")
+        cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (1, 'test')""")
         cursor.execute("select rowid from TestTempTable where IntCol = 1")
         rowids.extend(r for r, in cursor)
 
@@ -69,7 +71,9 @@ class Subscription(BaseTestCase):
         rowids.extend(r for r, in cursor)
 
         # second insert statement
-        cursor.execute("insert into TestTempTable values (2, 'test2')")
+        cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (2, 'test2')""")
         cursor.execute("select rowid from TestTempTable where IntCol = 2")
         rowids.extend(r for r, in cursor)
 

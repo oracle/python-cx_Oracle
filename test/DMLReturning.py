@@ -16,7 +16,7 @@ class TestDMLReturning(BaseTestCase):
         intVar = self.cursor.var(cx_Oracle.NUMBER)
         strVar = self.cursor.var(str)
         self.cursor.execute("""
-                insert into TestTempTable
+                insert into TestTempTable (IntCol, StringCol)
                 values (:intVal, :strVal)
                 returning IntCol, StringCol into :intVar, :strVar""",
                 intVal = intVal,
@@ -36,7 +36,7 @@ class TestDMLReturning(BaseTestCase):
         self.cursor.setinputsizes(None, None, intVar, strVar)
         data = list(zip(intValues, strValues))
         self.cursor.executemany("""
-                insert into TestTempTable
+                insert into TestTempTable (IntCol, StringCol)
                 values (:intVal, :strVal)
                 returning IntCol, StringCol into :intVar, :strVar""", data)
         self.assertEqual(intVar.values, [[v] for v in intValues])
@@ -52,7 +52,7 @@ class TestDMLReturning(BaseTestCase):
         parameters = dict(intVal = intVal, strVal = strVal, intVar = intVar,
                 strVar = strVar)
         self.assertRaises(cx_Oracle.DatabaseError, self.cursor.execute, """
-                insert into TestTempTable
+                insert into TestTempTable (IntCol, StringCol)
                 values (:intVal, :strVal)
                 returning IntCol, StringCol into :intVar, :strVar""",
                 parameters)
@@ -62,7 +62,9 @@ class TestDMLReturning(BaseTestCase):
         intVal = 7
         strVal = "The updated value of the string"
         self.cursor.execute("truncate table TestTempTable")
-        self.cursor.execute("insert into TestTempTable values (:1, :2)",
+        self.cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (:1, :2)""",
                 (intVal, "The initial value of the string"))
         intVar = self.cursor.var(cx_Oracle.NUMBER)
         strVar = self.cursor.var(str)
@@ -83,7 +85,9 @@ class TestDMLReturning(BaseTestCase):
         intVal = 8
         strVal = "The updated value of the string"
         self.cursor.execute("truncate table TestTempTable")
-        self.cursor.execute("insert into TestTempTable values (:1, :2)",
+        self.cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (:1, :2)""",
                 (intVal, "The initial value of the string"))
         intVar = self.cursor.var(cx_Oracle.NUMBER)
         strVar = self.cursor.var(str)
@@ -105,7 +109,9 @@ class TestDMLReturning(BaseTestCase):
         "test update multiple rows statement with DML returning"
         self.cursor.execute("truncate table TestTempTable")
         for i in (8, 9, 10):
-            self.cursor.execute("insert into TestTempTable values (:1, :2)",
+            self.cursor.execute("""
+                    insert into TestTempTable (IntCol, StringCol)
+                    values (:1, :2)""",
                     (i, "The initial value of string %d" % i))
         intVar = self.cursor.var(cx_Oracle.NUMBER)
         strVar = self.cursor.var(str)
@@ -129,8 +135,9 @@ class TestDMLReturning(BaseTestCase):
         data = [(i, "The initial value of string %d" % i) \
                 for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
-        self.cursor.executemany("insert into TestTempTable values (:1, :2)",
-                data)
+        self.cursor.executemany("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (:1, :2)""", data)
         intVar = self.cursor.var(cx_Oracle.NUMBER, arraysize = 3)
         strVar = self.cursor.var(str, arraysize = 3)
         self.cursor.setinputsizes(None, intVar, strVar)
@@ -180,10 +187,14 @@ class TestDMLReturning(BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         var = self.cursor.var(cx_Oracle.ROWID)
         self.cursor.execute("""
-                insert into TestTempTable values (278, 'String 278')
+                insert into TestTempTable (IntCol, StringCol)
+                values (278, 'String 278')
                 returning rowid into :1""", (var,))
         rowid, = var.getvalue()
-        self.cursor.execute("select * from TestTempTable where rowid = :1",
+        self.cursor.execute("""
+                select IntCol, StringCol
+                from TestTempTable
+                where rowid = :1""",
                 (rowid,))
         self.assertEqual(self.cursor.fetchall(), [(278, 'String 278')])
 
@@ -198,11 +209,14 @@ class TestDMLReturning(BaseTestCase):
                 where IntCol >= 5
                 order by IntCol""")
         self.cursor.execute("""
-                insert into TestTempTable
+                insert into TestTempTable (IntCol, StringCol)
                 values (187, pkg_TestRefCursors.TestInCursor(:1))
                 returning rowid into :2""", (inCursor, var))
         rowid, = var.getvalue()
-        self.cursor.execute("select * from TestTempTable where rowid = :1",
+        self.cursor.execute("""
+                select IntCol, StringCol
+                from TestTempTable
+                where rowid = :1""",
                 (rowid,))
         self.assertEqual(self.cursor.fetchall(),
                 [(187, 'String 7 (Modified)')])
@@ -211,8 +225,9 @@ class TestDMLReturning(BaseTestCase):
         "test delete returning multiple times with decreasing number of rows"
         data = [(i, "Test String %d" % i) for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
-        self.cursor.executemany("insert into TestTempTable values (:1, :2)",
-                data)
+        self.cursor.executemany("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (:1, :2)""", data)
         results = []
         intVar = self.cursor.var(int)
         self.cursor.setinputsizes(None, intVar)
@@ -228,8 +243,9 @@ class TestDMLReturning(BaseTestCase):
         "test delete returning no rows after initially returning many rows"
         data = [(i, "Test String %d" % i) for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
-        self.cursor.executemany("insert into TestTempTable values (:1, :2)",
-                data)
+        self.cursor.executemany("""
+                insert into TestTempTable (IntCol, StringCol)
+                values (:1, :2)""", data)
         intVar = self.cursor.var(int)
         self.cursor.execute("""
                 delete from TestTempTable
