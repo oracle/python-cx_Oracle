@@ -180,6 +180,19 @@ class TestCursor(BaseTestCase):
         self.cursor.executemany(sql, [(1, None), (2, None)])
         self.cursor.executemany(sql, [(3, None), (4, "Testing")])
 
+    def testExecuteManyNumeric(self):
+        "test executemany() with various numeric types"
+        self.cursor.execute("truncate table TestTempTable")
+        data = [(1, 5), (2, 7.0), (3, 6.5), (4, 2 ** 65),
+                (5, decimal.Decimal("24.5"))]
+        sql = "insert into TestTempTable (IntCol, NumberCol) values (:1, :2)"
+        self.cursor.executemany(sql, data)
+        self.cursor.execute("""
+                select IntCol, NumberCol
+                from TestTempTable
+                order by IntCol""")
+        self.assertEqual(self.cursor.fetchall(), data)
+
     def testExecuteManyWithResize(self):
         """test executing a statement multiple times (with resize)"""
         self.cursor.execute("truncate table TestTempTable")

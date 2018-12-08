@@ -320,14 +320,32 @@ class TestNumberVar(BaseTestCase):
         self.assertEqual(result, 148)
         self.assertTrue(isinstance(result, int), "integer not returned")
 
-    def testBoundaryNumbers(self):
-        "test that boundary numbers are handled properly"
-        inValues = [float('inf'), 0.0, float('-inf'), 1e126, -1e126]
-        outValues = [10**126, 0, -10**126, 10**126, -10**126]
+    def testAcceptableBoundaryNumbers(self):
+        "test that acceptable boundary numbers are handled properly"
+        inValues = [decimal.Decimal("9.99999999999999e+125"),
+                decimal.Decimal("-9.99999999999999e+125"), 0.0, 1e-130,
+                -1e-130]
+        outValues = [int("9" * 15 + "0" * 111), -int("9" * 15 + "0" * 111),
+                0, decimal.Decimal("1e-130"), decimal.Decimal("-1e-130")]
         for inValue, outValue in zip(inValues, outValues):
             self.cursor.execute("select :1 from dual", (inValue,))
             result, = self.cursor.fetchone()
             self.assertEqual(result, outValue)
+
+    def testUnacceptableBoundaryNumbers(self):
+        "test that unacceptable boundary numbers are rejected"
+        inValues = [1e126, -1e126, float("inf"), float("-inf"),
+                float("NaN"), decimal.Decimal("1e126"),
+                decimal.Decimal("-1e126"), decimal.Decimal("inf"),
+                decimal.Decimal("-inf"), decimal.Decimal("NaN")]
+        noRepErr = "DPI-1044: value cannot be represented as an Oracle number"
+        invalidErr = ""
+        expectedErrors = [noRepErr, noRepErr, invalidErr, invalidErr,
+                invalidErr, noRepErr, noRepErr, invalidErr, invalidErr,
+                invalidErr]
+        for inValue, error in zip(inValues, expectedErrors):
+            self.assertRaisesRegexp(cx_Oracle.DatabaseError, error,
+                    self.cursor.execute, "select :1 from dual", (inValue,))
 
     def testReturnFloatFromDivision(self):
         "test that fetching the result of division returns a float"
@@ -336,8 +354,8 @@ class TestNumberVar(BaseTestCase):
                 from TestNumbers
                 where IntCol = 1""")
         result, = self.cursor.fetchone()
-        self.assertEqual(result, 1.0 / 7.0)
-        self.assertTrue(isinstance(result, float), "float not returned")
+        self.assertAlmostEqual(result,
+                decimal.Decimal("1") / decimal.Decimal("7"))
 
     def testStringFormat(self):
         "test that string format is returned properly"

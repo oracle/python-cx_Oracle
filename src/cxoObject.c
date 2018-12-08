@@ -175,12 +175,11 @@ static int cxoObject_convertFromPython(cxoObject *obj, PyObject *value,
     }
 
     // convert the different Python types
-    transformNum = cxoTransform_getNumFromValue(value, 1);
+    cxoTransform_getTypeInfo(transformNum, &oracleTypeNum, nativeTypeNum);
     if (cxoTransform_fromPython(transformNum, value, &data->value, buffer,
             obj->objectType->connection->encodingInfo.encoding,
             obj->objectType->connection->encodingInfo.nencoding, NULL, 0) < 0)
         return -1;
-    cxoTransform_getTypeInfo(transformNum, &oracleTypeNum, nativeTypeNum);
     data->isNull = 0;
     return 0;
 }
@@ -220,9 +219,11 @@ static PyObject *cxoObject_getAttributeValue(cxoObject *obj,
     }
     cxoTransform_getTypeInfo(attribute->transformNum, &oracleTypeNum,
             &nativeTypeNum);
-    if (attribute->transformNum == CXO_TRANSFORM_LONG_INT) {
+    if (oracleTypeNum == DPI_ORACLE_TYPE_NUMBER &&
+            nativeTypeNum == DPI_NATIVE_TYPE_BYTES) {
         data.value.asBytes.ptr = numberAsStringBuffer;
         data.value.asBytes.length = sizeof(numberAsStringBuffer);
+        data.value.asBytes.encoding = NULL;
     }
     if (dpiObject_getAttributeValue(obj->handle, attribute->handle,
             nativeTypeNum, &data) < 0)
@@ -374,9 +375,11 @@ static PyObject *cxoObject_internalGetElementByIndex(cxoObject *obj,
     }
     cxoTransform_getTypeInfo(obj->objectType->elementTransformNum,
             &oracleTypeNum, &nativeTypeNum);
-    if (obj->objectType->elementTransformNum == CXO_TRANSFORM_LONG_INT) {
+    if (oracleTypeNum == DPI_ORACLE_TYPE_NUMBER &&
+            nativeTypeNum == DPI_NATIVE_TYPE_BYTES) {
         data.value.asBytes.ptr = numberAsStringBuffer;
         data.value.asBytes.length = sizeof(numberAsStringBuffer);
+        data.value.asBytes.encoding = NULL;
     }
     if (dpiObject_getElementValueByIndex(obj->handle, index, nativeTypeNum,
                 &data) < 0)

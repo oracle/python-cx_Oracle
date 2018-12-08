@@ -74,22 +74,17 @@ static cxoVarType cxoAllVarTypes[] = {
     {
         CXO_TRANSFORM_FLOAT,
         &cxoPyTypeNumberVar,
-        0
+        1000
     },
     {
         CXO_TRANSFORM_INT,
         &cxoPyTypeNumberVar,
-        0
+        1000
     },
     {
         CXO_TRANSFORM_LONG_BINARY,
         &cxoPyTypeLongBinaryVar,
         128 * 1024
-    },
-    {
-        CXO_TRANSFORM_LONG_INT,
-        &cxoPyTypeNumberVar,
-        250,
     },
     {
         CXO_TRANSFORM_LONG_STRING,

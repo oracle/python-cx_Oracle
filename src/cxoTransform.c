@@ -104,21 +104,16 @@ static const cxoTransform cxoAllTransforms[] = {
     {
         CXO_TRANSFORM_FLOAT,
         DPI_ORACLE_TYPE_NUMBER,
-        DPI_NATIVE_TYPE_DOUBLE
+        DPI_NATIVE_TYPE_BYTES
     },
     {
         CXO_TRANSFORM_INT,
         DPI_ORACLE_TYPE_NUMBER,
-        DPI_NATIVE_TYPE_INT64
+        DPI_NATIVE_TYPE_BYTES
     },
     {
         CXO_TRANSFORM_LONG_BINARY,
         DPI_ORACLE_TYPE_LONG_RAW,
-        DPI_NATIVE_TYPE_BYTES
-    },
-    {
-        CXO_TRANSFORM_LONG_INT,
-        DPI_ORACLE_TYPE_NUMBER,
         DPI_NATIVE_TYPE_BYTES
     },
     {
@@ -252,7 +247,6 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
                     buffer->size);
             Py_END_ALLOW_THREADS
             return status;
-        case CXO_TRANSFORM_INT:
         case CXO_TRANSFORM_NATIVE_INT:
 #if PY_MAJOR_VERSION < 3
             if (PyInt_Check(pyValue)) {
@@ -268,8 +262,18 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
             if (PyErr_Occurred())
                 return -1;
             return 0;
+        case CXO_TRANSFORM_INT:
         case CXO_TRANSFORM_DECIMAL:
-        case CXO_TRANSFORM_LONG_INT:
+        case CXO_TRANSFORM_FLOAT:
+            if (!PyFloat_Check(pyValue) &&
+#if PY_MAJOR_VERSION < 3
+                    !PyInt_Check(pyValue) &&
+#endif
+                    !PyLong_Check(pyValue) &&
+                    !PyObject_TypeCheck(pyValue, cxoPyTypeDecimal)) {
+                PyErr_SetString(PyExc_TypeError, "expecting number");
+                return -1;
+            }
             textValue = PyObject_Str(pyValue);
             if (!textValue)
                 return -1;
@@ -279,19 +283,6 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
                 return -1;
             dbValue->asBytes.ptr = (char*) buffer->ptr;
             dbValue->asBytes.length = buffer->size;
-            return 0;
-        case CXO_TRANSFORM_FLOAT:
-            if (!PyFloat_Check(pyValue) &&
-#if PY_MAJOR_VERSION < 3
-                    !PyInt_Check(pyValue) &&
-#endif
-                    !PyLong_Check(pyValue)) {
-                PyErr_SetString(PyExc_TypeError, "expecting float");
-                return -1;
-            }
-            dbValue->asDouble = PyFloat_AsDouble(pyValue);
-            if (PyErr_Occurred())
-                return -1;
             return 0;
         case CXO_TRANSFORM_NATIVE_DOUBLE:
         case CXO_TRANSFORM_NATIVE_FLOAT:
@@ -380,10 +371,6 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
 //-----------------------------------------------------------------------------
 cxoTransformNum cxoTransform_getNumFromDataTypeInfo(dpiDataTypeInfo *info)
 {
-#if PY_MAJOR_VERSION < 3
-    static int maxLongSafeDigits = sizeof(long) >= 8 ? 18 : 9;
-#endif
-
     switch (info->oracleTypeNum) {
         case DPI_ORACLE_TYPE_VARCHAR:
             return CXO_TRANSFORM_STRING;
@@ -403,14 +390,8 @@ cxoTransformNum cxoTransform_getNumFromDataTypeInfo(dpiDataTypeInfo *info)
             return CXO_TRANSFORM_NATIVE_FLOAT;
         case DPI_ORACLE_TYPE_NUMBER:
             if (info->scale == 0 ||
-                    (info->scale == -127 && info->precision == 0)) {
-#if PY_MAJOR_VERSION < 3
-                if (info->precision > 0 &&
-                        info->precision <= maxLongSafeDigits)
-                    return CXO_TRANSFORM_INT;
-#endif
-                return CXO_TRANSFORM_LONG_INT;
-            }
+                    (info->scale == -127 && info->precision == 0))
+                return CXO_TRANSFORM_INT;
             return CXO_TRANSFORM_FLOAT;
         case DPI_ORACLE_TYPE_NATIVE_INT:
             return CXO_TRANSFORM_NATIVE_INT;
@@ -479,7 +460,7 @@ cxoTransformNum cxoTransform_getNumFromType(PyTypeObject *type)
     if (type == &PyFloat_Type)
         return CXO_TRANSFORM_FLOAT;
     if (type == &PyLong_Type)
-        return CXO_TRANSFORM_LONG_INT;
+        return CXO_TRANSFORM_INT;
     if (type == cxoPyTypeDecimal)
         return CXO_TRANSFORM_DECIMAL;
     if (type == &cxoPyTypeNumberVar)
@@ -558,7 +539,7 @@ cxoTransformNum cxoTransform_getNumFromValue(PyObject *value, int plsql)
         return CXO_TRANSFORM_INT;
 #endif
     if (PyLong_Check(value))
-        return CXO_TRANSFORM_LONG_INT;
+        return CXO_TRANSFORM_INT;
     if (PyFloat_Check(value))
         return CXO_TRANSFORM_FLOAT;
     if (PyDateTime_Check(value))
@@ -703,44 +684,42 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
                     timestamp->month, timestamp->day, timestamp->hour,
                     timestamp->minute, timestamp->second,
                     timestamp->fsecond / 1000);
-        case CXO_TRANSFORM_DECIMAL:
-            bytes = &dbValue->asBytes;
-            stringObj = cxoPyString_fromEncodedString(bytes->ptr,
-                    bytes->length, bytes->encoding, encodingErrors);
-            if (!stringObj)
-                return NULL;
-            result = PyObject_CallFunctionObjArgs(
-                    (PyObject*) cxoPyTypeDecimal, stringObj, NULL);
-            Py_DECREF(stringObj);
-            return result;
         case CXO_TRANSFORM_FIXED_NCHAR:
         case CXO_TRANSFORM_NSTRING:
             bytes = &dbValue->asBytes;
             return PyUnicode_Decode(bytes->ptr, bytes->length, bytes->encoding,
                     encodingErrors);
-        case CXO_TRANSFORM_FLOAT:
         case CXO_TRANSFORM_NATIVE_DOUBLE:
             return PyFloat_FromDouble(dbValue->asDouble);
         case CXO_TRANSFORM_NATIVE_FLOAT:
             return PyFloat_FromDouble(dbValue->asFloat);
-        case CXO_TRANSFORM_INT:
         case CXO_TRANSFORM_NATIVE_INT:
             return PyInt_FromLong((long) dbValue->asInt64);
-        case CXO_TRANSFORM_LONG_INT:
+        case CXO_TRANSFORM_DECIMAL:
+        case CXO_TRANSFORM_INT:
+        case CXO_TRANSFORM_FLOAT:
             bytes = &dbValue->asBytes;
             stringObj = cxoPyString_fromEncodedString(bytes->ptr,
-                    bytes->length, NULL, NULL);
+                    bytes->length, bytes->encoding, encodingErrors);
             if (!stringObj)
                 return NULL;
+            if (transformNum == CXO_TRANSFORM_INT &&
+                    memchr(bytes->ptr, '.', bytes->length) == NULL) {
 #if PY_MAJOR_VERSION >= 3
-            result = PyNumber_Long(stringObj);
+                result = PyNumber_Long(stringObj);
 #else
-            result = PyNumber_Int(stringObj);
+                result = PyNumber_Int(stringObj);
 #endif
-            if (!result && PyErr_ExceptionMatches(PyExc_ValueError)) {
-                PyErr_Clear();
+                Py_DECREF(stringObj);
+                return result;
+            } else if (transformNum != CXO_TRANSFORM_DECIMAL &&
+                    bytes->length <= 15) {
                 result = PyNumber_Float(stringObj);
+                Py_DECREF(stringObj);
+                return result;
             }
+            result = PyObject_CallFunctionObjArgs(
+                    (PyObject*) cxoPyTypeDecimal, stringObj, NULL);
             Py_DECREF(stringObj);
             return result;
         case CXO_TRANSFORM_OBJECT:
