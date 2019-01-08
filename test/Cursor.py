@@ -538,6 +538,22 @@ class TestCursor(BaseTestCase):
         self.cursor.execute("select :val from dual", val = "Test Value")
         self.assertEqual(self.cursor.fetchall(), [("Test Value",)])
 
+    def testSetInputSizesEmptyDict(self):
+        "test setting input sizes with an empty dictionary"
+        emptyDict = {}
+        self.cursor.prepare("select 236 from dual")
+        self.cursor.setinputsizes(**emptyDict)
+        self.cursor.execute(None, emptyDict)
+        self.assertEqual(self.cursor.fetchall(), [(236,)])
+
+    def testSetInputSizesEmptyList(self):
+        "test setting input sizes with an empty list"
+        emptyList = {}
+        self.cursor.prepare("select 239 from dual")
+        self.cursor.setinputsizes(*emptyList)
+        self.cursor.execute(None, emptyList)
+        self.assertEqual(self.cursor.fetchall(), [(239,)])
+
     def testSetInputSizesByPosition(self):
         """test setting input sizes with positional args"""
         var = self.cursor.var(cx_Oracle.STRING, 100)

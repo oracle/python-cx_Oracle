@@ -1743,15 +1743,22 @@ static PyObject *cxoCursor_setInputSizes(cxoCursor *cursor, PyObject *args,
 
     // eliminate existing bind variables
     Py_CLEAR(cursor->bindVariables);
+
+    // if no values passed, do nothing further, but return an empty list or
+    // dictionary as appropriate
+    if (numKeywordArgs == 0 && numPositionalArgs == 0) {
+        if (keywordArgs)
+            return PyDict_New();
+        return PyList_New(0);
+    }
+
+    // retain bind variables
+    cursor->setInputSizes = 1;
     if (numKeywordArgs > 0)
         cursor->bindVariables = PyDict_New();
     else cursor->bindVariables = PyList_New(numPositionalArgs);
     if (!cursor->bindVariables)
         return NULL;
-
-    // retain bind variables if any were set
-    if (numKeywordArgs > 0 || numPositionalArgs > 0)
-        cursor->setInputSizes = 1;
 
     // process each input
     if (numKeywordArgs > 0) {
