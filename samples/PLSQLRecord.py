@@ -21,6 +21,7 @@ connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
 
 # create new object of the correct type
 # note the use of a PL/SQL record defined in a package
+# a table record identified by TABLE%ROWTYPE can also be used
 typeObj = connection.gettype("PKG_DEMO.UDT_DEMORECORD")
 obj = typeObj.newobject()
 obj.NUMBERVALUE = 6
