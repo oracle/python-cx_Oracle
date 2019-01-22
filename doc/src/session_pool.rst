@@ -26,14 +26,14 @@ SessionPool Object
     :data:`~cx_Oracle.ATTR_PURITY_NEW`, :data:`~cx_Oracle.ATTR_PURITY_SELF`, or
     :data:`~cx_Oracle.ATTR_PURITY_DEFAULT`.
 
-    The tag parameter, if specified, is expected to be a string and will limit
-    the sessions that can be returned from a session pool unless the
-    matchanytag parameter is set to True. In that case sessions with the
-    specified tag will be preferred over others, but if no such sessions are
-    available a session with a different tag may be returned instead. In any
-    case, untagged sessions will always be returned if no sessions with the
-    specified tag are available.  Sessions are tagged when they are
-    :meth:`released <SessionPool.release>` back to the pool.
+    The tag parameter, if specified, is expected to be a string with name=value
+    pairs like "k1=v1;k2=v2" and will limit the sessions that can be returned
+    from a session pool unless the matchanytag parameter is set to True. In
+    that case sessions with the specified tag will be preferred over others,
+    but if no such sessions are available a session with a different tag may be
+    returned instead. In any case, untagged sessions will always be returned if
+    no sessions with the specified tag are available.  Sessions are tagged when
+    they are :meth:`released <SessionPool.release>` back to the pool.
 
     The shardingkey and supershardingkey parameters, if specified, are expected
     to be a sequence of values which will be used to identify the database
@@ -135,6 +135,12 @@ SessionPool Object
     references to these related objects carefully or explicitly release
     connections back to the pool in order to ensure sufficient resources are
     available.
+
+    If the tag is not None, it is expected to be a string with name=value pairs
+    like "k1=v1;k2=v2" and will override the value in the property
+    :attr:`Connection.tag`. If either :attr:`Connection.tag` or the tag
+    parameter are not None, the connection will be retagged when it is released
+    back to the pool.
 
 
 .. attribute:: SessionPool.stmtcachesize

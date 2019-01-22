@@ -122,6 +122,7 @@ static PyMemberDef cxoConnectionMembers[] = {
     { "username", T_OBJECT, offsetof(cxoConnection, username), READONLY },
     { "dsn", T_OBJECT, offsetof(cxoConnection, dsn), READONLY },
     { "tnsentry", T_OBJECT, offsetof(cxoConnection, dsn), READONLY },
+    { "tag", T_OBJECT, offsetof(cxoConnection, tag), 0 },
     { "autocommit", T_INT, offsetof(cxoConnection, autocommit), 0 },
     { "inputtypehandler", T_OBJECT,
             offsetof(cxoConnection, inputTypeHandler), 0 },
@@ -681,14 +682,14 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
 {
     PyObject *tagObj, *matchAnyTagObj, *threadedObj, *eventsObj, *contextObj;
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj, *editionObj;
-    PyObject *shardingKeyObj, *superShardingKeyObj;
+    PyObject *shardingKeyObj, *superShardingKeyObj, *tempObj;
+    int status, temp, invokeSessionCallback;
     dpiCommonCreateParams dpiCommonParams;
     dpiConnCreateParams dpiCreateParams;
     unsigned long long externalHandle;
     cxoConnectionParams params;
     PyObject *newPasswordObj;
     cxoSessionPool *pool;
-    int status, temp;
 
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "mode",
@@ -698,9 +699,10 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
 
     // parse arguments
     pool = NULL;
+    tagObj = Py_None;
     externalHandle = 0;
+    passwordObj = dsnObj = cclassObj = editionObj = NULL;
     threadedObj = eventsObj = newPasswordObj = usernameObj = NULL;
-    passwordObj = dsnObj = cclassObj = editionObj = tagObj = NULL;
     matchAnyTagObj = contextObj = shardingKeyObj = superShardingKeyObj = NULL;
     if (cxoUtils_initializeDPI() < 0)
         return -1;
@@ -812,9 +814,22 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
             params.dsnBuffer.size, &dpiCommonParams, &dpiCreateParams,
             &conn->handle);
     Py_END_ALLOW_THREADS
-    cxoConnectionParams_finalize(&params);
-    if (status < 0)
+    if (status < 0) {
+        cxoConnectionParams_finalize(&params);
         return cxoError_raiseAndReturnInt();
+    }
+
+    // determine if session callback should be invoked; this takes place if
+    // the connection is newly created by the pool or if the requested tag
+    // does not match the actal tag
+    invokeSessionCallback = 0;
+    if (dpiCreateParams.outNewSession ||
+            dpiCreateParams.outTagLength != params.tagBuffer.size ||
+            (dpiCreateParams.outTagLength > 0 &&
+            strncmp(dpiCreateParams.outTag, params.tagBuffer.ptr,
+                    dpiCreateParams.outTagLength) != 0))
+        invokeSessionCallback = 1;
+    cxoConnectionParams_finalize(&params);
 
     // determine encodings to use
     if (pool)
@@ -826,6 +841,25 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
                 cxoUtils_getAdjustedEncoding(conn->encodingInfo.encoding);
         conn->encodingInfo.nencoding =
                 cxoUtils_getAdjustedEncoding(conn->encodingInfo.nencoding);
+    }
+
+    // set tag property
+    if (dpiCreateParams.outTagLength > 0) {
+        conn->tag = cxoPyString_fromEncodedString(dpiCreateParams.outTag,
+                dpiCreateParams.outTagLength, conn->encodingInfo.encoding,
+                NULL);
+        if (!conn->tag)
+            return -1;
+    }
+
+    // invoke the session callback if applicable
+    if (invokeSessionCallback && pool && pool->sessionCallback &&
+            PyCallable_Check(pool->sessionCallback)) {
+        tempObj = PyObject_CallFunctionObjArgs(pool->sessionCallback,
+                (PyObject*) conn, tagObj, NULL);
+        if (!tempObj)
+            return -1;
+        Py_DECREF(tempObj);
     }
 
     return 0;
@@ -1106,12 +1140,21 @@ static PyObject *cxoConnection_getMaxBytesPerCharacter(cxoConnection *conn,
 //-----------------------------------------------------------------------------
 static PyObject *cxoConnection_close(cxoConnection *conn, PyObject *args)
 {
+    cxoBuffer tagBuffer;
+    uint32_t mode;
     int status;
 
     if (cxoConnection_isConnected(conn) < 0)
         return NULL;
+    if (cxoBuffer_fromObject(&tagBuffer, conn->tag,
+            conn->encodingInfo.encoding) < 0)
+        return NULL;
+    mode = DPI_MODE_CONN_CLOSE_DEFAULT;
+    if (conn->tag && conn->tag != Py_None)
+        mode |= DPI_MODE_CONN_CLOSE_RETAG;
     Py_BEGIN_ALLOW_THREADS
-    status = dpiConn_close(conn->handle, DPI_MODE_CONN_CLOSE_DEFAULT, NULL, 0);
+    status = dpiConn_close(conn->handle, mode, (char*) tagBuffer.ptr,
+            tagBuffer.size);
     Py_END_ALLOW_THREADS
     if (status < 0)
         return cxoError_raiseAndReturnNull();

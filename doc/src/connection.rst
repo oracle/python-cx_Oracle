@@ -585,6 +585,26 @@ Connection Object
         subscription will not be deregistered in the database.
 
 
+.. attribute:: Connection.tag
+
+    This read-write attribute initially contains the actual tag of the session
+    that was acquired from a pool by :meth:`SessionPool.acquire()`. If the
+    connection was not acquired from a pool or no tagging parameters were
+    specified (tag and matchanytag) when the connection was acquired from the
+    pool, this value will be None. If the value is changed, it must be a string
+    containing name=value pairs like "k1=v1;k2=v2".
+
+    If this value is not None when the connection is released back to the pool
+    it will be used to retag the session. This value can be overridden in the
+    call to :meth:`SessionPool.release()`.
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
+    .. versionadded:: 7.1
+
+
 .. attribute:: Connection.tnsentry
 
     This read-only attribute returns the TNS entry of the database to which a

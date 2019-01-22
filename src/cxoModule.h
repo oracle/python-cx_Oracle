@@ -230,6 +230,7 @@ struct cxoConnection {
     PyObject *username;
     PyObject *dsn;
     PyObject *version;
+    PyObject *tag;
     dpiEncodingInfo encodingInfo;
     int autocommit;
 };
@@ -363,6 +364,7 @@ struct cxoSessionPool {
     PyObject *username;
     PyObject *dsn;
     PyObject *name;
+    PyObject *sessionCallback;
     PyTypeObject *connectionType;
 };
 

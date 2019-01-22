@@ -170,7 +170,8 @@ Module Interface
         increment=1, connectiontype=cx_Oracle.Connection, threaded=False, \
         getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, events=False, \
         homogeneous=True, externalauth=False, encoding=None, nencoding=None, \
-        edition=None, timeout=0, waitTimeout=0, maxLifetimeSession=0)
+        edition=None, timeout=0, waitTimeout=0, maxLifetimeSession=0, \
+        sessionCallback=None)
 
     Create and return a :ref:`session pool object <sesspool>`. This
     allows for very fast connections to the database and is of primary use in a
@@ -225,6 +226,19 @@ Module Interface
     termination only occurs when the pool is accessed. The default value is 0
     which means that there is no maximum length of time that a pooled session
     may exist.
+
+    The sessionCallback parameter is expected to be either a string or a
+    callable. If the parameter is a string, this refers to a PL/SQL procedure
+    that will be called when :func:`SessionPool.acquire()` requests a tag and
+    that tag does not match the connection's actual tag. Support for the PL/SQL
+    procedure requires Oracle Client libraries 12.2 or later. See the
+    `OCI documentation <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-B853A020-752F-494A-8D88-D0396EF57177>`__ for more
+    information. If the sessionCallback parameter is a callable, however, it
+    will be called when a newly created connection is returned from the pool
+    or when a tag is requested and that tag does not match the connection's
+    actual tag. The callable will be invoked with the connection and the
+    requested tag as its only parameters.
 
     .. note::
 
