@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -11,6 +11,8 @@
 """Module for testing string variables."""
 
 import datetime
+import string
+import random
 
 class TestStringVar(BaseTestCase):
 
@@ -399,4 +401,28 @@ class TestStringVar(BaseTestCase):
         var = self.cursor.var(cx_Oracle.ROWID)
         self.assertRaises(cx_Oracle.NotSupportedError, var.setvalue, 0,
                 "ABDHRYTHFJGKDKKDH")
+
+    def testShortXMLAsString(self):
+        "test fetching XMLType object as a string"
+        self.cursor.execute("""
+                select XMLElement("string", stringCol)
+                from TestStrings
+                where intCol = 1""")
+        actualValue, = self.cursor.fetchone()
+        expectedValue = "<string>String 1</string>"
+        self.assertEqual(actualValue, expectedValue)
+
+    def testLongXMLAsString(self):
+        "test inserting and fetching an XMLType object (1K) as a string"
+        chars = string.ascii_uppercase + string.ascii_lowercase
+        randomString = ''.join(random.choice(chars) for _ in range(1024))
+        intVal = 200
+        xmlString = '<data>' + randomString + '</data>'
+        self.cursor.execute("""
+                insert into TestXML (IntCol, XMLCol)
+                values (:1, :2)""", (intVal, xmlString))
+        self.cursor.execute("select XMLCol from TestXML where intCol = :1",
+                (intVal,))
+        actualValue, = self.cursor.fetchone()
+        self.assertEqual(actualValue.strip(), xmlString)
 
