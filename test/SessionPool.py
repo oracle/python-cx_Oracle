@@ -68,8 +68,9 @@ class TestConnection(TestCase):
         self.assertEqual(pool.busy, 1, "busy not 1 after del")
         pool.getmode = cx_Oracle.SPOOL_ATTRVAL_NOWAIT
         self.assertEqual(pool.getmode, cx_Oracle.SPOOL_ATTRVAL_NOWAIT)
-        pool.getmode = cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT
-        self.assertEqual(pool.getmode, cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT)
+        if CLIENT_VERSION >= (12, 2):
+            pool.getmode = cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT
+            self.assertEqual(pool.getmode, cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT)
         pool.stmtcachesize = 50
         self.assertEqual(pool.stmtcachesize, 50)
         pool.timeout = 10
