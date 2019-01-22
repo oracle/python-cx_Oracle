@@ -125,21 +125,16 @@ SessionPool Object
     Release the connection back to the pool now, rather than whenever __del__
     is called. The connection will be unusable from this point forward; an
     Error exception will be raised if any operation is attempted with the
-    connection.
-
-    Before the connection can be released back to the pool, all cursors created
-    by the connection must first be closed or all references released. In
-    addition, all LOB objects created by the connection must have their
-    references released. If this has not been done, the exception "DPI-1054:
-    connection cannot be closed when open statements or LOBs exist" will be
-    raised.
+    connection. Any cursors or LOBs created by the connection will also be
+    marked unusable and an Error exception will be raised if any operation is
+    attempted with them.
 
     Internally, references to the connection are held by cursor objects,
-    LOB objects, subscription objects, etc. Once all of these references are
-    released, the connection itself will be released back to the pool
-    automatically. Either control references to these related objects carefully
-    or explicitly release connections back to the pool in order to ensure
-    sufficient resources are available.
+    LOB objects, etc. Once all of these references are released, the connection
+    itself will be released back to the pool automatically. Either control
+    references to these related objects carefully or explicitly release
+    connections back to the pool in order to ensure sufficient resources are
+    available.
 
 
 .. attribute:: SessionPool.stmtcachesize
