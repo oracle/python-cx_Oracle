@@ -694,7 +694,12 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_NATIVE_FLOAT:
             return PyFloat_FromDouble(dbValue->asFloat);
         case CXO_TRANSFORM_NATIVE_INT:
-            return PyInt_FromLong((long) dbValue->asInt64);
+#if PY_MAJOR_VERSION < 3
+            if (sizeof(long) == 8 || (dbValue->asInt64 <= INT_MAX &&
+                    dbValue->asInt64 >= -INT_MAX))
+                return PyInt_FromLong((long) dbValue->asInt64);
+#endif
+            return PyLong_FromLongLong(dbValue->asInt64);
         case CXO_TRANSFORM_DECIMAL:
         case CXO_TRANSFORM_INT:
         case CXO_TRANSFORM_FLOAT:

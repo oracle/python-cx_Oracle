@@ -18,6 +18,10 @@ if sys.version_info > (3,):
 
 class TestNumberVar(BaseTestCase):
 
+    def outputTypeHandlerNativeInt(self, cursor, name, defaultType, size,
+            precision, scale):
+        return cursor.var(cx_Oracle.NATIVE_INT, arraysize=cursor.arraysize)
+
     def outputTypeHandlerDecimal(self, cursor, name, defaultType, size,
             precision, scale):
         if defaultType == cx_Oracle.NUMBER:
@@ -379,4 +383,12 @@ class TestNumberVar(BaseTestCase):
         self.assertEqual(type(self.cursor.bindvars[0]), cx_Oracle.NATIVE_FLOAT)
         value, = self.cursor.fetchone()
         self.assertEqual(str(value), str(float("NaN")))
+
+    def testFetchNativeInt(self):
+        "test fetching numbers as native integers"
+        self.cursor.outputtypehandler = self.outputTypeHandlerNativeInt
+        for value in (1, 2 ** 31, 2 ** 63 - 1, -1, -2 ** 31, -2 ** 63 + 1):
+            self.cursor.execute("select :1 from dual", [str(value)])
+            fetchedValue, = self.cursor.fetchone()
+            self.assertEqual(value, fetchedValue)
 
