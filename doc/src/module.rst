@@ -1083,8 +1083,7 @@ Types
 .. data:: NATIVE_INT
 
     This type object is used to bind integers using Oracle's native integer
-    support, rather than the standard number support, which improves
-    performance.
+    support, rather than the standard number support.
 
     .. versionadded:: 5.3
 
