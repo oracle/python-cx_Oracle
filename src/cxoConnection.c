@@ -884,6 +884,7 @@ static void cxoConnection_free(cxoConnection *conn)
     Py_CLEAR(conn->version);
     Py_CLEAR(conn->inputTypeHandler);
     Py_CLEAR(conn->outputTypeHandler);
+    Py_CLEAR(conn->tag);
     Py_TYPE(conn)->tp_free((PyObject*) conn);
 }
 
@@ -1156,6 +1157,7 @@ static PyObject *cxoConnection_close(cxoConnection *conn, PyObject *args)
     status = dpiConn_close(conn->handle, mode, (char*) tagBuffer.ptr,
             tagBuffer.size);
     Py_END_ALLOW_THREADS
+    cxoBuffer_clear(&tagBuffer);
     if (status < 0)
         return cxoError_raiseAndReturnNull();
 
