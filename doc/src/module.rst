@@ -189,7 +189,7 @@ Module Interface
 
     The events parameter is expected to be a boolean expression which indicates
     whether or not to initialize Oracle in events mode. This is required for
-    continuous query notification and high availablity event notifications.
+    continuous query notification and high availability event notifications.
 
     The encoding parameter is expected to be a string, if specified, and sets
     the encoding to use for regular database strings. If not specified, the
