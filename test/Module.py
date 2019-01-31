@@ -1,13 +1,16 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 """Module for testing module methods."""
 
+import TestEnv
+
+import cx_Oracle
 import datetime
 import time
 
-class TestModule(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def testDateFromTicks(self):
         "test DateFromTicks()"
@@ -35,4 +38,7 @@ class TestModule(BaseTestCase):
                 12, 0, 0)
         self.assertRaises(cx_Oracle.NotSupportedError, cx_Oracle.TimeFromTicks,
                 100)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

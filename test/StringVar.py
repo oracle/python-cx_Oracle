@@ -10,14 +10,17 @@
 
 """Module for testing string variables."""
 
+import TestEnv
+
+import cx_Oracle
 import datetime
 import string
 import random
 
-class TestStringVar(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def setUp(self):
-        BaseTestCase.setUp(self)
+        TestEnv.BaseTestCase.setUp(self)
         self.rawData = []
         self.dataByKey = {}
         for i in range(1, 11):
@@ -293,12 +296,15 @@ class TestStringVar(BaseTestCase):
         self.cursor.execute("select * from TestStrings")
         self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('STRINGCOL', cx_Oracle.STRING, 20, 20 * CS_RATIO, None,
+                  ('STRINGCOL', cx_Oracle.STRING, 20,
+                        20 * TestEnv.GetCharSetRatio(), None,
                     None, 0),
                   ('RAWCOL', cx_Oracle.BINARY, 30, 30, None, None, 0),
-                  ('FIXEDCHARCOL', cx_Oracle.FIXED_CHAR, 40, 40 * CS_RATIO,
+                  ('FIXEDCHARCOL', cx_Oracle.FIXED_CHAR, 40,
+                        40 * TestEnv.GetCharSetRatio(),
                     None, None, 0),
-                  ('NULLABLECOL', cx_Oracle.STRING, 50, 50 * CS_RATIO, None,
+                  ('NULLABLECOL', cx_Oracle.STRING, 50,
+                        50 * TestEnv.GetCharSetRatio(), None,
                     None, 1) ])
 
     def testFetchAll(self):
@@ -425,4 +431,7 @@ class TestStringVar(BaseTestCase):
                 (intVal,))
         actualValue, = self.cursor.fetchone()
         self.assertEqual(actualValue.strip(), xmlString)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

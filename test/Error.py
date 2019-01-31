@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -9,10 +9,12 @@
 
 """Module for testing error objects."""
 
+import TestEnv
+
 import cx_Oracle
 import pickle
 
-class TestError(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def testPickleError(self):
         "test picking/unpickling an error object"
@@ -37,4 +39,7 @@ class TestError(BaseTestCase):
         self.assertTrue(newErrorObj.offset == errorObj.offset)
         self.assertTrue(newErrorObj.context == errorObj.context)
         self.assertTrue(newErrorObj.isrecoverable == errorObj.isrecoverable)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

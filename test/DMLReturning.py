@@ -1,12 +1,14 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 """Module for testing DML returning clauses."""
 
-import sys
+import TestEnv
 
-class TestDMLReturning(BaseTestCase):
+import cx_Oracle
+
+class TestCase(TestEnv.BaseTestCase):
 
     def testInsert(self):
         "test insert statement (single row) with DML returning"
@@ -254,4 +256,7 @@ class TestDMLReturning(BaseTestCase):
         self.assertEqual(intVar.getvalue(), [1, 2, 3, 4])
         self.cursor.execute(None, [4, intVar])
         self.assertEqual(intVar.getvalue(), [])
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

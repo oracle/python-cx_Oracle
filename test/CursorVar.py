@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -9,9 +9,12 @@
 
 """Module for testing cursor variables."""
 
+import TestEnv
+
+import cx_Oracle
 import sys
 
-class TestCursorVar(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def testBindCursor(self):
         "test binding in a cursor"
@@ -23,8 +26,8 @@ class TestCursorVar(BaseTestCase):
                 end;""",
                 cursor = cursor)
         self.assertEqual(cursor.description,
-                [ ('STRINGVALUE', cx_Oracle.FIXED_CHAR, 1, CS_RATIO, None,
-                    None, 1) ])
+                [ ('STRINGVALUE', cx_Oracle.FIXED_CHAR, 1,
+                        TestEnv.GetCharSetRatio(), None, None, 1) ])
         self.assertEqual(cursor.fetchall(), [('X',)])
 
     def testBindCursorInPackage(self):
@@ -34,8 +37,8 @@ class TestCursorVar(BaseTestCase):
         self.cursor.callproc("pkg_TestRefCursors.TestOutCursor", (2, cursor))
         self.assertEqual(cursor.description,
                 [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('STRINGCOL', cx_Oracle.STRING, 20, 20 * CS_RATIO, None,
-                    None, 0) ])
+                  ('STRINGCOL', cx_Oracle.STRING, 20, 20 *
+                        TestEnv.GetCharSetRatio(), None, None, 0) ])
         self.assertEqual(cursor.fetchall(),
                 [ (1, 'String 1'), (2, 'String 2') ])
 
@@ -84,4 +87,7 @@ class TestCursorVar(BaseTestCase):
             number, cursor = self.cursor.fetchone()
             self.assertEqual(number, i)
             self.assertEqual(cursor.fetchall(), [(i + 1,)])
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

@@ -1,10 +1,14 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 """Module for testing Simple Oracle Document Access (SODA) Collections"""
 
-class TestSodaDocuments(BaseTestCase):
+import TestEnv
+
+import cx_Oracle
+
+class TestCase(TestEnv.BaseTestCase):
 
     def __testSkip(self, coll, numToSkip, expectedContent):
         filterSpec = {'$orderby': [{'path': 'name', 'order': 'desc'}]}
@@ -270,4 +274,7 @@ class TestSodaDocuments(BaseTestCase):
         data = {'name': 'John', 'address': {'city': 'Bangalore'}}
         doc = coll.insertOneAndGet(data)
         self.assertEqual(doc.createdOn, doc.lastModified)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

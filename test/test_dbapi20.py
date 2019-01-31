@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -20,7 +20,8 @@ import TestEnv
 
 class TestSuite(dbapi20.DatabaseAPI20Test):
 
-    connect_args = (TestEnv.USERNAME, TestEnv.PASSWORD, TestEnv.TNSENTRY)
+    connect_args = (TestEnv.GetMainUser(), TestEnv.GetMainPassword(),
+            TestEnv.GetConnectString())
     driver = cx_Oracle
 
     # not implemented; see cx_Oracle specific test suite instead
@@ -52,6 +53,6 @@ class TestSuite(dbapi20.DatabaseAPI20Test):
         pass
 
 if __name__ == "__main__":
-    print("Testing cx_Oracle version", cx_Oracle.version)
-    unittest.main()
+    print("Testing cx_Oracle version", cx_Oracle.__version__)
+    TestEnv.RunTestCases()
 

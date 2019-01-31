@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -9,13 +9,16 @@
 
 """Module for testing features introduced in 12.1"""
 
+import TestEnv
+
+import cx_Oracle
 import datetime
-import sys
+# import sys
 
-if sys.version_info > (3,):
-    long = int
+# if sys.version_info > (3,):
+#     long = int
 
-class TestFeatures12_1(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def testArrayDMLRowCountsOff(self):
         "test executing with arraydmlrowcounts mode disabled"
@@ -44,8 +47,7 @@ class TestFeatures12_1(BaseTestCase):
                 "values (:1,:2,:3)"
         self.cursor.executemany(sql, rows, arraydmlrowcounts = True)
         self.connection.commit()
-        self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [long(1), long(1), long(1), long(1), long(1)])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1, 1, 1, 1])
         self.cursor.execute("select count(*) from TestArrayDML")
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
@@ -265,8 +267,7 @@ class TestFeatures12_1(BaseTestCase):
         sql = "insert into TestArrayDML (IntCol,StringCol) values (:1,:2)"
         self.assertRaises(cx_Oracle.DatabaseError, self.cursor.executemany,
                 sql, rows, arraydmlrowcounts = True)
-        self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [long(1), long(1)])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1])
 
     def testExecutingDelete(self):
         "test executing delete statement with arraydmlrowcount mode"
@@ -285,8 +286,7 @@ class TestFeatures12_1(BaseTestCase):
         rows = [ (200,), (300,), (400,) ]
         statement = "delete from TestArrayDML where IntCol2 = :1"
         self.cursor.executemany(statement, rows, arraydmlrowcounts = True)
-        self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [long(1), long(3), long(2)])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 3, 2])
 
     def testExecutingUpdate(self):
         "test executing update statement with arraydmlrowcount mode"
@@ -308,8 +308,7 @@ class TestFeatures12_1(BaseTestCase):
                  ("Four", 400) ]
         sql = "update TestArrayDML set StringCol = :1 where IntCol2 = :2"
         self.cursor.executemany(sql, rows, arraydmlrowcounts = True)
-        self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [long(1), long(1), long(3), long(2)])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1, 3, 2])
 
     def testImplicitResults(self):
         "test getimplicitresults() returns the correct data"
@@ -356,17 +355,17 @@ class TestFeatures12_1(BaseTestCase):
                 "values (:1, :2, :3)"
         self.cursor.executemany(sql, rows, batcherrors = True,
                 arraydmlrowcounts = True)
+        user = TestEnv.GetMainUser()
         expectedErrors = [
                 ( 4, 1438, "ORA-01438: value larger than specified " \
                         "precision allowed for this column" ),
                 ( 2, 1, "ORA-00001: unique constraint " \
-                        "(CX_ORACLE.TESTARRAYDML_PK) violated")
+                        "(%s.TESTARRAYDML_PK) violated" % user.upper())
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]
         self.assertEqual(actualErrors, expectedErrors)
-        self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [long(1), long(1), long(0), long(1), long(0)])
+        self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1, 0, 1, 0])
 
     def testBatchErrorFalse(self):
         "test batcherrors mode set to False"
@@ -393,9 +392,10 @@ class TestFeatures12_1(BaseTestCase):
         sql = "insert into TestArrayDML (IntCol, StringCol, IntCol2) " \
                 "values (:1, :2, :3)"
         self.cursor.executemany(sql, rows, batcherrors = True)
+        user = TestEnv.GetMainUser()
         expectedErrors = [
                 ( 6, 1, "ORA-00001: unique constraint " \
-                        "(CX_ORACLE.TESTARRAYDML_PK) violated")
+                        "(%s.TESTARRAYDML_PK) violated" % user.upper())
         ]
         actualErrors = [(e.offset, e.code, e.message) \
                 for e in self.cursor.getbatcherrors()]
@@ -416,6 +416,9 @@ class TestFeatures12_1(BaseTestCase):
                 for e in self.cursor.getbatcherrors()]
         self.assertEqual(actualErrors, expectedErrors)
         self.assertEqual(self.cursor.getarraydmlrowcounts(),
-                [long(1), long(2), long(0), long(0), long(1)])
+                [1, 2, 0, 0, 1])
         self.assertEqual(self.cursor.rowcount, 4)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

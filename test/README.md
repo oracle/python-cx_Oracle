@@ -1,27 +1,47 @@
 This directory contains the test suite for cx_Oracle.
 
-The schemas and SQL objects that are referenced in the test suite can be
-created by running the SQL script sql/SetupTest.sql. The syntax is:
+1. The schemas and SQL objects that are referenced in the test suite can be
+   created by running the Python script [SetupTest.py][1]. The script requires
+   SYSDBA privileges and will prompt for these credentials as well as the
+   names of the schemas that will be created, unless a number of environment
+   variables are set as documented in the Python script [TestEnv.py][2]. Run
+   the script using the following command:
 
-    sqlplus sys/syspassword@hostname/servicename as sysdba @sql/SetupTest.sql
+       python SetupTest.py
 
-The script will create users cx_Oracle and cx_Oracle_proxy. If you wish to
-change the names of the users or the name of the edition you can edit the file
-sql/TestEnv.sql. You will also need to edit the file TestEnv.py or set
-environment variables as documented in TestEnv.py.
+   Alternatively, the [SQL script][3] can be run directly via SQL\*Plus, which
+   will always prompt for the names of the schemas that will be created. Run
+   the script using the following command:
 
-The test suite can be run without having cx_Oracle installed by issuing the
-following command in the main directory:
+       sqlplus sys/syspassword@hostname/servicename @sql/SetupTest.sql
 
-    python setup.py test
+2. Run the test suite by issuing the following command in the top-level
+   directory of your cx_Oracle installation:
 
-If cx_Oracle is already installed, you can also run it by issuing the following
-command in this directory:
+       python setup.py test
 
-    python test.py
+   Alternatively, you can run the test suite directly within this directory:
 
-After running the test suite, the schemas and SQL objects can be dropped by
-running the SQL script sql/DropTest.sql. The syntax is
+       python test.py
 
-    sqlplus sys/syspassword@hostname/servicename as sysdba @sql/DropTest.sql
+3. After running the test suite, the schemas can be dropped by running the
+   Python script [DropTest.py][4]. The script requires SYSDBA privileges and
+   will prompt for these credentials as well as the names of the schemas
+   that will be dropped, unless a number of environment variables are set as
+   documented in the Python script [TestEnv.py][2]. Run the script using the
+   following command:
+
+       python DropTest.py
+
+   Alternatively, the [SQL script][5] can be run directly via SQL\*Plus, which
+   will always prompt for the names of the schemas that will be dropped. Run
+   the script using the following command:
+
+       sqlplus sys/syspassword@hostname/servicename @sql/DropTest.sql
+
+[1]: https://github.com/oracle/python-cx_Oracle/blob/master/test/SetupTest.py
+[2]: https://github.com/oracle/python-cx_Oracle/blob/master/test/TestEnv.py
+[3]: https://github.com/oracle/python-cx_Oracle/blob/master/test/sql/SetupTest.sql
+[4]: https://github.com/oracle/python-cx_Oracle/blob/master/test/DropTest.py
+[5]: https://github.com/oracle/python-cx_Oracle/blob/master/test/sql/DropTest.sql
 

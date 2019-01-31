@@ -9,11 +9,13 @@
 
 """Module for testing cursor objects."""
 
+import TestEnv
+
 import cx_Oracle
 import decimal
 import sys
 
-class TestCursor(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def testCreateScrollableCursor(self):
         """test creating a scrollable cursor"""
@@ -567,7 +569,8 @@ class TestCursor(BaseTestCase):
     def testStringFormat(self):
         """test string format of cursor"""
         formatString = "<cx_Oracle.Cursor on <cx_Oracle.Connection to %s@%s>>"
-        expectedValue = formatString % (USERNAME, TNSENTRY)
+        expectedValue = formatString % \
+                (TestEnv.GetMainUser(), TestEnv.GetConnectString())
         self.assertEqual(str(self.cursor), expectedValue)
 
     def testCursorFetchRaw(self):
@@ -667,4 +670,7 @@ class TestCursor(BaseTestCase):
                 intVal = intVal)
         result, = self.cursor.fetchone()
         self.assertEqual(result, expectedResult)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

@@ -1,14 +1,16 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 """Module for testing AQ objects."""
+
+import TestEnv
 
 import cx_Oracle
 import decimal
 import threading
 
-class TestAQ(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
     bookData = [
             ("Wings of Fire", "A.P.J. Abdul Kalam",
                     decimal.Decimal("15.75")),
@@ -30,7 +32,7 @@ class TestAQ(BaseTestCase):
             pass
 
     def __deqInThread(self, results):
-        connection = self.getConnection()
+        connection = TestEnv.GetConnection()
         booksType = connection.gettype("UDT_BOOK")
         book = booksType.newobject()
         options = connection.deqoptions()
@@ -175,7 +177,7 @@ class TestAQ(BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq("BOOKS", enqOptions, props, book)
 
-        otherConnection = self.getConnection()
+        otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
         deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
         deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
@@ -199,7 +201,7 @@ class TestAQ(BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq("BOOKS", enqOptions, props, book)
 
-        otherConnection = self.getConnection()
+        otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
         deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
         deqOptions.visibility = cx_Oracle.DEQ_ON_COMMIT
@@ -224,7 +226,7 @@ class TestAQ(BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq("BOOKS", enqOptions, props, book)
 
-        otherConnection = self.getConnection()
+        otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
         deqOptions.deliverymode = cx_Oracle.MSG_BUFFERED
         deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
@@ -250,7 +252,7 @@ class TestAQ(BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq("BOOKS", enqOptions, props, book)
 
-        otherConnection = self.getConnection()
+        otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
         deqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT
         deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
@@ -276,7 +278,7 @@ class TestAQ(BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq("BOOKS", enqOptions, props, book)
 
-        otherConnection = self.getConnection()
+        otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
         deqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT_OR_BUFFERED
         deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
@@ -302,7 +304,7 @@ class TestAQ(BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq("BOOKS", enqOptions, props, book)
 
-        otherConnection = self.getConnection()
+        otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
         deqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT
         deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
@@ -326,7 +328,7 @@ class TestAQ(BaseTestCase):
         self.connection.enq("BOOKS", enqOptions, props, book)
         self.connection.commit()
 
-        otherConnection = self.getConnection()
+        otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
         deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
         deqOptions.visibility = cx_Oracle.DEQ_IMMEDIATE
@@ -352,7 +354,7 @@ class TestAQ(BaseTestCase):
         self.connection.enq("BOOKS", enqOptions, props, book)
         self.connection.commit()
 
-        otherConnection = self.getConnection()
+        otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
         deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
         deqOptions.visibility = cx_Oracle.DEQ_IMMEDIATE
@@ -363,4 +365,7 @@ class TestAQ(BaseTestCase):
         otherConnection.deq("BOOKS", deqOptions, props, book)
         otherPrice = book.PRICE
         self.assertEqual(otherPrice, expectedPrice)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -9,9 +9,12 @@
 
 """Module for testing session pools."""
 
+import TestEnv
+
+import cx_Oracle
 import threading
 
-class TestConnection(TestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def __ConnectAndDrop(self):
         """Connect to the database, perform a query and drop the connection."""
@@ -41,13 +44,21 @@ class TestConnection(TestCase):
         self.assertEqual(actualProxyUser,
                 expectedProxyUser and expectedProxyUser.upper())
 
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
     def testPool(self):
         """test that the pool is created and has the right attributes"""
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING)
-        self.assertEqual(pool.username, USERNAME, "user name differs")
-        self.assertEqual(pool.tnsentry, TNSENTRY, "tnsentry differs")
-        self.assertEqual(pool.dsn, TNSENTRY, "dsn differs")
+        pool = TestEnv.GetPool(min=2, max=8, increment=3,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT)
+        self.assertEqual(pool.username, TestEnv.GetMainUser(),
+                "user name differs")
+        self.assertEqual(pool.tnsentry, TestEnv.GetConnectString(),
+                "tnsentry differs")
+        self.assertEqual(pool.dsn, TestEnv.GetConnectString(), "dsn differs")
         self.assertEqual(pool.max, 8, "max differs")
         self.assertEqual(pool.min, 2, "min differs")
         self.assertEqual(pool.increment, 3, "increment differs")
@@ -68,46 +79,43 @@ class TestConnection(TestCase):
         self.assertEqual(pool.busy, 1, "busy not 1 after del")
         pool.getmode = cx_Oracle.SPOOL_ATTRVAL_NOWAIT
         self.assertEqual(pool.getmode, cx_Oracle.SPOOL_ATTRVAL_NOWAIT)
-        if CLIENT_VERSION >= (12, 2):
+        if TestEnv.GetClientVersion() >= (12, 2):
             pool.getmode = cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT
             self.assertEqual(pool.getmode, cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT)
         pool.stmtcachesize = 50
         self.assertEqual(pool.stmtcachesize, 50)
         pool.timeout = 10
         self.assertEqual(pool.timeout, 10)
-        if CLIENT_VERSION >= (12, 1):
+        if TestEnv.GetClientVersion() >= (12, 1):
             pool.max_lifetime_session = 10
             self.assertEqual(pool.max_lifetime_session, 10)
 
     def testProxyAuth(self):
         """test that proxy authentication is possible"""
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING)
+        pool = TestEnv.GetPool(min=2, max=8, increment=3,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT)
         self.assertEqual(pool.homogeneous, 1,
                 "homogeneous should be 1 by default")
         self.assertRaises(cx_Oracle.ProgrammingError, pool.acquire,
                 user = u"missing_proxyuser")
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
-                homogeneous = False, encoding = ENCODING,
-                nencoding = NENCODING)
+        pool = TestEnv.GetPool(min=2, max=8, increment=3,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT, homogeneous=False)
         self.assertEqual(pool.homogeneous, 0,
                 "homogeneous should be 0 after setting it in the constructor")
-        connection = pool.acquire(user = PROXY_USERNAME)
+        connection = pool.acquire(user = TestEnv.GetProxyUser())
         cursor = connection.cursor()
         cursor.execute('select user from dual')
         result, = cursor.fetchone()
-        self.assertEqual(result, PROXY_USERNAME.upper())
+        self.assertEqual(result, TestEnv.GetProxyUser().upper())
 
     def testRollbackOnDel(self):
         "connection rolls back before being destroyed"
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING)
+        pool = TestEnv.GetPool()
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
         cursor.execute("insert into TestTempTable (IntCol) values (1)")
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING)
+        pool = TestEnv.GetPool()
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("select count(*) from TestTempTable")
@@ -116,16 +124,14 @@ class TestConnection(TestCase):
 
     def testRollbackOnRelease(self):
         "connection rolls back before released back to the pool"
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING)
+        pool = TestEnv.GetPool()
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
         cursor.execute("insert into TestTempTable (IntCol) values (1)")
         cursor.close()
         pool.release(connection)
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 1, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING)
+        pool = TestEnv.GetPool()
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("select count(*) from TestTempTable")
@@ -134,10 +140,8 @@ class TestConnection(TestCase):
 
     def testThreading(self):
         """test session pool to database with multiple threads"""
-        self.pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY,
-                min = 5, max = 20, increment = 2, threaded = True,
-                getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT, encoding = ENCODING,
-                nencoding = NENCODING)
+        self.pool = TestEnv.GetPool(min=5, max=20, increment=2, threaded=True,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT)
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__ConnectAndDrop)
@@ -148,10 +152,8 @@ class TestConnection(TestCase):
 
     def testThreadingWithErrors(self):
         """test session pool to database with multiple threads (with errors)"""
-        self.pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY,
-                min = 5, max = 20, increment = 2, threaded = True,
-                getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT, encoding = ENCODING,
-                nencoding = NENCODING)
+        self.pool = TestEnv.GetPool(min=5, max=20, increment=2, threaded=True,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT)
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__ConnectAndGenerateError)
@@ -163,9 +165,8 @@ class TestConnection(TestCase):
     def testPurity(self):
         """test session pool with various types of purity"""
         action = "TEST_ACTION"
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, min = 1,
-                max = 8, increment = 1, encoding = ENCODING,
-                nencoding = NENCODING)
+        pool = TestEnv.GetPool(min=1, max=8, increment=1,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT)
 
         # get connection and set the action
         connection = pool.acquire()
@@ -199,42 +200,46 @@ class TestConnection(TestCase):
 
     def testHeterogeneous(self):
         """test heterogeneous pool with user and password specified"""
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING,
-                homogeneous = False)
+        pool = TestEnv.GetPool(min=2, max=8, increment=3, homogeneous=False,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT)
         self.assertEqual(pool.homogeneous, 0)
-        self.__VerifyConnection(pool.acquire(), USERNAME)
-        self.__VerifyConnection(pool.acquire(USERNAME, PASSWORD), USERNAME)
-        self.__VerifyConnection(pool.acquire(PROXY_USERNAME, PROXY_PASSWORD),
-                PROXY_USERNAME)
-        userStr = "%s[%s]" % (USERNAME, PROXY_USERNAME)
-        self.__VerifyConnection(pool.acquire(userStr, PASSWORD),
-                PROXY_USERNAME, USERNAME)
+        self.__VerifyConnection(pool.acquire(), TestEnv.GetMainUser())
+        self.__VerifyConnection(pool.acquire(TestEnv.GetMainUser(),
+                TestEnv.GetMainPassword()), TestEnv.GetMainUser())
+        self.__VerifyConnection(pool.acquire(TestEnv.GetProxyUser(),
+                TestEnv.GetProxyPassword()), TestEnv.GetProxyUser())
+        userStr = "%s[%s]" % (TestEnv.GetMainUser(), TestEnv.GetProxyUser())
+        self.__VerifyConnection(pool.acquire(userStr,
+                TestEnv.GetMainPassword()), TestEnv.GetProxyUser(),
+                TestEnv.GetMainUser())
 
     def testHeterogenousWithoutUser(self):
         """test heterogeneous pool without user and password specified"""
-        pool = cx_Oracle.SessionPool("", "", TNSENTRY, 2, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING,
-                homogeneous = False)
-        self.__VerifyConnection(pool.acquire(USERNAME, PASSWORD), USERNAME)
-        self.__VerifyConnection(pool.acquire(PROXY_USERNAME, PROXY_PASSWORD),
-                PROXY_USERNAME)
-        userStr = "%s[%s]" % (USERNAME, PROXY_USERNAME)
-        self.__VerifyConnection(pool.acquire(userStr, PASSWORD),
-                PROXY_USERNAME, USERNAME)
+        pool = TestEnv.GetPool(user="", password="", min=2, max=8, increment=3,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT, homogeneous=False)
+        self.__VerifyConnection(pool.acquire(TestEnv.GetMainUser(),
+                TestEnv.GetMainPassword()), TestEnv.GetMainUser())
+        self.__VerifyConnection(pool.acquire(TestEnv.GetProxyUser(),
+                TestEnv.GetProxyPassword()), TestEnv.GetProxyUser())
+        userStr = "%s[%s]" % (TestEnv.GetMainUser(), TestEnv.GetProxyUser())
+        self.__VerifyConnection(pool.acquire(userStr,
+                TestEnv.GetMainPassword()), TestEnv.GetProxyUser(),
+                TestEnv.GetMainUser())
 
     def testHeterogenousWithoutPassword(self):
         """test heterogeneous pool without password"""
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING,
-                homogeneous = False)
-        self.assertRaises(cx_Oracle.DatabaseError,  pool.acquire, USERNAME)
+        pool = TestEnv.GetPool(min=2, max=8, increment=3,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT, homogeneous=False)
+        self.assertRaises(cx_Oracle.DatabaseError,  pool.acquire,
+                TestEnv.GetMainUser())
 
     def testHeterogeneousWrongPassword(self):
         """test heterogeneous pool with wrong password specified"""
-        pool = cx_Oracle.SessionPool(USERNAME, PASSWORD, TNSENTRY, 2, 8, 3,
-                encoding = ENCODING, nencoding = NENCODING,
-                homogeneous = False)
+        pool = TestEnv.GetPool(min=2, max=8, increment=3,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT, homogeneous=False)
         self.assertRaises(cx_Oracle.DatabaseError, pool.acquire,
-                PROXY_USERNAME, "this is the wrong password")
+                TestEnv.GetProxyUser(), "this is the wrong password")
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

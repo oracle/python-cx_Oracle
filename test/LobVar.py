@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -9,9 +9,12 @@
 
 """Module for testing LOB (CLOB and BLOB) variables."""
 
+import TestEnv
+
+import cx_Oracle
 import sys
 
-class TestLobVar(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def __GetTempLobs(self, sid):
         cursor = self.connection.cursor()
@@ -221,7 +224,8 @@ class TestLobVar(BaseTestCase):
 
     def testNCLOBDifferentEncodings(self):
         "test binding and fetching NCLOB data (different encodings)"
-        connection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY,
+        connection = cx_Oracle.connect(TestEnv.GetMainUser(),
+                TestEnv.GetMainPassword(), TestEnv.GetConnectString(),
                 encoding = "UTF-8", nencoding = "UTF-16")
         value = u"\u03b4\u4e2a"
         cursor = connection.cursor()
@@ -270,4 +274,7 @@ class TestLobVar(BaseTestCase):
         "test assign string to NCLOB beyond array size"
         nclobVar = self.cursor.var(cx_Oracle.NCLOB)
         self.assertRaises(IndexError, nclobVar.setvalue, 1, "test char")
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

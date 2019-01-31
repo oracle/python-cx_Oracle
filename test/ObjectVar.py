@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -9,11 +9,13 @@
 
 """Module for testing object variables."""
 
+import TestEnv
+
 import cx_Oracle
 import datetime
 import decimal
 
-class TestObjectVar(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def __GetObjectAsTuple(self, obj):
         if obj.type.iscollection:
@@ -300,8 +302,9 @@ class TestObjectVar(BaseTestCase):
     def testStringFormat(self):
         "test object string format"
         objType = self.connection.gettype("UDT_OBJECT")
+        user = TestEnv.GetMainUser()
         self.assertEqual(str(objType),
-                "<cx_Oracle.ObjectType CX_ORACLE.UDT_OBJECT>")
+                "<cx_Oracle.ObjectType %s.UDT_OBJECT>" % user.upper())
         self.assertEqual(str(objType.attributes[0]),
                 "<cx_Oracle.ObjectAttribute NUMBERVALUE>")
 
@@ -325,4 +328,7 @@ class TestObjectVar(BaseTestCase):
         self.assertEqual(self.__GetObjectAsTuple(arrayObj), data[:1])
         arrayObj.trim(1)
         self.assertEqual(self.__GetObjectAsTuple(arrayObj), [])
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

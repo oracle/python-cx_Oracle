@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -9,7 +9,11 @@
 
 """Module for testing boolean variables."""
 
-class TestBooleanVar(BaseTestCase):
+import TestEnv
+
+import cx_Oracle
+
+class TestCase(TestEnv.BaseTestCase):
 
     def testBindFalse(self):
         "test binding in a False value"
@@ -41,4 +45,7 @@ class TestBooleanVar(BaseTestCase):
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
                 (True,))
         self.assertEqual(result, "TRUE")
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

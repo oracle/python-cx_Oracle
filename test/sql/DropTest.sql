@@ -1,33 +1,27 @@
 /*-----------------------------------------------------------------------------
- * Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2019, Oracle and/or its affiliates. All rights reserved.
  *---------------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------------
  * DropTest.sql
- *   Drops database objects used for testing.
+ *   Drops database objects used for cx_Oracle tests.
  *
  * Run this like:
- *   sqlplus / as sysdba @DropTest
- *
- * Note that the script TestEnv.sql should be modified if you would like to
- * use something other than the default schemas and passwords.
+ *   sqlplus sys/syspassword@hostname/servicename as sysdba @DropTest
  *---------------------------------------------------------------------------*/
 
 whenever sqlerror exit failure
 
--- setup environment
-@@TestEnv.sql
+-- get parameters
+set echo off termout on feedback off verify off
+accept main_user char default pythontest -
+        prompt "Name of main schema [pythontest]: "
+accept proxy_user char default pythontestproxy -
+        prompt "Name of proxy schema [pythontestproxy]: "
+set feedback on
 
-begin
+-- perform work
+@@DropTestExec.sql
 
-    for r in
-            ( select username
-              from dba_users
-              where username in (upper('&main_user'), upper('&proxy_user'))
-            ) loop
-        execute immediate 'drop user ' || r.username || ' cascade';
-    end loop;
-
-end;
-/
+exit
 

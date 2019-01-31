@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 """Module for testing Rowids"""
 
-class Rowids(BaseTestCase):
+import TestEnv
+
+import cx_Oracle
+
+class TestCase(TestEnv.BaseTestCase):
 
     def __TestSelectRowids(self, tableName):
         self.cursor.execute("select rowid, IntCol from %s""" % tableName)
@@ -52,4 +56,7 @@ class Rowids(BaseTestCase):
             rows = self.cursor.fetchall()
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0][0], intVal)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

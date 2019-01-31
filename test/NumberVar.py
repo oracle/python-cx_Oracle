@@ -9,14 +9,13 @@
 
 """Module for testing number variables."""
 
+import TestEnv
+
 import cx_Oracle
 import decimal
 import sys
 
-if sys.version_info > (3,):
-    long = int
-
-class TestNumberVar(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def outputTypeHandlerNativeInt(self, cursor, name, defaultType, size,
             precision, scale):
@@ -29,7 +28,7 @@ class TestNumberVar(BaseTestCase):
                     arraysize = cursor.arraysize)
 
     def setUp(self):
-        BaseTestCase.setUp(self)
+        TestEnv.BaseTestCase.setUp(self)
         self.rawData = []
         self.dataByKey = {}
         for i in range(1, 11):
@@ -37,10 +36,10 @@ class TestNumberVar(BaseTestCase):
             floatCol = i + i * 0.75
             unconstrainedCol = i ** 3 + i * 0.5
             if i % 2:
-                nullableCol = long(143) ** i
+                nullableCol = 143 ** i
             else:
                 nullableCol = None
-            dataTuple = (i, long(38) ** i, numberCol, floatCol,
+            dataTuple = (i, 38 ** i, numberCol, floatCol,
                     unconstrainedCol, nullableCol)
             self.rawData.append(dataTuple)
             self.dataByKey[i] = dataTuple
@@ -77,14 +76,6 @@ class TestNumberVar(BaseTestCase):
                 where IntCol = :value""",
                 value = 2)
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[2]])
-
-    def testBindSmallLong(self):
-        "test binding in a small long integer"
-        self.cursor.execute("""
-                select * from TestNumbers
-                where IntCol = :value""",
-                value = long(3))
-        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
 
     def testBindLargeLongAsOracleNumber(self):
         "test binding in a large long integer as Oracle number"
@@ -309,7 +300,7 @@ class TestNumberVar(BaseTestCase):
                 from TestNumbers
                 where IntCol = 9""")
         col, = self.cursor.fetchone()
-        self.assertTrue(isinstance(col, long), "long integer not returned")
+        self.assertEqual(col, 25004854810776297743)
 
     def testReturnConstantFloat(self):
         "test that fetching a floating point number returns such in Python"
@@ -348,8 +339,10 @@ class TestNumberVar(BaseTestCase):
                 invalidErr, noRepErr, noRepErr, invalidErr, invalidErr,
                 invalidErr]
         for inValue, error in zip(inValues, expectedErrors):
-            self.assertRaisesRegexp(cx_Oracle.DatabaseError, error,
-                    self.cursor.execute, "select :1 from dual", (inValue,))
+            method = self.assertRaisesRegex if sys.version_info[0] == 3 \
+                    else self.assertRaisesRegexp
+            method(cx_Oracle.DatabaseError, error, self.cursor.execute,
+                    "select :1 from dual", (inValue,))
 
     def testReturnFloatFromDivision(self):
         "test that fetching the result of division returns a float"
@@ -391,4 +384,7 @@ class TestNumberVar(BaseTestCase):
             self.cursor.execute("select :1 from dual", [str(value)])
             fetchedValue, = self.cursor.fetchone()
             self.assertEqual(value, fetchedValue)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

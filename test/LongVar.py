@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -9,9 +9,12 @@
 
 """Module for testing long and long raw variables."""
 
+import TestEnv
+
+import cx_Oracle
 import sys
 
-class TestLongVar(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def __PerformTest(self, a_Type, a_InputType):
         self.cursor.execute("truncate table Test%ss" % a_Type)
@@ -97,4 +100,7 @@ class TestLongVar(BaseTestCase):
         self.cursor.arraysize = 268435456
         self.assertRaises(cx_Oracle.DatabaseError, self.cursor.execute,
                 "select * from TestLongRaws")
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

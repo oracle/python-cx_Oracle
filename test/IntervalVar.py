@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -9,12 +9,15 @@
 
 """Module for testing interval variables."""
 
+import TestEnv
+
+import cx_Oracle
 import datetime
 
-class TestIntervalVar(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def setUp(self):
-        BaseTestCase.setUp(self)
+        TestEnv.BaseTestCase.setUp(self)
         self.rawData = []
         self.dataByKey = {}
         for i in range(1, 11):
@@ -139,4 +142,7 @@ class TestIntervalVar(BaseTestCase):
         self.assertEqual(self.cursor.fetchone(), self.dataByKey[3])
         self.assertEqual(self.cursor.fetchone(), self.dataByKey[4])
         self.assertEqual(self.cursor.fetchone(), None)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

@@ -1,9 +1,12 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 """Module for testing subscriptions."""
 
+import TestEnv
+
+import cx_Oracle
 import threading
 
 class SubscriptionData(object):
@@ -31,7 +34,7 @@ class SubscriptionData(object):
             self.condition.release()
 
 
-class Subscription(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def testSubscription(self):
         "test Subscription for insert, update, delete and truncate"
@@ -47,8 +50,7 @@ class Subscription(BaseTestCase):
 
         # set up subscription
         data = SubscriptionData(5)
-        connection = cx_Oracle.connect(USERNAME, PASSWORD, TNSENTRY,
-                threaded = True, events = True)
+        connection = TestEnv.GetConnection(threaded=True, events=True)
         sub = connection.subscribe(callback = data.CallbackHandler,
                 timeout = 10, qos = cx_Oracle.SUBSCR_QOS_ROWIDS)
         sub.registerquery("select * from TestTempTable")
@@ -95,6 +97,10 @@ class Subscription(BaseTestCase):
 
         # test string format of subscription object is as expected
         fmt = "<cx_Oracle.Subscription on <cx_Oracle.Connection to %s@%s>>"
-        expectedValue = fmt % (USERNAME, TNSENTRY)
+        expectedValue = fmt % \
+                (TestEnv.GetMainUser(), TestEnv.GetConnectString())
         self.assertEqual(str(sub), expectedValue)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 

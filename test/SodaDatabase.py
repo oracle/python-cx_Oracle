@@ -1,12 +1,15 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 """Module for testing Simple Oracle Document Access (SODA) Database"""
 
+import TestEnv
+
+import cx_Oracle
 import json
 
-class TestSodaCollection(BaseTestCase):
+class TestCase(TestEnv.BaseTestCase):
 
     def __dropExistingCollections(self, sodaDatabase):
         for name in sodaDatabase.getCollectionNames():
@@ -83,7 +86,7 @@ class TestSodaCollection(BaseTestCase):
     def testRepr(self):
         "test SodaDatabase representation"
         con1 = self.connection
-        con2 = self.getConnection()
+        con2 = TestEnv.GetConnection()
         sodaDatabase1 = con1.getSodaDatabase()
         sodaDatabase2 = con1.getSodaDatabase()
         sodaDatabase3 = con2.getSodaDatabase()
@@ -98,4 +101,7 @@ class TestSodaCollection(BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError,
                 sodaDatabase.createCollection, None)
         self.assertRaises(TypeError, sodaDatabase.getCollectionNames, 1)
+
+if __name__ == "__main__":
+    TestEnv.RunTestCases()
 
