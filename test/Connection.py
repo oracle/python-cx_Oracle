@@ -13,6 +13,7 @@ import TestEnv
 
 import cx_Oracle
 import random
+import string
 import threading
 
 class TestCase(TestEnv.BaseTestCase):
@@ -127,7 +128,9 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testChangePassword(self):
         "test changing password"
-        newPassword = "NEW_PASSWORD"
+        sysRandom = random.SystemRandom()
+        newPassword = "".join(sysRandom.choice(string.ascii_letters) \
+                for i in range(20))
         connection = TestEnv.GetConnection()
         connection.changepassword(TestEnv.GetMainPassword(), newPassword)
         cconnection = cx_Oracle.connect(TestEnv.GetMainUser(), newPassword,
