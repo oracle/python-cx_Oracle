@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ from __future__ import print_function
 import cx_Oracle
 import SampleEnv
 
-connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
 
 cursor = connection.cursor()
 sql = 'select * from SampleQueryTab where id = :bvid'

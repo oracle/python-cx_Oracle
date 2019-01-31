@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -50,7 +50,7 @@ def callback(message):
                     print("-" * 60)
             print("=" * 60)
 
-connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING, events = True)
+connection = cx_Oracle.connect(SampleEnv.GetMainConnectString(), events = True)
 sub = connection.subscribe(callback = callback, timeout = 1800,
         qos = cx_Oracle.SUBSCR_QOS_QUERY | cx_Oracle.SUBSCR_QOS_ROWIDS)
 print("Subscription:", sub)

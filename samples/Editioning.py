@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -24,7 +24,8 @@ import SampleEnv
 import os
 
 # connect to the editions user and create a procedure
-connection = cx_Oracle.connect(SampleEnv.EDITION_CONNECT_STRING)
+editionConnectString = SampleEnv.GetEditionConnectString()
+connection = cx_Oracle.connect(editionConnectString)
 print("Edition should be None, actual value is:",
         repr(connection.edition))
 cursor = connection.cursor()
@@ -38,8 +39,8 @@ print("Function should return 'Base Procedure', actually returns:",
         repr(result))
 
 # next, change the edition and recreate the procedure in the new edition
-cursor.execute("alter session set edition = %s" % SampleEnv.EDITION_NAME)
-print("Edition should be", repr(SampleEnv.EDITION_NAME.upper()),
+cursor.execute("alter session set edition = %s" % SampleEnv.GetEditionName())
+print("Edition should be", repr(SampleEnv.GetEditionName().upper()),
         "actual value is:", repr(connection.edition))
 cursor.execute("""
         create or replace function TestEditions return varchar2 as
@@ -58,17 +59,17 @@ print("Function should return 'Base Procedure', actually returns:",
         repr(result))
 
 # the edition can be set upon connection
-connection = cx_Oracle.connect(SampleEnv.EDITION_CONNECT_STRING,
-        edition = SampleEnv.EDITION_NAME.upper())
+connection = cx_Oracle.connect(editionConnectString,
+        edition = SampleEnv.GetEditionName().upper())
 cursor = connection.cursor()
 result = cursor.callfunc("TestEditions", str)
 print("Function should return 'Edition 1 Procedure', actually returns:",
         repr(result))
 
 # it can also be set via the environment variable ORA_EDITION
-os.environ["ORA_EDITION"] = SampleEnv.EDITION_NAME.upper()
-connection = cx_Oracle.connect(SampleEnv.EDITION_CONNECT_STRING)
-print("Edition should be", repr(SampleEnv.EDITION_NAME.upper()),
+os.environ["ORA_EDITION"] = SampleEnv.GetEditionName().upper()
+connection = cx_Oracle.connect(editionConnectString)
+print("Edition should be", repr(SampleEnv.GetEditionName().upper()),
         "actual value is:", repr(connection.edition))
 cursor = connection.cursor()
 result = cursor.callfunc("TestEditions", str)

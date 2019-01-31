@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2017, 2019, Oracle and/or its affiliates. All rights reserved.
  *---------------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------------
@@ -7,35 +7,23 @@
  *   Drops database objects used for cx_Oracle samples.
  *
  * Run this like:
- *   sqlplus / as sysdba @DropSamples
- *
- * Note that the script SampleEnv.sql should be modified if you would like to
- * use something other than the default schemas and passwords.
+ *   sqlplus sys/syspassword@hostname/servicename as sysdba @DropSamples
  *---------------------------------------------------------------------------*/
 
 whenever sqlerror exit failure
 
--- setup environment
-@@SampleEnv.sql
+-- get parameters
+set echo off termout on feedback off verify off
+accept main_user char default pythondemo -
+        prompt "Name of main schema [pythondemo]: "
+accept edition_user char default pythoneditions -
+        prompt "Name of edition schema [pythoneditions]: "
+accept edition_name char default python_e1 -
+        prompt "Name of edition [python_e1]: "
+set feedback on
 
-begin
+-- perform work
+@@DropSamplesExec.sql
 
-    for r in
-            ( select username
-              from dba_users
-              where username in (upper('&main_user'), upper('&edition_user'))
-            ) loop
-        execute immediate 'drop user ' || r.username || ' cascade';
-    end loop;
-
-    for r in
-            ( select edition_name
-              from dba_editions
-              where edition_name in (upper('&edition_name'))
-            ) loop
-        execute immediate 'drop edition ' || r.edition_name || ' cascade';
-    end loop;
-
-end;
-/
+exit
 

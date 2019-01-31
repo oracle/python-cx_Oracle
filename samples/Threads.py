@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -19,8 +19,9 @@ import cx_Oracle
 import SampleEnv
 import threading
 
-pool = cx_Oracle.SessionPool(SampleEnv.MAIN_USER, SampleEnv.MAIN_PASSWORD,
-        SampleEnv.CONNECT_STRING, 2, 5, 1, threaded = True)
+pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
+        SampleEnv.GetMainPassword(), SampleEnv.GetConnectString(), min=2,
+        max=5, increment=1, threaded=True)
 
 def TheLongQuery():
     conn = pool.acquire()

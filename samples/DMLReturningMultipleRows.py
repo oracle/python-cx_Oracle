@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -22,7 +22,7 @@ import datetime
 import SampleEnv
 
 # truncate table first so that script can be rerun
-connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
 cursor = connection.cursor()
 print("Truncating table...")
 cursor.execute("truncate table TestTempTable")

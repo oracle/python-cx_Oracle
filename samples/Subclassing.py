@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ import SampleEnv
 class Connection(cx_Oracle.Connection):
 
     def __init__(self):
-        connectString = SampleEnv.MAIN_CONNECT_STRING
+        connectString = SampleEnv.GetMainConnectString()
         print("CONNECT to database")
         return super(Connection, self).__init__(connectString)
 

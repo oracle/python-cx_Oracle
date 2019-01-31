@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ class Cursor(cx_Oracle.Cursor):
 
 
 # create new subclassed connection and cursor
-connection = Connection(SampleEnv.MAIN_CONNECT_STRING)
+connection = Connection(SampleEnv.GetMainConnectString())
 cursor = connection.cursor()
 
 # the names are now available directly for each query executed

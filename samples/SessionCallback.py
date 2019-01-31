@@ -39,10 +39,10 @@ SUPPORTED_KEYS = {
 }
 
 # define session callback
-def init_session(conn, requestedTag):
+def InitSession(conn, requestedTag):
 
     # display the requested and actual tags
-    print("init_session(): requested tag=%r, actual tag=%r" % \
+    print("InitSession(): requested tag=%r, actual tag=%r" % \
             (requestedTag, conn.tag))
 
     # tags are expected to be in the form "key1=value1;key2=value2"
@@ -75,9 +75,9 @@ def init_session(conn, requestedTag):
 
 
 # create pool with session callback defined
-pool = cx_Oracle.SessionPool(SampleEnv.MAIN_USER, SampleEnv.MAIN_PASSWORD,
-        SampleEnv.CONNECT_STRING, min=2, max=5, increment=1, threaded=True,
-        sessionCallback=init_session)
+pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
+        SampleEnv.GetMainPassword(), SampleEnv.GetConnectString(), min=2,
+        max=5, increment=1, threaded=True, sessionCallback=InitSession)
 
 # acquire session without specifying a tag; since the session returned is
 # newly created, the callback will be invoked but since there is no tag

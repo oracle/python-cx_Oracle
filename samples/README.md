@@ -1,31 +1,41 @@
 This directory contains samples for cx_Oracle.
 
 1. The schemas and SQL objects that are referenced in the samples can be
-   created by running the SQL script
-   [sql/SetupSamples.sql][1]. The
-   syntax is:
+   created by running the Python script [SetupSamples.py][1]. The script
+   requires SYSDBA privileges and will prompt for these credentials as well as
+   the names of the schemas and edition that will be created, unless a number
+   of environment variables are set as documented in the Python script
+   [SampleEnv.py][2]. Run the script using the following command:
 
-        sqlplus sys/syspassword@hostname/servicename as sysdba @sql/SetupSamples.sql
+       python SetupSamples.py
 
-   The script will create users `pythondemo` and `pythoneditions` and
-   will create an edition called `python_e1`.
+   Alternatively, the [SQL script][3] can be run directly via SQL\*Plus, which
+   will always prompt for the names of the schemas and edition that will be
+   created.
 
-   If you wish to change the names of the users or the name of the
-   edition you can edit the file [sql/SampleEnv.sql][2]. You will also
-   need to edit the file [SampleEnv.py][4] or set environment variables
-   as documented in it.
+       sqlplus sys/syspassword@hostname/servicename @sql/SetupSamples.sql
 
 2. Run a Python script, for example:
 
         python Query.py
 
 3. After running cx_Oracle samples, the schemas and SQL objects can be
-   dropped by running the SQL script [sql/DropSamples.sql][3]. The
-   syntax is
+   dropped by running the Python script [DropSamples.py][4]. The script
+   requires SYSDBA privileges and will prompt for these credentials as well as
+   the names of the schemas and edition that will be dropped, unless a number
+   of environment variables are set as documented in the Python script
+   [SampleEnv.py][2]. Run the script using the following command:
 
-        sqlplus sys/syspassword@hostname/servicename as sysdba @sql/DropSamples.sql
+       python DropSamples.py
 
-[1]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/SetupSamples.sql
-[2]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/SampleEnv.sql
-[3]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/DropSamples.sql
-[4]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/SampleEnv.py
+   Alternatively, the [SQL script][5] can be run directly via SQL\*Plus, which
+   will always prompt for the names of the schemas and edition that will be
+   dropped.
+
+       sqlplus sys/syspassword@hostname/servicename @sql/DropSamples.sql
+
+[1]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/SetupSamples.py
+[2]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/SampleEnv.py
+[3]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/SetupSamples.sql
+[4]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/DropSamples.py
+[5]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/DropSamples.sql

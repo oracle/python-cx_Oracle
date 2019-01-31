@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -21,7 +21,7 @@ import cx_Oracle
 import SampleEnv
 
 # create and populate Oracle objects
-connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
 typeObj = connection.gettype("MDSYS.SDO_GEOMETRY")
 elementInfoTypeObj = connection.gettype("MDSYS.SDO_ELEM_INFO_ARRAY")
 ordinateTypeObj = connection.gettype("MDSYS.SDO_ORDINATE_ARRAY")

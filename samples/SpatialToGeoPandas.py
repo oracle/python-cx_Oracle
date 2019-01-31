@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ from shapely.wkb import loads
 import geopandas as gpd
 
 # create Oracle connection and cursor objects
-connection = cx_Oracle.connect(SampleEnv.MAIN_CONNECT_STRING)
+connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
 cursor = connection.cursor()
 
 # enable autocommit to avoid the additional round trip to the database to
