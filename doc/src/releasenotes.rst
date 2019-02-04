@@ -8,6 +8,89 @@ cx_Oracle Release Notes
 
 .. _releasenotes70:
 
+Version 7.1 (February 2019)
+---------------------------
+
+#)  Updated to `ODPI-C 3.1
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-3-1-january-21-2019>`__.
+#)  Improved support for session tagging in session pools by allowing a
+    session callback to be specified when creating a pool via
+    :meth:`cx_Oracle.SessionPool()`. Callbacks can be written in Python or in
+    PL/SQL and can be used to improve performance by decreasing round trips to
+    the database needed to set session state. Callbacks written in Python will
+    be invoked for brand new connections (that have never been acquired from
+    the pool before) or when the tag assigned to the connection doesn't match
+    the one that was requested. Callbacks written in PL/SQL will only be
+    invoked when the tag assigned to the connection doesn't match the one that
+    was requested.
+#)  Added attribute :attr:`Connection.tag` to provide access to the actual tag
+    assigned to the connection. Setting this attribute will cause the
+    connection to be retagged when it is released back to the pool.
+#)  Added support for fetching SYS.XMLTYPE values as strings, as requested
+    (`issue 14 <https://github.com/oracle/python-cx_Oracle/issues/14>`__).
+    Note that this support is limited to the size of VARCHAR2 columns in the
+    database (either 4000 or 32767 bytes).
+#)  Added support for allowing the typename parameter in method
+    :meth:`Cursor.var()` to be None or a valid object type created by the
+    method :meth:`Connection.gettype()`, as requested
+    (`issue 231 <https://github.com/oracle/python-cx_Oracle/issues/231>`__).
+#)  Added support for getting and setting attributes of type RAW on Oracle
+    objects, as requested
+    (`ODPI-C issue 72 <https://github.com/oracle/odpi/issues/72>`__).
+#)  Added support for performing external authentication with proxy for
+    standalone connections.
+#)  Added support for mixing integers, floating point and decimal values in
+    data passed to :meth:`Cursor.executemany()`
+    (`issue 241 <https://github.com/oracle/python-cx_Oracle/issues/241>`__).
+    The error message raised when a value cannot be converted to an Oracle
+    number was also improved.
+#)  Adjusted fetching of numeric values so that no precision is lost. If an
+    Oracle number cannot be represented by a Python floating point number a
+    decimal value is automatically returned instead.
+#)  Corrected handling of multiple calls to method
+    :meth:`Cursor.executemany()` where all of the values in one of the columns
+    passed to the first call are all None and a subsequent call has a value
+    other than None in the same column
+    (`issue 236 <https://github.com/oracle/python-cx_Oracle/issues/236>`__).
+#)  Added additional check for calling :meth:`Cursor.setinputsizes()` with an
+    empty dictionary in order to avoid the error "cx_Oracle.ProgrammingError:
+    positional and named binds cannot be intermixed"
+    (`issue 199 <https://github.com/oracle/python-cx_Oracle/issues/199>`__).
+#)  Corrected handling of values that exceed the maximum value of a plain
+    integer object on Python 2 on Windows
+    (`issue 257 <https://github.com/oracle/python-cx_Oracle/issues/257>`__).
+#)  Added error message when attempting external authentication with proxy
+    without placing the user name in [] (proxy authentication was previously
+    silently ignored).
+#)  Exempted additional error messages from forcing a statement to be dropped
+    from the cache
+    (`ODPI-C issue 76 <https://github.com/oracle/odpi/issues/76>`__).
+#)  Improved dead session detection when using session pools for Oracle Client
+    12.2 and higher.
+#)  Ensured that the connection returned from a pool after a failed ping (such
+    as due to a killed session) is not itself marked as needing to be dropped
+    from the pool.
+#)  Eliminated memory leak under certain circumstances when pooled connections
+    are released back to the pool.
+#)  Eliminated memory leak when connections are dropped from the pool.
+#)  Eliminated memory leak when calling :meth:`Connection.close()` after
+    fetching collections from the database.
+#)  Adjusted order in which memory is freed when the last references to SODA
+    collections, documents, document cursors and collection cursors are
+    released, in order to prevent a segfault under certain circumstances.
+#)  Improved code preventing a statement from binding itself, in order to avoid
+    a potential segfault under certain circumstances.
+#)  Worked around OCI bug when attempting to free objects that are PL/SQL
+    records, in order to avoid a potential segfault.
+#)  Improved test suite and samples. Note that default passwords are no longer
+    supplied. New environment variables can be set to specify passwords if
+    desired, or the tests and samples will prompt for the passwords when
+    needed. In addition, a Python script is now available to create and drop
+    the schemas used for the tests and samples.
+#)  Improved documentation.
+
+
 Version 7.0 (September 2018)
 ----------------------------
 
@@ -37,8 +120,9 @@ Version 7.0 (September 2018)
 #)  SQL objects that are created or fetched from the database are now tracked
     and marked unusable when a connection is closed. This was done in order
     to avoid a segfault under certain circumstances.
-#)  Re-enabled pool pinging functionality for Oracle Client 12.2 and higher
-    to handle classes of connection errors such as resource profile limits.
+#)  Re-enabled dead session detection functionality when using pools for Oracle
+    Client 12.2 and higher in order to handle classes of connection errors such
+    as resource profile limits.
 #)  Improved error messages when the Oracle Client or Oracle Database need to
     be at a minimum version in order to support a particular feature.
 #)  When a connection is used as a context manager, the connection is now
