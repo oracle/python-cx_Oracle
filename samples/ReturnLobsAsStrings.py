@@ -41,10 +41,12 @@ longString = ""
 for i in range(10):
     char = chr(ord('A') + i)
     longString += char * 25000
-    cursor.setinputsizes(None, cx_Oracle.LONG_STRING)
+    # uncomment the line below for cx_Oracle 5.3 and earlier
+    # cursor.setinputsizes(None, cx_Oracle.LONG_STRING)
     cursor.execute("insert into TestClobs values (:1, :2)",
             (i + 1, "STRING " + longString))
-    cursor.setinputsizes(None, cx_Oracle.LONG_BINARY)
+    # uncomment the line below for cx_Oracle 5.3 and earlier
+    # cursor.setinputsizes(None, cx_Oracle.LONG_BINARY)
     cursor.execute("insert into TestBlobs values (:1, :2)",
             (i + 1, longString.encode("ascii")))
 connection.commit()
