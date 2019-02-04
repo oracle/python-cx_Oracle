@@ -191,6 +191,18 @@ Module Interface
     whether or not to initialize Oracle in events mode. This is required for
     continuous query notification and high availability event notifications.
 
+    The homogeneous parameter is expected to be a boolean expression which
+    indicates whether or not to create a homogeneous pool. A homogeneous pool
+    requires that all connections in the pool use the same credentials. As such
+    proxy authentication and external authentication is not possible with a
+    homogeneous pool.
+
+    The externalauth parameter is expected to be a boolean expression which
+    indicates whether or not external authentication should be used. External
+    authentication implies that something other than the database is
+    authenticating the user to the database. This includes the use of operating
+    system authentication and Oracle wallets.
+
     The encoding parameter is expected to be a string, if specified, and sets
     the encoding to use for regular database strings. If not specified, the
     environment variable NLS_LANG is used. If the environment variable NLS_LANG
