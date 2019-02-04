@@ -61,7 +61,7 @@ Quick Start cx_Oracle Installation
 
     - Alternatively use the client libraries already available in a
       locally installed database such as the free `Oracle XE
-      <http://www.oracle.com/technetwork/database/database-technologies/express-edition/overview/index.html>`__
+      <https://www.oracle.com/database/technologies/appdev/xe.html>`__
       release.
 
   Version 18 and 12.2 client libraries can connect to Oracle Database 11.2 or
@@ -214,7 +214,7 @@ to access an Oracle Database instance. Oracle Client versions 18,
 
     - Alternatively use the client libraries already available in a
       locally installed database such as the free `Oracle XE
-      <http://www.oracle.com/technetwork/database/database-technologies/express-edition/overview/index.html>`__
+      <https://www.oracle.com/database/technologies/appdev/xe.html>`__
       release.
 
 Oracle Instant Client Zip Files
@@ -280,6 +280,12 @@ To use cx_Oracle with Oracle Instant Client RPMs:
    <http://www.oracle.com/technetwork/topics/linuxsoft-082809.html>`__, matching your
    Python architecture.
 
+   Oracle's yum server has `Instant Client RPMs for Oracle Linux 7
+   <http://yum.oracle.com/repo/OracleLinux/OL7/oracle/instantclient/x86_64/index.html>`__
+   and `Instant Client RPMs for Oracle Linux 6
+   <http://yum.oracle.com/repo/OracleLinux/OL6/oracle/instantclient/x86_64/index.html>`__
+   that can be downloaded without needing a click-through.
+
 2. Install the downloaded RPM with sudo or as the root user. For example::
 
        sudo yum install oracle-instantclient18.3-basic-18.3.0.0.0-1.x86_64.rpm
@@ -343,12 +349,12 @@ Python architecture.
 
 .. _oraclelinux:
 
-Installing cx_Oracle on Oracle Linux
-====================================
+Installing cx_Oracle RPMs on Oracle Linux
+=========================================
 
-Python packages are available from the `Oracle Linux yum server
+Python and cx_Oracle RPM packages are available from the `Oracle Linux yum server
 <http://yum.oracle.com/>`__.  Various versions of Python are easily installed.
-Packages for cx_Oracle are also available, making it easy to keep up to date.
+Using the yum server makes it easy to keep up to date.
 
 Installation instructions are at `Oracle Linux for Python
 Developers <https://yum.oracle.com/oracle-linux-python.html>`__.
@@ -386,7 +392,7 @@ to access an Oracle Database instance. Oracle Client versions 18,
 
     - Alternatively use the client libraries already available in a
       locally installed database such as the free `Oracle XE
-      <http://www.oracle.com/technetwork/database/database-technologies/express-edition/overview/index.html>`__
+      <https://www.oracle.com/database/technologies/appdev/xe.html>`__
       release.
 
 
@@ -558,6 +564,14 @@ you will also need to download an `ODPI-C
 <https://github.com/oracle/odpi>`__ source zip file and extract it
 inside the directory called "odpi".
 
+cx_Oracle source code is also available from oss.oracle.com.  This can
+be cloned with::
+
+    git clone git://oss.oracle.com/git/oracle/python-cx_Oracle.git cx_Oracle
+    cd cx_Oracle
+    git submodule init
+    git submodule update
+
 
 Install Using Source from PyPI
 ==============================
@@ -624,7 +638,7 @@ If installation fails:
       subdirectory called "odpi" containing files. If missing, review the
       section on `Install Using GitHub`_.
 
-If importing cx_Oracle fails:
+If using cx_Oracle fails:
 
     - Do you get the error "``DPI-1047: Oracle Client library cannot be
       loaded``"?
