@@ -408,22 +408,31 @@ To use cx_Oracle with Oracle Instant Client zip files:
    <http://www.oracle.com/technetwork/topics/winsoft-085727.html>`__, matching your
    Python architecture.
 
-2. Unzip the package into a single directory that is accessible to your
-   application, for example ``C:\oracle\instantclient_18_3``.
+2. Unzip the package into a directory that is accessible to your
+   application. For example unzip
+   ``instantclient-basic-windows.x64-18.3.0.0.0dbru.zip`` to
+   ``C:\oracle\instantclient_18_3``.
 
-3. Set the environment variable ``PATH`` to include the path that you
-   created in step 2. For example, on Windows 7, update ``PATH`` in
-   Control Panel -> System -> Advanced System Settings -> Advanced ->
-   Environment Variables -> System Variables -> PATH.  Alternatively
-   use ``SET`` to change your ``PATH`` in each command prompt window
-   before you run python.
-
-   If you have other Oracle software installed, then when you use
-   Python you will need to make sure that the Instant Client
-   directory, e.g. ``C:\oracle\instantclient_18_3``, occurs in
-   ``PATH`` before any other Oracle directories.
+3. Add this directory to the ``PATH`` environment variable. For
+   example, on Windows 7, update ``PATH`` in Control Panel -> System
+   -> Advanced System Settings -> Advanced -> Environment Variables ->
+   System Variables -> PATH.  The Instant Client directory must occur
+   in ``PATH`` before any other Oracle directories.
 
    Restart any open command prompt windows.
+
+   To avoid interfering with existing tools that require other Oracle
+   Client versions, instead of updating the system-wide ``PATH`` variable, you
+   may prefer to write a batch file that sets ``PATH``, for example::
+
+       REM mypy.bat
+       SET PATH=C:\oracle\instantclient_18_3;%PATH%
+       python %*
+
+   Invoke this batch file everytime you want to run python.
+
+   Alternatively use ``SET`` to change your ``PATH`` in each command
+   prompt window before you run python.
 
 4. Oracle Instant Client libraries require a Visual Studio redistributable with a 64-bit or 32-bit architecture to match Instant Client's architecture.  Each Instant Client version requires a different redistributable version:
 
