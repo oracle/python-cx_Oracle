@@ -8,6 +8,18 @@ cx_Oracle Release Notes
 
 .. _releasenotes70:
 
+Version 7.1.1 (February 2019)
+-----------------------------
+
+#)  Updated to `ODPI-C 3.1.2
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-3-1-2-february-19-2019>`__.
+#)  Corrected code for freeing CQN message objects when multiple queries are
+    registered
+    (`ODPI-C issue 96 <https://github.com/oracle/odpi/issues/96>`__).
+#)  Improved error messages and installation documentation.
+
+
 Version 7.1 (February 2019)
 ---------------------------
 
