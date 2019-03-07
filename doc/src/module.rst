@@ -92,17 +92,25 @@ Module Interface
     The newpassword parameter is expected to be a string if specified and sets
     the password for the logon during the connection process.
 
-    The encoding parameter is expected to be a string if specified and sets the
-    encoding to use for regular database strings. If not specified, the
-    environment variable NLS_LANG is used. If the environment variable NLS_LANG
-    is not set, ASCII is used.
+    The encoding parameter is expected to be one of the
+    `Python standard encodings
+    <https://docs.python.org/3/library/codecs.html#standard-encodings>`__
+    such as 'UTF-8', if specified, and sets the encoding to use for regular
+    database strings. If not specified, the Oracle environment variable
+    NLS_LANG is used and the Oracle character set is translated to one of the
+    standard encodings, if possible. If the Oracle environment variable
+    NLS_LANG is not set, ASCII is used.
 
-    The nencoding parameter is expected to be a string if specified and sets
-    the encoding to use for national character set database strings. If not
-    specified, the environment variable NLS_NCHAR is used. If the environment
-    variable NLS_NCHAR is not used, the environment variable NLS_LANG is used
-    instead, and if the environment variable NLS_LANG is not set, ASCII is
-    used.
+    The nencoding parameter is expected to be one of the
+    `Python standard encodings
+    <https://docs.python.org/3/library/codecs.html#standard-encodings>`__
+    such as 'UTF-8', if specified, and sets the encoding to use for national
+    character set database strings. If not specified, the Oracle environment
+    variable NLS_NCHAR is used and the Oracle character set is translated to
+    one of the standard encodings, if possible. If the Oracle environment
+    variable NLS_NCHAR is not used, the Oracle environment variable NLS_LANG is
+    used instead, and if the Oracle environment variable NLS_LANG is not set,
+    ASCII is used.
 
     The edition parameter is expected to be a string if specified and sets the
     edition to use for the session. It is only relevant if both the client and
@@ -203,17 +211,25 @@ Module Interface
     authenticating the user to the database. This includes the use of operating
     system authentication and Oracle wallets.
 
-    The encoding parameter is expected to be a string, if specified, and sets
-    the encoding to use for regular database strings. If not specified, the
-    environment variable NLS_LANG is used. If the environment variable NLS_LANG
-    is not set, ASCII is used.
+    The encoding parameter is expected to be one of the
+    `Python standard encodings
+    <https://docs.python.org/3/library/codecs.html#standard-encodings>`__
+    such as 'UTF-8', if specified, and sets the encoding to use for regular
+    database strings. If not specified, the Oracle environment variable
+    NLS_LANG is used and the Oracle character set is translated to one of the
+    standard encodings, if possible. If the Oracle environment variable
+    NLS_LANG is not set, ASCII is used.
 
-    The nencoding parameter is expected to be a string, if specified, and sets
-    the encoding to use for national character set database strings. If not
-    specified, the environment variable NLS_NCHAR is used. If the environment
-    variable NLS_NCHAR is not used, the environment variable NLS_LANG is used
-    instead, and if the environment variable NLS_LANG is not set, ASCII is
-    used.
+    The nencoding parameter is expected to be one of the
+    `Python standard encodings
+    <https://docs.python.org/3/library/codecs.html#standard-encodings>`__
+    such as 'UTF-8', if specified, and sets the encoding to use for national
+    character set database strings. If not specified, the Oracle environment
+    variable NLS_NCHAR is used and the Oracle character set is translated to
+    one of the standard encodings, if possible. If the Oracle environment
+    variable NLS_NCHAR is not used, the Oracle environment variable NLS_LANG is
+    used instead, and if the Oracle environment variable NLS_LANG is not set,
+    ASCII is used.
 
     The edition parameter is expected to be a string, if specified, and sets
     the edition to use for the sessions in the pool. It is only relevant if
