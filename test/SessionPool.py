@@ -240,6 +240,79 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, pool.acquire,
                 TestEnv.GetProxyUser(), "this is the wrong password")
 
+    def testTaggingSession(self):
+        "test tagging a session"
+        pool = TestEnv.GetPool(min=2, max=8, increment=3,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT)
+
+        tagMST = "TIME_ZONE=MST"
+        tagUTC = "TIME_ZONE=UTC"
+
+        conn = pool.acquire()
+        self.assertEqual(conn.tag, None)
+        pool.release(conn, tag=tagMST)
+
+        conn = pool.acquire()
+        self.assertEqual(conn.tag, None)
+        conn.tag = tagUTC
+        conn.close()
+
+        conn = pool.acquire(tag=tagMST)
+        self.assertEqual(conn.tag, tagMST)
+        conn.close()
+
+        conn = pool.acquire(tag=tagUTC)
+        self.assertEqual(conn.tag, tagUTC)
+        conn.close()
+
+    def testPLSQLSessionCallbacks(self):
+        "test PL/SQL session callbacks"
+        clientVersion = cx_Oracle.clientversion()
+        if clientVersion < (12, 2):
+            self.skipTest("PL/SQL session callbacks not supported before 12.2")
+        pool = TestEnv.GetPool(min=2, max=8, increment=3,
+                getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT,
+                sessionCallback="pkg_SessionCallback.TheCallback")
+        tags = ["NLS_DATE_FORMAT=SIMPLE", "NLS_DATE_FORMAT=FULL;TIME_ZONE=UTC",
+                "NLS_DATE_FORMAT=FULL;TIME_ZONE=MST"]
+        actualTags = [None, None, "NLS_DATE_FORMAT=FULL;TIME_ZONE=UTC"]
+
+        # truncate PL/SQL session callback log
+        conn = pool.acquire()
+        cursor = conn.cursor()
+        cursor.execute("truncate table PLSQLSessionCallbacks")
+        conn.close()
+
+        # request sessions with each of the first two tags
+        for tag in tags[:2]:
+            conn = pool.acquire(tag=tag)
+            conn.close()
+
+        # for the last tag, use the matchanytag flag
+        conn = pool.acquire(tag=tags[2], matchanytag=True)
+        conn.close()
+
+        # verify the PL/SQL session callback log is accurate
+        conn = pool.acquire()
+        cursor = conn.cursor()
+        cursor.execute("""
+                select RequestedTag, ActualTag
+                from PLSQLSessionCallbacks
+                order by FixupTimestamp""")
+        results = cursor.fetchall()
+        expectedResults = list(zip(tags, actualTags))
+        self.assertEqual(results, expectedResults)
+
+    def testTaggingInvalidKey(self):
+        """testTagging with Invalid key"""
+        pool = TestEnv.GetPool(getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT)
+        conn = pool.acquire()
+        self.assertRaises(TypeError, pool.release, conn, tag=12345)
+        clientVersion = cx_Oracle.clientversion()
+        if clientVersion >= (12, 2):
+            self.assertRaises(cx_Oracle.DatabaseError, pool.release, conn,
+                    tag="INVALID_TAG")
+
 if __name__ == "__main__":
     TestEnv.RunTestCases()
 

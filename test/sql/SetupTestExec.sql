@@ -246,6 +246,13 @@ create table &main_user..TestRowids (
 )
 /
 
+create table &main_user..PlsqlSessionCallbacks (
+    RequestedTag          varchar2(250),
+    ActualTag             varchar2(250),
+    FixupTimestamp        timestamp
+)
+/
+
 -- create queue table and queues for testing advanced queuing
 begin
     dbms_aqadm.create_queue_table('&main_user..BOOK_QUEUE',
@@ -985,6 +992,116 @@ create or replace package body &main_user..pkg_TestRecords as
             t_Result := t_Result || GetStringRep(a_Value(i));
         end loop;
         return t_Result;
+    end;
+
+end;
+/
+
+create or replace package &main_user..pkg_SessionCallback as
+
+    procedure TheCallback (
+        a_RequestedTag                  varchar2,
+        a_ActualTag                     varchar2
+    );
+
+end;
+/
+
+create or replace package body &main_user..pkg_SessionCallback as
+
+    type udt_Properties is table of varchar2(64) index by varchar2(64);
+
+    procedure LogCall (
+        a_RequestedTag                  varchar2,
+        a_ActualTag                     varchar2
+    ) is
+        pragma autonomous_transaction;
+    begin
+        insert into PlsqlSessionCallbacks
+        values (a_RequestedTag, a_ActualTag, systimestamp);
+        commit;
+    end;
+
+    procedure ParseProperty (
+        a_Property                      varchar2,
+        a_Name                          out nocopy varchar2,
+        a_Value                         out nocopy varchar2
+    ) is
+        t_Pos                           number;
+    begin
+        t_Pos := instr(a_Property, '=');
+        if t_Pos = 0 then
+            raise_application_error(-20000, 'Tag must contain key=value pairs');
+        end if;
+        a_Name := substr(a_Property, 1, t_Pos - 1);
+        a_Value := substr(a_Property, t_Pos + 1);
+    end;
+
+    procedure SetProperty (
+        a_Name                          varchar2,
+        a_Value                         varchar2
+    ) is
+        t_ValidValues                   udt_Properties;
+    begin
+        if a_Name = 'TIME_ZONE' then
+            t_ValidValues('UTC') := 'UTC';
+            t_ValidValues('MST') := '-07:00';
+        elsif a_Name = 'NLS_DATE_FORMAT' then
+            t_ValidValues('SIMPLE') := 'YYYY-MM-DD HH24:MI';
+            t_ValidValues('FULL') := 'YYYY-MM-DD HH24:MI:SS';
+        else
+            raise_application_error(-20000, 'Unsupported session setting');
+        end if;
+        if not t_ValidValues.exists(a_Value) then
+            raise_application_error(-20000, 'Unsupported session setting');
+        end if;
+        execute immediate
+                'ALTER SESSION SET ' || a_Name || '=''' ||
+                t_ValidValues(a_Value) || '''';
+    end;
+
+    procedure ParseTag (
+        a_Tag                           varchar2,
+        a_Properties                    out nocopy udt_Properties
+    ) is
+        t_PropertyName                  varchar2(64);
+        t_PropertyValue                 varchar2(64);
+        t_StartPos                      number;
+        t_EndPos                        number;
+    begin
+        t_StartPos := 1;
+        while t_StartPos < length(a_Tag) loop
+            t_EndPos := instr(a_Tag, ';', t_StartPos);
+            if t_EndPos = 0 then
+                t_EndPos := length(a_Tag) + 1;
+            end if;
+            ParseProperty(substr(a_Tag, t_StartPos, t_EndPos - t_StartPos),
+                    t_PropertyName, t_PropertyValue);
+            a_Properties(t_PropertyName) := t_PropertyValue;
+            t_StartPos := t_EndPos + 1;
+        end loop;
+    end;
+
+    procedure TheCallback (
+        a_RequestedTag                  varchar2,
+        a_ActualTag                     varchar2
+    ) is
+        t_RequestedProps                udt_Properties;
+        t_ActualProps                   udt_Properties;
+        t_PropertyName                  varchar2(64);
+    begin
+        LogCall(a_RequestedTag, a_ActualTag);
+        ParseTag(a_RequestedTag, t_RequestedProps);
+        ParseTag(a_ActualTag, t_ActualProps);
+        t_PropertyName := t_RequestedProps.first;
+        while t_PropertyName is not null loop
+            if not t_ActualProps.exists(t_PropertyName) or
+                    t_ActualProps(t_PropertyName) !=
+                    t_RequestedProps(t_PropertyName) then
+                SetProperty(t_PropertyName, t_RequestedProps(t_PropertyName));
+            end if;
+            t_PropertyName := t_RequestedProps.next(t_PropertyName);
+        end loop;
     end;
 
 end;
