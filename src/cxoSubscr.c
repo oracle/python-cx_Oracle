@@ -542,6 +542,8 @@ static void cxoSubscr_free(cxoSubscr *subscr)
     }
     Py_CLEAR(subscr->connection);
     Py_CLEAR(subscr->callback);
+    Py_CLEAR(subscr->name);
+    Py_CLEAR(subscr->ipAddress);
     Py_TYPE(subscr)->tp_free((PyObject*) subscr);
 }
 
@@ -663,6 +665,7 @@ static void cxoMessage_free(cxoMessage *message)
 {
     Py_CLEAR(message->subscription);
     Py_CLEAR(message->dbname);
+    Py_CLEAR(message->txId);
     Py_CLEAR(message->tables);
     Py_CLEAR(message->queries);
     Py_CLEAR(message->queueName);
@@ -672,14 +675,13 @@ static void cxoMessage_free(cxoMessage *message)
 
 
 //-----------------------------------------------------------------------------
-// cxoMessageTable_free()
-//   Free the memory associated with a table in a message.
+// cxoMessageQuery_free()
+//   Free the memory associated with a query in a message.
 //-----------------------------------------------------------------------------
-static void cxoMessageTable_free(cxoMessageTable *table)
+static void cxoMessageQuery_free(cxoMessageQuery *query)
 {
-    Py_CLEAR(table->name);
-    Py_CLEAR(table->rows);
-    Py_TYPE(table)->tp_free((PyObject*) table);
+    Py_CLEAR(query->tables);
+    Py_TYPE(query)->tp_free((PyObject*) query);
 }
 
 
@@ -695,12 +697,13 @@ static void cxoMessageRow_free(cxoMessageRow *row)
 
 
 //-----------------------------------------------------------------------------
-// cxoMessageQuery_free()
-//   Free the memory associated with a query in a message.
+// cxoMessageTable_free()
+//   Free the memory associated with a table in a message.
 //-----------------------------------------------------------------------------
-static void cxoMessageQuery_free(cxoMessageQuery *query)
+static void cxoMessageTable_free(cxoMessageTable *table)
 {
-    Py_CLEAR(query->tables);
-    Py_TYPE(query)->tp_free((PyObject*) query);
+    Py_CLEAR(table->name);
+    Py_CLEAR(table->rows);
+    Py_TYPE(table)->tp_free((PyObject*) table);
 }
 
