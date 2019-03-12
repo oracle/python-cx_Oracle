@@ -8,6 +8,33 @@ cx_Oracle Release Notes
 
 .. _releasenotes70:
 
+Version 7.1.2 (March 2019)
+--------------------------
+
+#)  Updated to `ODPI-C 3.1.3
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-3-1-3-march-12-2019>`__.
+#)  Ensured that the strings "-0" and "-0.0" are correctly handled as zero
+    values
+    (`issue 274 <https://github.com/oracle/python-cx_Oracle/issues/274>`__).
+#)  Eliminated error when startup and shutdown events are generated
+    (`ODPI-C issue 102 <https://github.com/oracle/odpi/issues/102>`__).
+#)  Enabled the types specified in :meth:`Cursor.setinputsizes()` and
+    :meth:`Cursor.callfunc()` to be an object type in addition to a Python
+    type, just like in :meth:`Cursor.var()`.
+#)  Reverted changes to return decimal numbers when the numeric precision was
+    too great to be returned accurately as a floating point number. This change
+    had too great an impact on existing functionality and an output type
+    handler can be used to return decimal numbers where that is desirable
+    (`issue 279 <https://github.com/oracle/python-cx_Oracle/issues/279>`__).
+#)  Eliminated discrepancies in character sets between an external connection
+    handle and the newly created connection handle that references the external
+    connection handle
+    (`issue 273 <https://github.com/oracle/python-cx_Oracle/issues/273>`__).
+#)  Eliminated memory leak when receiving messages received from subscriptions.
+#)  Improved test suite and documentation.
+
+
 Version 7.1.1 (February 2019)
 -----------------------------
 
