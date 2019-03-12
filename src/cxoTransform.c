@@ -717,14 +717,12 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
 #endif
                 Py_DECREF(stringObj);
                 return result;
-            } else if (transformNum != CXO_TRANSFORM_DECIMAL &&
-                    bytes->length <= 15) {
+            } else if (transformNum == CXO_TRANSFORM_DECIMAL) {
+                result = PyObject_CallFunctionObjArgs(
+                        (PyObject*) cxoPyTypeDecimal, stringObj, NULL);
+            } else {
                 result = PyNumber_Float(stringObj);
-                Py_DECREF(stringObj);
-                return result;
             }
-            result = PyObject_CallFunctionObjArgs(
-                    (PyObject*) cxoPyTypeDecimal, stringObj, NULL);
             Py_DECREF(stringObj);
             return result;
         case CXO_TRANSFORM_OBJECT:

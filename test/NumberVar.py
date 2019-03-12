@@ -321,7 +321,7 @@ class TestCase(TestEnv.BaseTestCase):
                 decimal.Decimal("-9.99999999999999e+125"), 0.0, 1e-130,
                 -1e-130]
         outValues = [int("9" * 15 + "0" * 111), -int("9" * 15 + "0" * 111),
-                0, decimal.Decimal("1e-130"), decimal.Decimal("-1e-130")]
+                0, 1e-130, -1e-130]
         for inValue, outValue in zip(inValues, outValues):
             self.cursor.execute("select :1 from dual", (inValue,))
             result, = self.cursor.fetchone()
@@ -351,8 +351,8 @@ class TestCase(TestEnv.BaseTestCase):
                 from TestNumbers
                 where IntCol = 1""")
         result, = self.cursor.fetchone()
-        self.assertAlmostEqual(result,
-                decimal.Decimal("1") / decimal.Decimal("7"))
+        self.assertEqual(result, 1.0 / 7.0)
+        self.assertTrue(isinstance(result, float), "float not returned")
 
     def testStringFormat(self):
         "test that string format is returned properly"
