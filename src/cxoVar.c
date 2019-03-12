@@ -357,17 +357,11 @@ cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
         return (cxoVar*) value;
     }
 
-    // everything else ought to be a Python type
-    if (PyType_Check(value)) {
-        varType = cxoVarType_fromPythonType(value, &objType);
-        if (!varType)
-            return NULL;
-        return cxoVar_new(cursor, numElements, varType, varType->size, 0,
-                objType);
-    }
-
-    PyErr_SetString(PyExc_TypeError, "expecting type");
-    return NULL;
+    // everything else ought to be a Python type or object type
+    varType = cxoVarType_fromPythonType(value, &objType);
+    if (!varType)
+        return NULL;
+    return cxoVar_new(cursor, numElements, varType, varType->size, 0, objType);
 }
 
 
