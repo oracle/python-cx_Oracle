@@ -74,6 +74,8 @@ Connection Object
     that a single round-trip to the database may take before a timeout will
     occur. A value of 0 means that no timeout will take place.
 
+    .. versionadded:: 7.0
+
     .. note::
 
         This attribute is an extension to the DB API definition and is only
