@@ -20,6 +20,12 @@ static PyObject *cxoSodaCollection_dropIndex(cxoSodaCollection*, PyObject*,
         PyObject*);
 static PyObject *cxoSodaCollection_find(cxoSodaCollection*, PyObject*);
 static PyObject *cxoSodaCollection_getDataGuide(cxoSodaCollection*, PyObject*);
+static PyObject *cxoSodaCollection_insertMany(cxoSodaCollection*, PyObject*);
+static PyObject *cxoSodaCollection_insertManyAndGet(cxoSodaCollection*,
+        PyObject*);
+static PyObject *cxoSodaCollection_insertManyHelper(cxoSodaCollection *coll,
+        PyObject *docs, Py_ssize_t numDocs, dpiSodaDoc **handles,
+        dpiSodaDoc **returnHandles);
 static PyObject *cxoSodaCollection_insertOne(cxoSodaCollection*, PyObject*);
 static PyObject *cxoSodaCollection_insertOneAndGet(cxoSodaCollection*,
         PyObject*);
@@ -39,6 +45,9 @@ static PyMethodDef cxoMethods[] = {
             METH_NOARGS },
     { "insertOne", (PyCFunction) cxoSodaCollection_insertOne, METH_O },
     { "insertOneAndGet", (PyCFunction) cxoSodaCollection_insertOneAndGet,
+            METH_O },
+    { "insertMany", (PyCFunction) cxoSodaCollection_insertMany, METH_O },
+    { "insertManyAndGet", (PyCFunction) cxoSodaCollection_insertManyAndGet,
             METH_O },
     { NULL }
 };
@@ -324,29 +333,157 @@ static PyObject *cxoSodaCollection_getDataGuide(cxoSodaCollection *coll,
 
 
 //-----------------------------------------------------------------------------
+// cxoSodaCollection_insertMany()
+//   Inserts multilple document into the collection at one time.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaCollection_insertMany(cxoSodaCollection *coll,
+        PyObject *arg)
+{
+    dpiSodaDoc **handles;
+    Py_ssize_t numDocs;
+    PyObject *result;
+
+    if (!PyList_Check(arg)) {
+        PyErr_SetString(PyExc_TypeError, "expecting list");
+        return NULL;
+    }
+    numDocs = PyList_GET_SIZE(arg);
+    handles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
+    if (!handles) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    result = cxoSodaCollection_insertManyHelper(coll, arg, numDocs, handles,
+            NULL);
+    PyMem_Free(handles);
+    return result;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSodaCollection_insertManyAndGet()
+//   Inserts multiple documents into the collection at one time and return a
+// list of documents containing all but the content itself.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaCollection_insertManyAndGet(cxoSodaCollection *coll,
+        PyObject *arg)
+{
+    dpiSodaDoc **handles, **returnHandles;
+    Py_ssize_t numDocs;
+    PyObject *result;
+
+    if (!PyList_Check(arg)) {
+        PyErr_SetString(PyExc_TypeError, "expecting list");
+        return NULL;
+    }
+    numDocs = PyList_GET_SIZE(arg);
+    handles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
+    if (!handles) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    returnHandles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
+    if (!returnHandles) {
+        PyErr_NoMemory();
+        PyMem_Free(handles);
+        return NULL;
+    }
+    result = cxoSodaCollection_insertManyHelper(coll, arg, numDocs, handles,
+            returnHandles);
+    PyMem_Free(handles);
+    PyMem_Free(returnHandles);
+    return result;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSodaCollection_insertManyHelper()
+//   Helper method to perform bulk insert of SODA documents into a collection.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaCollection_insertManyHelper(cxoSodaCollection *coll,
+        PyObject *docs, Py_ssize_t numDocs, dpiSodaDoc **handles,
+        dpiSodaDoc **returnHandles)
+{
+    PyObject *element, *returnDocs;
+    Py_ssize_t i, j;
+    cxoSodaDoc *doc;
+    uint32_t flags;
+    int status;
+
+    // determine flags to use
+    if (cxoConnection_getSodaFlags(coll->db->connection, &flags) < 0)
+        return NULL;
+
+    // populate array of document handles
+    for (i = 0; i < numDocs; i++) {
+        element = PyList_GET_ITEM(docs, i);
+        if (cxoUtils_processSodaDocArg(coll->db, element, &handles[i]) < 0) {
+            for (j = 0; j < i; j++)
+                dpiSodaDoc_release(handles[j]);
+            return NULL;
+        }
+    }
+
+    // perform bulk insert
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiSodaColl_insertMany(coll->handle, (uint32_t) numDocs, handles,
+            flags, returnHandles);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
+        cxoError_raiseAndReturnNull();
+    for (i = 0; i < numDocs; i++)
+        dpiSodaDoc_release(handles[i]);
+    if (status < 0)
+        return NULL;
+
+    // if no documents are to be returned, None is returned
+    if (!returnHandles)
+        Py_RETURN_NONE;
+
+    // otherwise, return list of documents
+    returnDocs = PyList_New(numDocs);
+    if (!returnDocs) {
+        for (i = 0; i < numDocs; i++)
+            dpiSodaDoc_release(returnHandles[i]);
+        return NULL;
+    }
+    for (i = 0; i < numDocs; i++) {
+        doc = cxoSodaDoc_new(coll->db, returnHandles[i]);
+        if (!doc) {
+            for (j = i; j < numDocs; j++)
+                dpiSodaDoc_release(returnHandles[j]);
+            Py_DECREF(returnDocs);
+            return NULL;
+        }
+        PyList_SET_ITEM(returnDocs, i, (PyObject*) doc);
+    }
+    return returnDocs;
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoSodaCollection_insertOne()
 //   Insert a single document into the collection.
 //-----------------------------------------------------------------------------
 static PyObject *cxoSodaCollection_insertOne(cxoSodaCollection *coll,
         PyObject *arg)
 {
-    cxoSodaDoc *doc;
+    dpiSodaDoc *handle;
     uint32_t flags;
     int status;
 
-    if (cxoUtils_processSodaDocArg(coll->db, arg, &doc) < 0)
+    if (cxoUtils_processSodaDocArg(coll->db, arg, &handle) < 0)
         return NULL;
     if (cxoConnection_getSodaFlags(coll->db->connection, &flags) < 0)
         return NULL;
     Py_BEGIN_ALLOW_THREADS
-    status = dpiSodaColl_insertOne(coll->handle, doc->handle, flags, NULL);
+    status = dpiSodaColl_insertOne(coll->handle, handle, flags, NULL);
     Py_END_ALLOW_THREADS
-    if (status < 0) {
+    if (status < 0)
         cxoError_raiseAndReturnNull();
-        Py_DECREF(doc);
+    dpiSodaDoc_release(handle);
+    if (status < 0)
         return NULL;
-    }
-    Py_DECREF(doc);
     Py_RETURN_NONE;
 }
 
@@ -359,26 +496,24 @@ static PyObject *cxoSodaCollection_insertOne(cxoSodaCollection *coll,
 static PyObject *cxoSodaCollection_insertOneAndGet(cxoSodaCollection *coll,
         PyObject *arg)
 {
-    dpiSodaDoc *returnedDoc;
-    cxoSodaDoc *doc;
+    dpiSodaDoc *handle, *returnedHandle;
     uint32_t flags;
     int status;
 
-    if (cxoUtils_processSodaDocArg(coll->db, arg, &doc) < 0)
+    if (cxoUtils_processSodaDocArg(coll->db, arg, &handle) < 0)
         return NULL;
     if (cxoConnection_getSodaFlags(coll->db->connection, &flags) < 0)
         return NULL;
     Py_BEGIN_ALLOW_THREADS
-    status = dpiSodaColl_insertOne(coll->handle, doc->handle, flags,
-            &returnedDoc);
+    status = dpiSodaColl_insertOne(coll->handle, handle, flags,
+            &returnedHandle);
     Py_END_ALLOW_THREADS
-    if (status < 0) {
+    if (status < 0)
         cxoError_raiseAndReturnNull();
-        Py_DECREF(doc);
+    dpiSodaDoc_release(handle);
+    if (status < 0)
         return NULL;
-    }
-    Py_DECREF(doc);
-    return (PyObject*) cxoSodaDoc_new(coll->db, returnedDoc);
+    return (PyObject*) cxoSodaDoc_new(coll->db, returnedHandle);
 }
 
 

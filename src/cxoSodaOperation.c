@@ -507,23 +507,22 @@ static PyObject *cxoSodaOperation_replaceOne(cxoSodaOperation *op,
         PyObject *arg)
 {
     int status, replaced;
-    cxoSodaDoc *doc;
+    dpiSodaDoc *handle;
     uint32_t flags;
 
     if (cxoConnection_getSodaFlags(op->coll->db->connection, &flags) < 0)
         return NULL;
-    if (cxoUtils_processSodaDocArg(op->coll->db, arg, &doc) < 0)
+    if (cxoUtils_processSodaDocArg(op->coll->db, arg, &handle) < 0)
         return NULL;
     Py_BEGIN_ALLOW_THREADS
     status = dpiSodaColl_replaceOne(op->coll->handle, &op->options,
-            doc->handle, flags, &replaced, NULL);
+            handle, flags, &replaced, NULL);
     Py_END_ALLOW_THREADS
-    if (status < 0) {
+    if (status < 0)
         cxoError_raiseAndReturnNull();
-        Py_DECREF(doc);
+    dpiSodaDoc_release(handle);
+    if (status < 0)
         return NULL;
-    }
-    Py_DECREF(doc);
     if (replaced)
         Py_RETURN_TRUE;
     Py_RETURN_FALSE;
@@ -538,27 +537,25 @@ static PyObject *cxoSodaOperation_replaceOne(cxoSodaOperation *op,
 static PyObject *cxoSodaOperation_replaceOneAndGet(cxoSodaOperation *op,
         PyObject *arg)
 {
-    dpiSodaDoc *replacedDoc;
-    cxoSodaDoc *doc;
+    dpiSodaDoc *handle, *replacedHandle;
     uint32_t flags;
     int status;
 
     if (cxoConnection_getSodaFlags(op->coll->db->connection, &flags) < 0)
         return NULL;
-    if (cxoUtils_processSodaDocArg(op->coll->db, arg, &doc) < 0)
+    if (cxoUtils_processSodaDocArg(op->coll->db, arg, &handle) < 0)
         return NULL;
     Py_BEGIN_ALLOW_THREADS
-    status = dpiSodaColl_replaceOne(op->coll->handle, &op->options,
-            doc->handle, flags, NULL, &replacedDoc);
+    status = dpiSodaColl_replaceOne(op->coll->handle, &op->options, handle,
+            flags, NULL, &replacedHandle);
     Py_END_ALLOW_THREADS
-    if (status < 0) {
+    if (status < 0)
         cxoError_raiseAndReturnNull();
-        Py_DECREF(doc);
+    dpiSodaDoc_release(handle);
+    if (status < 0)
         return NULL;
-    }
-    Py_DECREF(doc);
-    if (replacedDoc)
-        return (PyObject*) cxoSodaDoc_new(op->coll->db, replacedDoc);
+    if (replacedHandle)
+        return (PyObject*) cxoSodaDoc_new(op->coll->db, replacedHandle);
     Py_RETURN_NONE;
 }
 

@@ -526,7 +526,7 @@ int cxoUtils_getModuleAndName(PyTypeObject *type, PyObject **module,
 int cxoUtils_initializeDPI(void);
 int cxoUtils_processJsonArg(PyObject *arg, cxoBuffer *buffer);
 int cxoUtils_processSodaDocArg(cxoSodaDatabase *db, PyObject *arg,
-        cxoSodaDoc **doc);
+        dpiSodaDoc **handle);
 
 cxoVarType *cxoVarType_fromDataTypeInfo(dpiDataTypeInfo *info);
 cxoVarType *cxoVarType_fromPythonType(PyObject *type, cxoObjectType **objType);

@@ -165,14 +165,16 @@ int cxoUtils_processJsonArg(PyObject *arg, cxoBuffer *buffer)
 // a key or media type specified.
 //-----------------------------------------------------------------------------
 int cxoUtils_processSodaDocArg(cxoSodaDatabase *db, PyObject *arg,
-        cxoSodaDoc **doc)
+        dpiSodaDoc **handle)
 {
-    dpiSodaDoc *handle;
     cxoBuffer buffer;
+    cxoSodaDoc *doc;
 
     if (PyObject_TypeCheck(arg, &cxoPyTypeSodaDoc)) {
-        Py_INCREF(arg);
-        *doc = (cxoSodaDoc*) arg;
+        doc = (cxoSodaDoc*) arg;
+        if (dpiSodaDoc_addRef(doc->handle) < 0)
+            return cxoError_raiseAndReturnInt();
+        *handle = doc->handle;
     } else if (PyDict_Check(arg) || PyList_Check(arg)) {
         arg = PyObject_CallFunctionObjArgs(cxoJsonDumpFunction, arg, NULL);
         if (!arg)
@@ -183,18 +185,14 @@ int cxoUtils_processSodaDocArg(cxoSodaDatabase *db, PyObject *arg,
         }
         Py_DECREF(arg);
         if (dpiSodaDb_createDocument(db->handle, NULL, 0, buffer.ptr,
-                buffer.size, NULL, 0, DPI_SODA_FLAGS_DEFAULT, &handle) < 0) {
-            cxoError_raiseAndReturnNull();
+                buffer.size, NULL, 0, DPI_SODA_FLAGS_DEFAULT, handle) < 0) {
             cxoBuffer_clear(&buffer);
-            return -1;
+            return cxoError_raiseAndReturnInt();
         }
         cxoBuffer_clear(&buffer);
-        *doc = cxoSodaDoc_new(db, handle);
-        if (!*doc)
-            return -1;
     } else {
         PyErr_SetString(PyExc_TypeError,
-                "value must be a SODA document or dictionary");
+                "value must be a SODA document or a dictionary or list");
         return -1;
     }
 

@@ -181,6 +181,33 @@ SODA Collection Object
     .. versionadded:: 7.0
 
 
+.. method:: SodaCollection.insertMany(docs)
+
+    Inserts a list of documents into the collection at one time. Each of the
+    input documents can be a dictionary or list or an existing :ref:`SODA
+    document object <sodadoc>`.
+
+    .. note::
+
+        This method requires Oracle Client 18.5 and higher.
+
+    .. versionadded:: 7.2
+
+
+.. method:: SodaCollection.insertManyAndGet(docs)
+
+    Similarly to :meth:`~SodaCollection.insertMany()` this method inserts a
+    list of documents into the collection at one time. The only difference is
+    that it returns a list of :ref:`SODA Document objects <sodadoc>`. Note that
+    for performance reasons the returned documents do not contain the content.
+
+    .. note::
+
+        This method requires Oracle Client 18.5 and higher.
+
+    .. versionadded:: 7.2
+
+
 .. method:: SodaCollection.insertOne(doc)
 
     Inserts a given document into the collection. The input document can be a
