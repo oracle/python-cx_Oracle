@@ -1,4 +1,4 @@
-# cx_Oracle version 7.1
+# cx_Oracle version 7.2
 
 cx_Oracle is a Python extension module that enables access to Oracle
 Database.  It conforms to the [Python database API 2.0
