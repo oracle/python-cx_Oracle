@@ -1327,7 +1327,11 @@ static PyObject *cxoCursor_callProc(cxoCursor *cursor, PyObject *args,
         return NULL;
 
     // create the return value
-    numArgs = PyList_GET_SIZE(cursor->bindVariables);
+    numArgs = 0;
+    if (listOfArguments) {
+        //check already made in cxoCursor_call
+        numArgs = PySequence_Size(listOfArguments);
+    }
     results = PyList_New(numArgs);
     if (!results)
         return NULL;
