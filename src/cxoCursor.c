@@ -1326,12 +1326,8 @@ static PyObject *cxoCursor_callProc(cxoCursor *cursor, PyObject *args,
             keywordArguments) < 0)
         return NULL;
 
-    // create the return value
-    numArgs = 0;
-    if (listOfArguments) {
-        //check already made in cxoCursor_call
-        numArgs = PySequence_Size(listOfArguments);
-    }
+    // create the return value (only positional arguments are returned)
+    numArgs = (listOfArguments) ? PySequence_Size(listOfArguments) : 0;
     results = PyList_New(numArgs);
     if (!results)
         return NULL;

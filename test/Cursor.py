@@ -87,12 +87,9 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(results, ["hi", 10, 2.0])
 
     def testCallProcAllKeywords(self):
-        """test executing a stored procedure with arguments in keywordParameters"""
-        kwargs = dict(
-            a_InValue = "hi",
-            a_InOutValue = self.cursor.var(cx_Oracle.NUMBER),
-            a_OutValue = self.cursor.var(cx_Oracle.NUMBER),
-        )
+        "test executing a stored procedure with args in keywordParameters"
+        kwargs = dict(a_InOutValue=self.cursor.var(cx_Oracle.NUMBER),
+                a_InValue="hi", a_OutValue=self.cursor.var(cx_Oracle.NUMBER))
         kwargs['a_InOutValue'].setvalue(0, 5)
         results = self.cursor.callproc("proc_Test", keywordParameters=kwargs)
         self.assertEqual(results, [])
@@ -100,22 +97,18 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(kwargs['a_OutValue'].getvalue(), 2.0)
 
     def testCallProcOnlyLastKeyword(self):
-        """test executing a stored procedure with last argument in keywordParameters"""
-        kwargs = dict(
-            a_OutValue = self.cursor.var(cx_Oracle.NUMBER),
-        )
-        results = self.cursor.callproc("proc_Test", ("hi",5), kwargs)
+        "test executing a stored procedure with last arg in keywordParameters"
+        kwargs = dict(a_OutValue = self.cursor.var(cx_Oracle.NUMBER))
+        results = self.cursor.callproc("proc_Test", ("hi", 5), kwargs)
         self.assertEqual(results, ["hi", 10])
         self.assertEqual(kwargs['a_OutValue'].getvalue(), 2.0)
 
     def testCallProcRepeatedKeywordParameters(self):
-        """test executing a stored procedure with repeated argument in keywordParameters"""
-        kwargs = dict(
-            a_InValue = "hi",
-            a_OutValue = self.cursor.var(cx_Oracle.NUMBER),
-        )
+        "test executing a stored procedure, repeated arg in keywordParameters"
+        kwargs = dict(a_InValue="hi",
+                a_OutValue=self.cursor.var(cx_Oracle.NUMBER))
         self.assertRaises(cx_Oracle.DatabaseError, self.cursor.callproc,
-                "proc_Test", parameters=("hi",5), keywordParameters=kwargs)
+                "proc_Test", parameters=("hi", 5), keywordParameters=kwargs)
 
     def testCallProcNoArgs(self):
         """test executing a stored procedure without any arguments"""
