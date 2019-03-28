@@ -643,14 +643,16 @@ static PyObject *cxoConnection_new(PyTypeObject *type, PyObject *args,
 // string in to the target.
 //-----------------------------------------------------------------------------
 static int cxoConnection_splitComponent(PyObject **sourceObj,
-        PyObject **targetObj, const char *splitString)
+        PyObject **targetObj, const char *splitString, int first)
 {
     PyObject *temp, *posObj;
     Py_ssize_t size, pos;
+    char *methodName;
 
     if (!*sourceObj || *targetObj)
         return 0;
-    posObj = PyObject_CallMethod(*sourceObj, "find", "s", splitString);
+    methodName = (first) ? "find" : "rfind";
+    posObj = PyObject_CallMethod(*sourceObj, methodName, "s", splitString);
     if (!posObj)
         return -1;
     pos = PyInt_AsLong(posObj);
@@ -742,9 +744,9 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     conn->dsn = dsnObj;
 
     // perform some parsing, if necessary
-    if (cxoConnection_splitComponent(&conn->username, &passwordObj, "/") < 0)
+    if (cxoConnection_splitComponent(&conn->username, &passwordObj, "/", 1) < 0)
         return -1;
-    if (cxoConnection_splitComponent(&passwordObj, &conn->dsn, "@") < 0)
+    if (cxoConnection_splitComponent(&passwordObj, &conn->dsn, "@", 0) < 0)
         return -1;
 
     // setup parameters
