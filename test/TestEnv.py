@@ -49,6 +49,12 @@ import os
 import sys
 import unittest
 
+# for Python 2.7 we need raw_input
+try:
+    input = raw_input
+except NameError:
+    pass
+
 # default values
 DEFAULT_MAIN_USER = "pythontest"
 DEFAULT_PROXY_USER = "pythontestproxy"
