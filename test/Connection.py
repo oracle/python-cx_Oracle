@@ -144,6 +144,22 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, connection.changepassword,
                 TestEnv.GetMainPassword(), newPassword)
 
+    def testParsePassword(self):
+        "test connecting with password containing / and @ symbols"
+        sysRandom = random.SystemRandom()
+        chars = list(sysRandom.choice(string.ascii_letters) for i in range(20))
+        chars[4] = "/"
+        chars[8] = "@"
+        newPassword = "".join(chars)
+        connection = TestEnv.GetConnection()
+        connection.changepassword(TestEnv.GetMainPassword(), newPassword)
+        try:
+            arg = "%s/%s@%s" % (TestEnv.GetMainUser(), newPassword,
+                    TestEnv.GetConnectString())
+            cx_Oracle.connect(arg)
+        finally:
+            connection.changepassword(newPassword, TestEnv.GetMainPassword())
+
     def testEncodings(self):
         "connection with only encoding or nencoding specified should work"
         connection = cx_Oracle.connect(TestEnv.GetMainUser(),
