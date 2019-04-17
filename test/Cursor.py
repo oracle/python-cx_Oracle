@@ -86,6 +86,30 @@ class TestCase(TestEnv.BaseTestCase):
         results = self.cursor.callproc("proc_Test", ("hi", 5, var))
         self.assertEqual(results, ["hi", 10, 2.0])
 
+    def testCallProcAllKeywords(self):
+        "test executing a stored procedure with args in keywordParameters"
+        kwargs = dict(a_InOutValue=self.cursor.var(cx_Oracle.NUMBER),
+                a_InValue="hi", a_OutValue=self.cursor.var(cx_Oracle.NUMBER))
+        kwargs['a_InOutValue'].setvalue(0, 5)
+        results = self.cursor.callproc("proc_Test", keywordParameters=kwargs)
+        self.assertEqual(results, [])
+        self.assertEqual(kwargs['a_InOutValue'].getvalue(), 10)
+        self.assertEqual(kwargs['a_OutValue'].getvalue(), 2.0)
+
+    def testCallProcOnlyLastKeyword(self):
+        "test executing a stored procedure with last arg in keywordParameters"
+        kwargs = dict(a_OutValue = self.cursor.var(cx_Oracle.NUMBER))
+        results = self.cursor.callproc("proc_Test", ("hi", 5), kwargs)
+        self.assertEqual(results, ["hi", 10])
+        self.assertEqual(kwargs['a_OutValue'].getvalue(), 2.0)
+
+    def testCallProcRepeatedKeywordParameters(self):
+        "test executing a stored procedure, repeated arg in keywordParameters"
+        kwargs = dict(a_InValue="hi",
+                a_OutValue=self.cursor.var(cx_Oracle.NUMBER))
+        self.assertRaises(cx_Oracle.DatabaseError, self.cursor.callproc,
+                "proc_Test", parameters=("hi", 5), keywordParameters=kwargs)
+
     def testCallProcNoArgs(self):
         """test executing a stored procedure without any arguments"""
         results = self.cursor.callproc(u"proc_TestNoArgs")
