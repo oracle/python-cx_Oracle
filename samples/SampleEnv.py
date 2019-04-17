@@ -43,6 +43,12 @@ import getpass
 import os
 import sys
 
+# for Python 2.7 we need raw_input
+try:
+    input = raw_input
+except NameError:
+    pass
+
 # default values
 DEFAULT_MAIN_USER = "pythondemo"
 DEFAULT_EDITION_USER = "pythoneditions"
@@ -70,6 +76,7 @@ def GetValue(name, label, defaultValue=""):
             value = getpass.getpass(label)
         if not value:
             value = defaultValue
+    PARAMETERS[name] = value
     return value
 
 def GetMainUser():
