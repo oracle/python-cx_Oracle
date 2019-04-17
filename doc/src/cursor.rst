@@ -424,8 +424,10 @@ Cursor Object
 .. attribute:: Cursor.rowcount
 
     This read-only attribute specifies the number of rows that have currently
-    been fetched from the cursor (for select statements) or that have been
-    affected by the operation (for insert, update and delete statements).
+    been fetched from the cursor (for select statements), that have been
+    affected by the operation (for insert, update, delete and merge
+    statements), or the number of successful executions of the statement
+    (for PL/SQL statements).
 
 
 .. attribute:: Cursor.rowfactory
