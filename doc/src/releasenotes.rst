@@ -8,6 +8,26 @@ cx_Oracle Release Notes
 
 .. _releasenotes70:
 
+Version 7.1.3 (April 2019)
+--------------------------
+
+#)  Updated to `ODPI-C 3.1.4
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-3-1-4-april-24-2019>`__.
+#)  Added support for getting the row count for PL/SQL statements
+    (`issue 285 <https://github.com/oracle/python-cx_Oracle/issues/285>`__).
+#)  Corrected parsing of connect string so that the last @ symbol is searched
+    for instead of the first @ symbol; otherwise, passwords containing an @
+    symbol will result in the incorrect DSN being extracted
+    (`issue 290 <https://github.com/oracle/python-cx_Oracle/issues/290>`__).
+#)  Adjusted return value of cursor.callproc() to follow documentation (only
+    positional arguments are returned since the order of keyword parameters
+    cannot be guaranteed in any case)
+    (`PR 287 <https://github.com/oracle/python-cx_Oracle/pull/287>`__).
+#)  Corrected code getting sample and test parameters by user input when using
+    Python 2.7.
+
+
 Version 7.1.2 (March 2019)
 --------------------------
 
