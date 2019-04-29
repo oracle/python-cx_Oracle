@@ -246,7 +246,9 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
             status = dpiLob_setFromBytes(dbValue->asLOB, buffer->ptr,
                     buffer->size);
             Py_END_ALLOW_THREADS
-            return status;
+            if (status < 0)
+                return cxoError_raiseAndReturnInt();
+            return 0;
         case CXO_TRANSFORM_NATIVE_INT:
 #if PY_MAJOR_VERSION < 3
             if (PyInt_Check(pyValue)) {
