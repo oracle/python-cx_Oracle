@@ -406,6 +406,7 @@ static PyObject *cxoModule_initialize(void)
         return NULL;
 
     // add constants for authorization modes
+    CXO_ADD_INT_CONSTANT("DEFAULT_AUTH", DPI_MODE_AUTH_DEFAULT)
     CXO_ADD_INT_CONSTANT("SYSASM", DPI_MODE_AUTH_SYSASM)
     CXO_ADD_INT_CONSTANT("SYSBKP", DPI_MODE_AUTH_SYSBKP)
     CXO_ADD_INT_CONSTANT("SYSDBA", DPI_MODE_AUTH_SYSDBA)

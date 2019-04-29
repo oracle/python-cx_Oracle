@@ -36,16 +36,17 @@ Module Interface
         This method is an extension to the DB API definition.
 
 
-.. function:: Connection(user=None, password=None, dsn=None, mode=None, \
-        handle=None, pool=None, threaded=False, events=False, cclass=None, \
-        purity=None, newpassword=None, encoding=None, nencoding=None, \
-        edition=None, appcontext=[], tag=None, matchanytag=False, \
-        shardingkey=[], supershardingkey=[])
-    connect(user=None, password=None, dsn=None, mode=None, handle=None, \
-        pool=None, threaded=False, events=False, cclass=None, purity=None, \
+.. function:: Connection(user=None, password=None, dsn=None, \
+        mode=cx_Oracle.DEFAULT_AUTH, handle=0, pool=None, threaded=False, \
+        events=False, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, \
         newpassword=None, encoding=None, nencoding=None, edition=None, \
-        appcontext=[], tag=None, matchanytag=None, shardingkey=[], \
+        appcontext=[], tag=None, matchanytag=False, shardingkey=[], \
         supershardingkey=[])
+    connect(user=None, password=None, dsn=None, mode=cx_Oracle.DEFAULT_AUTH, \
+        handle=0, pool=None, threaded=False, events=False, cclass=None, \
+        purity=cx_Oracle.ATTR_PURITY_DEFAULT, newpassword=None, \
+        encoding=None, nencoding=None, edition=None, appcontext=[], tag=None, \
+        matchanytag=None, shardingkey=[], supershardingkey=[])
 
     Constructor for creating a connection to the database. Return a
     :ref:`connection object <connobj>`. All parameters are optional and can be
@@ -57,12 +58,9 @@ Module Interface
     string is assumed which is to be of the format ``user/password@dsn``, the
     same format accepted by Oracle applications such as SQL\*Plus.
 
-    If the mode is specified, it must be one of :data:`~cx_Oracle.SYSDBA`,
-    :data:`~cx_Oracle.SYSASM`, :data:`~cx_Oracle.SYSOPER`,
-    :data:`~cx_Oracle.SYSBKP`, :data:`~cx_Oracle.SYSDGD`,
-    :data:`~cx_Oracle.SYSKMT` or :data:`~cx_Oracle.SYSRAC` which are defined
-    at the module level; otherwise, it defaults to the normal mode of
-    connecting.
+    If the mode is specified, it must be one of the
+    :ref:`connection authorization modes<connection-authorization-modes>`
+    which are defined at the module level.
 
     If the handle is specified, it must be of type OCISvcCtx\* and is only of
     use when embedding Python in an application (like PowerBuilder) which has
@@ -584,12 +582,19 @@ constants used in advanced queuing.
     default value.
 
 
+.. _connection-authorization-modes:
+
 Connection Authorization Modes
 ------------------------------
 
 These constants are extensions to the DB API definition. They are possible
 values for the mode parameter of the :meth:`connect()` method.
 
+
+.. data:: DEFAULT_AUTH
+
+    This constant is used to specify that default authentication is to take
+    place. This is the default value if no mode is passed at all.
 
 .. data:: PRELIM_AUTH
 
