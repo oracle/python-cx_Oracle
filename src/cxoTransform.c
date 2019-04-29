@@ -193,7 +193,8 @@ PyObject *cxoTransform_dateFromTicks(PyObject *args)
 // cxoTransform_fromPython()
 //   Transforms a Python object into its corresponding database value.
 //-----------------------------------------------------------------------------
-int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
+int cxoTransform_fromPython(cxoTransformNum transformNum,
+        dpiNativeTypeNum *nativeTypeNum, PyObject *pyValue,
         dpiDataBuffer *dbValue, cxoBuffer *buffer, const char *encoding,
         const char *nencoding, cxoVar *var, uint32_t arrayPos)
 {
@@ -242,12 +243,18 @@ int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
                 encoding = nencoding;
             if (cxoBuffer_fromObject(buffer, pyValue, encoding) < 0)
                 return -1;
-            Py_BEGIN_ALLOW_THREADS
-            status = dpiLob_setFromBytes(dbValue->asLOB, buffer->ptr,
-                    buffer->size);
-            Py_END_ALLOW_THREADS
-            if (status < 0)
-                return cxoError_raiseAndReturnInt();
+            if (var) {
+                Py_BEGIN_ALLOW_THREADS
+                status = dpiLob_setFromBytes(dbValue->asLOB, buffer->ptr,
+                        buffer->size);
+                Py_END_ALLOW_THREADS
+                if (status < 0)
+                    return cxoError_raiseAndReturnInt();
+            } else {
+                *nativeTypeNum = DPI_NATIVE_TYPE_BYTES;
+                dbValue->asBytes.ptr = (char*) buffer->ptr;
+                dbValue->asBytes.length = buffer->size;
+            }
             return 0;
         case CXO_TRANSFORM_NATIVE_INT:
 #if PY_MAJOR_VERSION < 3

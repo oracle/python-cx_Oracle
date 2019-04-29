@@ -371,11 +371,13 @@ static int cxoConnectionParams_processShardingKeyValue(
         cxoConnectionParams *params, PyObject *value,
         dpiShardingKeyColumn *column, cxoBuffer *buffer)
 {
+    dpiNativeTypeNum nativeTypeNum;
     cxoTransformNum transformNum;
 
     transformNum = cxoTransform_getNumFromValue(value, 0);
-    if (cxoTransform_fromPython(transformNum, value, &column->value, buffer,
-            params->encoding, params->nencoding, NULL, 0) < 0)
+    if (cxoTransform_fromPython(transformNum, &nativeTypeNum, value,
+            &column->value, buffer, params->encoding, params->nencoding, NULL,
+            0) < 0)
         return -1;
     cxoTransform_getTypeInfo(transformNum, &column->oracleTypeNum,
             &column->nativeTypeNum);

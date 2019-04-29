@@ -601,6 +601,7 @@ static int cxoVar_setSingleValue(cxoVar *var, uint32_t arrayPos,
 {
     dpiDataBuffer tempDbValue, *dbValue;
     PyObject *convertedValue = NULL;
+    dpiNativeTypeNum nativeTypeNum;
     cxoBuffer buffer;
     int result = 0;
     dpiData *data;
@@ -632,8 +633,9 @@ static int cxoVar_setSingleValue(cxoVar *var, uint32_t arrayPos,
             if (var->type->size > 0)
                 dbValue = &tempDbValue;
             else dbValue = &data->value;
-            result = cxoTransform_fromPython(var->type->transformNum, value,
-                    dbValue, &buffer, var->connection->encodingInfo.encoding,
+            result = cxoTransform_fromPython(var->type->transformNum,
+                    &nativeTypeNum, value, dbValue, &buffer,
+                    var->connection->encodingInfo.encoding,
                     var->connection->encodingInfo.nencoding, var, arrayPos);
             if (result == 0 && var->type->size > 0)
                 result = cxoVar_setValueBytes(var, arrayPos, data, &buffer);

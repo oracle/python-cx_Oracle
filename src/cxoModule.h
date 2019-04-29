@@ -504,7 +504,8 @@ cxoSodaOperation *cxoSodaOperation_new(cxoSodaCollection *collection);
 void cxoSubscr_callback(cxoSubscr *subscr, dpiSubscrMessage *message);
 
 PyObject *cxoTransform_dateFromTicks(PyObject *args);
-int cxoTransform_fromPython(cxoTransformNum transformNum, PyObject *pyValue,
+int cxoTransform_fromPython(cxoTransformNum transformNum,
+        dpiNativeTypeNum *nativeTypeNum, PyObject *pyValue,
         dpiDataBuffer *dbValue, cxoBuffer *buffer, const char *encoding,
         const char *nencoding, cxoVar *var, uint32_t arrayPos);
 cxoTransformNum cxoTransform_getNumFromDataTypeInfo(dpiDataTypeInfo *info);

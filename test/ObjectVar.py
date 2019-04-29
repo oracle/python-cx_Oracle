@@ -238,6 +238,24 @@ class TestCase(TestEnv.BaseTestCase):
                 cx_Oracle.Timestamp(1999, 11, 12, 23, 5, 2),
                 'A short CLOB', 'A short NCLOB', b'A short BLOB',
                 (23, 'Substring value'), None), None)
+        obj.CLOBVALUE = "A short CLOB (modified)"
+        obj.NCLOBVALUE = "A short NCLOB (modified)"
+        obj.BLOBVALUE = "A short BLOB (modified)"
+        self.cursor.execute("insert into TestObjects (IntCol, ObjectCol) " \
+                "values (5, :obj)", obj = obj)
+        self.cursor.execute("""
+                select IntCol, ObjectCol, ArrayCol
+                from TestObjects
+                where IntCol = 5""")
+        self.__TestData(5, (5, 'A string', 'Fixed str ', 'A NCHAR string',
+                'Fixed N   ', b'Raw Value', 27, 13, 184.875, 1.375, 23.75,
+                14.25, 29.1625, cx_Oracle.Timestamp(2017, 5, 9, 0, 0, 0),
+                cx_Oracle.Timestamp(2017, 5, 9, 9, 41, 13),
+                cx_Oracle.Timestamp(1986, 8, 2, 15, 27, 38),
+                cx_Oracle.Timestamp(1999, 11, 12, 23, 5, 2),
+                'A short CLOB (modified)', 'A short NCLOB (modified)',
+                b'A short BLOB (modified)',
+                (23, 'Substring value'), None), None)
         self.connection.rollback()
 
     def testInvalidTypeObject(self):

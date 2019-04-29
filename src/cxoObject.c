@@ -176,7 +176,8 @@ static int cxoObject_convertFromPython(cxoObject *obj, PyObject *value,
 
     // convert the different Python types
     cxoTransform_getTypeInfo(transformNum, &oracleTypeNum, nativeTypeNum);
-    if (cxoTransform_fromPython(transformNum, value, &data->value, buffer,
+    if (cxoTransform_fromPython(transformNum, nativeTypeNum, value,
+            &data->value, buffer,
             obj->objectType->connection->encodingInfo.encoding,
             obj->objectType->connection->encodingInfo.nencoding, NULL, 0) < 0)
         return -1;
