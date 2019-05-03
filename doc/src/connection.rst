@@ -193,6 +193,11 @@ Connection Object
 
     .. versionadded:: 5.3
 
+    .. deprecated:: 7.2
+
+        Use the methods :meth:`Queue.deqOne()` or :meth:`Queue.deqMany()`
+        instead.
+
     .. note::
 
         This method is an extension to the DB API definition.
@@ -204,6 +209,10 @@ Connection Object
     See :ref:`deqoptions` for more information.
 
     .. versionadded:: 5.3
+
+    .. deprecated:: 7.2
+
+        Use the attribute :attr:`Queue.deqOptions` instead.
 
     .. note::
 
@@ -253,6 +262,11 @@ Connection Object
 
     .. versionadded:: 5.3
 
+    .. deprecated:: 7.2
+
+        Use the methods :meth:`Queue.enqOne()` or :meth:`Queue.enqMany()`
+        instead.
+
     .. note::
 
         This method is an extension to the DB API definition.
@@ -264,6 +278,10 @@ Connection Object
     See :ref:`enqoptions` for more information.
 
     .. versionadded:: 5.3
+
+    .. deprecated:: 7.2
+
+        Use the attribute :attr:`Queue.enqOptions` instead.
 
     .. note::
 
@@ -441,6 +459,25 @@ Connection Object
     Prepare the distributed (global) transaction for commit. Return a boolean
     indicating if a transaction was actually prepared in order to avoid the
     error ORA-24756 (transaction does not exist).
+
+    .. note::
+
+        This method is an extension to the DB API definition.
+
+
+.. method:: Connection.queue(name, payloadType=None)
+
+    Creates a :ref:`queue <queue>` which is used to enqueue and dequeue
+    messages in Advanced Queueing.
+
+    The name parameter is expected to be a string identifying the queue in
+    which messages are to be enqueued or dequeued.
+
+    The payloadType parameter, if specified, is expected to be an
+    :ref:`object type <objecttype>` that identifies the type of payload the
+    queue expects. If not specified, RAW data is enqueued and dequeued.
+
+    .. versionadded:: 7.2
 
     .. note::
 

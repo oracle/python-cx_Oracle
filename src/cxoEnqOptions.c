@@ -90,22 +90,30 @@ PyTypeObject cxoPyTypeEnqOptions = {
 // cxoEnqOptions_new()
 //   Create a new enqueue options object.
 //-----------------------------------------------------------------------------
-cxoEnqOptions *cxoEnqOptions_new(cxoConnection *connection)
+cxoEnqOptions *cxoEnqOptions_new(cxoConnection *connection,
+        dpiEnqOptions *handle)
 {
-    cxoEnqOptions *self;
+    cxoEnqOptions *options;
+    int status;
 
-    self = (cxoEnqOptions*)
+    options = (cxoEnqOptions*)
             cxoPyTypeEnqOptions.tp_alloc(&cxoPyTypeEnqOptions, 0);
-    if (!self)
+    if (!options)
         return NULL;
-    if (dpiConn_newEnqOptions(connection->handle, &self->handle) < 0) {
-        Py_DECREF(self);
+    if (handle) {
+        status = dpiEnqOptions_addRef(handle);
+    } else {
+        status = dpiConn_newEnqOptions(connection->handle, &handle);
+    }
+    if (status < 0) {
         cxoError_raiseAndReturnNull();
+        Py_DECREF(options);
         return NULL;
     }
-    self->encoding = connection->encodingInfo.encoding;
+    options->handle = handle;
+    options->encoding = connection->encodingInfo.encoding;
 
-    return self;
+    return options;
 }
 
 

@@ -277,6 +277,7 @@ static PyObject *cxoModule_initialize(void)
     CXO_MAKE_TYPE_READY(&cxoPyTypeObject);
     CXO_MAKE_TYPE_READY(&cxoPyTypeObjectType);
     CXO_MAKE_TYPE_READY(&cxoPyTypeObjectVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeQueue);
     CXO_MAKE_TYPE_READY(&cxoPyTypeRowidVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSessionPool);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSodaCollection);

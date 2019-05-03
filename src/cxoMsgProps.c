@@ -15,7 +15,7 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of methods used for message properties
+// forward declarations
 //-----------------------------------------------------------------------------
 static void cxoMsgProps_free(cxoMsgProps*);
 static PyObject *cxoMsgProps_getNumAttempts(cxoMsgProps*, void*);
@@ -37,9 +37,18 @@ static int cxoMsgProps_setPriority(cxoMsgProps*, PyObject*, void*);
 
 
 //-----------------------------------------------------------------------------
-// declaration of calculated members for Python type "MessageProperties"
+// declaration of members
 //-----------------------------------------------------------------------------
-static PyGetSetDef cxoMsgPropsCalcMembers[] = {
+static PyMemberDef cxoMembers[] = {
+    { "payload", T_OBJECT, offsetof(cxoMsgProps, payload), 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
     { "attempts", (getter) cxoMsgProps_getNumAttempts, 0, 0, 0 },
     { "correlation", (getter) cxoMsgProps_getCorrelation,
             (setter) cxoMsgProps_setCorrelation, 0, 0 },
@@ -92,8 +101,8 @@ PyTypeObject cxoPyTypeMsgProps = {
     0,                                  // tp_iter
     0,                                  // tp_iternext
     0,                                  // tp_methods
-    0,                                  // tp_members
-    cxoMsgPropsCalcMembers,             // tp_getset
+    cxoMembers,                         // tp_members
+    cxoCalcMembers,                     // tp_getset
     0,                                  // tp_base
     0,                                  // tp_dict
     0,                                  // tp_descr_get
@@ -112,18 +121,22 @@ PyTypeObject cxoPyTypeMsgProps = {
 // cxoMsgProps_new()
 //   Create a new message properties object.
 //-----------------------------------------------------------------------------
-cxoMsgProps *cxoMsgProps_new(cxoConnection *connection)
+cxoMsgProps *cxoMsgProps_new(cxoConnection *connection, dpiMsgProps *handle)
 {
     cxoMsgProps *props;
 
     props = (cxoMsgProps*) cxoPyTypeMsgProps.tp_alloc(&cxoPyTypeMsgProps, 0);
-    if (!props)
+    if (!props) {
+        if (handle)
+            dpiMsgProps_release(handle);
         return NULL;
-    if (dpiConn_newMsgProps(connection->handle, &props->handle) < 0) {
+    }
+    if (!handle && dpiConn_newMsgProps(connection->handle, &handle) < 0) {
         Py_DECREF(props);
         cxoError_raiseAndReturnNull();
         return NULL;
     }
+    props->handle = handle;
     props->encoding = connection->encodingInfo.encoding;
 
     return props;

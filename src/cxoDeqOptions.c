@@ -118,19 +118,27 @@ PyTypeObject cxoPyTypeDeqOptions = {
 // cxoDeqOptions_new()
 //   Create a new dequeue options object.
 //-----------------------------------------------------------------------------
-cxoDeqOptions *cxoDeqOptions_new(cxoConnection *connection)
+cxoDeqOptions *cxoDeqOptions_new(cxoConnection *connection,
+        dpiDeqOptions *handle)
 {
     cxoDeqOptions *options;
+    int status;
 
     options = (cxoDeqOptions*)
             cxoPyTypeDeqOptions.tp_alloc(&cxoPyTypeDeqOptions, 0);
     if (!options)
         return NULL;
-    if (dpiConn_newDeqOptions(connection->handle, &options->handle) < 0) {
-        Py_DECREF(options);
+    if (handle) {
+        status = dpiDeqOptions_addRef(handle);
+    } else {
+        status = dpiConn_newDeqOptions(connection->handle, &handle);
+    }
+    if (status < 0) {
         cxoError_raiseAndReturnNull();
+        Py_DECREF(options);
         return NULL;
     }
+    options->handle = handle;
     options->encoding = connection->encodingInfo.encoding;
 
     return options;

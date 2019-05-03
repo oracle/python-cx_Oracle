@@ -41,10 +41,12 @@ static PyObject *cxoConnection_createLob(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_getStmtCacheSize(cxoConnection*, void*);
 static PyObject *cxoConnection_newEnqueueOptions(cxoConnection*, PyObject*);
 static PyObject *cxoConnection_newDequeueOptions(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_newMessageProperties(cxoConnection*, PyObject*);
+static PyObject *cxoConnection_newMessageProperties(cxoConnection*, PyObject*,
+        PyObject*);
 static PyObject *cxoConnection_dequeue(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_enqueue(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_ping(cxoConnection*, PyObject*);
+static PyObject *cxoConnection_queue(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_shutdown(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_startup(cxoConnection*, PyObject*, PyObject*);
 static PyObject *cxoConnection_subscribe(cxoConnection*, PyObject*, PyObject*);
@@ -103,10 +105,12 @@ static PyMethodDef cxoConnectionMethods[] = {
     { "enqoptions", (PyCFunction) cxoConnection_newEnqueueOptions,
             METH_NOARGS },
     { "msgproperties", (PyCFunction) cxoConnection_newMessageProperties,
-            METH_NOARGS },
+            METH_VARARGS | METH_KEYWORDS },
     { "deq", (PyCFunction) cxoConnection_dequeue,
             METH_VARARGS | METH_KEYWORDS },
     { "enq", (PyCFunction) cxoConnection_enqueue,
+            METH_VARARGS | METH_KEYWORDS },
+    { "queue", (PyCFunction) cxoConnection_queue,
             METH_VARARGS | METH_KEYWORDS },
     { "createlob", (PyCFunction) cxoConnection_createLob, METH_O },
     { "getSodaDatabase", (PyCFunction) cxoConnection_getSodaDatabase,
@@ -1321,7 +1325,7 @@ static PyObject *cxoConnection_cancel(cxoConnection *conn, PyObject *args)
 static PyObject *cxoConnection_newEnqueueOptions(cxoConnection *conn,
         PyObject *args)
 {
-    return (PyObject*) cxoEnqOptions_new(conn);
+    return (PyObject*) cxoEnqOptions_new(conn, NULL);
 }
 
 
@@ -1332,7 +1336,7 @@ static PyObject *cxoConnection_newEnqueueOptions(cxoConnection *conn,
 static PyObject *cxoConnection_newDequeueOptions(cxoConnection *conn,
         PyObject *args)
 {
-    return (PyObject*) cxoDeqOptions_new(conn);
+    return (PyObject*) cxoDeqOptions_new(conn, NULL);
 }
 
 
@@ -1341,9 +1345,98 @@ static PyObject *cxoConnection_newDequeueOptions(cxoConnection *conn,
 //   Creates a new message properties object and returns it.
 //-----------------------------------------------------------------------------
 static PyObject *cxoConnection_newMessageProperties(cxoConnection *conn,
-        PyObject *args)
+        PyObject *args, PyObject *keywordArgs)
 {
-    return (PyObject*) cxoMsgProps_new(conn);
+    static char *keywordList[] = { "payload", "correlation", "delay",
+            "exceptionQ", "expiration", "priority", NULL };
+    PyObject *payloadObj, *correlationObj, *exceptionQObj;
+    int delay, expiration, priority, status;
+    cxoMsgProps *props;
+    cxoBuffer buffer;
+
+    // parse arguments
+    expiration = -1;
+    delay = priority = 0;
+    payloadObj = correlationObj = exceptionQObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OOiOii", keywordList,
+            &payloadObj, &correlationObj, &delay, &exceptionQObj, &expiration,
+            &priority))
+        return NULL;
+
+    // create new message properties object
+    props = cxoMsgProps_new(conn, NULL);
+    if (!props)
+        return NULL;
+
+    // set payload, if applicable
+    if (payloadObj) {
+        Py_INCREF(payloadObj);
+        props->payload = payloadObj;
+    }
+
+    // set correlation, if applicable
+    if (correlationObj) {
+        if (cxoBuffer_fromObject(&buffer, correlationObj,
+                props->encoding) < 0) {
+            Py_DECREF(props);
+            return NULL;
+        }
+        status = dpiMsgProps_setCorrelation(props->handle, buffer.ptr,
+                buffer.size);
+        cxoBuffer_clear(&buffer);
+        if (status < 0) {
+            cxoError_raiseAndReturnNull();
+            Py_DECREF(props);
+            return NULL;
+        }
+    }
+
+    // set delay, if applicable
+    if (delay != 0) {
+        if (dpiMsgProps_setDelay(props->handle, (int32_t) delay) < 0) {
+            cxoError_raiseAndReturnNull();
+            Py_DECREF(props);
+            return NULL;
+        }
+    }
+
+    // set exception queue, if applicable
+    if (exceptionQObj) {
+        if (cxoBuffer_fromObject(&buffer, exceptionQObj,
+                props->encoding) < 0) {
+            Py_DECREF(props);
+            return NULL;
+        }
+        status = dpiMsgProps_setExceptionQ(props->handle, buffer.ptr,
+                buffer.size);
+        cxoBuffer_clear(&buffer);
+        if (status < 0) {
+            cxoError_raiseAndReturnNull();
+            Py_DECREF(props);
+            return NULL;
+        }
+    }
+
+    // set expiration, if applicable
+    if (expiration != -1) {
+        if (dpiMsgProps_setExpiration(props->handle,
+                (int32_t) expiration) < 0) {
+            cxoError_raiseAndReturnNull();
+            Py_DECREF(props);
+            return NULL;
+        }
+    }
+
+    // set priority, if applicable
+    if (priority != 0) {
+        if (dpiMsgProps_setPriority(props->handle, (int32_t) priority) < 0) {
+            cxoError_raiseAndReturnNull();
+            Py_DECREF(props);
+            return NULL;
+        }
+    }
+
+    return (PyObject*) props;
 }
 
 
@@ -1428,6 +1521,49 @@ static PyObject *cxoConnection_enqueue(cxoConnection *conn, PyObject* args,
 
     // return message id
     return PyBytes_FromStringAndSize(messageIdValue, messageIdLength);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoConnection_queue()
+//   Creates a new queue associated with the connection and returns it to the
+// caller.
+//-----------------------------------------------------------------------------
+static PyObject *cxoConnection_queue(cxoConnection *conn, PyObject* args,
+        PyObject* keywordArgs)
+{
+    static char *keywordList[] = { "name", "type", NULL };
+    cxoObjectType *typeObj;
+    cxoBuffer nameBuffer;
+    PyObject *nameObj;
+    dpiQueue *handle;
+    cxoQueue *queue;
+    int status;
+
+    // parse arguments
+    typeObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|O!", keywordList,
+            &nameObj, &cxoPyTypeObjectType, &typeObj))
+        return NULL;
+    if (cxoBuffer_fromObject(&nameBuffer, nameObj,
+            conn->encodingInfo.encoding) < 0)
+        return NULL;
+
+    // create queue
+    status = dpiConn_newQueue(conn->handle, nameBuffer.ptr, nameBuffer.size,
+            (typeObj) ? typeObj->handle : NULL, &handle);
+    cxoBuffer_clear(&nameBuffer);
+    if (status < 0)
+        return cxoError_raiseAndReturnNull();
+    queue = cxoQueue_new(conn, handle);
+    if (!queue)
+        return NULL;
+    Py_INCREF(nameObj);
+    queue->name = nameObj;
+    Py_XINCREF(typeObj);
+    queue->payloadType = typeObj;
+
+    return (PyObject*) queue;
 }
 
 

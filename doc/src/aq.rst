@@ -4,6 +4,76 @@
 Advanced Queuing
 ****************
 
+.. note::
+
+    All of these objects are extensions to the DB API.
+
+.. _queue:
+
+------
+Queues
+------
+
+Queues are created using the :meth:`Connection.queue()` method and are used to
+enqueue and dequeue messages.
+
+.. attribute:: Queue.connection
+
+    This read-only attribute returns a reference to the connection object on
+    which the queue was created.
+
+
+.. method:: Queue.deqMany(maxMessages)
+
+    Dequeues up to the specified number of messages from the queue and returns
+    a list of these messages. Each element of the returned list is a
+    :ref:`message property<msgproperties>` object.
+
+
+.. method:: Queue.deqOne()
+
+    Dequeues at most one message from the queue. If a message is dequeued, it
+    will be a :ref:`message property<msgproperties>` object; otherwise, it will
+    be the value None.
+
+.. attribute:: Queue.deqOptions
+
+    This read-only attribute returns a reference to the :ref:`options
+    <deqoptions>` that will be used when dequeuing messages from the queue.
+
+
+.. method:: Queue.enqOne(message)
+
+    Enqueues a single message into the queue. The message must be a
+    :ref:`message property<msgproperties>` object which has had its payload
+    attribute set to a value that the queue supports.
+
+
+.. method:: Queue.enqMany(messages)
+
+    Enqueues multiple messages into the queue. The messages parameter must be a
+    sequence containing :ref:`message property <msgproperties>` objects which
+    have all had their payload attribute set to a value that the queue
+    supports.
+
+
+.. attribute:: Queue.enqOptions
+
+    This read-only attribute returns a reference to the :ref:`options
+    <enqoptions>` that will be used when enqueuing messages into the queue.
+
+
+.. attribute:: Queue.name
+
+    This read-only attribute returns the name of the queue.
+
+
+.. attribute:: Queue.payloadType
+
+    This read-only attribute returns the object type for payloads that can be
+    enqueued and dequeued. If using a raw queue, this returns the value None.
+
+
 .. _deqoptions:
 
 ---------------
@@ -203,6 +273,14 @@ Message Properties
 
     This attribute specifies the id of the message in the last queue that
     generated this message.
+
+
+.. attribute:: MessageProperties.payload
+
+    This attribute identifies the payload that will be enqueued or the payload
+    that was dequeued when using a :ref:`queue <queue>`. When enqueuing, the
+    value is checked to ensure that it conforms to the type expected by that
+    queue.
 
 
 .. attribute:: MessageProperties.priority

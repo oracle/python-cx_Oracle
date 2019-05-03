@@ -79,6 +79,7 @@ typedef struct cxoMsgProps cxoMsgProps;
 typedef struct cxoObject cxoObject;
 typedef struct cxoObjectAttr cxoObjectAttr;
 typedef struct cxoObjectType cxoObjectType;
+typedef struct cxoQueue cxoQueue;
 typedef struct cxoSessionPool cxoSessionPool;
 typedef struct cxoSodaCollection cxoSodaCollection;
 typedef struct cxoSodaDatabase cxoSodaDatabase;
@@ -140,6 +141,7 @@ extern PyTypeObject cxoPyTypeObject;
 extern PyTypeObject cxoPyTypeObjectAttr;
 extern PyTypeObject cxoPyTypeObjectType;
 extern PyTypeObject cxoPyTypeObjectVar;
+extern PyTypeObject cxoPyTypeQueue;
 extern PyTypeObject cxoPyTypeRowidVar;
 extern PyTypeObject cxoPyTypeSessionPool;
 extern PyTypeObject cxoPyTypeSodaCollection;
@@ -319,6 +321,7 @@ struct cxoMessageTable {
 struct cxoMsgProps {
     PyObject_HEAD
     dpiMsgProps *handle;
+    PyObject *payload;
     const char *encoding;
 };
 
@@ -349,6 +352,16 @@ struct cxoObjectType {
     cxoTransformNum elementTransformNum;
     PyObject *elementType;
     char isCollection;
+};
+
+struct cxoQueue {
+    PyObject_HEAD
+    cxoConnection *conn;
+    dpiQueue *handle;
+    PyObject *name;
+    PyObject *deqOptions;
+    PyObject *enqOptions;
+    cxoObjectType *payloadType;
 };
 
 struct cxoSessionPool {
@@ -462,9 +475,11 @@ int cxoCursor_performBind(cxoCursor *cursor);
 int cxoCursor_setBindVariables(cxoCursor *cursor, PyObject *parameters,
         unsigned numElements, unsigned arrayPos, int deferTypeAssignment);
 
-cxoDeqOptions *cxoDeqOptions_new(cxoConnection *connection);
+cxoDeqOptions *cxoDeqOptions_new(cxoConnection *connection,
+        dpiDeqOptions *handle);
 
-cxoEnqOptions *cxoEnqOptions_new(cxoConnection *connection);
+cxoEnqOptions *cxoEnqOptions_new(cxoConnection *connection,
+        dpiEnqOptions *handle);
 
 cxoError *cxoError_newFromInfo(dpiErrorInfo *errorInfo);
 int cxoError_raiseAndReturnInt(void);
@@ -476,7 +491,7 @@ PyObject *cxoError_raiseFromString(PyObject *exceptionType,
 PyObject *cxoLob_new(cxoConnection *connection, dpiOracleTypeNum oracleTypeNum,
         dpiLob *handle);
 
-cxoMsgProps *cxoMsgProps_new(cxoConnection*);
+cxoMsgProps *cxoMsgProps_new(cxoConnection*, dpiMsgProps *handle);
 
 int cxoObject_internalExtend(cxoObject *obj, PyObject *sequence);
 PyObject *cxoObject_new(cxoObjectType *objectType, dpiObject *handle);
@@ -488,6 +503,8 @@ cxoObjectType *cxoObjectType_new(cxoConnection *connection,
         dpiObjectType *handle);
 cxoObjectType *cxoObjectType_newByName(cxoConnection *connection,
         PyObject *name);
+
+cxoQueue *cxoQueue_new(cxoConnection *conn, dpiQueue *handle);
 
 cxoSodaCollection *cxoSodaCollection_new(cxoSodaDatabase *db,
         dpiSodaColl *handle);
