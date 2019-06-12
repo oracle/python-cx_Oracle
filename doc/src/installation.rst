@@ -560,6 +560,18 @@ To use cx_Oracle with Oracle Instant Client zip files:
    accessible directory.  Then set the environment variable
    ``TNS_ADMIN`` to that directory name.
 
+Installing cx_Oracle without Internet Access
+============================================
+
+To install cx_Oracle on a computer that is not connected to the
+internet, download the appropriate cx_Oracle file from `PyPI
+<https://pypi.org/project/cx-Oracle/#files>`__.  Transfer this file to
+the offline computer and install it with::
+
+    python -m pip install "<file_name>"
+
+Then follow the general cx_Oracle platform installation instructions
+to install Oracle client libraries.
 
 Install Using GitHub
 ====================
