@@ -23,7 +23,7 @@ import SampleEnv
 import decimal
 
 BOOK_TYPE_NAME = "UDT_BOOK"
-QUEUE_NAME = "BOOKS"
+QUEUE_NAME = "DEMO_BOOK_QUEUE"
 BOOK_DATA = [
     ("The Fellowship of the Ring", "Tolkien, J.R.R.",
             decimal.Decimal("10.99")),

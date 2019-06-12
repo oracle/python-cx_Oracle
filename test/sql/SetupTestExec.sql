@@ -255,10 +255,11 @@ create table &main_user..PlsqlSessionCallbacks (
 
 -- create queue table and queues for testing advanced queuing
 begin
-    dbms_aqadm.create_queue_table('&main_user..BOOK_QUEUE',
+    dbms_aqadm.create_queue_table('&main_user..BOOK_QUEUE_TAB',
             '&main_user..UDT_BOOK');
-    dbms_aqadm.create_queue('&main_user..BOOKS', '&main_user..BOOK_QUEUE');
-    dbms_aqadm.start_queue('&main_user..BOOKS');
+    dbms_aqadm.create_queue('&main_user..TEST_BOOK_QUEUE',
+            '&main_user..BOOK_QUEUE_TAB');
+    dbms_aqadm.start_queue('&main_user..TEST_BOOK_QUEUE');
 end;
 /
 

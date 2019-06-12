@@ -11,6 +11,7 @@ import decimal
 import threading
 
 class TestCase(TestEnv.BaseTestCase):
+    bookQueueName = "TEST_BOOK_QUEUE"
     bookData = [
             ("Wings of Fire", "A.P.J. Abdul Kalam",
                     decimal.Decimal("15.75")),
@@ -28,7 +29,7 @@ class TestCase(TestEnv.BaseTestCase):
         options.deliverymode = cx_Oracle.MSG_PERSISTENT_OR_BUFFERED
         options.visibility = cx_Oracle.ENQ_IMMEDIATE
         props = self.connection.msgproperties()
-        while self.connection.deq("BOOKS", options, props, book):
+        while self.connection.deq(self.bookQueueName, options, props, book):
             pass
 
     def __deqInThread(self, results):
@@ -38,7 +39,7 @@ class TestCase(TestEnv.BaseTestCase):
         options = connection.deqoptions()
         options.wait = 10
         props = connection.msgproperties()
-        if connection.deq("BOOKS", options, props, book):
+        if connection.deq(self.bookQueueName, options, props, book):
             results.append((book.TITLE, book.AUTHORS, book.PRICE))
         connection.commit()
 
@@ -54,7 +55,8 @@ class TestCase(TestEnv.BaseTestCase):
         options = self.connection.deqoptions()
         options.wait = cx_Oracle.DEQ_NO_WAIT
         props = self.connection.msgproperties()
-        messageId = self.connection.deq("BOOKS", options, props, book)
+        messageId = self.connection.deq(self.bookQueueName, options, props,
+                book)
         self.assertTrue(messageId is None)
 
     def testDeqEnq(self):
@@ -68,12 +70,12 @@ class TestCase(TestEnv.BaseTestCase):
             book.TITLE = title
             book.AUTHORS = authors
             book.PRICE = price
-            self.connection.enq("BOOKS", options, props, book)
+            self.connection.enq(self.bookQueueName, options, props, book)
         options = self.connection.deqoptions()
         options.navigation = cx_Oracle.DEQ_FIRST_MSG
         options.wait = cx_Oracle.DEQ_NO_WAIT
         results = []
-        while self.connection.deq("BOOKS", options, props, book):
+        while self.connection.deq(self.bookQueueName, options, props, book):
             row = (book.TITLE, book.AUTHORS, book.PRICE)
             results.append(row)
         self.connection.commit()
@@ -90,13 +92,14 @@ class TestCase(TestEnv.BaseTestCase):
         book.PRICE = price
         options = self.connection.enqoptions()
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", options, props, book)
+        self.connection.enq(self.bookQueueName, options, props, book)
         options = self.connection.deqoptions()
         options.navigation = cx_Oracle.DEQ_FIRST_MSG
         options.wait = cx_Oracle.DEQ_NO_WAIT
         options.mode = cx_Oracle.DEQ_REMOVE_NODATA
         book = booksType.newobject()
-        messageId = self.connection.deq("BOOKS", options, props, book)
+        messageId = self.connection.deq(self.bookQueueName, options, props,
+                book)
         self.connection.commit()
         self.assertTrue(messageId is not None)
         self.assertEqual(book.TITLE, "")
@@ -131,7 +134,7 @@ class TestCase(TestEnv.BaseTestCase):
         book.PRICE = price
         options = self.connection.enqoptions()
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", options, props, book)
+        self.connection.enq(self.bookQueueName, options, props, book)
         self.connection.commit()
         thread.join()
         self.assertEqual(results, [(title, authors, price)])
@@ -147,11 +150,11 @@ class TestCase(TestEnv.BaseTestCase):
         book = booksType.newobject()
         options = self.connection.enqoptions()
         props = self.connection.msgproperties()
-        self.assertRaises(TypeError, self.connection.deq, "BOOKS", options,
-                props, book)
+        self.assertRaises(TypeError, self.connection.deq, self.bookQueueName,
+                options, props, book)
         options = self.connection.deqoptions()
-        self.assertRaises(TypeError, self.connection.enq, "BOOKS", options,
-                props, book)
+        self.assertRaises(TypeError, self.connection.enq, self.bookQueueName,
+                options, props, book)
 
     def testMsgProps(self):
         "test getting/setting message properties attributes"
@@ -175,7 +178,7 @@ class TestCase(TestEnv.BaseTestCase):
         enqOptions = self.connection.enqoptions()
         enqOptions.visibility = cx_Oracle.ENQ_ON_COMMIT
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", enqOptions, props, book)
+        self.connection.enq(self.bookQueueName, enqOptions, props, book)
 
         otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
@@ -184,10 +187,12 @@ class TestCase(TestEnv.BaseTestCase):
         booksType = otherConnection.gettype("UDT_BOOK")
         book = booksType.newobject()
         props = otherConnection.msgproperties()
-        messageId = otherConnection.deq("BOOKS", deqOptions, props, book)
+        messageId = otherConnection.deq(self.bookQueueName, deqOptions, props,
+                book)
         self.assertTrue(messageId is None)
         self.connection.commit()
-        messageId = otherConnection.deq("BOOKS", deqOptions, props, book)
+        messageId = otherConnection.deq(self.bookQueueName, deqOptions, props,
+                book)
         self.assertTrue(messageId is not None)
 
     def testVisibilityModeImmediate(self):
@@ -199,7 +204,7 @@ class TestCase(TestEnv.BaseTestCase):
         enqOptions = self.connection.enqoptions()
         enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", enqOptions, props, book)
+        self.connection.enq(self.bookQueueName, enqOptions, props, book)
 
         otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
@@ -209,7 +214,7 @@ class TestCase(TestEnv.BaseTestCase):
         booksType = otherConnection.gettype("UDT_BOOK")
         book = booksType.newobject()
         props = otherConnection.msgproperties()
-        otherConnection.deq("BOOKS", deqOptions, props, book)
+        otherConnection.deq(self.bookQueueName, deqOptions, props, book)
         results = (book.TITLE, book.AUTHORS, book.PRICE)
         otherConnection.commit()
         self.assertEqual(results, self.bookData[0])
@@ -224,7 +229,7 @@ class TestCase(TestEnv.BaseTestCase):
         enqOptions.deliverymode = cx_Oracle.MSG_BUFFERED
         enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", enqOptions, props, book)
+        self.connection.enq(self.bookQueueName, enqOptions, props, book)
 
         otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
@@ -235,7 +240,7 @@ class TestCase(TestEnv.BaseTestCase):
         booksType = otherConnection.gettype("UDT_BOOK")
         book = booksType.newobject()
         props = otherConnection.msgproperties()
-        otherConnection.deq("BOOKS", deqOptions, props, book)
+        otherConnection.deq(self.bookQueueName, deqOptions, props, book)
         results = (book.TITLE, book.AUTHORS, book.PRICE)
         otherConnection.commit()
         self.assertEqual(results, self.bookData[0])
@@ -250,7 +255,7 @@ class TestCase(TestEnv.BaseTestCase):
         enqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT
         enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", enqOptions, props, book)
+        self.connection.enq(self.bookQueueName, enqOptions, props, book)
 
         otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
@@ -261,7 +266,7 @@ class TestCase(TestEnv.BaseTestCase):
         booksType = otherConnection.gettype("UDT_BOOK")
         book = booksType.newobject()
         props = otherConnection.msgproperties()
-        otherConnection.deq("BOOKS", deqOptions, props, book)
+        otherConnection.deq(self.bookQueueName, deqOptions, props, book)
         results = (book.TITLE, book.AUTHORS, book.PRICE)
         otherConnection.commit()
         self.assertEqual(results, self.bookData[0])
@@ -276,7 +281,7 @@ class TestCase(TestEnv.BaseTestCase):
         enqOptions.deliverymode = cx_Oracle.MSG_PERSISTENT_OR_BUFFERED
         enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", enqOptions, props, book)
+        self.connection.enq(self.bookQueueName, enqOptions, props, book)
 
         otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
@@ -287,7 +292,7 @@ class TestCase(TestEnv.BaseTestCase):
         booksType = otherConnection.gettype("UDT_BOOK")
         book = booksType.newobject()
         props = otherConnection.msgproperties()
-        otherConnection.deq("BOOKS", deqOptions, props, book)
+        otherConnection.deq(self.bookQueueName, deqOptions, props, book)
         results = (book.TITLE, book.AUTHORS, book.PRICE)
         otherConnection.commit()
         self.assertEqual(results, self.bookData[0])
@@ -302,7 +307,7 @@ class TestCase(TestEnv.BaseTestCase):
         enqOptions.deliverymode = cx_Oracle.MSG_BUFFERED
         enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", enqOptions, props, book)
+        self.connection.enq(self.bookQueueName, enqOptions, props, book)
 
         otherConnection = TestEnv.GetConnection()
         deqOptions = otherConnection.deqoptions()
@@ -313,7 +318,8 @@ class TestCase(TestEnv.BaseTestCase):
         booksType = otherConnection.gettype("UDT_BOOK")
         book = booksType.newobject()
         props = otherConnection.msgproperties()
-        messageId = otherConnection.deq("BOOKS", deqOptions, props, book)
+        messageId = otherConnection.deq(self.bookQueueName, deqOptions, props,
+                book)
         self.assertTrue(messageId is None)
 
     def testDequeueTransformation(self):
@@ -325,7 +331,7 @@ class TestCase(TestEnv.BaseTestCase):
         expectedPrice = book.PRICE + 10
         enqOptions = self.connection.enqoptions()
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", enqOptions, props, book)
+        self.connection.enq(self.bookQueueName, enqOptions, props, book)
         self.connection.commit()
 
         otherConnection = TestEnv.GetConnection()
@@ -337,7 +343,7 @@ class TestCase(TestEnv.BaseTestCase):
         booksType = otherConnection.gettype("UDT_BOOK")
         book = booksType.newobject()
         props = otherConnection.msgproperties()
-        otherConnection.deq("BOOKS", deqOptions, props, book)
+        otherConnection.deq(self.bookQueueName, deqOptions, props, book)
         otherPrice = book.PRICE
         self.assertEqual(otherPrice, expectedPrice)
 
@@ -351,7 +357,7 @@ class TestCase(TestEnv.BaseTestCase):
         enqOptions = self.connection.enqoptions()
         enqOptions.transformation = "%s.transform1" % self.connection.username
         props = self.connection.msgproperties()
-        self.connection.enq("BOOKS", enqOptions, props, book)
+        self.connection.enq(self.bookQueueName, enqOptions, props, book)
         self.connection.commit()
 
         otherConnection = TestEnv.GetConnection()
@@ -362,7 +368,7 @@ class TestCase(TestEnv.BaseTestCase):
         booksType = otherConnection.gettype("UDT_BOOK")
         book = booksType.newobject()
         props = otherConnection.msgproperties()
-        otherConnection.deq("BOOKS", deqOptions, props, book)
+        otherConnection.deq(self.bookQueueName, deqOptions, props, book)
         otherPrice = book.PRICE
         self.assertEqual(otherPrice, expectedPrice)
 

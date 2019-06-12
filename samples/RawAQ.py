@@ -20,7 +20,7 @@ from __future__ import print_function
 import cx_Oracle
 import SampleEnv
 
-QUEUE_NAME = "DEMORAW"
+QUEUE_NAME = "DEMO_RAW_QUEUE"
 PAYLOAD_DATA = [
     "The first message",
     "The second message",
