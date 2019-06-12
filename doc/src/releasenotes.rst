@@ -262,7 +262,8 @@ Version 6.4 (July 2018)
 
 #)  Added support for using the cursor as a context manager
     (`issue 190 <https://github.com/oracle/python-cx_Oracle/issues/190>`__).
-#)  Added support for specifying the "errors" parameter to the decode() that
+#)  Added parameter "encodingErrors" to function :meth:`Cursor.var()` in order
+    to add support for specifying the "errors" parameter to the decode() that
     takes place internally when fetching strings from the database
     (`issue 162 <https://github.com/oracle/python-cx_Oracle/issues/162>`__).
 #)  Added support for specifying an integer for the parameters argument to
