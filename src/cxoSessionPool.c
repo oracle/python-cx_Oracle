@@ -332,7 +332,7 @@ static PyObject *cxoSessionPool_acquire(cxoSessionPool *pool, PyObject *args,
             "tag", "matchanytag", "shardingkey", "supershardingkey", NULL };
     PyObject *createKeywordArgs, *result, *cclassObj, *purityObj, *tagObj;
     PyObject *shardingKeyObj, *superShardingKeyObj;
-    unsigned usernameLength, passwordLength;
+    Py_ssize_t usernameLength, passwordLength;
     char *username, *password;
     PyObject *matchAnyTagObj;
 

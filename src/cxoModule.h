@@ -9,6 +9,8 @@
 //   Include file for all cx_Oracle source files.
 //-----------------------------------------------------------------------------
 
+#define PY_SSIZE_T_CLEAN                1
+
 #include <Python.h>
 #include <structmember.h>
 #include <time.h>

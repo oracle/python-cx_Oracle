@@ -1199,7 +1199,7 @@ static PyObject *cxoConnection_commit(cxoConnection *conn, PyObject *args)
 //-----------------------------------------------------------------------------
 static PyObject *cxoConnection_begin(cxoConnection *conn, PyObject *args)
 {
-    uint32_t transactionIdLength, branchIdLength;
+    Py_ssize_t transactionIdLength, branchIdLength;
     const char *transactionId, *branchId;
     int formatId, status;
 
