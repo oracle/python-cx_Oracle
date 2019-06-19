@@ -192,7 +192,7 @@ int cxoQueue_deqHelper(cxoQueue *queue, uint32_t *numProps,
     const char *buffer;
     cxoMsgProps *temp;
     cxoObject *obj;
-    int ok;
+    int ok, status;
 
     // use the same array to store the intermediate values provided by ODPI-C;
     // by doing so there is no need to allocate an additional array and any
@@ -200,7 +200,10 @@ int cxoQueue_deqHelper(cxoQueue *queue, uint32_t *numProps,
     handles = (dpiMsgProps**) props;
 
     // perform dequeue
-    if (dpiQueue_deqMany(queue->handle, numProps, handles) < 0)
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiQueue_deqMany(queue->handle, numProps, handles);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
         return cxoError_raiseAndReturnInt();
 
     // create objects that are returned to the user
@@ -298,7 +301,10 @@ int cxoQueue_enqHelper(cxoQueue *queue, uint32_t numProps,
     }
 
     // perform enqueue
-    if (dpiQueue_enqMany(queue->handle, numProps, handles) < 0)
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiQueue_enqMany(queue->handle, numProps, handles);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
         return cxoError_raiseAndReturnInt();
 
     return 0;

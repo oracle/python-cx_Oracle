@@ -1469,9 +1469,11 @@ static PyObject *cxoConnection_dequeue(cxoConnection *conn, PyObject* args,
         return NULL;
 
     // dequeue payload
+    Py_BEGIN_ALLOW_THREADS
     status = dpiConn_deqObject(conn->handle, nameBuffer.ptr, nameBuffer.size,
             optionsObj->handle, propertiesObj->handle, payloadObj->handle,
             &messageIdValue, &messageIdLength);
+    Py_END_ALLOW_THREADS
     cxoBuffer_clear(&nameBuffer);
     if (status < 0)
         return cxoError_raiseAndReturnNull();
@@ -1512,9 +1514,11 @@ static PyObject *cxoConnection_enqueue(cxoConnection *conn, PyObject* args,
         return NULL;
 
     // enqueue payload
+    Py_BEGIN_ALLOW_THREADS
     status = dpiConn_enqObject(conn->handle, nameBuffer.ptr, nameBuffer.size,
             optionsObj->handle, propertiesObj->handle, payloadObj->handle,
             &messageIdValue, &messageIdLength);
+    Py_END_ALLOW_THREADS
     cxoBuffer_clear(&nameBuffer);
     if (status < 0)
         return cxoError_raiseAndReturnNull();
