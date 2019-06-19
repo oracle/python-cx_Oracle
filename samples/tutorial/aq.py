@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
@@ -32,7 +32,7 @@ cur.execute(
            end if;
        end;""")
 
-# Create type
+# Create a type
 print("Creating books type UDT_BOOK...")
 cur.execute("""
         create type %s as object (
@@ -44,31 +44,39 @@ cur.execute("""
 # Create queue table and queue and start the queue
 print("Creating queue table...")
 cur.callproc("dbms_aqadm.create_queue_table",
-             (QUEUE_TABLE_NAME, BOOK_TYPE_NAME))
+        (QUEUE_TABLE_NAME, BOOK_TYPE_NAME))
 cur.callproc("dbms_aqadm.create_queue", (QUEUE_NAME, QUEUE_TABLE_NAME))
 cur.callproc("dbms_aqadm.start_queue", (QUEUE_NAME,))
 
-# Enqueue a few messages
 booksType = con.gettype(BOOK_TYPE_NAME)
-book1 = booksType.newobject()
-book1.TITLE = "The Fellowship of the Ring"
-book1.AUTHORS = "Tolkien, J.R.R."
-book1.PRICE = decimal.Decimal("10.99")
-book2 = booksType.newobject()
-book2.TITLE = "Harry Potter and the Philosopher's Stone"
-book2.AUTHORS = "Rowling, J.K."
-book2.PRICE = decimal.Decimal("7.99")
-options = con.enqoptions()
-messageProperties = con.msgproperties()
-for book in (book1, book2):
-    print("Enqueuing book", book.TITLE)
-    con.enq(QUEUE_NAME, options, messageProperties, book)
-con.commit()
+queue = con.queue(QUEUE_NAME, booksType)
+
+# Enqueue a few messages
+print("Enqueuing messages...")
+
+BOOK_DATA = [
+    ("The Fellowship of the Ring", "Tolkien, J.R.R.", decimal.Decimal("10.99")),
+    ("Harry Potter and the Philosopher's Stone", "Rowling, J.K.",
+            decimal.Decimal("7.99"))
+]
+
+for title, authors, price in BOOK_DATA:
+    book = booksType.newobject()
+    book.TITLE = title
+    book.AUTHORS = authors
+    book.PRICE = price
+    print(title)
+    queue.enqOne(con.msgproperties(payload=book))
+    con.commit()
 
 # Dequeue the messages
-options = con.deqoptions()
-options.navigation = cx_Oracle.DEQ_FIRST_MSG
-options.wait = cx_Oracle.DEQ_NO_WAIT
-while con.deq(QUEUE_NAME, options, messageProperties, book):
-    print("Dequeued book", book.TITLE)
-con.commit()
+print("\nDequeuing messages...")
+queue.deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+while True:
+    props = queue.deqOne()
+    if not props:
+        break
+    print(props.payload.TITLE)
+    con.commit()
+
+print("\nDone.")

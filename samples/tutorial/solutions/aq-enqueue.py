@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
@@ -20,18 +20,21 @@ QUEUE_NAME = "BOOKS"
 QUEUE_TABLE_NAME = "BOOK_QUEUE_TABLE"
 
 # Enqueue a few messages
+print("Enqueuing messages...")
+
+BOOK_DATA = [
+    ("The Fellowship of the Ring", "Tolkien, J.R.R.", decimal.Decimal("10.99")),
+    ("Harry Potter and the Philosopher's Stone", "Rowling, J.K.", decimal.Decimal("7.99"))
+]
+
 booksType = con.gettype(BOOK_TYPE_NAME)
-book1 = booksType.newobject()
-book1.TITLE = "The Fellowship of the Ring"
-book1.AUTHORS = "Tolkien, J.R.R."
-book1.PRICE = decimal.Decimal("10.99")
-book2 = booksType.newobject()
-book2.TITLE = "Harry Potter and the Philosopher's Stone"
-book2.AUTHORS = "Rowling, J.K."
-book2.PRICE = decimal.Decimal("7.99")
-options = con.enqoptions()
-messageProperties = con.msgproperties()
-for book in (book1, book2):
-    print("Enqueuing book", book.TITLE)
-    con.enq(QUEUE_NAME, options, messageProperties, book)
-con.commit()
+queue = con.queue(QUEUE_NAME, booksType)
+
+for title, authors, price in BOOK_DATA:
+    book = booksType.newobject()
+    book.TITLE = title
+    book.AUTHORS = authors
+    book.PRICE = price
+    print(title)
+    queue.enqOne(con.msgproperties(payload=book, expiration=4))
+    con.commit()

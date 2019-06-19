@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
@@ -20,12 +20,16 @@ QUEUE_NAME = "BOOKS"
 QUEUE_TABLE_NAME = "BOOK_QUEUE_TABLE"
 
 # Dequeue the messages
-options = con.deqoptions()
-options.navigation = cx_Oracle.DEQ_FIRST_MSG
-options.wait = cx_Oracle.DEQ_NO_WAIT
-messageProperties = con.msgproperties()
 booksType = con.gettype(BOOK_TYPE_NAME)
-book = booksType.newobject()
-while con.deq(QUEUE_NAME, options, messageProperties, book):
-    print("Dequeued book", book.TITLE)
-con.commit()
+queue = con.queue(QUEUE_NAME, booksType)
+queue.deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+queue.deqOptions.visibility = cx_Oracle.DEQ_IMMEDIATE
+
+print("\nDequeuing messages...")
+while True:
+    props = queue.deqOne()
+    if not props:
+        break
+    print(props.payload.TITLE)
+
+print("\nDone.")

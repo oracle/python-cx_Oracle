@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
@@ -32,7 +32,7 @@ cur.execute(
            end if;
        end;""")
 
-# Create type
+# Create a type
 print("Creating books type UDT_BOOK...")
 cur.execute("""
         create type %s as object (
@@ -44,6 +44,6 @@ cur.execute("""
 # Create queue table and queue and start the queue
 print("Creating queue table...")
 cur.callproc("dbms_aqadm.create_queue_table",
-             (QUEUE_TABLE_NAME, BOOK_TYPE_NAME))
+        (QUEUE_TABLE_NAME, BOOK_TYPE_NAME))
 cur.callproc("dbms_aqadm.create_queue", (QUEUE_NAME, QUEUE_TABLE_NAME))
 cur.callproc("dbms_aqadm.start_queue", (QUEUE_NAME,))

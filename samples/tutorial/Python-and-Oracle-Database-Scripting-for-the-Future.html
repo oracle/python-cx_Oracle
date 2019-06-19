@@ -104,7 +104,7 @@
 
 <ol>
   <li><a target="_blank" href="https://www.python.org/">Python</a> (3.6 preferred but 2.7 should work)</li>
-  <li>cx_Oracle (version 7 preferred but 6.3 or later should work) and Oracle Instant Client Package - Basic (version 18.3 preferred but 12.2 should work)
+  <li>cx_Oracle (version 7.2 preferred but 6.3 or later should work, except for the section on Advanced Queuing which requires version 7.2 or later) and Oracle Instant Client Package - Basic (version 19.3 preferred but 18.3 or 12.2 should also work)
     <ul>
       <li><a target="_blank" href="http://cx-oracle.readthedocs.io/en/latest/installation.html#installing-cx-oracle-on-linux">Linux</a></li>
       <li><a target="_blank" href="http://cx-oracle.readthedocs.io/en/latest/installation.html#installing-cx-oracle-on-macos">macOS</a> - please note the special instructions for macOS in the link.</li>
@@ -1976,7 +1976,7 @@ cur.execute(
            end if;
        end;""")
 
-# Create type
+# Create a type
 print("Creating books type UDT_BOOK...")
 cur.execute("""
         create type %s as object (
@@ -1988,38 +1988,47 @@ cur.execute("""
 # Create queue table and queue and start the queue
 print("Creating queue table...")
 cur.callproc("dbms_aqadm.create_queue_table",
-             (QUEUE_TABLE_NAME, BOOK_TYPE_NAME))
+        (QUEUE_TABLE_NAME, BOOK_TYPE_NAME))
 cur.callproc("dbms_aqadm.create_queue", (QUEUE_NAME, QUEUE_TABLE_NAME))
 cur.callproc("dbms_aqadm.start_queue", (QUEUE_NAME,))
 
-# Enqueue a few messages
 booksType = con.gettype(BOOK_TYPE_NAME)
-book1 = booksType.newobject()
-book1.TITLE = "The Fellowship of the Ring"
-book1.AUTHORS = "Tolkien, J.R.R."
-book1.PRICE = decimal.Decimal("10.99")
-book2 = booksType.newobject()
-book2.TITLE = "Harry Potter and the Philosopher's Stone"
-book2.AUTHORS = "Rowling, J.K."
-book2.PRICE = decimal.Decimal("7.99")
-options = con.enqoptions()
-messageProperties = con.msgproperties()
-for book in (book1, book2):
-    print("Enqueuing book", book.TITLE)
-    con.enq(QUEUE_NAME, options, messageProperties, book)
-con.commit()
+queue = con.queue(QUEUE_NAME, booksType)
+
+# Enqueue a few messages
+print("Enqueuing messages...")
+
+BOOK_DATA = [
+    ("The Fellowship of the Ring", "Tolkien, J.R.R.", decimal.Decimal("10.99")),
+    ("Harry Potter and the Philosopher's Stone", "Rowling, J.K.",
+            decimal.Decimal("7.99"))
+]
+
+for title, authors, price in BOOK_DATA:
+    book = booksType.newobject()
+    book.TITLE = title
+    book.AUTHORS = authors
+    book.PRICE = price
+    print(title)
+    queue.enqOne(con.msgproperties(payload=book))
+    con.commit()
 
 # Dequeue the messages
-options = con.deqoptions()
-options.navigation = cx_Oracle.DEQ_FIRST_MSG
-options.wait = cx_Oracle.DEQ_NO_WAIT
-while con.deq(QUEUE_NAME, options, messageProperties, book):
-    print("Dequeued book", book.TITLE)
-con.commit()
+print("\nDequeuing messages...")
+queue.deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+while True:
+    props = queue.deqOne()
+    if not props:
+        break
+    print(props.payload.TITLE)
+    con.commit()
+
+print("\nDone.")
 </pre>
 
 <p>This file sets up Advanced Queuing using Oracle's DBMS_AQADM
-package.  The queue is used for passing Oracle UDT_BOOK objects.</p>
+package.  The queue is used for passing Oracle UDT_BOOK objects.  The
+file uses AQ interface features enhanced in cx_Oracle 7.2.</p>
 
 <p>Run the file:</p>
 
@@ -2030,14 +2039,37 @@ package.  The queue is used for passing Oracle UDT_BOOK objects.</p>
 <p>To experiment, split the code into three files: one to create and
 start the queue, and two other files to queue and dequeue messages.
 Experiment running the queue and dequeue files concurrently in
-separate terminal windows. If you are stuck, look in the
-<code>solutions</code> directory at the <code>aq-dequeue.py</code>,
-<code>aq-enqueue.py</code> and <code>aq-queuestart.py</code>
-files.</p>
+separate terminal windows.</p>
 
-<p>Try changing the dequeue options and mode.  For example change the
-dequeue <code>options.wait</code> value to
-<code>cx_Oracle.DEQ_WAIT_FOREVER</code>.</p>
+<p>Try removing the <code>commit()</code> call in
+<code>aq-dequeue.py</code>.  Now run <code>aq-enqueue.py</code> once
+and then <code>aq-dequeue.py</code> several times.  The same messages
+will be available each time you try to dequeue them.</p>
+
+<p>Change <code>aq-dequeue.py</code> to commit in a separate
+transaction by changing the "visibility" setting:</p>
+
+<pre>
+queue.deqOptions.visibility = cx_Oracle.DEQ_IMMEDIATE
+</pre>
+
+<p>This gives the same behavior as the original code.</p>
+
+<p>Now change the options of enqueued messages so that they expire from the
+queue if they have not been dequeued after four seconds:</p>
+
+<pre>
+queue.enqOne(con.msgproperties(payload=book, expiration=4))
+</pre>
+
+<p>Now run <code>aq-enqueue.py</code> and wait four seconds before you
+run <code>aq-dequeue.py</code>.  There should be no messages to
+dequeue. </p>
+
+<p>If you are stuck, look in the <code>solutions</code> directory at
+the <code>aq-dequeue.py</code>, <code>aq-enqueue.py</code> and
+<code>aq-queuestart.py</code> files.</p>
+
 
 </ul>
 </li>
