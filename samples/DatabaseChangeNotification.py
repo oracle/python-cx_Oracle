@@ -52,6 +52,7 @@ sub = connection.subscribe(callback = callback, timeout = 1800,
         qos = cx_Oracle.SUBSCR_QOS_ROWIDS)
 print("Subscription:", sub)
 print("--> Connection:", sub.connection)
+print("--> ID:", sub.id)
 print("--> Callback:", sub.callback)
 print("--> Namespace:", sub.namespace)
 print("--> Protocol:", sub.protocol)

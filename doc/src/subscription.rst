@@ -23,11 +23,10 @@ Subscription Object
 
 .. attribute:: Subscription.id
 
-    This read-only attribute returns the value 0.
-
-    .. deprecated:: 6.0
-        This attribute was never intended to be exposed and will be removed
-        in cx_Oracle 7.
+    This read-only attribute returns the value of ``REGID`` found in the
+    database view ``USER_CHANGE_NOTIFICATION_REGS`` or the value of ``REG_ID``
+    found in the database view ``USER_SUBSCR_REGISTRATIONS``. For AQ
+    subscriptions, the value is 0.
 
 
 .. attribute:: Subscription.ipAddress

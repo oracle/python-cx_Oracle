@@ -1786,6 +1786,7 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
         Py_DECREF(subscr);
         return NULL;
     }
+    subscr->id = params.outRegId;
     cxoBuffer_clear(&ipAddressBuffer);
     cxoBuffer_clear(&nameBuffer);
 
