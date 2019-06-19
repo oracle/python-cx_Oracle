@@ -596,6 +596,8 @@ values for the mode parameter of the :meth:`connect()` method.
     This constant is used to specify that default authentication is to take
     place. This is the default value if no mode is passed at all.
 
+    .. versionadded:: 7.2
+
 .. data:: PRELIM_AUTH
 
     This constant is used to specify that preliminary authentication is to be
