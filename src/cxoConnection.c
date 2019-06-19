@@ -1536,7 +1536,7 @@ static PyObject *cxoConnection_enqueue(cxoConnection *conn, PyObject* args,
 static PyObject *cxoConnection_queue(cxoConnection *conn, PyObject* args,
         PyObject* keywordArgs)
 {
-    static char *keywordList[] = { "name", "type", NULL };
+    static char *keywordList[] = { "name", "payloadType", NULL };
     cxoObjectType *typeObj;
     cxoBuffer nameBuffer;
     PyObject *nameObj;
