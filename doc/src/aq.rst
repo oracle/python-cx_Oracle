@@ -14,8 +14,8 @@ Advanced Queuing
 Queues
 ------
 
-Queues are created using the :meth:`Connection.queue()` method and are used to
-enqueue and dequeue messages.
+These objects are created using the :meth:`Connection.queue()` method and are
+used to enqueue and dequeue messages.
 
 .. attribute:: Queue.connection
 
@@ -82,9 +82,9 @@ Dequeue Options
 
 .. note::
 
-    This object is an extension to the DB API. It is returned by the
-    :meth:`Connection.deqoptions()` call and is used in calls to
-    :meth:`Connection.deq()`.
+    These objects are used to configure how messages are dequeued from queues.
+    An instance of this object is found in the attribute
+    :attr:`Queue.deqOptions`.
 
 
 .. attribute:: DeqOptions.condition
@@ -177,9 +177,9 @@ Enqueue Options
 
 .. note::
 
-    This object is an extension to the DB API. It is returned by the
-    :meth:`Connection.enqoptions()` call and is used in calls to
-    :meth:`Connection.enq()`.
+    These objects are used to configure how messages are enqueued into queues.
+    An instance of this object is found in the attribute
+    :attr:`Queue.enqOptions`.
 
 
 .. attribute:: EnqOptions.deliverymode
@@ -213,9 +213,11 @@ Message Properties
 
 .. note::
 
-    This object is an extension to the DB API. It is returned by the
-    :meth:`Connection.msgproperties()` call and is used in calls to
-    :meth:`Connection.deq()` and :meth:`Connection.enq()`.
+    These objects are used to identify the properties of messages that are
+    enqueued and dequeued in queues. They are created by the method
+    :meth:`Connection.msgproperties()`.  They are used by the methods
+    :meth:`Queue.enqOne()` and :meth:`Queue.enqMany()` and
+    returned by the methods :meth:`Queue.deqOne()` and :meth:`Queue.deqMany()`.
 
 
 .. attribute:: MessageProperties.attempts

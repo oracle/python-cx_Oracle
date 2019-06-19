@@ -1348,7 +1348,7 @@ static PyObject *cxoConnection_newMessageProperties(cxoConnection *conn,
         PyObject *args, PyObject *keywordArgs)
 {
     static char *keywordList[] = { "payload", "correlation", "delay",
-            "exceptionQ", "expiration", "priority", NULL };
+            "exceptionq", "expiration", "priority", NULL };
     PyObject *payloadObj, *correlationObj, *exceptionQObj;
     int delay, expiration, priority, status;
     cxoMsgProps *props;

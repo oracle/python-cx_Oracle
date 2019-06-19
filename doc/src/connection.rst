@@ -407,12 +407,18 @@ Connection Object
         This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.msgproperties()
+.. method:: Connection.msgproperties(payload, correlation, delay, exceptionq, \
+        expiration, priority)
 
     Returns an object specifying the properties of messages used in advanced
     queuing. See :ref:`msgproperties` for more information.
 
+    Each of the parameters are optional. If specified, they act as a shortcut
+    for setting each of the equivalently named properties.
+
     .. versionadded:: 5.3
+
+    .. versionchanged:: 7.2 Added parameters
 
     .. note::
 
