@@ -309,10 +309,6 @@ Connection Object
     ctx=dblatest&id=GUID-BE42F8D3-B86B-43B4-B2A3-5760A4DF79FB>`__  for
     additional information on SODA.
 
-    SODA support in cx_Oracle is in Preview status and should not be used in
-    production. It will be supported with a future version of Oracle Client
-    libraries.
-
     .. versionadded:: 7.0
 
     .. note::

@@ -11,9 +11,8 @@ An overview of Simple Oracle Document Access (SODA) can be found
 SODA requires Oracle Client 18.3 or higher and Oracle Database 18.1 and higher.
 The role SODA_APP must be granted to the user.
 
-SODA support in cx_Oracle is in Preview status and should not be used in
-production. It will be supported with a future version of Oracle Client
-libraries.
+See
+`this tracking issue <https://github.com/oracle/python-cx_Oracle/issues/309>`__ for known issues with SODA.
 
 .. _sodadb:
 
@@ -189,7 +188,8 @@ SODA Collection Object
 
     .. note::
 
-        This method requires Oracle Client 18.5 and higher.
+        This method requires Oracle Client 18.5 and higher and is available
+        only as a preview.
 
     .. versionadded:: 7.2
 
