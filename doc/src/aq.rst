@@ -56,6 +56,13 @@ used to enqueue and dequeue messages.
     have all had their payload attribute set to a value that the queue
     supports.
 
+    Warning: calling this function in parallel on different connections
+    acquired from the same pool may fail due to Oracle bug 29928074. Ensure
+    that this function is not run in parallel, use standalone connections or
+    connections from different pools, or make multiple calls to
+    :meth:`Queue.enqOne()` instead. The function :meth:`Queue.deqMany()`
+    call is not affected.
+
 
 .. attribute:: Queue.enqOptions
 
