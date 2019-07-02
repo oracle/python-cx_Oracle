@@ -8,6 +8,8 @@ SessionPool Object
 
     This object is an extension to the DB API.
 
+    Connection pooling in cx_Oracle is handled by SessionPool objects.
+
 
 .. method:: SessionPool.acquire(user=None, password=None, cclass=None, \
         purity=cx_Oracle.ATTR_PURITY_DEFAULT, tag=None, matchanytag=False, \

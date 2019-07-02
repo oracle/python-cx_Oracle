@@ -179,10 +179,19 @@ Module Interface
         edition=None, timeout=0, waitTimeout=0, maxLifetimeSession=0, \
         sessionCallback=None)
 
-    Create and return a :ref:`session pool object <sesspool>`. This
-    allows for very fast connections to the database and is of primary use in a
-    server where the same connection is being made multiple times in rapid
-    succession (a web server, for example).
+    Create and return a :ref:`session pool object <sesspool>`.
+    Connection pooling in cx_Oracle is handled by Oracle's
+    `Session pooling <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__
+    technology.  This allows cx_Oracle applications to support features
+    like `Application Continuity <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__.
+
+    Session pooling creates a pool of available connections to the
+    database, allowing applications to acquire a connection very quickly.
+    It is of primary use in a server where connections are requested
+    in rapid succession and used for a short period of time, for example in a
+    web server.
 
     If the connection type is specified, all calls to
     :meth:`~SessionPool.acquire()` will create connection objects of that type,
