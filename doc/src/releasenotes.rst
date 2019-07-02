@@ -8,6 +8,58 @@ cx_Oracle Release Notes
 
 .. _releasenotes70:
 
+Version 7.2 (July 2019)
+-----------------------
+
+#)  Updated embedded ODPI-C to `version 3.2
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-3-2-july-1-2019>`__.
+#)  Improved AQ support
+
+    - added support for enqueue and dequeue of RAW payloads
+    - added support for bulk enqueue and dequeue of messages
+    - added new method :meth:`Connection.queue()` which creates a new
+      :ref:`queue object <queue>` in order to simplify AQ usage
+    - enhanced method :meth:`Connection.msgproperties()` to allow the writable
+      properties of the newly created object to be initialized.
+    - the original methods for enqueueing and dequeuing (Connection.deq(),
+      Connection.deqoptions(), Connection.enq() and Connection.enqoptions())
+      are now deprecated and will be removed in a future version.
+
+#)  Removed preview status from existing SODA functionality. See
+    `this tracking issue
+    <https://github.com/oracle/python-cx_Oracle/issues/309>`__ for known issues
+    with SODA.
+#)  Added support for a preview of SODA bulk insert, available in Oracle Client
+    18.5 and higher.
+#)  Added support for setting LOB object attributes, as requested
+    (`issue 299 <https://github.com/oracle/python-cx_Oracle/issues/299>`__).
+#)  Added mode :data:`cx_Oracle.DEFAULT_AUTH` as requested
+    (`issue 293 <https://github.com/oracle/python-cx_Oracle/issues/293>`__).
+#)  Added support for setting the LOB prefetch length indicator in order to
+    reduce the number of round trips when fetching LOBs and then subsequently
+    calling :meth:`LOB.size()`, :meth:`LOB.getchunksize()` or
+    :meth:`LOB.read()`.
+#)  Added support for types BINARY_INTEGER, PLS_INTEGER, ROWID, LONG and LONG
+    RAW when used in PL/SQL.
+#)  Eliminated deprecation of attribute :attr:`Subscription.id`. It is now
+    populated with the value of ``REGID`` found in the database view
+    ``USER_CHANGE_NOTIFICATION_REGS`` or the value of ``REG_ID`` found in the
+    database view ``USER_SUBSCR_REGISTRATIONS``. For AQ subscriptions, the
+    value is 0.
+#)  Enabled PY_SSIZE_T_CLEAN, as required by Python 3.8
+    (`issue 317 <https://github.com/oracle/python-cx_Oracle/issues/317>`__).
+#)  Eliminated memory leak when fetching objects that are atomically null
+    (`issue 298 <https://github.com/oracle/python-cx_Oracle/issues/298>`__).
+#)  Eliminated bug when processing the string representation of numbers like
+    1e-08 and 1e-09 (`issue 300
+    <https://github.com/oracle/python-cx_Oracle/issues/300>`__).
+#)  Improved error message when the parent cursor is closed before a fetch is
+    attempted from an implicit result cursor.
+#)  Improved test suite and samples.
+#)  Improved documentation.
+
+
 Version 7.1.3 (April 2019)
 --------------------------
 
