@@ -282,7 +282,9 @@ Message Properties
     This attribute identifies the payload that will be enqueued or the payload
     that was dequeued when using a :ref:`queue <queue>`. When enqueuing, the
     value is checked to ensure that it conforms to the type expected by that
-    queue.
+    queue. For RAW queues, the value can be a bytes object or a string. If the
+    value is a string it will first be converted to bytes by encoding in the
+    encoding identified by the attribute :attr:`Connection.encoding`.
 
 
 .. attribute:: MessageProperties.priority
