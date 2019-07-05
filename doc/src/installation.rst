@@ -42,6 +42,10 @@ Quick Start cx_Oracle Installation
   the source package will be downloaded instead. This will be compiled
   and the resulting binary installed.
 
+  If you are behind a proxy, specify your proxy server::
+
+      python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
+
 - Add Oracle 19, 18, 12 or 11.2 client libraries to your operating
   system library search path such as ``PATH`` on Windows or
   ``LD_LIBRARY_PATH`` on Linux.  On macOS move the files to ``~/lib``
@@ -188,6 +192,10 @@ install cx_Oracle from `PyPI
 <https://pypi.python.org/pypi/cx_Oracle>`__::
 
     python -m pip install cx_Oracle --upgrade
+
+If you are behind a proxy, specify your proxy server::
+
+   python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
 This will download and install a pre-compiled binary `if one is
 available <https://pypi.python.org/pypi/cx_Oracle>`__ for your
@@ -375,6 +383,10 @@ package to install cx_Oracle from `PyPI
 
     python -m pip install cx_Oracle --upgrade
 
+If you are behind a proxy, specify your proxy server::
+
+   python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
+
 This will download and install a pre-compiled binary `if one is
 available <https://pypi.python.org/pypi/cx_Oracle>`__ for your
 architecture.  If a pre-compiled binary is not available, the source
@@ -504,6 +516,10 @@ package to install cx_Oracle from `PyPI
 <https://pypi.python.org/pypi/cx_Oracle>`__::
 
     python -m pip install cx_Oracle --upgrade
+
+If you are behind a proxy, specify your proxy server::
+
+   python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
 The source will be downloaded, compiled, and the resulting binary
 installed.
@@ -650,8 +666,18 @@ If installation fails:
       using a different method. **Google anything that looks like an error.**
       Try some potential solutions.
 
-    - Was there a network connection error? Do you need to see the environment
-      variables ``http_proxy`` and/or ``https_proxy``?
+    - Was there a network connection error?  Do you need to set the
+      environment variables ``http_proxy`` and/or ``https_proxy``?  Or
+      try ``pip install --proxy=http://proxy.example.com:80 cx_Oracle
+      --upgrade``?
+
+    - If upgrading gave no errors but the old version is still
+      installed, try ``pip install cx_Oracle --upgrade
+      --force-reinstall``
+
+    - If you do not have access to modify your system version of
+      Python, can you use ``pip install cx_Oracle --upgrade --user``
+      or venv?
 
     - Do you get the error "``No module named pip``"? The pip module is builtin
       to Python from version 2.7.9 but is sometimes removed by the OS. Use the
