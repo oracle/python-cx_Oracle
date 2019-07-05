@@ -48,6 +48,7 @@ moduleNames = [
     "StringVar",
     "TimestampVar",
     "AQ",
+    "BulkAQ",
     "Rowid",
     "Subscription"
 ]
