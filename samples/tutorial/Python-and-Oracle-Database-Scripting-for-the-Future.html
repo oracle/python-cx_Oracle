@@ -126,7 +126,7 @@
 <p>To create the schema run:</p>
 
 <pre>
-sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
+sqlplus sys/yoursyspassword@localhost/orclpdb1 as sysdba @sql/SetupSamples
 </pre>
 
   <h2><a name="connectioninformation">Connection Information</a></h2>
@@ -139,11 +139,11 @@ sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
   </p>
 
   <p>The username is "pythonhol" with
-  the password "welcome".  The connect string is "localhost/orclpdb".
+  the password "welcome".  The connect string is "localhost/orclpdb1".
   See <code>sql/SampleEnv.sql</code>.</p>
 
   <p>It is easist to have a local pluggable database with the service
-  'orclpdb' configured.  If your database is not local, or has a
+  'orclpdb1' configured.  If your database is not local, or has a
   different service, you will need to modify the connection information in db_config.py and db_config.sql.</p>
 
   <p>The following sections may need adjusting, depending on how you
@@ -183,16 +183,16 @@ sqlplus sys/yoursyspassword@localhost/orclpdb as sysdba @sql/SetupSamples
           <pre>
 user = "pythonhol"
 pw = "welcome"
-dsn = "localhost/orclpdb"
+dsn = "localhost/orclpdb1"
 </pre>
  <code>db_config.sql</code>
            <pre>
 def user = "pythonhol"
 def pw = "welcome"
-def connect_string = "localhost/orclpdb"
+def connect_string = "localhost/orclpdb1"
           </pre>
 
-          <p>By default they connect to the 'orclpdb' database service on the same machine as Python.  You can modify the values in both files to match the connection information for your environment.</p>
+          <p>By default they connect to the 'orclpdb1' database service on the same machine as Python.  You can modify the values in both files to match the connection information for your environment.</p>
 
         </li>
 
@@ -216,7 +216,7 @@ print("Database version:", con.version)
           the db_config.py module. In this case, Oracle's Easy Connect connection
           string syntax is used. It consists of the hostname of your
           machine, <code>localhost</code>, and the database service name
-          <code>orclpdb</code>. </p>
+          <code>orclpdb1</code>. </p>
 
           <p>Open a command terminal and change to the <code>tutorial</code> directory:</p>
 
@@ -1137,7 +1137,7 @@ print(res)
   <p>In a terminal window, start SQL*Plus using the lab credentials and connection string, such as:</p>
 
   <pre>
-sqlplus pythonhol/welcome@localhost/orclpdb
+sqlplus pythonhol/welcome@localhost/orclpdb1
 </pre>
 
   <p>Use the SQL*Plus DESCRIBE command to look at the SDO definition:</p>
