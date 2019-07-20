@@ -69,7 +69,7 @@ Module Interface
     The pool parameter is expected to be a
     :ref:`session pool object <sesspool>` and the use of this parameter is the
     equivalent of calling :meth:`SessionPool.acquire()`. Parameters not
-    acecpted by that method are ignored.
+    accepted by that method are ignored.
 
     The threaded parameter is expected to be a boolean expression which
     indicates whether or not Oracle should wrap accesses to connections with a
