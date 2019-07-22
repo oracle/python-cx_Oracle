@@ -349,7 +349,7 @@ Version 6.3.1 (May 2018)
     - Ensure that a call to unregister a subscription only occurs if the
       subscription is still registered.
     - Ensure that before a statement is executed any buffers used for DML
-      returning statments are reset.
+      returning statements are reset.
 
 #)  Ensure that behavior with cx_Oracle.__future__.dml_ret_array_val not
     set or False is the same as the behavior in cx_Oracle 6.2
@@ -548,7 +548,7 @@ Version 6.0.3 (November 2017)
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-2-0-3-november-6-2017>`__.
 
-    - Prevent use of unitialized data in certain cases (`issue 77
+    - Prevent use of uninitialized data in certain cases (`issue 77
       <https://github.com/oracle/python-cx_Oracle/issues/77>`__).
     - Attempting to ping a database earlier than 10g results in error
       "ORA-1010: invalid OCI operation", but that implies a response from the
@@ -1252,7 +1252,7 @@ Version 4.3.2 (August 2007)
     NATIVE_FLOAT to allow specification of a variable of that specific type
     where desired. Thanks to D.R. Boxhoorn for pointing out the fact that this
     was not working properly when the arraysize was anything other than 1.
-#)  When calling connection.begin(), only create a new tranasction handle if
+#)  When calling connection.begin(), only create a new transaction handle if
     one is not already associated with the connection. Thanks to Andreas Mock
     for discovering this and for Amaury Forgeot d'Arc for diagnosing the
     problem and pointing the way to a solution.
@@ -1399,7 +1399,7 @@ Version 4.1.1 (December 2005)
     can drastically affect performance of queries since this seems to be a
     common misunderstanding of first time users of cx_Oracle.
 #)  Add a comment indicating that on HP-UX Itanium with Oracle 10g the library
-    ttsh10 must alos be linked against. Thanks to Bernard Delmee for the
+    ttsh10 must also be linked against. Thanks to Bernard Delmee for the
     information.
 
 

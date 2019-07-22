@@ -228,7 +228,7 @@ SODA Collection Object
 
 .. attribute:: SodaCollection.metadata
 
-    This read-only attribute returns a dicationary containing the metadata that
+    This read-only attribute returns a dictionary containing the metadata that
     was used to create the collection. See this `collection metadata reference
     <https://www.oracle.com/pls/topic/
     lookup?ctx=dblatest&id=GUID-49EFF3D3-9FAB-4DA6-BDE2-2650383566A3>`__

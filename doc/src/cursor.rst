@@ -260,7 +260,7 @@ Cursor Object
     cursor's arraysize attribute can affect the performance of this operation.
 
     The number of rows to fetch is specified by the parameter. If it is not
-    given, the cursor's arrysize attribute determines the number of rows to be
+    given, the cursor's arraysize attribute determines the number of rows to be
     fetched. If the number of rows available to be fetched is fewer than the
     amount requested, fewer rows will be returned.
 
@@ -321,7 +321,7 @@ Cursor Object
 .. method:: Cursor.getbatcherrors()
 
     Retrieve the exceptions that took place after a call to
-    :meth:`~Cursor.executemany()` with batcherors enabled. This will return a
+    :meth:`~Cursor.executemany()` with batcherrors enabled. This will return a
     list of Error objects, one error for each iteration that failed. The offset
     can be determined by looking at the offset attribute of the error object.
 
@@ -519,7 +519,7 @@ Cursor Object
 .. method:: Cursor.var(dataType, [size, arraysize, inconverter, outconverter, \
         typename, encodingErrors])
 
-    Create a variable with the specified charactistics. This method was
+    Create a variable with the specified characteristics. This method was
     designed for use with PL/SQL in/out variables where the length or type
     cannot be determined automatically from the Python object passed in or for
     use in input and output type handlers defined on cursors or connections.

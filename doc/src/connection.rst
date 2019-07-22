@@ -23,7 +23,7 @@ Connection Object
 .. method:: Connection.__exit__()
 
     The exit point for the connection as a context manager. This will close
-    the connection and roll back any uncomitted transaction.
+    the connection and roll back any uncommitted transaction.
 
     .. note::
 
@@ -622,7 +622,7 @@ Connection Object
         The subscription can be deregistered in the database by calling the
         function :meth:`~Connection.unsubscribe()`. If this method is not
         called and the connection that was used to create the subscription is
-        explictly closed using the function :meth:`~Connection.close()`, the
+        explicitly closed using the function :meth:`~Connection.close()`, the
         subscription will not be deregistered in the database.
 
 

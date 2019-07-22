@@ -68,10 +68,10 @@ Quick Start cx_Oracle Installation
       <https://www.oracle.com/database/technologies/appdev/xe.html>`__
       release.
 
-  Version 19, 18 and 12.2 client libraries can connect to Oracle Database 11.2 or
-  greater. Version 12.1 client libraries can connect to Oracle Database
-  10.2 or greater. Version 11.2 client libraries can connect to Oracle
-  Database 9.2 or greater.
+  Version 19, 18 and 12.2 client libraries can connect to Oracle Database 11.2
+  or greater. Version 12.1 client libraries can connect to Oracle Database 10.2
+  or greater. Version 11.2 client libraries can connect to Oracle Database 9.2
+  or greater.
 
   The database abstraction layer in cx_Oracle is `ODPI-C
   <https://github.com/oracle/odpi>`__, which means that the `ODPI-C
@@ -445,12 +445,14 @@ To use cx_Oracle with Oracle Instant Client zip files:
        SET PATH=C:\oracle\instantclient_18_3;%PATH%
        python %*
 
-   Invoke this batch file everytime you want to run python.
+   Invoke this batch file every time you want to run python.
 
    Alternatively use ``SET`` to change your ``PATH`` in each command
    prompt window before you run python.
 
-4. Oracle Instant Client libraries require a Visual Studio redistributable with a 64-bit or 32-bit architecture to match Instant Client's architecture.  Each Instant Client version requires a different redistributable version:
+4. Oracle Instant Client libraries require a Visual Studio redistributable with
+   a 64-bit or 32-bit architecture to match Instant Client's architecture.
+   Each Instant Client version requires a different redistributable version:
 
        - For Instant Client 18 or 12.2 install `VS 2013 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2013>`__
        - For Instant Client 12.1 install `VS 2010 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2010>`__
@@ -685,8 +687,8 @@ If installation fails:
       instead.
 
     - Do you get the error "``fatal error: dpi.h: No such file or directory``"
-      when building from source code? Ensure that your source installation has a
-      subdirectory called "odpi" containing files. If missing, review the
+      when building from source code? Ensure that your source installation has
+      a subdirectory called "odpi" containing files. If missing, review the
       section on `Install Using GitHub`_.
 
 If using cx_Oracle fails:
