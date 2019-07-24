@@ -50,7 +50,7 @@ SessionPool Object
 .. method:: SessionPool.close(force=False)
 
     Close the session pool now, rather than when the last reference to it is
-    released, which makes it unsable for further work.
+    released, which makes it unusable for further work.
 
     If any connections have been acquired and not released back to the pool
     this method will fail unless the force parameter is set to True.

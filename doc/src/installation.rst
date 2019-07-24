@@ -42,6 +42,10 @@ Quick Start cx_Oracle Installation
   the source package will be downloaded instead. This will be compiled
   and the resulting binary installed.
 
+  If you are behind a proxy, specify your proxy server::
+
+      python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
+
 - Add Oracle 19, 18, 12 or 11.2 client libraries to your operating
   system library search path such as ``PATH`` on Windows or
   ``LD_LIBRARY_PATH`` on Linux.  On macOS move the files to ``~/lib``
@@ -64,10 +68,10 @@ Quick Start cx_Oracle Installation
       <https://www.oracle.com/database/technologies/appdev/xe.html>`__
       release.
 
-  Version 19, 18 and 12.2 client libraries can connect to Oracle Database 11.2 or
-  greater. Version 12.1 client libraries can connect to Oracle Database
-  10.2 or greater. Version 11.2 client libraries can connect to Oracle
-  Database 9.2 or greater.
+  Version 19, 18 and 12.2 client libraries can connect to Oracle Database 11.2
+  or greater. Version 12.1 client libraries can connect to Oracle Database 10.2
+  or greater. Version 11.2 client libraries can connect to Oracle Database 9.2
+  or greater.
 
   The database abstraction layer in cx_Oracle is `ODPI-C
   <https://github.com/oracle/odpi>`__, which means that the `ODPI-C
@@ -188,6 +192,10 @@ install cx_Oracle from `PyPI
 <https://pypi.python.org/pypi/cx_Oracle>`__::
 
     python -m pip install cx_Oracle --upgrade
+
+If you are behind a proxy, specify your proxy server::
+
+   python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
 This will download and install a pre-compiled binary `if one is
 available <https://pypi.python.org/pypi/cx_Oracle>`__ for your
@@ -375,6 +383,10 @@ package to install cx_Oracle from `PyPI
 
     python -m pip install cx_Oracle --upgrade
 
+If you are behind a proxy, specify your proxy server::
+
+   python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
+
 This will download and install a pre-compiled binary `if one is
 available <https://pypi.python.org/pypi/cx_Oracle>`__ for your
 architecture.  If a pre-compiled binary is not available, the source
@@ -433,12 +445,14 @@ To use cx_Oracle with Oracle Instant Client zip files:
        SET PATH=C:\oracle\instantclient_18_3;%PATH%
        python %*
 
-   Invoke this batch file everytime you want to run python.
+   Invoke this batch file every time you want to run python.
 
    Alternatively use ``SET`` to change your ``PATH`` in each command
    prompt window before you run python.
 
-4. Oracle Instant Client libraries require a Visual Studio redistributable with a 64-bit or 32-bit architecture to match Instant Client's architecture.  Each Instant Client version requires a different redistributable version:
+4. Oracle Instant Client libraries require a Visual Studio redistributable with
+   a 64-bit or 32-bit architecture to match Instant Client's architecture.
+   Each Instant Client version requires a different redistributable version:
 
        - For Instant Client 18 or 12.2 install `VS 2013 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2013>`__
        - For Instant Client 12.1 install `VS 2010 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2010>`__
@@ -504,6 +518,10 @@ package to install cx_Oracle from `PyPI
 <https://pypi.python.org/pypi/cx_Oracle>`__::
 
     python -m pip install cx_Oracle --upgrade
+
+If you are behind a proxy, specify your proxy server::
+
+   python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
 The source will be downloaded, compiled, and the resulting binary
 installed.
@@ -650,8 +668,18 @@ If installation fails:
       using a different method. **Google anything that looks like an error.**
       Try some potential solutions.
 
-    - Was there a network connection error? Do you need to see the environment
-      variables ``http_proxy`` and/or ``https_proxy``?
+    - Was there a network connection error?  Do you need to set the
+      environment variables ``http_proxy`` and/or ``https_proxy``?  Or
+      try ``pip install --proxy=http://proxy.example.com:80 cx_Oracle
+      --upgrade``?
+
+    - If upgrading gave no errors but the old version is still
+      installed, try ``pip install cx_Oracle --upgrade
+      --force-reinstall``
+
+    - If you do not have access to modify your system version of
+      Python, can you use ``pip install cx_Oracle --upgrade --user``
+      or venv?
 
     - Do you get the error "``No module named pip``"? The pip module is builtin
       to Python from version 2.7.9 but is sometimes removed by the OS. Use the
@@ -659,8 +687,8 @@ If installation fails:
       instead.
 
     - Do you get the error "``fatal error: dpi.h: No such file or directory``"
-      when building from source code? Ensure that your source installation has a
-      subdirectory called "odpi" containing files. If missing, review the
+      when building from source code? Ensure that your source installation has
+      a subdirectory called "odpi" containing files. If missing, review the
       section on `Install Using GitHub`_.
 
 If using cx_Oracle fails:

@@ -69,7 +69,7 @@ Module Interface
     The pool parameter is expected to be a
     :ref:`session pool object <sesspool>` and the use of this parameter is the
     equivalent of calling :meth:`SessionPool.acquire()`. Parameters not
-    acecpted by that method are ignored.
+    accepted by that method are ignored.
 
     The threaded parameter is expected to be a boolean expression which
     indicates whether or not Oracle should wrap accesses to connections with a
@@ -78,7 +78,7 @@ Module Interface
 
     The events parameter is expected to be a boolean expression which indicates
     whether or not to initialize Oracle in events mode. This is required for
-    continuous query notification and high availablity event notifications.
+    continuous query notification and high availability event notifications.
 
     The cclass parameter is expected to be a string and defines the connection
     class for database resident connection pooling (DRCP).
@@ -412,7 +412,7 @@ parameter for the :meth:`Connection.deq()` method.
 .. data:: DEQ_BROWSE
 
     This constant is used to specify that dequeue should read the message
-    without acquiring any lock on the message (eqivalent to a select
+    without acquiring any lock on the message (equivalent to a select
     statement).
 
 
@@ -1231,7 +1231,7 @@ Exceptions
 .. exception:: OperationalError
 
     Exception raised for errors that are related to the operation of the
-    database but are not necessarily under the control of the progammer. It is
+    database but are not necessarily under the control of the programmer. It is
     a subclass of DatabaseError.
 
 
