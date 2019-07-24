@@ -1,3 +1,3 @@
 user = "pythonhol"
 pw = "welcome"
-dsn = "localhost/orclpdb"
+dsn = "localhost/orclpdb1"

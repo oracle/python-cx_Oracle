@@ -29,7 +29,7 @@
 #   [//]host_name[:port][/service_name][:server_type][/instance_name]
 #
 # Commonly just the host_name and service_name are needed
-# e.g. "localhost/orclpdb" or "localhost/XE"
+# e.g. "localhost/orclpdb1" or "localhost/XE"
 #
 # If using a tnsnames.ora file, the file can be in a default
 # location such as $ORACLE_HOME/network/admin/tnsnames.ora or
@@ -53,7 +53,7 @@ except NameError:
 DEFAULT_MAIN_USER = "pythondemo"
 DEFAULT_EDITION_USER = "pythoneditions"
 DEFAULT_EDITION_NAME = "python_e1"
-DEFAULT_CONNECT_STRING = "localhost/orclpdb"
+DEFAULT_CONNECT_STRING = "localhost/orclpdb1"
 
 # dictionary containing all parameters; these are acquired as needed by the
 # methods below (which should be used instead of consulting this dictionary
