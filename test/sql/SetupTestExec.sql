@@ -260,6 +260,11 @@ begin
     dbms_aqadm.create_queue('&main_user..TEST_BOOK_QUEUE',
             '&main_user..BOOK_QUEUE_TAB');
     dbms_aqadm.start_queue('&main_user..TEST_BOOK_QUEUE');
+
+    dbms_aqadm.create_queue_table('&main_user..RAW_QUEUE_TAB', 'RAW');
+    dbms_aqadm.create_queue('&main_user..TEST_RAW_QUEUE',
+            '&main_user..RAW_QUEUE_TAB');
+    dbms_aqadm.start_queue('&main_user..TEST_RAW_QUEUE');
 end;
 /
 

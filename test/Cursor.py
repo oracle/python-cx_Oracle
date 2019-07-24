@@ -267,6 +267,7 @@ class TestCase(TestEnv.BaseTestCase):
                     insert into TestTempTable (IntCol, StringCol)
                     values (t_Id, 'Test String ' || t_Id);
                 end;""", numRows)
+        self.assertEqual(self.cursor.rowcount, numRows)
         self.cursor.execute("select count(*) from TestTempTable")
         count, = self.cursor.fetchone()
         self.assertEqual(count, numRows)
@@ -290,6 +291,7 @@ class TestCase(TestEnv.BaseTestCase):
                     select sum(IntCol) into :1
                     from TestTempTable;
                 end;""", numRows)
+        self.assertEqual(self.cursor.rowcount, numRows)
         expectedData = [1, 3, 6, 10, 15, 21, 28, 36, 45]
         self.assertEqual(var.values, expectedData)
 
@@ -697,4 +699,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

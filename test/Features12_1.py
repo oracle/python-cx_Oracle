@@ -287,6 +287,7 @@ class TestCase(TestEnv.BaseTestCase):
         statement = "delete from TestArrayDML where IntCol2 = :1"
         self.cursor.executemany(statement, rows, arraydmlrowcounts = True)
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 3, 2])
+        self.assertEqual(self.cursor.rowcount, 6)
 
     def testExecutingUpdate(self):
         "test executing update statement with arraydmlrowcount mode"
@@ -309,6 +310,7 @@ class TestCase(TestEnv.BaseTestCase):
         sql = "update TestArrayDML set StringCol = :1 where IntCol2 = :2"
         self.cursor.executemany(sql, rows, arraydmlrowcounts = True)
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1, 3, 2])
+        self.assertEqual(self.cursor.rowcount, 7)
 
     def testImplicitResults(self):
         "test getimplicitresults() returns the correct data"
