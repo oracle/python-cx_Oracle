@@ -414,7 +414,7 @@ static int cxoCursor_performDefine(cxoCursor *cursor, uint32_t numQueryColumns)
         // if using an output type handler, None implies default behavior
         if (outputTypeHandler) {
             result = PyObject_CallFunction(outputTypeHandler, "Os#Oiii",
-                    cursor, queryInfo.name, queryInfo.nameLength,
+                    cursor, queryInfo.name, (Py_ssize_t) queryInfo.nameLength,
                     varType->pythonType, size, queryInfo.typeInfo.precision,
                     queryInfo.typeInfo.scale);
             if (!result) {
