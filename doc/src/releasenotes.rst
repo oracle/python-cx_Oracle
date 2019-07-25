@@ -8,6 +8,16 @@ cx_Oracle Release Notes
 
 .. _releasenotes70:
 
+Version 7.2.1 (July 2019)
+-------------------------
+
+#)  Resolved ``MemoryError`` exception on Windows when using an output type
+    handler
+    (`issue 330 <https://github.com/oracle/python-cx_Oracle/issues/330>`__).
+#)  Improved test suite and samples.
+#)  Improved documentation.
+
+
 Version 7.2 (July 2019)
 -----------------------
 
