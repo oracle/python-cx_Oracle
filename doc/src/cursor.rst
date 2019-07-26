@@ -58,6 +58,12 @@ Cursor Object
     the list might be empty and the type cannot be determined automatically) or
     returning arrays from PL/SQL.
 
+    Array variables can only be used for PL/SQL associative arrays with
+    contiguous keys. For PL/SQL associative arrays with sparsely populated keys
+    or for varrays and nested tables, the approach shown in this
+    `example <https://github.com/oracle/python-cx_Oracle/blob/master/
+    samples/PLSQLCollection.py>`__ needs to be used.
+
     .. note::
 
         The DB API definition does not define this method.
