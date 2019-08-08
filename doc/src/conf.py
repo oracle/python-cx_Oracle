@@ -108,6 +108,7 @@ html_copy_source = False
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'cx_Oracledoc'
 
+numfig = True
 
 # Options for LaTeX output
 # ------------------------

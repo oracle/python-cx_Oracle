@@ -1,12 +1,9 @@
+:orphan:
+
 .. _releasenotes:
 
 cx_Oracle Release Notes
 =======================
-
-7.x releases
-############
-
-.. _releasenotes70:
 
 Version 7.2.1 (July 2019)
 -------------------------
@@ -256,12 +253,6 @@ Version 7.0 (September 2018)
 #)  Added additional test cases.
 #)  Improved documentation.
 
-
-
-6.x releases
-############
-
-.. _releasenotes60:
 
 Version 6.4.1 (July 2018)
 -------------------------
@@ -630,9 +621,6 @@ Version 6.0.1 (August 2017)
 Version 6.0 (August 2017)
 -------------------------
 
-See :ref:`What's New <whatsnew60>` for a summary of the changes between
-cx_Oracle 5.3 and cx_Oracle 6.0.
-
 #)  Update to `ODPI-C 2.0 <https://oracle.github.io/odpi/doc/releasenotes.html
     #version-2-0-august-14-2017>`__.
 
@@ -823,10 +811,6 @@ Version 6.0 beta 1 (April 2017)
     :meth:`Connection.subscribe()` method. Use the qos parameter instead as
     shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
     master/samples/CQN.py>`__.
-
-
-5.x releases
-############
 
 
 Version 5.3 (March 2017)
@@ -1141,9 +1125,6 @@ Version 5.0 (December 2008)
 #)  Fixed handling of environment handles in session pools in order to allow
     session pools to fetch objects without exceptions taking place.
 
-
-Older releases
-##############
 
 Version 4.4.1 (October 2008)
 ----------------------------
@@ -1777,4 +1758,3 @@ Version 2.2 (July 2001)
     installation as suggested by Steve Holden.
 #)  Added simple usage example as requested by many people.
 #)  Added HISTORY file to the distribution.
-

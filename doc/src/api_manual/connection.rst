@@ -690,4 +690,3 @@ Connection Object
         If you connect to Oracle Database 18 or higher with client libraries
         12.2 or lower that you will only receive the base version (such as
         18.0.0.0.0) instead of the full version (18.3.0.0.0).
-

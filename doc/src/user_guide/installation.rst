@@ -4,8 +4,6 @@
 cx_Oracle 7 Installation
 ************************
 
-.. contents:: :local:
-
 Overview
 ========
 
@@ -26,6 +24,7 @@ To use cx_Oracle 7 with Python and Oracle Database you need:
   interoperability allows cx_Oracle to connect to both older and newer
   databases.
 
+If you are upgrading, review the :ref:`release notes <releasenotes>`.
 
 Quick Start cx_Oracle Installation
 ==================================
@@ -34,7 +33,7 @@ Quick Start cx_Oracle Installation
   needed. Python 2.7 and Python 3.5 and higher are supported by cx_Oracle 7.
 
 - Install cx_Oracle from `PyPI
-  <https://pypi.python.org/pypi/cx_Oracle>`__ with::
+  <https://pypi.org/project/cx-Oracle/>`__ with::
 
       python -m pip install cx_Oracle --upgrade
 
@@ -189,7 +188,7 @@ Install cx_Oracle
 The generic way to install cx_Oracle on Linux is to use Python's `Pip
 <http://pip.readthedocs.io/en/latest/installing/>`__ package to
 install cx_Oracle from `PyPI
-<https://pypi.python.org/pypi/cx_Oracle>`__::
+<https://pypi.org/project/cx-Oracle/>`__::
 
     python -m pip install cx_Oracle --upgrade
 
@@ -198,7 +197,7 @@ If you are behind a proxy, specify your proxy server::
    python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
 This will download and install a pre-compiled binary `if one is
-available <https://pypi.python.org/pypi/cx_Oracle>`__ for your
+available <https://pypi.org/project/cx-Oracle/>`__ for your
 architecture.  If a pre-compiled binary is not available, the source
 will be downloaded, compiled, and the resulting binary installed.
 Compiling cx_Oracle requires the `Python.h` header file.  If you are
@@ -379,7 +378,7 @@ Install cx_Oracle
 
 Use Python's `Pip <http://pip.readthedocs.io/en/latest/installing/>`__
 package to install cx_Oracle from `PyPI
-<https://pypi.python.org/pypi/cx_Oracle>`__::
+<https://pypi.org/project/cx-Oracle/>`__::
 
     python -m pip install cx_Oracle --upgrade
 
@@ -388,7 +387,7 @@ If you are behind a proxy, specify your proxy server::
    python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
 This will download and install a pre-compiled binary `if one is
-available <https://pypi.python.org/pypi/cx_Oracle>`__ for your
+available <https://pypi.org/project/cx-Oracle/>`__ for your
 architecture.  If a pre-compiled binary is not available, the source
 will be downloaded, compiled, and the resulting binary installed.
 
@@ -515,7 +514,7 @@ Install cx_Oracle
 
 Use Python's `Pip <http://pip.readthedocs.io/en/latest/installing/>`__
 package to install cx_Oracle from `PyPI
-<https://pypi.python.org/pypi/cx_Oracle>`__::
+<https://pypi.org/project/cx-Oracle/>`__::
 
     python -m pip install cx_Oracle --upgrade
 
@@ -620,39 +619,37 @@ Install Using Source from PyPI
 ==============================
 
 The source package can be downloaded manually from
-`PyPI <https://pypi.python.org/pypi/cx_Oracle>`__ and extracted, after
+`PyPI <https://pypi.org/project/cx-Oracle/>`__ and extracted, after
 which the following commands should be run::
 
     python setup.py build
     python setup.py install
 
-Upgrading from cx_Oracle 6
-==========================
 
-Review the `release notes
-<http://cx-oracle.readthedocs.io/en/latest/releasenotes.html>`__ for
-deprecations and modify any affected code.
+Upgrading from Older Versions
+=============================
 
-Upgrading from cx_Oracle 5
-==========================
+Review the :ref:`release notes <releasenotes>` for deprecations and modify any
+affected code.
 
 If you are upgrading from cx_Oracle 5 note these installation changes:
 
     - When using Oracle Instant Client, you should not set ``ORACLE_HOME``.
 
-    - On Linux, cx_Oracle 6 no longer uses Instant Client RPMs automatically.
-      You must set ``LD_LIBRARY_PATH`` or use ``ldconfig`` to locate the Oracle
-      client library.
+    - On Linux, cx_Oracle 6 and higher no longer uses Instant Client RPMs
+      automatically.  You must set ``LD_LIBRARY_PATH`` or use ``ldconfig`` to
+      locate the Oracle client library.
 
     - PyPI no longer allows Windows installers or Linux RPMs to be
       hosted.  Use the supplied cx_Oracle Wheels instead, or use RPMs
       from Oracle, see :ref:`oraclelinux`.
 
+
 Installing cx_Oracle 5.3
 ========================
 
 If you require cx_Oracle 5.3, download a Windows installer from `PyPI
-<https://pypi.python.org/pypi/cx_Oracle>`__ or use ``python -m pip
+<https://pypi.org/project/cx-Oracle/>`__ or use ``python -m pip
 install cx-oracle==5.3`` to install from source.
 
 Very old versions of cx_Oracle can be found in the files section at

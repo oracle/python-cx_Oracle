@@ -1,8 +1,10 @@
 .. _aq:
 
-****************
-Advanced Queuing
-****************
+*********************
+Advanced Queuing (AQ)
+*********************
+
+See :ref:`aqusermanual` for more information about using AQ in cx_Oracle.
 
 .. note::
 
@@ -307,4 +309,3 @@ Message Properties
     the dequeue. It will be one of the values :data:`~cx_Oracle.MSG_WAITING`,
     :data:`~cx_Oracle.MSG_READY`, :data:`~cx_Oracle.MSG_PROCESSED` or
     :data:`~cx_Oracle.MSG_EXPIRED`.
-

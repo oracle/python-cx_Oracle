@@ -4,6 +4,8 @@
 LOB Objects
 ***********
 
+See :ref:`lobdata` for more information about using LOBs.
+
 .. note::
 
     This object is an extension the DB API. It is returned whenever Oracle
@@ -86,4 +88,3 @@ LOB Objects
     offset will have to be chosen carefully to avoid splitting a character.
     Note that if you want to make the LOB value smaller, you must use the
     :meth:`~LOB.trim()` function.
-

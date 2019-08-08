@@ -98,7 +98,7 @@ Subscription Object
 .. _msgobjects:
 
 Message Objects
-===============
+---------------
 
 .. note::
 
@@ -177,7 +177,7 @@ Message Objects
 
 
 Message Table Objects
-=====================
+---------------------
 
 .. note::
 
@@ -206,7 +206,7 @@ Message Table Objects
 
 
 Message Row Objects
-===================
+-------------------
 
 .. note::
 
@@ -227,19 +227,19 @@ Message Row Objects
 
 
 Message Query Objects
-=====================
+---------------------
 
 .. note::
 
     This object is created internally for each query result set changed when
     notification is received and is found in the queries attribute of message
     objects.
-   
+
 
 .. attribute:: MessageQuery.id
 
     This read-only attribute returns the query id of the query for which the
-    result set changed. The value will match the value returned by 
+    result set changed. The value will match the value returned by
     Subscription.registerquery when the related query was registered.
 
 
@@ -255,4 +255,3 @@ Message Query Objects
     This read-only attribute returns a list of message table objects that give
     information about the table changes that caused the query result set to
     change for this notification.
-

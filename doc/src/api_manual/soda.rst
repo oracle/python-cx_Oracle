@@ -4,9 +4,12 @@
 SODA
 ****
 
-An overview of Simple Oracle Document Access (SODA) can be found
-`here
-<https://docs.oracle.com/en/database/oracle/simple-oracle-document-access>`__.
+`Oracle Database Simple Oracle Document Access (SODA)
+<https://docs.oracle.com/en/database/oracle/simple-oracle-document-access>`__
+allows documents to be inserted, queried, and retrieved from Oracle Database
+using a set of NoSQL-style cx_Oracle methods.
+
+See :ref:`sodausermanual` for a cx_Oracle example.
 
 SODA requires Oracle Client 18.3 or higher and Oracle Database 18.1 and higher.
 The role SODA_APP must be granted to the user.
@@ -110,7 +113,7 @@ SODA Collection Object
 .. note::
 
     This object is an extension the DB API. It is used to represent SODA
-    collections and is created by methods 
+    collections and is created by methods
     :meth:`SodaDatabase.createCollection()` and
     :meth:`SodaDatabase.openCollection()`.
 
@@ -520,4 +523,3 @@ SODA Operation Object
     criteria can be specified by chaining methods together.
 
     .. versionadded:: 7.0
-
