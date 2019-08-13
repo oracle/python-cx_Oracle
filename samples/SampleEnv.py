@@ -29,7 +29,7 @@
 #   [//]host_name[:port][/service_name][:server_type][/instance_name]
 #
 # Commonly just the host_name and service_name are needed
-# e.g. "localhost/orclpdb1" or "localhost/XE"
+# e.g. "localhost/orclpdb1" or "localhost/XEPDB1"
 #
 # If using a tnsnames.ora file, the file can be in a default
 # location such as $ORACLE_HOME/network/admin/tnsnames.ora or
