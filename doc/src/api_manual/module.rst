@@ -36,27 +36,29 @@ Module Interface
         This method is an extension to the DB API definition.
 
 
-.. function:: Connection(user=None, password=None, dsn=None, \
+.. function:: connect(user=None, password=None, dsn=None, mode=cx_Oracle.DEFAULT_AUTH, \
+        handle=0, pool=None, threaded=False, events=False, cclass=None, \
+        purity=cx_Oracle.ATTR_PURITY_DEFAULT, newpassword=None, \
+        encoding=None, nencoding=None, edition=None, appcontext=[], tag=None, \
+        matchanytag=None, shardingkey=[], supershardingkey=[])
+    Connection(user=None, password=None, dsn=None, \
         mode=cx_Oracle.DEFAULT_AUTH, handle=0, pool=None, threaded=False, \
         events=False, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, \
         newpassword=None, encoding=None, nencoding=None, edition=None, \
         appcontext=[], tag=None, matchanytag=False, shardingkey=[], \
         supershardingkey=[])
-    connect(user=None, password=None, dsn=None, mode=cx_Oracle.DEFAULT_AUTH, \
-        handle=0, pool=None, threaded=False, events=False, cclass=None, \
-        purity=cx_Oracle.ATTR_PURITY_DEFAULT, newpassword=None, \
-        encoding=None, nencoding=None, edition=None, appcontext=[], tag=None, \
-        matchanytag=None, shardingkey=[], supershardingkey=[])
 
     Constructor for creating a connection to the database. Return a
     :ref:`connection object <connobj>`. All parameters are optional and can be
-    specified as keyword parameters.
+    specified as keyword parameters.  See :ref:`connhandling` information about
+    connections.
 
     The dsn (data source name) is the TNS entry (from the Oracle names server
     or tnsnames.ora file) or is a string like the one returned from
     :meth:`~cx_Oracle.makedsn()`. If only one parameter is passed, a connect
     string is assumed which is to be of the format ``user/password@dsn``, the
-    same format accepted by Oracle applications such as SQL\*Plus.
+    same format accepted by Oracle applications such as SQL\*Plus.  See
+    :ref:`connstr` for more information.
 
     If the mode is specified, it must be one of the
     :ref:`connection authorization modes<connection-authorization-modes>`
@@ -140,7 +142,7 @@ Module Interface
 
 .. function:: Cursor(connection)
 
-    Constructor for creating a cursor.  Return a new 
+    Constructor for creating a cursor.  Return a new
     :ref:`cursor object <cursorobj>` using the connection.
 
     .. note::
@@ -186,6 +188,8 @@ Module Interface
     technology.  This allows cx_Oracle applications to support features
     like `Application Continuity <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__.
+
+    See :ref:`connpool` for information on connection pooling.
 
     Session pooling creates a pool of available connections to the
     database, allowing applications to acquire a connection very quickly.
@@ -747,6 +751,8 @@ for subscriptions created by the :meth:`Connection.subscribe()` method.
     being started up.
 
 
+.. _cqn-operation-codes:
+
 Operation Codes
 ---------------
 
@@ -894,6 +900,8 @@ method.
     events.
 
 
+.. _subscr-namespaces:
+
 Subscription Namespaces
 -----------------------
 
@@ -911,6 +919,8 @@ method.
     This constant is used to specify that database change notification or query
     change notification messages are to be sent. This is the default value.
 
+
+.. _subscr-protocols:
 
 Subscription Protocols
 ----------------------
@@ -946,6 +956,8 @@ values for the protocol parameter of the :meth:`Connection.subscribe()` method.
     PL/SQL procedure when a message is generated. This value is currently not
     supported.
 
+
+.. _subscr-qos:
 
 Subscription Quality of Service
 -------------------------------
@@ -985,6 +997,8 @@ or more of these values can be OR'ed together.
     This constant is used to specify that the rowids of the inserted, updated
     or deleted rows should be included in the message objects that are sent.
 
+
+.. _types:
 
 Types
 =====
@@ -1258,6 +1272,8 @@ Exceptions
     supported by the database. It is a subclass of DatabaseError.
 
 
+.. _exchandling:
+
 Exception handling
 ==================
 
@@ -1317,4 +1333,3 @@ This allows you to use the exceptions for example in the following way:
         error, = exc.args
         print("Oracle-Error-Code:", error.code)
         print("Oracle-Error-Message:", error.message)
-

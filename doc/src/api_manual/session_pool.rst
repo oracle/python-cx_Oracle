@@ -10,6 +10,8 @@ SessionPool Object
 
     Connection pooling in cx_Oracle is handled by SessionPool objects.
 
+    See :ref:`connpool` for information on connection pooling.
+
 
 .. method:: SessionPool.acquire(user=None, password=None, cclass=None, \
         purity=cx_Oracle.ATTR_PURITY_DEFAULT, tag=None, matchanytag=False, \
@@ -185,4 +187,3 @@ SessionPool Object
     :data:`cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT`.
 
     .. versionadded:: 6.4
-

@@ -96,6 +96,8 @@ Cursor Object
     positional parameters. The result of the call is the return value of the
     function.
 
+    See :ref:`plsqlfunc` for an example.
+
     .. note::
 
         The DB API definition does not define this method.
@@ -115,6 +117,8 @@ Cursor Object
     left untouched; output and input/output parameters are replaced with
     possibly new values. Keyword parameters will be included after the
     positional parameters and are not returned as part of the output sequence.
+
+    See :ref:`plsqlproc` for an example.
 
     .. note::
 
@@ -152,14 +156,16 @@ Cursor Object
 
 .. method:: Cursor.execute(statement, [parameters], \*\*keywordParameters)
 
-    Execute a statement against the database. Parameters may be passed as a
-    dictionary or sequence or as keyword parameters. If the parameters are a
-    dictionary, the values will be bound by name and if the parameters are a
-    sequence the values will be bound by position. Note that if the values are
-    bound by position, the order of the variables is from left to right as they
-    are encountered in the statement and SQL statements are processed
-    differently than PL/SQL statements. For this reason, it is generally
-    recommended to bind parameters by name instead of by position.
+    Execute a statement against the database.  See :ref:`sqlexecution`.
+
+    Parameters may be passed as a dictionary or sequence or as keyword
+    parameters. If the parameters are a dictionary, the values will be bound by
+    name and if the parameters are a sequence the values will be bound by
+    position. Note that if the values are bound by position, the order of the
+    variables is from left to right as they are encountered in the statement
+    and SQL statements are processed differently than PL/SQL statements. For
+    this reason, it is generally recommended to bind parameters by name instead
+    of by position.
 
     Parameters passed as a dictionary are name and value pairs. The name maps
     to the bind variable name used by the statement and the value maps to the
@@ -193,12 +199,14 @@ Cursor Object
 
     Prepare a statement for execution against a database and then execute it
     against all parameter mappings or sequences found in the sequence
-    parameters. The statement is managed in the same way as the
-    :meth:`~Cursor.execute()` method manages it. If the size of the buffers
-    allocated for any of the parameters exceeds 2 GB, you will receive the
-    error "DPI-1015: array size of <n> is too large", where <n> varies with the
-    size of each element being allocated in the buffer. If you receive this
-    error, decrease the number of elements in the sequence parameters.
+    parameters. See :ref:`batchstmnt`.
+
+    The statement is managed in the same way as the :meth:`~Cursor.execute()`
+    method manages it. If the size of the buffers allocated for any of the
+    parameters exceeds 2 GB, you will receive the error "DPI-1015: array size
+    of <n> is too large", where <n> varies with the size of each element being
+    allocated in the buffer. If you receive this error, decrease the number of
+    elements in the sequence parameters.
 
     If there are no parameters, or parameters have previously been bound, the
     number of iterations can be specified as an integer instead of needing to
@@ -252,6 +260,8 @@ Cursor Object
     An exception is raised if the previous call to :meth:`~Cursor.execute()`
     did not produce any result set or no call was issued yet.
 
+    See :ref:`fetching` for an example.
+
 
 .. method:: Cursor.fetchmany([numRows=cursor.arraysize])
 
@@ -267,6 +277,7 @@ Cursor Object
     An exception is raised if the previous call to :meth:`~Cursor.execute()`
     did not produce any result set or no call was issued yet.
 
+    See :ref:`fetching` for an example.
 
 .. method:: Cursor.fetchone()
 
@@ -276,6 +287,7 @@ Cursor Object
     An exception is raised if the previous call to :meth:`~Cursor.execute()`
     did not produce any result set or no call was issued yet.
 
+    See :ref:`fetching` for an example.
 
 .. method:: Cursor.fetchraw([numRows=cursor.arraysize])
 
@@ -386,6 +398,8 @@ Cursor Object
     value is expected to be a variable object or None in which case a default
     variable object will be created. If this attribute is None, the value of
     the attribute with the same name on the connection is used instead.
+
+    See :ref:`outputtypehandlers`.
 
     .. note::
 
@@ -556,4 +570,3 @@ Cursor Object
     .. note::
 
         The DB API definition does not define this method.
-

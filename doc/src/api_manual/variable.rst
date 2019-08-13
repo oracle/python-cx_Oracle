@@ -81,4 +81,3 @@ Variable Objects
     positions in the variable as a list. This is the equivalent of calling
     :meth:`~Variable.getvalue()` for each valid position and the length will
     correspond to the value of the :attr:`~Variable.actualElements` attribute.
-

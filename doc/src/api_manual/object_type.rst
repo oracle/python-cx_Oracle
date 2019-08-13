@@ -49,7 +49,7 @@ Object Type Objects
 
 
 Object Objects
-==============
+--------------
 
 .. note::
 
@@ -70,6 +70,8 @@ Object Objects
 
     Return a dictionary where the collection's indexes are the keys and the
     elements are its values.
+
+    .. versionadded:: 7.0
 
 
 .. method:: Object.aslist()
@@ -149,4 +151,3 @@ Object Objects
 .. method:: Object.trim(num)
 
     Remove the specified number of elements from the end of the collection.
-
