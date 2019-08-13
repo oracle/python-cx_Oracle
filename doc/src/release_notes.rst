@@ -5,6 +5,24 @@
 cx_Oracle Release Notes
 =======================
 
+Version 7.2.2 (August 2019)
+---------------------------
+
+#)  Updated embedded ODPI-C to `version 3.2.1
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-3-2-1-august-12-2019>`__.
+#)  A more meaningful error is now returned when calling
+    :meth:`SodaCollection.insertMany()` with an empty list.
+#)  A more meaningful error is now returned when calling
+    :meth:`Subscription.registerquery()` with SQL that is not a SELECT
+    statement.
+#)  Eliminated segfault when a connection is closed after being created by a
+    call to :meth:`cx_Oracle.connect()` with the parameter ``cclass`` set to
+    a non-empty string.
+#)  Added user guide documentation.
+#)  Updated default connect strings to use 19c and XE 18c defaults.
+
+
 Version 7.2.1 (July 2019)
 -------------------------
 
