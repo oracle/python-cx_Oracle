@@ -50,6 +50,18 @@ class TestCase(TestEnv.BaseTestCase):
                 (True,))
         self.assertEqual(result, "TRUE")
 
+    def testBindBooleanAsNumber(self):
+        "test binding in a boolean as a number"
+        var = self.cursor.var(cx_Oracle.NUMBER)
+        var.setvalue(0, True)
+        self.cursor.execute("select :1 from dual", [var])
+        result, = self.cursor.fetchone()
+        self.assertEqual(result, 1)
+        var.setvalue(0, False)
+        self.cursor.execute("select :1 from dual", [var])
+        result, = self.cursor.fetchone()
+        self.assertEqual(result, 0)
+
     def testBindDecimal(self):
         "test binding in a decimal.Decimal"
         self.cursor.execute("""

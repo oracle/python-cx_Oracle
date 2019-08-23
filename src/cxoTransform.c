@@ -274,22 +274,28 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_INT:
         case CXO_TRANSFORM_DECIMAL:
         case CXO_TRANSFORM_FLOAT:
-            if (!PyFloat_Check(pyValue) &&
+            if (PyBool_Check(pyValue)) {
+                buffer->ptr = (pyValue == Py_True) ? "1" : "0";
+                buffer->size = 1;
+                buffer->numCharacters = 1;
+            } else {
+                if (!PyFloat_Check(pyValue) &&
 #if PY_MAJOR_VERSION < 3
-                    !PyInt_Check(pyValue) &&
+                        !PyInt_Check(pyValue) &&
 #endif
-                    !PyLong_Check(pyValue) &&
-                    !PyObject_TypeCheck(pyValue, cxoPyTypeDecimal)) {
-                PyErr_SetString(PyExc_TypeError, "expecting number");
-                return -1;
+                        !PyLong_Check(pyValue) &&
+                        !PyObject_TypeCheck(pyValue, cxoPyTypeDecimal)) {
+                    PyErr_SetString(PyExc_TypeError, "expecting number");
+                    return -1;
+                }
+                textValue = PyObject_Str(pyValue);
+                if (!textValue)
+                    return -1;
+                status = cxoBuffer_fromObject(buffer, textValue, encoding);
+                Py_DECREF(textValue);
+                if (status < 0)
+                    return -1;
             }
-            textValue = PyObject_Str(pyValue);
-            if (!textValue)
-                return -1;
-            status = cxoBuffer_fromObject(buffer, textValue, encoding);
-            Py_DECREF(textValue);
-            if (status < 0)
-                return -1;
             dbValue->asBytes.ptr = (char*) buffer->ptr;
             dbValue->asBytes.length = buffer->size;
             return 0;
