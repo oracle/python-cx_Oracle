@@ -21,9 +21,9 @@ other features that will be useful in applications.  See the
 Setting the Client Character Set
 ================================
 
-You can specify the Oracle client character set used by cx_Oracle by passing the
-``encoding`` and ``nencoding`` parameters to the :meth:`cx_Oracle.connect` and
-:meth:`cx_Oracle.SessionPool` methods.  For example:
+You can specify the Oracle client character set used by cx_Oracle by passing
+the ``encoding`` and ``nencoding`` parameters to the :meth:`cx_Oracle.connect`
+and :meth:`cx_Oracle.SessionPool` methods. For example:
 
 .. code-block:: python
 
@@ -34,35 +34,48 @@ You can specify the Oracle client character set used by cx_Oracle by passing the
 The ``encoding`` parameter affects character data such as VARCHAR2 and CLOB
 columns.  The ``nencoding`` parameter affects "National Character" data such as
 NVARCHAR2 and NCLOB.  If you are not using national character types, then you
-can omit ``nencoding``.
+can omit ``nencoding``. Both the ``encoding`` and ``nencoding`` parameters are
+expected to be one of the `Python standard encodings
+<https://docs.python.org/3/library/codecs.html#standard-encodings>`__ such as
+``UTF-8``. Do not accidentally use ``UTF8``, which Oracle uses to specify the
+older Unicode 3.0 Universal character set, ``CESU-8``. Note that Oracle does
+not recognize all of the encodings that Python recognizes. You can see which
+encodings Oracle supports by issuing this query:
 
-cx_Oracle will first treat the encoding parameter values as `IANA encoding names
-<https://www.iana.org/assignments/character-sets/character-sets.xhtml>`__.  If
-no name is matched, it will attempt to use `Oracle character set names
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9529D1B5-7366-4195-94B5-0F90F3B472E1>`__. For
-example, for ``UTF-8`` characters you should use the IANA name "UTF-8" or the
-Oracle name "AL32UTF8".  Do not accidentally use "UTF8", which Oracle uses to
-specify the older Unicode 3.0 Universal character set, ``CESU-8``.
+.. code-block:: sql
+
+    select distinct utl_i18n.map_charset(value)
+    from v$nls_valid_values
+    where parameter = 'CHARACTERSET'
+      and utl_i18n.map_charset(value) is not null
+    order by 1
 
 An alternative to setting the encoding parameters is to set Oracle's
 ``NLS_LANG`` environment variable to a value such as
 ``AMERICAN_AMERICA.AL32UTF8``. See :ref:`Setting environment variables
 <envset>`.  As well as setting the character set, the ``NLS_LANG`` environment
 variable lets you specify the Language (``AMERICAN`` in this example) and
-Territory (``AMERICA``) used for NLS globalization.  See `Choosing a Locale with
-the NLS_LANG Environment Variable
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-86A29834-AE29-4BA5-8A78-E19C168B690A>`__.
+Territory (``AMERICA``) used for NLS globalization.  See
+`Choosing a Locale with the NLS_LANG Environment Variables
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-86A29834-AE29-4BA5-8A78-E19C168B690A>`__.
 
 A character set specified by an ``encoding`` parameter will override the
 character set in ``NLS_LANG``.  The language and territory components will still
 be used by Oracle.
 
 If the ``NLS_LANG`` environment variable is set in the application with
-``os.environ['NLS_LANG']``, it must be set before any connection pool is created,
-or before any standalone connections are created.
+``os.environ['NLS_LANG']``, it must be set before any connection pool is
+created, or before any standalone connections are created.
 
-Other Oracle globalization variable can also be set, see `Setting NLS Parameters
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-6475CA50-6476-4559-AD87-35D431276B20>`__.
+If neither of the encoding parameters are specified and the ``NLS_LANG``
+environment variable is not set, the character set ``ASCII`` is used.
+
+Other Oracle globalization variable can also be set, see
+`Setting NLS Parameters
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-6475CA50-6476-4559-AD87-35D431276B20>`__.
+
 
 Character Set Example
 =====================
