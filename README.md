@@ -55,5 +55,5 @@ cx_Oracle is licensed under a BSD license which you can find [here][3].
 [9]: https://github.com/oracle/python-cx_Oracle/issues
 [11]: https://github.com/oracle/python-cx_Oracle/tree/master/test
 [12]: https://github.com/oracle/python-cx_Oracle/tree/master/samples
-[14]: http://cx-oracle.readthedocs.io/en/latest/releasenotes.html
-[15]: http://cx-oracle.readthedocs.io/en/latest/installation.html
+[14]: https://cx-oracle.readthedocs.io/en/latest/release_notes.html
+[15]: https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html
