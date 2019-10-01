@@ -234,3 +234,53 @@ the maximum size of the strings that will be processed is 20 characters.  Since
 cx_Oracle allocates memory for each row based on this value, it is best not to
 oversize it. The first parameter of ``None`` tells cx_Oracle that its default
 processing will be sufficient.
+
+Loading CSV Files into Oracle Database
+======================================
+
+The :meth:`Cursor.executemany()` method and `csv module
+<https://docs.python.org/3/library/csv.html#module-csv>`__ can be used to
+efficiently load CSV (Comma Separated Values) files.  For example, consider the
+file ``data.csv``::
+
+    101,Abel
+    154,Baker
+    132,Charlie
+    199,Delta
+    . . .
+
+And the schema:
+
+.. code-block:: sql
+
+    create table test (id number, name varchar2(25));
+
+Instead of looping through each line of the CSV file and inserting it
+individually, you can insert batches of records using
+:meth:`Cursor.executemany()`:
+
+.. code-block:: python
+
+    import cx_Oracle
+    import csv
+
+    . . .
+
+    # Predefine the memory areas to match the table definition
+    cursor.setinputsizes(None, 25)
+
+    # Adjust the batch size to meet your memory and performance requirements
+    batch_size = 10000
+
+    with open('testsp.csv', 'r') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        sql = "insert into test (id,name) values (:1, :2)"
+        data = []
+        for line in csv_reader:
+            data.append((line[0], line[1]))
+            if len(data) % batch_size == 0:
+                cursor.executemany(sql, data)
+                data = []
+        if data:
+            cursor.executemany(sql, data)
+        con.commit()
