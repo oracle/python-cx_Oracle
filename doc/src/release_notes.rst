@@ -5,6 +5,21 @@
 cx_Oracle Release Notes
 =======================
 
+Version 7.2.3 (October 2019)
+----------------------------
+
+#)  Updated embedded ODPI-C to `version 3.2.2
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-3-2-2-october-1-2019>`__.
+#)  Restored support for setting numeric bind variables with boolean values.
+#)  Ensured that sharding keys are dedicated to the connection that is acquired
+    using them in order to avoid possible hangs, crashes or unusual errors.
+#)  Corrected support for PLS_INTEGER and BINARY_INTEGER types when used in
+    PL/SQL records
+    (`ODPI-C issue 112 <https://github.com/oracle/odpi/issues/112>`__).
+#)  Improved documentation.
+
+
 Version 7.2.2 (August 2019)
 ---------------------------
 
