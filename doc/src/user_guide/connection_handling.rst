@@ -435,9 +435,9 @@ same (and `increment` equal to zero).  the firewall, `resource manager
 or user profile `IDLE_TIME
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-ABC7AE4D-64A8-4EA9-857D-BEF7300B64C3>`__
 should not expire idle sessions.  This avoids connection storms which can
-decrease throughput.  See `About Optimizing Real-World Performance with Static
-Connection Pools
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-BC09F045-5D80-4AF5-93F5-FEF0531E0E1D>`__,
+decrease throughput.  See `Guideline for Preventing Connection Storms: Use
+Static Pools
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7DFBA826-7CC0-4D16-B19C-31D168069B54>`__,
 which contains details about sizing of pools.
 
 Session CallBacks for Setting Pooled Connection State

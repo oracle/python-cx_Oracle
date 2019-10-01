@@ -48,9 +48,9 @@ optionally :ref:`overridden <outputtypehandlers>`.
 .. IMPORTANT::
 
     Interpolating or concatenating user data with SQL statements, for example
-    ``sql = 'SELECT * FROM mytab WHERE mycol = ' + myvar``, is a security risk
+    ``cur.execute("SELECT * FROM mytab WHERE mycol = '" + myvar + "'")``, is a security risk
     and impacts performance.  Use :ref:`bind variables <bind>` instead. For
-    example, ``sql = 'SELECT * FROM mytab WHERE mycol = :mybv``.
+    example, ``cur.execute("SELECT * FROM mytab WHERE mycol = :mybv", mybv=myvar)``.
 
 .. _fetching:
 
@@ -338,9 +338,11 @@ object that is returned by default. Python types can be changed with
 Changing Fetched Data Types with Output Type Handlers
 -----------------------------------------------------
 
-Sometimes the default conversion from Oracle Database type to Python type must
-be changed in order to prevent data loss or to fit the purposes of the Python
-application. In such cases, an output type handler can be specified.
+Sometimes the default conversion from an Oracle Database type to a Python type
+must be changed in order to prevent data loss or to fit the purposes of the
+Python application. In such cases, an output type handler can be specified for
+queries.  Output type handlers do not affect values returned from
+:meth:`Cursor.callfunc()` or :meth:`Cursor.callproc()`.
 
 Output type handlers can be specified on the :attr:`connection
 <Connection.outputtypehandler>` or on the :attr:`cursor
