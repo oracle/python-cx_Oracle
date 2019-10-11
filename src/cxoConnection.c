@@ -1058,15 +1058,12 @@ static PyObject *cxoConnection_createLob(cxoConnection *conn,
 //-----------------------------------------------------------------------------
 static PyObject *cxoConnection_getVersion(cxoConnection *conn, void *unused)
 {
-    uint32_t releaseStringLength;
     dpiVersionInfo versionInfo;
-    const char *releaseString;
     char buffer[25];
     int status;
 
     Py_BEGIN_ALLOW_THREADS
-    status = dpiConn_getServerVersion(conn->handle, &releaseString,
-            &releaseStringLength, &versionInfo);
+    status = dpiConn_getServerVersion(conn->handle, NULL, NULL, &versionInfo);
     Py_END_ALLOW_THREADS
     if (status < 0)
         return cxoError_raiseAndReturnNull();
