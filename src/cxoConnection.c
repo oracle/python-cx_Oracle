@@ -1703,8 +1703,9 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
 {
     static char *keywordList[] = { "namespace", "protocol", "callback",
             "timeout", "operations", "port", "qos", "ipAddress",
-            "groupingClass", "groupingValue", "groupingType", "name", NULL };
-    PyObject *callback, *ipAddress, *name;
+            "groupingClass", "groupingValue", "groupingType", "name",
+            "clientInitiated", NULL };
+    PyObject *callback, *ipAddress, *name, *clientInitiatedObj;
     cxoBuffer ipAddressBuffer, nameBuffer;
     dpiSubscrCreateParams params;
     cxoSubscr *subscr;
@@ -1714,12 +1715,16 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
         return cxoError_raiseAndReturnNull();
 
     // validate parameters
-    callback = name = ipAddress = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|IIOIIIIObIbO",
+    callback = name = ipAddress = clientInitiatedObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|IIOIIIIObIbOO",
             keywordList, &params.subscrNamespace, &params.protocol, &callback,
             &params.timeout, &params.operations, &params.portNumber,
             &params.qos, &ipAddress, &params.groupingClass,
-            &params.groupingValue, &params.groupingType, &name))
+            &params.groupingValue, &params.groupingType, &name,
+            &clientInitiatedObj))
+        return NULL;
+    if (cxoUtils_getBooleanValue(clientInitiatedObj, 0,
+            &params.clientInitiated) < 0)
         return NULL;
 
     // populate IP address in parameters, if applicable

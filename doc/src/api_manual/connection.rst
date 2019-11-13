@@ -549,7 +549,7 @@ Connection Object
         This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0, ipAddress=None, groupingClass=0, groupingValue=0, groupingType=cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY, name=None)
+.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0, ipAddress=None, groupingClass=0, groupingValue=0, groupingType=cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY, name=None, clientInitiated=False)
 
     Return a new :ref:`subscription object <subscrobj>` that receives
     notifications for events that take place in the database that match the
@@ -609,6 +609,11 @@ Connection Object
     '<QUEUE_NAME>:<CONSUMER_NAME>' for multiple consumer queues, and identifies
     the queue that will be monitored for messages. The queue name may include
     the schema, if needed.
+
+    The clientInitiated parameter is used to determine if client initiated
+    connections or server initiated connections (the default) will be
+    established. Client initiated connections are only available in Oracle
+    Client 19.4 and Oracle Database 19.4 and higher.
 
     *New in version 6.4:* The parameters ipAddress, groupingClass,
     groupingValue, groupingType and name were added.
