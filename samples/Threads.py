@@ -23,6 +23,13 @@ pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
         SampleEnv.GetMainPassword(), SampleEnv.GetConnectString(), min=2,
         max=5, increment=1, threaded=True)
 
+# dbms_session.sleep() replaces dbms_lock.sleep() from Oracle Database 18c
+conn = pool.acquire()
+sleepProcName = "dbms_session.sleep" \
+        if int(conn.version.split(".")[0]) >= 18 \
+        else "dbms_lock.sleep"
+conn.close()
+
 def TheLongQuery():
     conn = pool.acquire()
     cursor = conn.cursor()
@@ -50,7 +57,7 @@ def DoALock():
     conn = pool.acquire()
     cursor = conn.cursor()
     print("DoALock(): beginning execute...")
-    cursor.callproc("dbms_lock.sleep", (5,))
+    cursor.callproc(sleepProcName, (5,))
     print("DoALock(): done execute...")
 
 

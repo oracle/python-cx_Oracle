@@ -17,8 +17,6 @@ alter session set nls_numeric_characters='.,'
 /
 
 create user &main_user identified by &main_password
-quota unlimited on users
-default tablespace users
 /
 
 grant
@@ -27,13 +25,28 @@ grant
     create procedure,
     create type,
     select any dictionary,
-    change notification
+    change notification,
+    unlimited tablespace
 to &main_user
 /
 
 grant execute on dbms_aqadm to &main_user
 /
-grant execute on dbms_lock to &main_user
+
+begin
+    execute immediate 'begin dbms_session.sleep(0); end;';
+exception
+when others then
+    begin
+        execute immediate 'grant execute on dbms_lock to &main_user';
+    exception
+    when others then
+        raise_application_error(-20000,
+                'Ensure the following grant is made: ' ||
+                'grant execute on dbms_lock to ' || user ||
+                ' with grant option');
+    end;
+end;
 /
 
 begin
