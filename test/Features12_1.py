@@ -143,6 +143,8 @@ class TestCase(TestEnv.BaseTestCase):
             obj.DATEVALUE = datetime.datetime(2017, i + 1, 1)
             obj.TIMESTAMPVALUE = datetime.datetime(2017, 1, i + 1)
             obj.BOOLEANVALUE = (i % 2) == 1
+            obj.PLSINTEGERVALUE = i * 5
+            obj.BINARYINTEGERVALUE = i * 2
             arrayObj.append(obj)
         result = self.cursor.callfunc("pkg_TestRecords.TestInArrays", str,
                 (arrayObj,))
@@ -150,15 +152,15 @@ class TestCase(TestEnv.BaseTestCase):
                 "udt_Record(1, 'String in record #1', " \
                 "to_date('2017-01-01', 'YYYY-MM-DD'), " \
                 "to_timestamp('2017-01-01 00:00:00', " \
-                "'YYYY-MM-DD HH24:MI:SS'), false); " \
+                "'YYYY-MM-DD HH24:MI:SS'), false, 0, 0); " \
                 "udt_Record(2, 'String in record #2', " \
                 "to_date('2017-02-01', 'YYYY-MM-DD'), " \
                 "to_timestamp('2017-01-02 00:00:00', " \
-                "'YYYY-MM-DD HH24:MI:SS'), true); " \
+                "'YYYY-MM-DD HH24:MI:SS'), true, 5, 2); " \
                 "udt_Record(3, 'String in record #3', " \
                 "to_date('2017-03-01', 'YYYY-MM-DD'), " \
                 "to_timestamp('2017-01-03 00:00:00', " \
-                "'YYYY-MM-DD HH24:MI:SS'), false)")
+                "'YYYY-MM-DD HH24:MI:SS'), false, 10, 4)")
 
     def testBindPLSQLRecordIn(self):
         "test binding a PL/SQL record (in)"
@@ -169,13 +171,15 @@ class TestCase(TestEnv.BaseTestCase):
         obj.DATEVALUE = datetime.datetime(2016, 2, 15)
         obj.TIMESTAMPVALUE = datetime.datetime(2016, 2, 12, 14, 25, 36)
         obj.BOOLEANVALUE = False
+        obj.PLSINTEGERVALUE = 21
+        obj.BINARYINTEGERVALUE = 5
         result = self.cursor.callfunc("pkg_TestRecords.GetStringRep", str,
                 (obj,))
         self.assertEqual(result,
                 "udt_Record(18, 'A string in a record', " \
                 "to_date('2016-02-15', 'YYYY-MM-DD'), " \
                 "to_timestamp('2016-02-12 14:25:36', " \
-                "'YYYY-MM-DD HH24:MI:SS'), false)")
+                "'YYYY-MM-DD HH24:MI:SS'), false, 21, 5)")
 
     def testBindPLSQLRecordOut(self):
         "test binding a PL/SQL record (out)"
@@ -186,6 +190,8 @@ class TestCase(TestEnv.BaseTestCase):
         obj.DATEVALUE = datetime.datetime.today()
         obj.TIMESTAMPVALUE = datetime.datetime.today()
         obj.BOOLEANVALUE = False
+        obj.PLSINTEGERVALUE = 23
+        obj.BINARYINTEGERVALUE = 9
         self.cursor.callproc("pkg_TestRecords.TestOut", (obj,))
         self.assertEqual(obj.NUMBERVALUE, 25)
         self.assertEqual(obj.STRINGVALUE, "String in record")
@@ -193,6 +199,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(obj.TIMESTAMPVALUE,
                 datetime.datetime(2016, 2, 16, 18, 23, 55))
         self.assertEqual(obj.BOOLEANVALUE, True)
+        self.assertEqual(obj.PLSINTEGERVALUE, 45)
+        self.assertEqual(obj.BINARYINTEGERVALUE, 10)
 
     def testBindPLSQLStringCollectionIn(self):
         "test binding a PL/SQL string collection (in)"

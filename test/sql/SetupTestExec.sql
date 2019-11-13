@@ -930,7 +930,9 @@ create or replace package &main_user..pkg_TestRecords as
         StringValue                     varchar2(30),
         DateValue                       date,
         TimestampValue                  timestamp,
-        BooleanValue                    boolean
+        BooleanValue                    boolean,
+        PlsIntegerValue                 pls_integer,
+        BinaryIntegerValue              binary_integer
     );
 
     type udt_RecordArray is table of udt_Record index by binary_integer;
@@ -970,7 +972,9 @@ create or replace package body &main_user..pkg_TestRecords as
                         ''', ''YYYY-MM-DD HH24:MI:SS'')' end || ', ' ||
                 case when a_Value.BooleanValue is null then 'null'
                 when a_Value.BooleanValue then 'true'
-                else 'false' end || ')';
+                else 'false' end || ', ' ||
+                nvl(to_char(a_Value.PlsIntegerValue), 'null') || ', ' ||
+                nvl(to_char(a_Value.BinaryIntegerValue), 'null') || ')';
     end;
 
     procedure TestOut (
@@ -983,6 +987,8 @@ create or replace package body &main_user..pkg_TestRecords as
         a_Value.TimestampValue := to_timestamp('20160216 18:23:55',
                 'YYYYMMDD HH24:MI:SS');
         a_Value.BooleanValue := true;
+        a_Value.PlsIntegerValue := 45;
+        a_Value.BinaryIntegerValue := 10;
     end;
 
     function TestInArrays (
