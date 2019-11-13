@@ -78,26 +78,28 @@ Quick Start cx_Oracle Installation
   <https://oracle.github.io/odpi/doc/installation.html>`__ can be useful
   to review.
 
-- Create a script like the one below::
+- Create a script like the one below:
 
-	# myscript.py
+  .. code-block:: python
 
-	from __future__ import print_function
+    # myscript.py
 
-	import cx_Oracle
+    from __future__ import print_function
 
-	# Connect as user "hr" with password "welcome" to the "orclpdb1" service running on this computer.
-	connection = cx_Oracle.connect("hr", "welcome", "localhost/orclpdb1")
+    import cx_Oracle
 
-	cursor = connection.cursor()
-	cursor.execute("""
-	    SELECT first_name, last_name
-	    FROM employees
-	    WHERE department_id = :did AND employee_id > :eid""",
-	    did = 50,
-	    eid = 190)
-	for fname, lname in cursor:
-	    print("Values:", fname, lname)
+    # Connect as user "hr" with password "welcome" to the "orclpdb1" service running on this computer.
+    connection = cx_Oracle.connect("hr", "welcome", "localhost/orclpdb1")
+
+    cursor = connection.cursor()
+    cursor.execute("""
+            SELECT first_name, last_name
+            FROM employees
+            WHERE department_id = :did AND employee_id > :eid""",
+            did = 50,
+            eid = 190)
+    for fname, lname in cursor:
+        print("Values:", fname, lname)
 
   Locate your Oracle Database username and password, and the database
   connection string.  The connection string is commonly of the format
@@ -345,7 +347,7 @@ Python architecture.
 
        source /usr/local/bin/oraenv
 
-   For Oracle Database XE, run::
+   For Oracle Database XE 11.2, run::
 
        source /u01/app/oracle/product/11.2.0/xe/bin/oracle_env.sh
 
@@ -396,7 +398,7 @@ Install Oracle Client
 
 Using cx_Oracle requires Oracle Client libraries to be installed.
 These provide the necessary network connectivity allowing cx_Oracle
-to access an Oracle Database instance. Oracle Client versions 18,
+to access an Oracle Database instance. Oracle Client versions 19, 18,
 12 and 11.2 are supported.
 
     - If your database is on a remote computer, then download the free `Oracle
@@ -416,17 +418,19 @@ Oracle Instant Client Zip Files
 
 To use cx_Oracle with Oracle Instant Client zip files:
 
-1. Download an Oracle 18, 12, or 11.2 "Basic" or "Basic Light" zip
+1. Download an Oracle 19, 18, 12, or 11.2 "Basic" or "Basic Light" zip
    file: `64-bit
    <http://www.oracle.com/technetwork/topics/winx64soft-089540.html>`__
    or `32-bit
    <http://www.oracle.com/technetwork/topics/winsoft-085727.html>`__, matching your
    Python architecture.
 
+   Windows 7 users: Note that Oracle 19c is not supported on Windows 7.
+
 2. Unzip the package into a directory that is accessible to your
    application. For example unzip
-   ``instantclient-basic-windows.x64-18.3.0.0.0dbru.zip`` to
-   ``C:\oracle\instantclient_18_3``.
+   ``instantclient-basic-windows.x64-19.3.0.0.0dbru.zip`` to
+   ``C:\oracle\instantclient_19_3``.
 
 3. Add this directory to the ``PATH`` environment variable. For
    example, on Windows 7, update ``PATH`` in Control Panel -> System
@@ -441,7 +445,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
    may prefer to write a batch file that sets ``PATH``, for example::
 
        REM mypy.bat
-       SET PATH=C:\oracle\instantclient_18_3;%PATH%
+       SET PATH=C:\oracle\instantclient_19_3;%PATH%
        python %*
 
    Invoke this batch file every time you want to run python.
@@ -453,6 +457,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
    a 64-bit or 32-bit architecture to match Instant Client's architecture.
    Each Instant Client version requires a different redistributable version:
 
+       - For Instant Client 19 install `VS 2017 <https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads>`__.
        - For Instant Client 18 or 12.2 install `VS 2013 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2013>`__
        - For Instant Client 12.1 install `VS 2010 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2010>`__
        - For Instant Client 11.2 install `VS 2005 64-bit <https://www.microsoft.com/en-us/download/details.aspx?id=18471>`__ or `VS 2005 32-bit <https://www.microsoft.com/en-ca/download/details.aspx?id=3387>`__
@@ -460,7 +465,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
 5. If you intend to co-locate optional Oracle configuration files such
    as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
    Instant Client, then create a ``network\admin`` subdirectory, for example
-   ``C:\oracle\instantclient_18_3\network\admin``.
+   ``C:\oracle\instantclient_19_3\network\admin``.
 
    This is the default Oracle configuration directory for executables
    linked with this Instant Client.
@@ -473,7 +478,7 @@ To use cx_Oracle with Oracle Instant Client zip files:
 Local Database or Full Oracle Client
 ++++++++++++++++++++++++++++++++++++
 
-cx_Oracle applications can use Oracle Client 18, 12, or 11.2
+cx_Oracle applications can use Oracle Client 19, 18, 12, or 11.2
 libraries libraries from a local Oracle Database or full Oracle
 Client.
 
@@ -536,7 +541,7 @@ instance. Oracle Client versions 18, 12 and 11.2 are supported.
 
 To use cx_Oracle with Oracle Instant Client zip files:
 
-1. Download the Oracle 18, 12 or 11.2 "Basic" or "Basic Light" zip file from `here
+1. Download the Oracle 19, 18, 12 or 11.2 "Basic" or "Basic Light" zip file from `here
    <http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html>`__.
    Choose either a 64-bit or 32-bit package, matching your
    Python architecture.
@@ -545,18 +550,18 @@ To use cx_Oracle with Oracle Instant Client zip files:
    application. For example::
 
        mkdir -p /opt/oracle
-       unzip instantclient-basic-macos.x64-18.1.0.0.0.zip
+       unzip instantclient-basic-macos.x64-19.3.0.0.0dbru.zip
 
 3. Add links to ``$HOME/lib`` or ``/usr/local/lib`` to enable
    applications to find the library. For example::
 
        mkdir ~/lib
-       ln -s /opt/oracle/instantclient_18_1/libclntsh.dylib ~/lib/
+       ln -s /opt/oracle/instantclient_19_3/libclntsh.dylib ~/lib/
 
    Alternatively, copy the required OCI libraries. For example::
 
         mkdir ~/lib
-        cp /opt/oracle/instantclient_18_1/{libclntsh.dylib.18.1,libclntshcore.dylib.18.1,libons.dylib,libnnz18.dylib,libociei.dylib} ~/lib/
+        cp /opt/oracle/instantclient_19_3/{libclntsh.dylib.19.1,libclntshcore.dylib.19.1,libnnz19.dylib,libociei.dylib} ~/lib/
 
    For Instant Client 11.2, the OCI libraries must be copied. For example::
 
@@ -711,6 +716,12 @@ If using cx_Oracle fails:
         ``/usr/local/lib`` and that you are not using the bundled Python (use
         `Homebrew <https://brew.sh>`__ or `Python.org
         <https://www.python.org/downloads>`__ instead).
+
+    - If you got "``DPI-1072: the Oracle Client library version is
+      unsupported``", then review the installation requirements.  cx_Oracle
+      needs Oracle client libraries 11.2 or later.  Note that version 19 is not
+      supported on Windows 7.  Similar steps shown above for ``DPI-1047`` may
+      help.
 
     - If you have both Python 2 and 3 installed, make sure you are
       using the correct python and pip (or python3 and pip3)

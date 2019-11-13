@@ -1346,6 +1346,60 @@ of the function :meth:`cx_Oracle.connect()` constructor:
     connection = cx_Oracle.connect(username, oldpwd, "dbhost.example.com/orclpdb1",
             newpassword=newpwd, encoding="UTF-8")
 
+.. _autononmousdb:
+
+Connecting to Autononmous Databases
+===================================
+
+To enable connection to Oracle Autonomous Database in Oracle Cloud, a wallet
+needs be downloaded from the cloud GUI, and cx_Oracle needs to be configured to
+use it.  A database username and password is still required.  The wallet only
+enables SSL/TLS.
+
+Install the Wallet and Network Configuration Files
+--------------------------------------------------
+
+From the Oracle Cloud console for the database, download the wallet zip file.  It
+contains the wallet and network configuration files.  Note: keep wallet files in
+a secure location and share them only with authorized users.
+
+Unzip the wallet zip file.
+
+For cx_Oracle, only these files from the zip are needed:
+
+- ``tnsnames.ora`` - Maps net service names used for application connection strings to your database services
+- ``sqlnet.ora``  - Configures Oracle Network settings
+- ``cwallet.sso`` - Enables SSL/TLS connections
+
+The other files and the wallet password are not needed.
+
+Place these files as shown in `Optional Oracle Net Configuration Files`_.
+
+Run Your Application
+--------------------
+
+The ``tnsnames.ora`` file contains net service names for various levels of
+database service.  For example, if you create a database called CJDB1 with the
+Always Free services from the `Oracle Cloud Free Tier
+<https://www.oracle.com//cloud/free/>`__, then you might decide to use the
+connection string in ``tnsnames.ora`` called ``cjdb1_high``.
+
+Update your application to use your schema username, its database password, and
+a net service name, for example:
+
+.. code-block:: python
+
+    connection = cx_Oracle.connect("scott", userpwd, "cjdb1_high", encoding="UTF-8")
+
+Once you have set Oracle environment variables required by your application,
+such as ``TNS_ADMIN``, you can start your application.
+
+If you need to create a new database schema so you do not login as the
+privileged ADMIN user, refer to the relevant Oracle Cloud documentation, for
+example see `Create Database Users
+<https://docs.oracle.com/en/cloud/paas/atp-cloud/atpud/manage.html>`__ in the
+Oracle Autonomous Transaction Processing Dedicated Deployments manual.
+
 .. _connsharding:
 
 Connecting to Sharded Databases
