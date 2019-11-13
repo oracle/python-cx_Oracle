@@ -96,7 +96,7 @@ class TestCase(TestEnv.BaseTestCase):
                 getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT)
         self.assertEqual(pool.homogeneous, 1,
                 "homogeneous should be 1 by default")
-        self.assertRaises(cx_Oracle.ProgrammingError, pool.acquire,
+        self.assertRaises(cx_Oracle.DatabaseError, pool.acquire,
                 user = u"missing_proxyuser")
         pool = TestEnv.GetPool(min=2, max=8, increment=3,
                 getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT, homogeneous=False)
