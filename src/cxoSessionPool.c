@@ -158,10 +158,10 @@ static PyObject *cxoSessionPool_new(PyTypeObject *type, PyObject *args,
 static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
         PyObject *keywordArgs)
 {
+    uint32_t minSessions, maxSessions, sessionIncrement, maxSessionsPerShard;
     cxoBuffer userNameBuffer, passwordBuffer, dsnBuffer, editionBuffer;
     PyObject *threadedObj, *eventsObj, *homogeneousObj, *passwordObj;
     PyObject *usernameObj, *dsnObj, *sessionCallbackObj;
-    uint32_t minSessions, maxSessions, sessionIncrement;
     PyObject *externalAuthObj, *editionObj;
     dpiCommonCreateParams dpiCommonParams;
     dpiPoolCreateParams dpiCreateParams;
@@ -175,7 +175,7 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
             "increment", "connectiontype", "threaded", "getmode", "events",
             "homogeneous", "externalauth", "encoding", "nencoding", "edition",
             "timeout", "waitTimeout", "maxLifetimeSession", "sessionCallback",
-            NULL };
+            "maxSessionsPerShard", NULL };
 
     // parse arguments and keywords
     usernameObj = passwordObj = dsnObj = editionObj = Py_None;
@@ -185,6 +185,7 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     minSessions = 1;
     maxSessions = 2;
     sessionIncrement = 1;
+    maxSessionsPerShard = 0;
     if (cxoUtils_initializeDPI() < 0)
         return -1;
     if (dpiContext_initCommonCreateParams(cxoDpiContext, &dpiCommonParams) < 0)
@@ -194,14 +195,15 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
             (uint32_t) strlen(dpiCommonParams.driverName);
     if (dpiContext_initPoolCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OOOiiiOObOOOssOiiiO",
-            keywordList, &usernameObj, &passwordObj, &dsnObj, &minSessions,
-            &maxSessions, &sessionIncrement, &connectionType, &threadedObj,
-            &dpiCreateParams.getMode, &eventsObj, &homogeneousObj,
-            &externalAuthObj, &dpiCommonParams.encoding,
-            &dpiCommonParams.nencoding, &editionObj, &dpiCreateParams.timeout,
-            &dpiCreateParams.waitTimeout, &dpiCreateParams.maxLifetimeSession,
-            &sessionCallbackObj))
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
+            "|OOOiiiOObOOOssOiiiOi", keywordList, &usernameObj, &passwordObj,
+            &dsnObj, &minSessions, &maxSessions, &sessionIncrement,
+            &connectionType, &threadedObj, &dpiCreateParams.getMode,
+            &eventsObj, &homogeneousObj, &externalAuthObj,
+            &dpiCommonParams.encoding, &dpiCommonParams.nencoding, &editionObj,
+            &dpiCreateParams.timeout, &dpiCreateParams.waitTimeout,
+            &dpiCreateParams.maxLifetimeSession, &sessionCallbackObj,
+            &maxSessionsPerShard))
         return -1;
     if (!PyType_Check(connectionType)) {
         cxoError_raiseFromString(cxoProgrammingErrorException,
@@ -269,6 +271,7 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     dpiCreateParams.sessionIncrement = sessionIncrement;
     dpiCreateParams.plsqlFixupCallback = sessionCallbackBuffer.ptr;
     dpiCreateParams.plsqlFixupCallbackLength = sessionCallbackBuffer.size;
+    dpiCreateParams.maxSessionsPerShard = maxSessionsPerShard;
     dpiCommonParams.edition = editionBuffer.ptr;
     dpiCommonParams.editionLength = editionBuffer.size;
 

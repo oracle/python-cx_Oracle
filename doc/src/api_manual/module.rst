@@ -162,7 +162,7 @@ Module Interface
         getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, events=False, \
         homogeneous=True, externalauth=False, encoding=None, nencoding=None, \
         edition=None, timeout=0, waitTimeout=0, maxLifetimeSession=0, \
-        sessionCallback=None)
+        sessionCallback=None, maxSessionsPerShard=0)
 
     Create and return a :ref:`session pool object <sesspool>`.
     Connection pooling in cx_Oracle is handled by Oracle's
@@ -244,6 +244,11 @@ Module Interface
     or when a tag is requested and that tag does not match the connection's
     actual tag. The callable will be invoked with the connection and the
     requested tag as its only parameters.
+
+    The maxSessionsPerShard parameter is expected to be an integer, if
+    specified, and sets the maximum number of sessions in the pool that can be
+    used for any given shard in a sharded database. This value is ignored if
+    the Oracle client library version is less than 18.3.
 
     .. note::
 
