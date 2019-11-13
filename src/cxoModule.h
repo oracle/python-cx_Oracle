@@ -259,7 +259,7 @@ struct cxoCursor {
     uint32_t fetchBufferRowIndex;
     uint32_t numRowsInFetchBuffer;
     int moreRowsToFetch;
-    int isScrollable;
+    char isScrollable;
     int fixupRefCursor;
     int isOpen;
 };
