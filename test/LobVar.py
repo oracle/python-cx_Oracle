@@ -254,9 +254,8 @@ class TestCase(TestEnv.BaseTestCase):
         cursor = self.connection.cursor()
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
-                select sid
-                from v$session
-                where audsid = userenv('sessionid')""")
+                select sys_context('USERENV', 'SID')
+                from dual""")
         sid, = cursor.fetchone()
         tempLobs = self.__GetTempLobs(sid)
         self.assertEqual(tempLobs, 0)

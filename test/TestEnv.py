@@ -15,13 +15,13 @@
 # You can set values in environment variables to bypass having the test suite
 # request the information it requires.
 #
-#     CX_ORACLE_TEST_MAIN_USER: user used for most samples
-#     CX_ORACLE_TEST_MAIN_PASSWORD: password of user used for most samples
-#     CX_ORACLE_TEST_PROXY_USER: user for testing proxy connections
-#     CX_ORACLE_TEST_PROXY_PASSWORD: password of user for proxying
-#     CX_ORACLE_TEST_CONNECT_STRING: connect string
-#     CX_ORACLE_TEST_SYSDBA_USER: SYSDBA user for setting up test suite
-#     CX_ORACLE_TEST_SYSDBA_PASSWORD: SYSDBA password for setting up test suite
+#     CX_ORACLE_TEST_MAIN_USER: user used for most test cases
+#     CX_ORACLE_TEST_MAIN_PASSWORD: password of user used for most test cases
+#     CX_ORACLE_TEST_PROXY_USER: user for testing proxying
+#     CX_ORACLE_TEST_PROXY_PASSWORD: password of user for testing proxying
+#     CX_ORACLE_TEST_CONNECT_STRING: connect string for test suite
+#     CX_ORACLE_TEST_ADMIN_USER: administrative user for test suite
+#     CX_ORACLE_TEST_ADMIN_PASSWORD: administrative password for test suite
 #
 # CX_ORACLE_TEST_CONNECT_STRING can be set to an Easy Connect string, or a
 # Net Service Name from a tnsnames.ora file or external naming service,
@@ -39,6 +39,9 @@
 # location such as $ORACLE_HOME/network/admin/tnsnames.ora or
 # /etc/tnsnames.ora.  Alternatively set the TNS_ADMIN environment
 # variable and put the file in $TNS_ADMIN/tnsnames.ora.
+#
+# The administrative user for cloud databases is ADMIN and the administrative
+# user for on premises databases is SYSTEM.
 #------------------------------------------------------------------------------
 
 from __future__ import print_function
@@ -110,11 +113,10 @@ def GetCharSetRatio():
         PARAMETERS["CS_RATIO"] = value
     return value
 
-def GetSysdbaConnectString():
-    sysdbaUser = GetValue("SYSDBA_USER", "SYSDBA user", "sys")
-    sysdbaPassword = GetValue("SYSDBA_PASSWORD",
-            "Password for %s" % sysdbaUser)
-    return "%s/%s@%s" % (sysdbaUser, sysdbaPassword, GetConnectString())
+def GetAdminConnectString():
+    adminUser = GetValue("ADMIN_USER", "Administrative user", "admin")
+    adminPassword = GetValue("ADMIN_PASSWORD", "Password for %s" % adminUser)
+    return "%s/%s@%s" % (adminUser, adminPassword, GetConnectString())
 
 def RunSqlScript(conn, scriptName, **kwargs):
     statementParts = []
@@ -129,7 +131,11 @@ def RunSqlScript(conn, scriptName, **kwargs):
             if statement:
                 for searchValue, replaceValue in replaceValues:
                     statement = statement.replace(searchValue, replaceValue)
-                cursor.execute(statement)
+                try:
+                    cursor.execute(statement)
+                except:
+                    print("Failed to execute SQL:", statement)
+                    raise
             statementParts = []
         else:
             statementParts.append(line)
@@ -166,6 +172,16 @@ def GetClientVersion():
     return cx_Oracle.clientversion()
 
 class BaseTestCase(unittest.TestCase):
+
+    def isOnOracleCloud(self, connection=None):
+        if connection is None:
+            connection = self.connection
+        cursor = connection.cursor()
+        cursor.execute("""
+                select sys_context('userenv', 'service_name')
+                from dual""")
+        serviceName, = cursor.fetchone()
+        return serviceName.endswith("oraclecloud.com")
 
     def setUp(self):
         self.connection = GetConnection()

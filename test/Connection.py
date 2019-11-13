@@ -77,7 +77,8 @@ class TestCase(TestEnv.BaseTestCase):
     def testAttributes(self):
         "test connection end-to-end tracing attributes"
         connection = TestEnv.GetConnection()
-        if TestEnv.GetClientVersion() >= (12, 1):
+        if TestEnv.GetClientVersion() >= (12, 1) \
+                and not self.isOnOracleCloud(connection):
             self.__VerifyAttributes(connection, "dbop", "cx_OracleTest_DBOP",
                     "select dbop_name from v$sql_monitor "
                     "where sid = sys_context('userenv', 'sid')"
@@ -128,10 +129,12 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testChangePassword(self):
         "test changing password"
+        connection = TestEnv.GetConnection()
+        if self.isOnOracleCloud(connection):
+            self.skipTest("passwords on Oracle Cloud are strictly controlled")
         sysRandom = random.SystemRandom()
         newPassword = "".join(sysRandom.choice(string.ascii_letters) \
                 for i in range(20))
-        connection = TestEnv.GetConnection()
         connection.changepassword(TestEnv.GetMainPassword(), newPassword)
         cconnection = cx_Oracle.connect(TestEnv.GetMainUser(), newPassword,
                 TestEnv.GetConnectString())
@@ -139,19 +142,23 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testChangePasswordNegative(self):
         "test changing password to an invalid value"
-        newPassword = "1" * 150
         connection = TestEnv.GetConnection()
+        if self.isOnOracleCloud(connection):
+            self.skipTest("passwords on Oracle Cloud are strictly controlled")
+        newPassword = "1" * 150
         self.assertRaises(cx_Oracle.DatabaseError, connection.changepassword,
                 TestEnv.GetMainPassword(), newPassword)
 
     def testParsePassword(self):
         "test connecting with password containing / and @ symbols"
+        connection = TestEnv.GetConnection()
+        if self.isOnOracleCloud(connection):
+            self.skipTest("passwords on Oracle Cloud are strictly controlled")
         sysRandom = random.SystemRandom()
         chars = list(sysRandom.choice(string.ascii_letters) for i in range(20))
         chars[4] = "/"
         chars[8] = "@"
         newPassword = "".join(chars)
-        connection = TestEnv.GetConnection()
         connection.changepassword(TestEnv.GetMainPassword(), newPassword)
         try:
             arg = "%s/%s@%s" % (TestEnv.GetMainUser(), newPassword,

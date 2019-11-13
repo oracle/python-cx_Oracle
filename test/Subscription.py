@@ -38,6 +38,14 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testSubscription(self):
         "test Subscription for insert, update, delete and truncate"
+
+        # skip if running on the Oracle Cloud, which does not support
+        # subscriptions currently
+        if self.isOnOracleCloud():
+            self.skipTest("Oracle Cloud does not support subscriptions " \
+                    "currently")
+
+        # truncate table in order to run test in known state
         self.cursor.execute("truncate table TestTempTable")
 
         # expected values

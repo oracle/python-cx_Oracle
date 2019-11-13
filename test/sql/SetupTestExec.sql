@@ -21,8 +21,6 @@ alter session set nls_numeric_characters='.,'
 /
 
 create user &main_user identified by &main_password
-quota unlimited on users
-default tablespace users
 /
 
 create user &proxy_user identified by &proxy_password
@@ -39,7 +37,8 @@ grant
     create procedure,
     create type,
     select any dictionary,
-    change notification
+    change notification,
+    unlimited tablespace
 to &main_user
 /
 

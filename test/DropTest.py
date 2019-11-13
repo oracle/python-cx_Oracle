@@ -20,8 +20,7 @@ def DropTests(conn):
             proxy_user = TestEnv.GetProxyUser())
 
 if __name__ == "__main__":
-    conn = cx_Oracle.connect(TestEnv.GetSysdbaConnectString(),
-            mode = cx_Oracle.SYSDBA)
+    conn = cx_Oracle.connect(TestEnv.GetAdminConnectString())
     DropTests(conn)
     print("Done.")
 

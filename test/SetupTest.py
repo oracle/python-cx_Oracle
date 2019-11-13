@@ -16,9 +16,8 @@ import cx_Oracle
 import TestEnv
 import DropTest
 
-# connect as SYSDBA
-conn = cx_Oracle.connect(TestEnv.GetSysdbaConnectString(),
-        mode = cx_Oracle.SYSDBA)
+# connect as administrative user (usually SYSTEM or ADMIN)
+conn = cx_Oracle.connect(TestEnv.GetAdminConnectString())
 
 # drop existing users and editions, if applicable
 DropTest.DropTests(conn)
