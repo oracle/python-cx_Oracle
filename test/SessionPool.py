@@ -226,13 +226,6 @@ class TestCase(TestEnv.BaseTestCase):
                 TestEnv.GetMainPassword()), TestEnv.GetProxyUser(),
                 TestEnv.GetMainUser())
 
-    def testHeterogenousWithoutPassword(self):
-        """test heterogeneous pool without password"""
-        pool = TestEnv.GetPool(min=2, max=8, increment=3,
-                getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT, homogeneous=False)
-        self.assertRaises(cx_Oracle.DatabaseError,  pool.acquire,
-                TestEnv.GetMainUser())
-
     def testHeterogeneousWrongPassword(self):
         """test heterogeneous pool with wrong password specified"""
         pool = TestEnv.GetPool(min=2, max=8, increment=3,
