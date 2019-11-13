@@ -337,15 +337,11 @@ static PyObject *cxoSessionPool_acquire(cxoSessionPool *pool, PyObject *args,
     PyObject *matchAnyTagObj;
 
     // parse arguments
-    username = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|s#s#OOOOOO",
             keywordList, &username, &usernameLength, &password,
             &passwordLength, &cclassObj, &purityObj, &tagObj, &matchAnyTagObj,
             &shardingKeyObj, &superShardingKeyObj))
         return NULL;
-    if (pool->homogeneous && username)
-        return cxoError_raiseFromString(cxoProgrammingErrorException,
-                "pool is homogeneous. Proxy authentication is not possible.");
 
     // create arguments
     if (keywordArgs)
