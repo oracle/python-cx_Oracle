@@ -644,38 +644,38 @@ static PyObject *cxoConnection_new(PyTypeObject *type, PyObject *args,
 
 //-----------------------------------------------------------------------------
 // cxoConnection_splitComponent()
-//   Split the component out of the source and replace the source with the
-// characters up to the split string and put the characters after the split
-// string in to the target.
+//   Split the component out of the source if the split string is found and
+// return the "before" and "after" parts.
 //-----------------------------------------------------------------------------
-static int cxoConnection_splitComponent(PyObject **sourceObj,
-        PyObject **targetObj, const char *splitString, int first)
+static int cxoConnection_splitComponent(PyObject *sourceObj,
+        const char *splitString, const char *methodName,
+        PyObject **beforePartObj, PyObject **afterPartObj)
 {
-    PyObject *temp, *posObj;
     Py_ssize_t size, pos;
-    char *methodName;
+    PyObject *posObj;
 
-    if (!*sourceObj || *targetObj)
-        return 0;
-    methodName = (first) ? "find" : "rfind";
-    posObj = PyObject_CallMethod(*sourceObj, methodName, "s", splitString);
+    posObj = PyObject_CallMethod(sourceObj, methodName, "s", splitString);
     if (!posObj)
         return -1;
     pos = PyInt_AsLong(posObj);
     Py_DECREF(posObj);
     if (PyErr_Occurred())
         return -1;
-    if (pos >= 0) {
-        size = PySequence_Size(*sourceObj);
+    if (pos < 0) {
+        *beforePartObj = *afterPartObj = NULL;
+    } else {
+        size = PySequence_Size(sourceObj);
         if (PyErr_Occurred())
             return -1;
-        *targetObj = PySequence_GetSlice(*sourceObj, pos + 1, size);
-        if (!*targetObj)
+        *afterPartObj = PySequence_GetSlice(sourceObj, pos + 1, size);
+        if (!*afterPartObj)
             return -1;
-        temp = PySequence_GetSlice(*sourceObj, 0, pos);
-        if (!temp)
+        *beforePartObj = PySequence_GetSlice(sourceObj, 0, pos);
+        if (!*beforePartObj) {
+            Py_DECREF(*afterPartObj);
+            *afterPartObj = NULL;
             return -1;
-        *sourceObj = temp;
+        }
     }
     return 0;
 }
@@ -692,6 +692,7 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj, *editionObj;
     PyObject *shardingKeyObj, *superShardingKeyObj, *tempObj;
     int status, temp, invokeSessionCallback;
+    PyObject *beforePartObj, *afterPartObj;
     dpiCommonCreateParams dpiCommonParams;
     dpiConnCreateParams dpiCreateParams;
     unsigned long long externalHandle;
@@ -748,12 +749,28 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     conn->username = usernameObj;
     Py_XINCREF(dsnObj);
     conn->dsn = dsnObj;
+    Py_XINCREF(passwordObj);
 
-    // perform some parsing, if necessary
-    if (cxoConnection_splitComponent(&conn->username, &passwordObj, "/", 1) < 0)
-        return -1;
-    if (cxoConnection_splitComponent(&passwordObj, &conn->dsn, "@", 0) < 0)
-        return -1;
+    // perform some parsing, if no password and DSN are provided but the user
+    // name is provided
+    if (conn->username && !passwordObj && !dsnObj) {
+        if (cxoConnection_splitComponent(conn->username, "/", "find",
+                &beforePartObj, &afterPartObj) < 0)
+            return -1;
+        if (beforePartObj) {
+            Py_DECREF(conn->username);
+            conn->username = beforePartObj;
+            passwordObj = afterPartObj;
+            if (cxoConnection_splitComponent(passwordObj, "@", "rfind",
+                    &beforePartObj, &afterPartObj) < 0)
+                return -1;
+            if (beforePartObj) {
+                Py_DECREF(passwordObj);
+                passwordObj = beforePartObj;
+                conn->dsn = afterPartObj;
+            }
+        }
+    }
 
     // setup parameters
     cxoConnectionParams_initialize(&params);
@@ -787,8 +804,11 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
             cxoBuffer_fromObject(&params.editionBuffer, editionObj,
                     params.encoding) < 0 ||
             cxoBuffer_fromObject(&params.tagBuffer, tagObj,
-                    params.encoding) < 0)
+                    params.encoding) < 0) {
+        Py_XDECREF(passwordObj);
         return cxoConnectionParams_finalize(&params);
+    }
+    Py_XDECREF(passwordObj);
     if (params.userNameBuffer.size == 0 && params.passwordBuffer.size == 0)
         dpiCreateParams.externalAuth = 1;
     dpiCreateParams.connectionClass = params.connectionClassBuffer.ptr;
