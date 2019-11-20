@@ -14,7 +14,7 @@ To use cx_Oracle 7 with Python and Oracle Database you need:
 
 - Oracle client libraries. These can be from the free `Oracle Instant
   Client
-  <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__,
+  <https://www.oracle.com/database/technologies/instant-client.html>`__,
   or those included in Oracle Database if Python is on the same
   machine as the database.  Oracle client libraries versions 19, 18, 12,
   and 11.2 are supported on Linux, Windows and macOS.  Users have
@@ -52,7 +52,7 @@ Quick Start cx_Oracle Installation
 
     - If your database is on a remote computer, then download and unzip the client
       libraries from the free `Oracle Instant Client
-      <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
+      <https://www.oracle.com/database/technologies/instant-client.html>`__
       "Basic" or "Basic Light" package for your operating system
       architecture.
 
@@ -128,7 +128,7 @@ features to cx_Oracle.
 
 The simplest way to get Oracle Client libraries is to install the free
 `Oracle Instant Client
-<http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
+<https://www.oracle.com/database/technologies/instant-client.html>`__
 "Basic" or "Basic Light" package.  The libraries are also available in
 any Oracle Database installation or full Oracle Client installation.
 
@@ -216,7 +216,7 @@ to access an Oracle Database instance. Oracle Client versions 19, 18,
 
     - If your database is on a remote computer, then download the free `Oracle
       Instant Client
-      <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
+      <https://www.oracle.com/database/technologies/instant-client.html>`__
       "Basic" or "Basic Light" package for your operating system
       architecture.  Use the RPM or ZIP packages, based on your
       preferences.
@@ -232,9 +232,9 @@ Oracle Instant Client Zip Files
 To use cx_Oracle with Oracle Instant Client zip files:
 
 1. Download an Oracle 19, 18, 12, or 11.2 "Basic" or "Basic Light" zip file: `64-bit
-   <http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html>`__
+   <https://www.oracle.com/database/technologies/instant-client/linux-x86-64-downloads.html>`__
    or `32-bit
-   <http://www.oracle.com/technetwork/topics/linuxsoft-082809.html>`__, matching your
+   <https://www.oracle.com/database/technologies/instant-client/linux-x86-32-downloads.html>`__, matching your
    Python architecture.
 
 2. Unzip the package into a single directory that is accessible to your
@@ -284,9 +284,9 @@ Oracle Instant Client RPMs
 To use cx_Oracle with Oracle Instant Client RPMs:
 
 1. Download an Oracle 19, 18, 12, or 11.2 "Basic" or "Basic Light" RPM: `64-bit
-   <http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html>`__
+   <https://www.oracle.com/database/technologies/instant-client/linux-x86-64-downloads.html>`__
    or `32-bit
-   <http://www.oracle.com/technetwork/topics/linuxsoft-082809.html>`__, matching your
+   <https://www.oracle.com/database/technologies/instant-client/linux-x86-32-downloads.html>`__, matching your
    Python architecture.
 
    Oracle's yum server has `Instant Client RPMs for Oracle Linux 7
@@ -403,7 +403,7 @@ to access an Oracle Database instance. Oracle Client versions 19, 18,
 
     - If your database is on a remote computer, then download the free `Oracle
       Instant Client
-      <http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html>`__
+      <https://www.oracle.com/database/technologies/instant-client.html>`__
       "Basic" or "Basic Light" package for your operating system
       architecture.
 
@@ -420,9 +420,9 @@ To use cx_Oracle with Oracle Instant Client zip files:
 
 1. Download an Oracle 19, 18, 12, or 11.2 "Basic" or "Basic Light" zip
    file: `64-bit
-   <http://www.oracle.com/technetwork/topics/winx64soft-089540.html>`__
+   <https://www.oracle.com/database/technologies/instant-client/winx64-64-downloads.html>`__
    or `32-bit
-   <http://www.oracle.com/technetwork/topics/winsoft-085727.html>`__, matching your
+   <https://www.oracle.com/database/technologies/instant-client/microsoft-windows-32-downloads.html>`__, matching your
    Python architecture.
 
    Windows 7 users: Note that Oracle 19c is not supported on Windows 7.
@@ -542,7 +542,7 @@ instance. Oracle Client versions 18, 12 and 11.2 are supported.
 To use cx_Oracle with Oracle Instant Client zip files:
 
 1. Download the Oracle 19, 18, 12 or 11.2 "Basic" or "Basic Light" zip file from `here
-   <http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html>`__.
+   <https://www.oracle.com/database/technologies/instant-client/macos-intel-x86-downloads.html>`__.
    Choose either a 64-bit or 32-bit package, matching your
    Python architecture.
 
