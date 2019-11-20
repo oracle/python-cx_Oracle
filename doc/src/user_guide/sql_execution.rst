@@ -473,6 +473,82 @@ Examples are:
     cursor.scroll(-4)
     print("SKIP BACK 4 ROWS:", cursor.fetchone())
 
+.. _fetchobjects:
+
+Fetching Oracle Database Objects and Collections
+------------------------------------------------
+
+Oracle Database named object types and user-defined types can be fetched
+directly in queries.  Each item is represented as a :ref:`Python object
+<objecttype>` corresponding to the Oracle Database object.  This Python object
+can be traversed to access its elements.  Attributes including
+:attr:`ObjectType.name` and :attr:`ObjectType.iscollection`, and methods
+including :meth:`Object.aslist` and :meth:`Object.asdict` are available.
+
+For example, if a table ``mygeometrytab`` contains a column ``geometry`` of
+Oracle's predefined Spatial object type `SDO_GEOMETRY
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-683FF8C5-A773-4018-932D-2AF6EC8BC119>`__,
+then it can be queried and printed:
+
+.. code-block:: python
+
+    cur.execute("select geometry from mygeometrytab")
+    for obj, in cur:
+        dumpobject(obj)
+
+Where ``dumpobject()`` is defined as:
+
+.. code-block:: python
+
+    def dumpobject(obj, prefix = ""):
+        if obj.type.iscollection:
+            print(prefix, "[")
+            for value in obj.aslist():
+                if isinstance(value, cx_Oracle.Object):
+                    dumpobject(value, prefix + "  ")
+                else:
+                    print(prefix + "  ", repr(value))
+            print(prefix, "]")
+        else:
+            print(prefix, "{")
+            for attr in obj.type.attributes:
+                value = getattr(obj, attr.name)
+                if isinstance(value, cx_Oracle.Object):
+                    print(prefix + "   " + attr.name + ":")
+                    dumpobject(value, prefix + "  ")
+                else:
+                    print(prefix + "   " + attr.name + ":", repr(value))
+            print(prefix, "}")
+
+This might produce output like::
+
+    {
+      SDO_GTYPE: 2003
+      SDO_SRID: None
+      SDO_POINT:
+      {
+        X: 1
+        Y: 2
+        Z: 3
+      }
+      SDO_ELEM_INFO:
+      [
+        1
+        1003
+        3
+      ]
+      SDO_ORDINATES:
+      [
+        1
+        1
+        5
+        7
+      ]
+    }
+
+Other information on using Oracle objects is in :ref:`Using Bind Variables
+<bind>`.
+
 .. _rowlimit:
 
 Limiting Rows

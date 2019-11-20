@@ -41,8 +41,7 @@ SessionPool Object
 
     The shardingkey and supershardingkey parameters, if specified, are expected
     to be a sequence of values which will be used to identify the database
-    shard to connect to. Currently only strings are supported for the key
-    values.
+    shard to connect to.  The key values can be strings, numbers, bytes or dates.
 
 .. attribute:: SessionPool.busy
 

@@ -36,11 +36,12 @@ Module Interface
         This method is an extension to the DB API definition.
 
 
-.. function:: connect(user=None, password=None, dsn=None, mode=cx_Oracle.DEFAULT_AUTH, \
-        handle=0, pool=None, threaded=False, events=False, cclass=None, \
-        purity=cx_Oracle.ATTR_PURITY_DEFAULT, newpassword=None, \
-        encoding=None, nencoding=None, edition=None, appcontext=[], tag=None, \
-        matchanytag=None, shardingkey=[], supershardingkey=[])
+.. function:: connect(user=None, password=None, dsn=None, \
+        mode=cx_Oracle.DEFAULT_AUTH, handle=0, pool=None, threaded=False, \
+        events=False, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, \
+        newpassword=None, encoding=None, nencoding=None, edition=None, \
+        appcontext=[], tag=None, matchanytag=None, shardingkey=[], \
+        supershardingkey=[])
     Connection(user=None, password=None, dsn=None, \
         mode=cx_Oracle.DEFAULT_AUTH, handle=0, pool=None, threaded=False, \
         events=False, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, \
@@ -55,10 +56,11 @@ Module Interface
 
     The dsn (data source name) is the TNS entry (from the Oracle names server
     or tnsnames.ora file) or is a string like the one returned from
-    :meth:`~cx_Oracle.makedsn()`. If only one parameter is passed, a connect
-    string is assumed which is to be of the format ``user/password@dsn``, the
-    same format accepted by Oracle applications such as SQL\*Plus.  See
-    :ref:`connstr` for more information.
+    :meth:`~cx_Oracle.makedsn()`. If the user parameter is passed and the
+    password and dsn parameters are not passed, the user parameter is assumed
+    to be a connect string in the format ``user/password@dsn``, the same format
+    accepted by Oracle applications such as SQL\*Plus.  See :ref:`connstr` for
+    more information.
 
     If the mode is specified, it must be one of the
     :ref:`connection authorization modes<connection-authorization-modes>`
@@ -119,8 +121,7 @@ Module Interface
 
     The shardingkey and supershardingkey parameters, if specified, are expected
     to be a sequence of values which will be used to identify the database
-    shard to connect to. Currently only strings are supported for the key
-    values.
+    shard to connect to. The key values can be strings, numbers, bytes or dates.
 
 
 .. function:: Cursor(connection)

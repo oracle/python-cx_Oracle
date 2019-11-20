@@ -611,11 +611,13 @@ unexpected values or the Python application segfaulting.
 Binding Spatial Datatypes
 =========================
 
-Oracle Spatial datatypes objects can be represented by Python objects
-and its attribute values can be read and updated. The objects can
-further be bound and committed to database. See the `GitHub sample
-<https://github.com/oracle/python-cx_Oracle/blob/master/
-samples/InsertGeometry.py>`__ for an example.
+Oracle Spatial datatypes objects can be represented by Python objects and their
+attribute values can be read and updated. The objects can further be bound and
+committed to database. This is similar to the examples above.
+
+An example of fetching SDO_GEOMETRY is in :ref:`Oracle Database Objects and
+Collections <fetchobjects>`.
+
 
 .. _inputtypehandlers:
 

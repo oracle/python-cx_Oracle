@@ -1,8 +1,8 @@
 .. _cqn:
 
-*****************************
-Continuous Query Notification
-*****************************
+***********************************
+Continuous Query Notification (CQN)
+***********************************
 
 `Continuous Query Notification (CQN)
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
@@ -47,14 +47,18 @@ example:
 
     connection = cx_Oracle.connect(userName, password, "dbhost.example.com/orclpdb1", events=True)
 
-For notifications to be received, the database must be able to connect back to
-the application using cx_Oracle.  Typically, this means that the machine
-running cx_Oracle needs a fixed IP address.  Note
-:meth:`Connection.subscribe()` does not verify that this reverse connection is
-possible.  If there is any problem sending a notification, then the callback
-method will not be invoked.  Configuration options can include an IP address
-and port on which to listen for notifications; otherwise, the database chooses
-values on its own.
+The default CQN connection mode means the database must be able to connect back
+to the application using cx_Oracle in order to receive notification events.
+Alternatively, when using Oracle Database and Oracle client libraries 19.4, or
+later, subscriptions can set the optional ``clientInitiated`` parameter to
+``True``, see ``Connection.subscribe()`` below.
+
+The default CQN connection mode typically means that the machine running
+cx_Oracle needs a fixed IP address.  Note :meth:`Connection.subscribe()` does
+not verify that this reverse connection is possible.  If there is any problem
+sending a notification, then the callback method will not be invoked.
+Configuration options can include an IP address and port on which cx_Oracle will
+listen for notifications; otherwise, the database chooses values.
 
 
 Creating a Subscription
@@ -81,6 +85,19 @@ protocols that are supported.
 
 See :ref:`subscrobj` for more details on the subscription object that is
 created.
+
+When using Oracle Database and Oracle client libraries 19.4, or later, the
+optional subscription parameter ``clientInitiated`` can be set:
+
+.. code-block:: python
+
+    connection.subscribe(namespace= . . ., callback=MyCallback, clientInitiated=True)
+
+This enables CQN "client initiated" connections which internally use the same
+approach as normal cx_Oracle connections to the database, and do not require the
+database to be able to connect back to the application.  Since client initiated
+connections do not need special network configuration they have ease-of-use and
+security advantages.
 
 
 Registering Queries

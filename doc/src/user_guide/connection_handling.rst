@@ -30,8 +30,9 @@ There are two ways to connect to Oracle Database using cx_Oracle:
    :meth:`SessionPool.acquire()` can be called to obtain a connection
    from a pool.
 
-Optional connection creation parameters allow you to utilize features
-such as Sharding and `Database Resident Connection Pooling (DRCP)`_.
+Optional connection creation parameters allow you to utilize features such as
+:ref:`Sharding <connsharding>` and `Database Resident Connection Pooling
+(DRCP)`_.
 
 Once a connection is established, you can use it for SQL, PL/SQL and
 SODA.
@@ -416,7 +417,7 @@ connection pool:
     pool.close()
 
 Applications that are using connections concurrently in multiple threads should
-set the ``threaded`` parameter to True when creating a connection pool:
+set the ``threaded`` parameter to *True* when creating a connection pool:
 
 .. code-block:: python
 
@@ -427,6 +428,26 @@ set the ``threaded`` parameter to True when creating a connection pool:
 See `Threads.py
 <https://github.com/oracle/python-cx_Oracle/tree/master/samples/Threads.py>`__
 for an example.
+
+Before :meth:`SessionPool.acquire()` returns, cx_Oracle does a lightweight check
+to see if the network transport for the selected connection is still open.  If
+it is not, then :meth:`~SessionPool.acquire()` will clean up the connection and
+return a different one.  This check will not detect cases such as where the
+database session has been killed by the DBA, or reached a database resource
+manager quota limit.  To help in those cases, :meth:`~SessionPool.acquire()`
+will also do a full round-trip ping to the database when it is about to return a
+connection that was unused in the pool for 60 seconds.  If the ping fails, the
+connection will be discarded and another one obtained before
+:meth:`~SessionPool.acquire()` returns to the application.  Because this full
+ping is time based, it won't catch every failure.  Also since network timeouts
+and session kills may occur after :meth:`~SessionPool.acquire()` and before
+:meth:`Cursor.execute()`, applications need to check for errors after each
+:meth:`~Cursor.execute()` and make application-specific decisions about retrying
+work if there was a connection failure.  Note both the lightweight and full ping
+connection checks can mask configuration issues, for example firewalls killing
+connections, so monitor the connection rate in AWR for an unexpected value.  You
+can explicitly initiate a full ping to check connection liveness with
+:meth:`Connection.ping()` but overuse will impact performance and scalability.
 
 The Oracle Real-World Performance Group's general recommendation for connection
 pools is use a fixed sized pool.  The values of `min` and `max` should be the
@@ -1400,15 +1421,125 @@ example see `Create Database Users
 <https://docs.oracle.com/en/cloud/paas/atp-cloud/atpud/manage.html>`__ in the
 Oracle Autonomous Transaction Processing Dedicated Deployments manual.
 
+Access Through a Proxy
+----------------------
+
+If you are behind a firewall, you can tunnel TLS/SSL connections via a proxy
+using `HTTPS_PROXY
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-C672E92D-CE32-4759-9931-92D7960850F7>`__
+in the connect descriptor.  Successful connection depends on specific proxy
+configurations.  Oracle does not recommend doing this when performance is
+critical.
+
+Edit ``sqlnet.ora`` and add a line:
+
+    SQLNET.USE_HTTPS_PROXY=on
+
+Edit ``tnsnames.ora`` and add an ``HTTPS_PROXY`` proxy name and
+``HTTPS_PROXY_PORT`` port to the connect descriptor address list of any service
+name you plan to use, for example:
+
+
+    cjdb1_high = (description=
+        (address=
+        (https_proxy=myproxy.example.com)(https_proxy_port=80)
+        (protocol=tcps)(port=1522)(host= . . . )
+
 .. _connsharding:
 
 Connecting to Sharded Databases
 ===============================
 
-The :meth:`cx_Oracle.connect()` and :meth:`SessionPool.acquire()`
-functions accept ``shardingkey`` and ``supershardingkey`` parameters
-that are a sequence of values used to identify the database shard to
-connect to.  Currently only strings are supported for the key values.
-See `Oracle Sharding
-<https://www.oracle.com/database/technologies/
-high-availability/sharding.html>`__ for more information.
+`Oracle Sharding
+<https://www.oracle.com/database/technologies/high-availability/sharding.html>`__
+can be used to horizontally partition data across independent databases.  A
+database table can be split so each shard contains a table with the same columns
+but a different subset of rows.  These tables are known as sharded tables.
+Sharding is configured in Oracle Database, see the `Oracle Sharding
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=SHARD>`__ manual.
+Sharding requires Oracle Database and client libraries 12.2, or later.
+
+The :meth:`cx_Oracle.connect()` and :meth:`SessionPool.acquire()` functions
+accept ``shardingkey`` and ``supershardingkey`` parameters that are a sequence
+of values used to route the connection directly to a given shard.  A sharding
+key is always required.  A super sharding key is additionally required when
+using composite sharding, which is when data has been partitioned by a list or
+range (the super sharding key), and then further partitioned by a sharding key.
+
+When creating a connection pool, the :meth:`cx_Oracle.SessionPool()` attribute
+``maxSessionsPerShard`` can be set.  This is used to balance connections in the
+pool equally across shards.  It requires Oracle client libraries 18.3, or later.
+
+Shard key values may be of type string (mapping to VARCHAR2 shard keys), number
+(NUMBER), bytes (RAW), or date (DATE).  Multiple types may be used in each
+array.  Sharding keys of TIMESTAMP type are not supported.
+
+When connected to a shard, queries will only return data from that shard.  For
+queries that need to access data from multiple shards, connections can be
+established to the coordinator shard catalog database.  In this case, no shard
+key or super shard key is used.
+
+As an example of direct connection, if sharding had been configured on a single
+VARCHAR2 column like:
+
+.. code-block:: sql
+
+    CREATE SHARDED TABLE customers (
+      cust_id NUMBER,
+      cust_name VARCHAR2(30),
+      class VARCHAR2(10) NOT NULL,
+      signup_date DATE,
+      cust_code RAW(20),
+      CONSTRAINT cust_name_pk PRIMARY KEY(cust_name))
+      PARTITION BY CONSISTENT HASH (cust_name)
+      PARTITIONS AUTO TABLESPACE SET ts1;
+
+then direct connection to a shard can be made by passing a single sharding key:
+
+.. code-block:: python
+
+    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
+            encoding="UTF-8", shardingkey=["SCOTT"])
+
+Numbers keys can be used in a similar way:
+
+.. code-block:: python
+
+    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
+            encoding="UTF-8", shardingkey=[110])
+
+When sharding by DATE, you can connect like:
+
+.. code-block:: python
+
+    import datetime
+
+    d = datetime.datetime(2014, 7, 3)
+
+    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
+            encoding="UTF-8", shardingkey=[d])
+
+When sharding by RAW, you can connect like:
+
+.. code-block:: python
+
+    b = b'\x01\x04\x08';
+
+    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
+            encoding="UTF-8", shardingkey=[b])
+
+Multiple keys can be specified, for example:
+
+.. code-block:: python
+
+    keyArray = [70, "SCOTT", "gold", b'\x00\x01\x02']
+
+    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
+            encoding="UTF-8", shardingkey=keyArray)
+
+A super sharding key example is:
+
+.. code-block:: python
+
+    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
+            encoding="UTF-8", supershardingkey=["goldclass"], shardingkey=["SCOTT"])

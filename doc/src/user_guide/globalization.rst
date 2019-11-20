@@ -133,6 +133,15 @@ To find the database character set, execute the query:
     FROM nls_database_parameters
     WHERE parameter = 'NLS_CHARACTERSET';
 
+To find the database 'national character set' used for NCHAR and related types,
+execute the query:
+
+.. code-block:: sql
+
+     SELECT value AS db_ncharset
+     FROM nls_database_parameters
+     WHERE parameter = 'NLS_NCHAR_CHARACTERSET';
+
 To find the current "client" character set used by cx_Oracle, execute the
 query:
 

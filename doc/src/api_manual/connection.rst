@@ -615,8 +615,14 @@ Connection Object
     established. Client initiated connections are only available in Oracle
     Client 19.4 and Oracle Database 19.4 and higher.
 
-    *New in version 6.4:* The parameters ipAddress, groupingClass,
-    groupingValue, groupingType and name were added.
+    .. versionadded:: 6.4
+
+        The parameters ipAddress, groupingClass, groupingValue, groupingType
+        and name were added.
+
+    .. versionadded:: 7.3
+
+        The parameter clientInitiated was added.
 
     .. note::
 

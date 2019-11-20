@@ -1,8 +1,8 @@
 .. _aqusermanual:
 
-***********************
-Oracle Advanced Queuing
-***********************
+****************************
+Oracle Advanced Queuing (AQ)
+****************************
 
 `Oracle Advanced Queuing
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADQUE>`__ is a highly
