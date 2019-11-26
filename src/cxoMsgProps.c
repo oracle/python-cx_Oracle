@@ -153,6 +153,7 @@ static void cxoMsgProps_free(cxoMsgProps *props)
         dpiMsgProps_release(props->handle);
         props->handle = NULL;
     }
+    Py_CLEAR(props->payload);
     Py_TYPE(props)->tp_free((PyObject*) props);
 }
 
