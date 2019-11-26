@@ -113,6 +113,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testFetchData(self):
         "test fetching objects"
+        self.cursor.execute("alter session set time_zone = 'UTC'")
         self.cursor.execute("""
                 select
                   IntCol,
@@ -181,6 +182,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testRoundTripObject(self):
         "test inserting and then querying object with all data types"
+        self.cursor.execute("alter session set time_zone = 'UTC'")
         self.cursor.execute("truncate table TestClobs")
         self.cursor.execute("truncate table TestNClobs")
         self.cursor.execute("truncate table TestBlobs")
