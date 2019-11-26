@@ -245,38 +245,40 @@ int cxoError_raiseFromInfo(dpiErrorInfo *errorInfo)
     if (!error)
         return -1;
     switch (errorInfo->code) {
-        case 1:
-        case 1400:
-        case 2290:
-        case 2291:
-        case 2292:
+        case 1:      // unique constraint violated
+        case 1400:   // cannot insert NULL
+        case 2290:   // check constraint violated
+        case 2291:   // integrity constraint violated - parent key not found
+        case 2292:   // integrity constraint violated - child record found
+        case 40479:  // internal JSON serializer error
             exceptionType = cxoIntegrityErrorException;
             break;
-        case 22:
-        case 378:
-        case 602:
-        case 603:
-        case 604:
-        case 609:
-        case 1012:
-        case 1013:
-        case 1033:
-        case 1034:
-        case 1041:
-        case 1043:
-        case 1089:
-        case 1090:
-        case 1092:
-        case 3113:
-        case 3114:
-        case 3122:
-        case 3135:
-        case 12153:
-        case 12203:
-        case 12500:
-        case 12571:
-        case 27146:
-        case 28511:
+        case 22:     // invalid session ID; access denied
+        case 378:    // buffer pools cannot be created as specified
+        case 600:    // internal error code
+        case 602:    // internal programming exception
+        case 603:    // ORACLE server session terminated by fatal error
+        case 604:    // error occurred at recursive SQL level
+        case 609:    // could not attach to incoming connection
+        case 1012:   // not logged on
+        case 1013:   // user requested cancel of current operation
+        case 1033:   // ORACLE initialization or shutdown in progress
+        case 1034:   // ORACLE not available
+        case 1041:   // internal error. hostdef extension doesn't exist
+        case 1043:   // user side memory corruption
+        case 1089:   // immediate shutdown or close in progress
+        case 1090:   // shutdown in progress - connection is not permitted
+        case 1092:   // ORACLE instance terminated. Disconnection forced
+        case 3113:   // end-of-file on communication channel
+        case 3114:   // not connected to ORACLE
+        case 3122:   // attempt to close ORACLE-side window on user side
+        case 3135:   // connection lost contact
+        case 12153:  // TNS:not connected
+        case 12203:  // TNS:unable to connect to destination
+        case 12500:  // TNS:listener failed to start a dedicated server process
+        case 12571:  // TNS:packet writer failure
+        case 27146:  // post/wait initialization failed
+        case 28511:  // lost RPC connection to heterogeneous remote agent
             exceptionType = cxoOperationalErrorException;
             break;
         default:
