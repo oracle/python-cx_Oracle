@@ -415,8 +415,21 @@ static int cxoConnectionParams_processShardingKey(cxoConnectionParams *params,
         return 0;
 
     // allocate memory for the sharding key values
+#if PY_MAJOR_VERSION >= 3
     columns = PyMem_Calloc(numColumns, sizeof(dpiShardingKeyColumn));
     buffers = PyMem_Calloc(numColumns, sizeof(cxoBuffer));
+#else
+    columns = PyMem_Malloc(numColumns * sizeof(dpiShardingKeyColumn));
+    buffers = PyMem_Malloc(numColumns * sizeof(cxoBuffer));
+#endif
+    if (!columns || !buffers) {
+        PyErr_NoMemory();
+        return -1;
+    }
+#if PY_MAJOR_VERSION < 3
+    memset(columns, 0, numColumns * sizeof(dpiShardingKeyColumn));
+    memset(buffers, 0, numColumns * sizeof(cxoBuffer));
+#endif
     if (isSuperShardingKey) {
         params->superShardingKeyColumns = columns;
         params->superShardingKeyBuffers = buffers;
@@ -425,10 +438,6 @@ static int cxoConnectionParams_processShardingKey(cxoConnectionParams *params,
         params->shardingKeyColumns = columns;
         params->shardingKeyBuffers = buffers;
         params->numShardingKeyColumns = numColumns;
-    }
-    if (!columns || !buffers) {
-        PyErr_NoMemory();
-        return -1;
     }
 
     // process each value
