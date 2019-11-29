@@ -396,6 +396,15 @@ Cursor Object
         mentioned in PEP 249 as an optional extension.
 
 
+.. data:: Cursor.lastrowid
+
+    This read-only attribute returns the rowid of the last row modified by the
+    cursor. If no row was modified by the last operation performed on the
+    cursor, the value None is returned.
+
+    .. versionadded:: 7.3
+
+
 .. attribute:: Cursor.outputtypehandler
 
     This read-write attribute specifies a method called for each column that is

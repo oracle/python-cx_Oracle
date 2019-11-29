@@ -39,6 +39,7 @@ static PyObject *cxoCursor_var(cxoCursor*, PyObject*, PyObject*);
 static PyObject *cxoCursor_arrayVar(cxoCursor*, PyObject*);
 static PyObject *cxoCursor_bindNames(cxoCursor*, PyObject*);
 static PyObject *cxoCursor_getDescription(cxoCursor*, void*);
+static PyObject *cxoCursor_getLastRowid(cxoCursor*, void*);
 static PyObject *cxoCursor_new(PyTypeObject*, PyObject*, PyObject*);
 static int cxoCursor_init(cxoCursor*, PyObject*, PyObject*);
 static PyObject *cxoCursor_repr(cxoCursor*);
@@ -117,6 +118,7 @@ static PyMemberDef cxoCursorMembers[] = {
 //-----------------------------------------------------------------------------
 static PyGetSetDef cxoCursorCalcMembers[] = {
     { "description", (getter) cxoCursor_getDescription, 0, 0, 0 },
+    { "lastrowid", (getter) cxoCursor_getLastRowid, 0, 0, 0 },
     { NULL }
 };
 
@@ -605,6 +607,37 @@ static PyObject *cxoCursor_getDescription(cxoCursor *cursor, void *unused)
     }
 
     return results;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoCursor_getLastRowid()
+//   Return the rowid of the last modified row if applicable. If no row was
+// modified the value None is returned.
+//-----------------------------------------------------------------------------
+static PyObject *cxoCursor_getLastRowid(cxoCursor *cursor, void *unused)
+{
+    uint32_t rowidStrLength;
+    const char *rowidStr;
+    dpiRowid *rowid;
+
+    // make sure the cursor is open
+    if (cxoCursor_isOpen(cursor) < 0)
+        return NULL;
+
+    // get the value, if applicable
+    if (cursor->handle) {
+        if (dpiStmt_getLastRowid(cursor->handle, &rowid) < 0)
+            return cxoError_raiseAndReturnNull();
+        if (rowid) {
+            if (dpiRowid_getStringValue(rowid, &rowidStr, &rowidStrLength) < 0)
+                return cxoError_raiseAndReturnNull();
+            return cxoPyString_fromEncodedString(rowidStr, rowidStrLength,
+                    cursor->connection->encodingInfo.encoding, NULL);
+        }
+    }
+
+    Py_RETURN_NONE;
 }
 
 
