@@ -596,6 +596,8 @@ static PyObject *cxoConnection_changePassword(cxoConnection *conn,
     int status;
 
     // parse the arguments
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     if (!PyArg_ParseTuple(args, "OO", &oldPasswordObj, &newPasswordObj))
         return NULL;
 
@@ -1027,6 +1029,8 @@ static int cxoConnection_setCallTimeout(cxoConnection* conn, PyObject *value,
 //-----------------------------------------------------------------------------
 static PyObject *cxoConnection_getType(cxoConnection *conn, PyObject *nameObj)
 {
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     return (PyObject*) cxoObjectType_newByName(conn, nameObj);
 }
 
@@ -1082,6 +1086,8 @@ static PyObject *cxoConnection_getVersion(cxoConnection *conn, void *unused)
     char buffer[25];
     int status;
 
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     Py_BEGIN_ALLOW_THREADS
     status = dpiConn_getServerVersion(conn->handle, NULL, NULL, &versionInfo);
     Py_END_ALLOW_THREADS
@@ -1181,10 +1187,13 @@ static PyObject *cxoConnection_close(cxoConnection *conn, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     status = dpiConn_close(conn->handle, mode, (char*) tagBuffer.ptr,
             tagBuffer.size);
+    if (status == DPI_SUCCESS)
+        dpiConn_release(conn->handle);
     Py_END_ALLOW_THREADS
     cxoBuffer_clear(&tagBuffer);
     if (status < 0)
         return cxoError_raiseAndReturnNull();
+    conn->handle = NULL;
 
     Py_RETURN_NONE;
 }
@@ -1300,6 +1309,8 @@ static PyObject *cxoConnection_newCursor(cxoConnection *conn, PyObject *args,
     PyObject *createArgs, *result, *arg;
     Py_ssize_t numArgs = 0, i;
 
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     if (args)
         numArgs = PyTuple_GET_SIZE(args);
     createArgs = PyTuple_New(1 + numArgs);
@@ -1342,6 +1353,8 @@ static PyObject *cxoConnection_cancel(cxoConnection *conn, PyObject *args)
 static PyObject *cxoConnection_newEnqueueOptions(cxoConnection *conn,
         PyObject *args)
 {
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     return (PyObject*) cxoEnqOptions_new(conn, NULL);
 }
 
@@ -1353,6 +1366,8 @@ static PyObject *cxoConnection_newEnqueueOptions(cxoConnection *conn,
 static PyObject *cxoConnection_newDequeueOptions(cxoConnection *conn,
         PyObject *args)
 {
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     return (PyObject*) cxoDeqOptions_new(conn, NULL);
 }
 
@@ -1378,6 +1393,8 @@ static PyObject *cxoConnection_newMessageProperties(cxoConnection *conn,
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OOiOii", keywordList,
             &payloadObj, &correlationObj, &delay, &exceptionQObj, &expiration,
             &priority))
+        return NULL;
+    if (cxoConnection_isConnected(conn) < 0)
         return NULL;
 
     // create new message properties object
@@ -1481,6 +1498,8 @@ static PyObject *cxoConnection_dequeue(cxoConnection *conn, PyObject* args,
             &nameObj, &cxoPyTypeDeqOptions, &optionsObj, &cxoPyTypeMsgProps,
             &propertiesObj, &cxoPyTypeObject, &payloadObj))
         return NULL;
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     if (cxoBuffer_fromObject(&nameBuffer, nameObj,
             conn->encodingInfo.encoding) < 0)
         return NULL;
@@ -1526,6 +1545,8 @@ static PyObject *cxoConnection_enqueue(cxoConnection *conn, PyObject* args,
             &nameObj, &cxoPyTypeEnqOptions, &optionsObj, &cxoPyTypeMsgProps,
             &propertiesObj, &cxoPyTypeObject, &payloadObj))
         return NULL;
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     if (cxoBuffer_fromObject(&nameBuffer, nameObj,
             conn->encodingInfo.encoding) < 0)
         return NULL;
@@ -1566,6 +1587,8 @@ static PyObject *cxoConnection_queue(cxoConnection *conn, PyObject* args,
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|O!", keywordList,
             &nameObj, &cxoPyTypeObjectType, &typeObj))
         return NULL;
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     if (cxoBuffer_fromObject(&nameBuffer, nameObj,
             conn->encodingInfo.encoding) < 0)
         return NULL;
@@ -1596,6 +1619,8 @@ static PyObject *cxoConnection_queue(cxoConnection *conn, PyObject* args,
 static PyObject *cxoConnection_contextManagerEnter(cxoConnection *conn,
         PyObject* args)
 {
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     Py_INCREF(conn);
     return (PyObject*) conn;
 }
@@ -1743,6 +1768,8 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
             &params.groupingValue, &params.groupingType, &name,
             &clientInitiatedObj))
         return NULL;
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
     if (cxoUtils_getBooleanValue(clientInitiatedObj, 0,
             &params.clientInitiated) < 0)
         return NULL;
@@ -1831,6 +1858,8 @@ static PyObject *cxoConnection_unsubscribe(cxoConnection *conn, PyObject* args,
     // validate parameters
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!", keywordList,
             &cxoPyTypeSubscr, &subscrObj))
+        return NULL;
+    if (cxoConnection_isConnected(conn) < 0)
         return NULL;
 
     // destroy ODPI-C subscription

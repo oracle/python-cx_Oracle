@@ -201,7 +201,7 @@ class TestCase(TestEnv.BaseTestCase):
         "confirm an exception is raised after closing a connection"
         connection = TestEnv.GetConnection()
         connection.close()
-        self.assertRaises(cx_Oracle.DatabaseError, connection.rollback)
+        self.assertRaises(cx_Oracle.InterfaceError, connection.rollback)
 
     def testConnectWithHandle(self):
         "test creating a connection using a handle"
@@ -301,7 +301,7 @@ class TestCase(TestEnv.BaseTestCase):
             cursor.execute("insert into TestTempTable (IntCol) values (1)")
             connection.commit()
             cursor.execute("insert into TestTempTable (IntCol) values (2)")
-        self.assertRaises(cx_Oracle.DatabaseError, connection.ping)
+        self.assertRaises(cx_Oracle.InterfaceError, connection.ping)
         connection = TestEnv.GetConnection()
         cursor = connection.cursor()
         cursor.execute("select count(*) from TestTempTable")
@@ -342,7 +342,7 @@ class TestCase(TestEnv.BaseTestCase):
         if TestEnv.GetClientVersion() >= (12, 1):
             attrNames.append("ltxid")
         for name in attrNames:
-            self.assertRaises(cx_Oracle.DatabaseError, getattr, connection,
+            self.assertRaises(cx_Oracle.InterfaceError, getattr, connection,
                     name)
 
     def testPing(self):
