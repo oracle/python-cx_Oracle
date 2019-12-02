@@ -5,6 +5,61 @@
 cx_Oracle Release Notes
 =======================
 
+Version 7.3 (December 2019)
+---------------------------
+
+#)  Added support for Python 3.8.
+#)  Updated embedded ODPI-C to `version 3.3
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-3-3-december-2-2019>`__.
+#)  Added support for CQN and other subscription client initiated connections
+    to the database (as opposed to the default server initiated connections)
+    created by calling :meth:`Connection.subscribe()`.
+#)  Added :attr:`support <Cursor.lastrowid>` for returning the rowid of the
+    last row modified by an operation on a cursor (or None if no row was
+    modified).
+#)  Added support for setting the maxSessionsPerShard attribute when
+    :meth:`creating session pools <cx_Oracle.SessionPool>`.
+#)  Added check to ensure sharding key is specified when a super sharding key
+    is specified.
+#)  Improved error message when the Oracle Client library is loaded
+    successfully but the attempt to detect the version of that library fails,
+    either due to the fact that the library is too old or the method could not
+    be called for some reason (`node-oracledb issue 1168
+    <https://github.com/oracle/node-oracledb/issues/1168>`__).
+#)  Adjusted support for creating a connection using an existing OCI service
+    context handle. In order to avoid potential memory corruption and
+    unsupported behaviors, the connection will now use the same encoding as the
+    existing OCI service context handle when it was created.
+#)  Added ``ORA-3156: OCI call timed out`` to the list of error messages that
+    result in error DPI-1067.
+#)  Adjusted samples and the test suite so that they can be run against Oracle
+    Cloud databases.
+#)  Fixed bug when attempting to create a scrollable cursor on big endian
+    platforms like AIX on PPC.
+#)  Eliminated reference leak and ensure that memory is properly initialized in
+    case of error when using sharding keys.
+#)  Eliminated reference leak when splitting the password and DSN components
+    out of a full connect string.
+#)  Corrected processing of DATE sharding keys (sharding requires a slightly
+    different format to be passed to the server).
+#)  Eliminated reference leak when
+    :meth:`creating message property objects <Connection.msgproperties()>`.
+#)  Attempting to use proxy authentication with a homogeneous pool will now
+    raise a ``DatabaseError`` exception with the message
+    ``DPI-1012: proxy authentication is not possible with homogeneous pools``
+    instead of a ``ProgrammingError`` exception with the message
+    ``pool is homogeneous. Proxy authentication is not possible.`` since this
+    check is done by ODPI-C. An empty string (or None) for the user name will
+    no longer generate an exception.
+#)  Exception ``InterfaceError: not connected`` is now always raised when an
+    operation is attempted with a closed connection. Previously, a number of
+    different exceptions were raised depending on the operation.
+#)  Added ``ORA-40479: internal JSON serializer error`` to the list of
+    exceptions that result in ``cx_Oracle.IntegrityError``.
+#)  Improved documentation.
+
+
 Version 7.2.3 (October 2019)
 ----------------------------
 
