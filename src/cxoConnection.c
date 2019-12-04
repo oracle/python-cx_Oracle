@@ -1707,15 +1707,16 @@ static PyObject *cxoConnection_shutdown(cxoConnection *conn, PyObject* args,
 static PyObject *cxoConnection_startup(cxoConnection *conn, PyObject* args,
         PyObject* keywordArgs)
 {
-    static char *keywordList[] = { "force", "restrict", NULL };
-    PyObject *forceObj, *restrictObj;
+    static char *keywordList[] = { "force", "restrict", "pfile", NULL };
+    PyObject *forceObj, *restrictObj, *pfileObj;
+    cxoBuffer pfileBuffer;
     dpiStartupMode mode;
     int temp;
 
     // parse arguments
-    forceObj = restrictObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OO", keywordList,
-            &forceObj, &restrictObj))
+    forceObj = restrictObj = pfileObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OOO", keywordList,
+            &forceObj, &restrictObj, &pfileObj))
         return NULL;
 
     // set the flags to use during startup
@@ -1729,12 +1730,22 @@ static PyObject *cxoConnection_startup(cxoConnection *conn, PyObject* args,
     if (temp)
         mode |= DPI_MODE_STARTUP_RESTRICT;
 
-    // make sure we are actually connected
-    if (cxoConnection_isConnected(conn) < 0)
+    // check the pfile parameter
+    if (cxoBuffer_fromObject(&pfileBuffer, pfileObj,
+            conn->encodingInfo.encoding) < 0)
         return NULL;
 
+    // make sure we are actually connected
+    if (cxoConnection_isConnected(conn) < 0) {
+        cxoBuffer_clear(&pfileBuffer);
+        return NULL;
+    }
+
     // perform the work
-    if (dpiConn_startupDatabase(conn->handle, mode) < 0)
+    temp = dpiConn_startupDatabaseWithPfile(conn->handle, pfileBuffer.ptr,
+            pfileBuffer.size, mode);
+    cxoBuffer_clear(&pfileBuffer);
+    if (temp < 0)
         return cxoError_raiseAndReturnNull();
 
     Py_RETURN_NONE;

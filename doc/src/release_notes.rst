@@ -9,6 +9,9 @@ Version 8.0 (TBD)
 -----------------
 
 #)  Dropped support for Python 2.7.
+#)  Added support for starting up a database using a parameter file (PFILE),
+    as requested
+    (`issue 295 <https://github.com/oracle/python-cx_Oracle/issues/295>`__).
 
 
 Version 7.3 (December 2019)

@@ -514,12 +514,18 @@ Connection Object
         This method is an extension to the DB API definition.
 
 
-.. method:: Connection.startup(force=False, restrict=False)
+.. method:: Connection.startup(force=False, restrict=False, pfile=None)
 
     Startup the database. This is equivalent to the SQL\*Plus command "startup
     nomount". The connection must be connected as :data:`~cx_Oracle.SYSDBA` or
     :data:`~cx_Oracle.SYSOPER` with the :data:`~cx_Oracle.PRELIM_AUTH` option
-    specified for this to work. An example is shown below:
+    specified for this to work.
+
+    The pfile parameter, if specified, is expected to be a string identifying
+    the location of the parameter file (PFILE) which will be used instead of
+    the stored parameter file (SPFILE).
+
+    An example is shown below:
 
     ::
 
