@@ -12,6 +12,10 @@ import distutils.core
 import os
 import sys
 
+# check minimum supported Python version
+if sys.version_info[:2] < (3, 5):
+    raise Exception("Python 3.5 or higher is required.")
+
 # if setuptools is detected, use it to add support for eggs
 try:
     from setuptools import setup, Extension
