@@ -257,12 +257,6 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
             }
             return 0;
         case CXO_TRANSFORM_NATIVE_INT:
-#if PY_MAJOR_VERSION < 3
-            if (PyInt_Check(pyValue)) {
-                dbValue->asInt64 = PyInt_AS_LONG(pyValue);
-                return 0;
-            }
-#endif
             if (PyBool_Check(pyValue)) {
                 dbValue->asInt64 = (pyValue == Py_True);
                 return 0;
@@ -280,9 +274,6 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
                 buffer->numCharacters = 1;
             } else {
                 if (!PyFloat_Check(pyValue) &&
-#if PY_MAJOR_VERSION < 3
-                        !PyInt_Check(pyValue) &&
-#endif
                         !PyLong_Check(pyValue) &&
                         !PyObject_TypeCheck(pyValue, cxoPyTypeDecimal)) {
                     PyErr_SetString(PyExc_TypeError, "expecting number");
@@ -302,9 +293,6 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_NATIVE_DOUBLE:
         case CXO_TRANSFORM_NATIVE_FLOAT:
             if (!PyFloat_Check(pyValue) &&
-#if PY_MAJOR_VERSION < 3
-                    !PyInt_Check(pyValue) &&
-#endif
                     !PyObject_TypeCheck(pyValue, cxoPyTypeDecimal) &&
                     !PyLong_Check(pyValue)) {
                 PyErr_SetString(PyExc_TypeError, "expecting float");
@@ -450,7 +438,7 @@ cxoTransformNum cxoTransform_getNumFromDataTypeInfo(dpiDataTypeInfo *info)
 //-----------------------------------------------------------------------------
 cxoTransformNum cxoTransform_getNumFromType(PyTypeObject *type)
 {
-    if (type == &cxoPyTypeString)
+    if (type == &PyUnicode_Type)
         return CXO_TRANSFORM_STRING;
     if (type == &cxoPyTypeStringVar)
         return CXO_TRANSFORM_STRING;
@@ -462,13 +450,7 @@ cxoTransformNum cxoTransform_getNumFromType(PyTypeObject *type)
         return CXO_TRANSFORM_FIXED_NCHAR;
     if (type == &cxoPyTypeRowidVar)
         return CXO_TRANSFORM_ROWID;
-#if PY_MAJOR_VERSION < 3
-    if (type == &PyUnicode_Type)
-        return CXO_TRANSFORM_NSTRING;
-    if (type == &PyInt_Type)
-        return CXO_TRANSFORM_INT;
-#endif
-    if (type == &cxoPyTypeBinary)
+    if (type == &PyBytes_Type)
         return CXO_TRANSFORM_BINARY;
     if (type == &cxoPyTypeBinaryVar)
         return CXO_TRANSFORM_BINARY;
@@ -538,21 +520,10 @@ cxoTransformNum cxoTransform_getNumFromValue(PyObject *value, int plsql)
             return CXO_TRANSFORM_NATIVE_INT;
         return CXO_TRANSFORM_BOOLEAN;
     }
-#if PY_MAJOR_VERSION >= 3
     if (PyUnicode_Check(value))
         return CXO_TRANSFORM_STRING;
     if (PyBytes_Check(value))
         return CXO_TRANSFORM_BINARY;
-#else
-    if (PyUnicode_Check(value))
-        return CXO_TRANSFORM_NSTRING;
-    if (PyString_Check(value))
-        return CXO_TRANSFORM_STRING;
-    if (PyBuffer_Check(value))
-        return CXO_TRANSFORM_BINARY;
-    if (PyInt_Check(value))
-        return CXO_TRANSFORM_INT;
-#endif
     if (PyLong_Check(value))
         return CXO_TRANSFORM_INT;
     if (PyFloat_Check(value))
@@ -690,11 +661,6 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_TIMESTAMP:
         case CXO_TRANSFORM_TIMESTAMP_LTZ:
             timestamp = &dbValue->asTimestamp;
-#if PY_MAJOR_VERSION < 3
-            if (timestamp->year < 1 || timestamp->year > 9999)
-                return PyErr_Format(PyExc_ValueError,
-                        "year %d is out of range", timestamp->year);
-#endif
             return PyDateTime_FromDateAndTime(timestamp->year,
                     timestamp->month, timestamp->day, timestamp->hour,
                     timestamp->minute, timestamp->second,
@@ -709,27 +675,18 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_NATIVE_FLOAT:
             return PyFloat_FromDouble(dbValue->asFloat);
         case CXO_TRANSFORM_NATIVE_INT:
-#if PY_MAJOR_VERSION < 3
-            if (sizeof(long) == 8 || (dbValue->asInt64 <= INT_MAX &&
-                    dbValue->asInt64 >= -INT_MAX))
-                return PyInt_FromLong((long) dbValue->asInt64);
-#endif
             return PyLong_FromLongLong(dbValue->asInt64);
         case CXO_TRANSFORM_DECIMAL:
         case CXO_TRANSFORM_INT:
         case CXO_TRANSFORM_FLOAT:
             bytes = &dbValue->asBytes;
-            stringObj = cxoPyString_fromEncodedString(bytes->ptr,
-                    bytes->length, bytes->encoding, encodingErrors);
+            stringObj = PyUnicode_Decode(bytes->ptr, bytes->length,
+                    bytes->encoding, encodingErrors);
             if (!stringObj)
                 return NULL;
             if (transformNum == CXO_TRANSFORM_INT &&
                     memchr(bytes->ptr, '.', bytes->length) == NULL) {
-#if PY_MAJOR_VERSION >= 3
                 result = PyNumber_Long(stringObj);
-#else
-                result = PyNumber_Int(stringObj);
-#endif
                 Py_DECREF(stringObj);
                 return result;
             } else if (transformNum == CXO_TRANSFORM_DECIMAL) {
@@ -746,13 +703,13 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
             if (dpiRowid_getStringValue(dbValue->asRowid, &rowid,
                     &rowidLength) < 0)
                 return cxoError_raiseAndReturnNull();
-            return cxoPyString_fromEncodedString(rowid, rowidLength,
+            return PyUnicode_Decode(rowid, rowidLength,
                     connection->encodingInfo.encoding, NULL);
         case CXO_TRANSFORM_FIXED_CHAR:
         case CXO_TRANSFORM_STRING:
         case CXO_TRANSFORM_LONG_STRING:
             bytes = &dbValue->asBytes;
-            return cxoPyString_fromEncodedString(bytes->ptr, bytes->length,
+            return PyUnicode_Decode(bytes->ptr, bytes->length,
                     bytes->encoding, encodingErrors);
         case CXO_TRANSFORM_TIMEDELTA:
             intervalDS = &dbValue->asIntervalDS; 

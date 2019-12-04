@@ -8,8 +8,6 @@
 # Demonstrate how to perform a query in different ways.
 #------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import cx_Oracle
 import SampleEnv
 

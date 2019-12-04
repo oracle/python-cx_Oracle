@@ -194,7 +194,7 @@ static PyObject* cxoModule_timestampFromTicks(PyObject* self, PyObject* args)
 
 
 //-----------------------------------------------------------------------------
-//   Declaration of methods supported by this module
+// Declaration of methods supported by this module
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoModuleMethods[] = {
     { "makedsn", (PyCFunction) cxoModule_makeDSN,
@@ -209,9 +209,8 @@ static PyMethodDef cxoModuleMethods[] = {
 };
 
 
-#if PY_MAJOR_VERSION >= 3
 //-----------------------------------------------------------------------------
-//   Declaration of module definition for Python 3.x.
+// Declaration of module definition
 //-----------------------------------------------------------------------------
 static struct PyModuleDef cxoModuleDef = {
     PyModuleDef_HEAD_INIT,
@@ -224,7 +223,6 @@ static struct PyModuleDef cxoModuleDef = {
     NULL,                                  // clear
     NULL                                   // free
 };
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -290,20 +288,16 @@ static PyObject *cxoModule_initialize(void)
     CXO_MAKE_TYPE_READY(&cxoPyTypeTimestampVar);
 
     // initialize module and retrieve the dictionary
-#if PY_MAJOR_VERSION >= 3
     module = PyModule_Create(&cxoModuleDef);
-#else
-    module = Py_InitModule("cx_Oracle", cxoModuleMethods);
-#endif
     if (!module)
         return NULL;
 
     // create exception object and add it to the dictionary
     if (cxoModule_setException(module, &cxoWarningException,
-            "Warning", CXO_BASE_EXCEPTION) < 0)
+            "Warning", NULL) < 0)
         return NULL;
     if (cxoModule_setException(module, &cxoErrorException,
-            "Error", CXO_BASE_EXCEPTION) < 0)
+            "Error", NULL) < 0)
         return NULL;
     if (cxoModule_setException(module, &cxoInterfaceErrorException,
             "InterfaceError", cxoErrorException) < 0)
@@ -331,11 +325,7 @@ static PyObject *cxoModule_initialize(void)
         return NULL;
 
     // set up the types that are available
-#if PY_MAJOR_VERSION >= 3
     CXO_ADD_TYPE_OBJECT("Binary", &PyBytes_Type)
-#else
-    CXO_ADD_TYPE_OBJECT("Binary", &PyBuffer_Type)
-#endif
     CXO_ADD_TYPE_OBJECT("Connection", &cxoPyTypeConnection)
     CXO_ADD_TYPE_OBJECT("Cursor", &cxoPyTypeCursor)
     CXO_ADD_TYPE_OBJECT("Timestamp", cxoPyTypeDateTime)
@@ -531,15 +521,7 @@ static PyObject *cxoModule_initialize(void)
 //-----------------------------------------------------------------------------
 // Start routine for the module.
 //-----------------------------------------------------------------------------
-#if PY_MAJOR_VERSION >= 3
 PyMODINIT_FUNC PyInit_cx_Oracle(void)
 {
     return cxoModule_initialize();
 }
-#else
-void initcx_Oracle(void)
-{
-    cxoModule_initialize();
-}
-#endif
-

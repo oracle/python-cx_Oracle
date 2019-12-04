@@ -9,8 +9,6 @@
 # This script requires cx_Oracle 7.3 and higher.
 #------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import cx_Oracle
 import SampleEnv
 

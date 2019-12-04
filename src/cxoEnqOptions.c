@@ -146,8 +146,7 @@ static PyObject *cxoEnqOptions_getTransformation(cxoEnqOptions *self,
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxoPyString_fromEncodedString(value, valueLength, self->encoding,
-            NULL);
+    return PyUnicode_Decode(value, valueLength, self->encoding, NULL);
 }
 
 
@@ -161,7 +160,7 @@ static PyObject *cxoEnqOptions_getVisibility(cxoEnqOptions *self, void *unused)
 
     if (dpiEnqOptions_getVisibility(self->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 
@@ -174,7 +173,7 @@ static int cxoEnqOptions_setDeliveryMode(cxoEnqOptions *self, PyObject *valueObj
 {
     dpiMessageDeliveryMode value;
 
-    value = PyInt_AsLong(valueObj);
+    value = PyLong_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
     if (dpiEnqOptions_setDeliveryMode(self->handle, value) < 0)
@@ -213,7 +212,7 @@ static int cxoEnqOptions_setVisibility(cxoEnqOptions *self,
 {
     dpiVisibility value;
 
-    value = PyInt_AsLong(valueObj);
+    value = PyLong_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
     if (dpiEnqOptions_setVisibility(self->handle, value) < 0)

@@ -173,8 +173,7 @@ static PyObject *cxoDeqOptions_getAttrText(cxoDeqOptions *options,
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxoPyString_fromEncodedString(value, valueLength, options->encoding,
-            NULL);
+    return PyUnicode_Decode(value, valueLength, options->encoding, NULL);
 }
 
 
@@ -241,7 +240,7 @@ static PyObject *cxoDeqOptions_getMode(cxoDeqOptions *options, void *unused)
 
     if (dpiDeqOptions_getMode(options->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 
@@ -273,7 +272,7 @@ static PyObject *cxoDeqOptions_getNavigation(cxoDeqOptions *options,
 
     if (dpiDeqOptions_getNavigation(options->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 
@@ -299,7 +298,7 @@ static PyObject *cxoDeqOptions_getVisibility(cxoDeqOptions *options,
 
     if (dpiDeqOptions_getVisibility(options->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 
@@ -313,7 +312,7 @@ static PyObject *cxoDeqOptions_getWait(cxoDeqOptions *options, void *unused)
 
     if (dpiDeqOptions_getWait(options->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 
@@ -362,7 +361,7 @@ static int cxoDeqOptions_setDeliveryMode(cxoDeqOptions *options,
 {
     dpiMessageDeliveryMode value;
 
-    value = PyInt_AsLong(valueObj);
+    value = PyLong_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
     if (dpiDeqOptions_setDeliveryMode(options->handle, value) < 0)
@@ -380,7 +379,7 @@ static int cxoDeqOptions_setMode(cxoDeqOptions *options, PyObject *valueObj,
 {
     dpiDeqMode value;
 
-    value = PyInt_AsLong(valueObj);
+    value = PyLong_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
     if (dpiDeqOptions_setMode(options->handle, value) < 0)
@@ -417,7 +416,7 @@ static int cxoDeqOptions_setNavigation(cxoDeqOptions *options,
 {
     dpiDeqNavigation value;
 
-    value = PyInt_AsLong(valueObj);
+    value = PyLong_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
     if (dpiDeqOptions_setNavigation(options->handle, value) < 0)
@@ -447,7 +446,7 @@ static int cxoDeqOptions_setVisibility(cxoDeqOptions *options,
 {
     dpiVisibility value;
 
-    value = PyInt_AsLong(valueObj);
+    value = PyLong_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
     if (dpiDeqOptions_setVisibility(options->handle, value) < 0)
@@ -465,7 +464,7 @@ static int cxoDeqOptions_setWait(cxoDeqOptions *options, PyObject *valueObj,
 {
     uint32_t value;
 
-    value = PyInt_AsLong(valueObj);
+    value = PyLong_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
     if (dpiDeqOptions_setWait(options->handle, value) < 0)

@@ -131,8 +131,7 @@ static int cxoSodaCollection_initialize(cxoSodaCollection *coll,
     // get name from ODPI-C
     if (dpiSodaColl_getName(handle, &name, &nameLength) < 0)
         return cxoError_raiseAndReturnInt();
-    coll->name = cxoPyString_fromEncodedString(name, nameLength, encoding,
-            NULL);
+    coll->name = PyUnicode_Decode(name, nameLength, encoding, NULL);
     if (!coll->name)
         return -1;
 

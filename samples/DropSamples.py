@@ -8,8 +8,6 @@
 # Drops the database objects used for the cx_Oracle samples.
 #------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import cx_Oracle
 import SampleEnv
 

@@ -179,7 +179,7 @@ static PyObject *cxoLob_internalRead(cxoLob *lob, uint64_t offset,
         result = PyUnicode_Decode(buffer, (Py_ssize_t) bufferSize,
                 lob->connection->encodingInfo.nencoding, NULL);
     else if (lob->oracleTypeNum == DPI_ORACLE_TYPE_CLOB)
-        result = cxoPyString_fromEncodedString(buffer, (Py_ssize_t) bufferSize,
+        result = PyUnicode_Decode(buffer, (Py_ssize_t) bufferSize,
                 lob->connection->encodingInfo.encoding, NULL);
     else result = PyBytes_FromStringAndSize(buffer, (Py_ssize_t) bufferSize);
     PyMem_Free(buffer);
@@ -364,7 +364,7 @@ static PyObject *cxoLob_getChunkSize(cxoLob *lob, PyObject *args)
 
     if (dpiLob_getChunkSize(lob->handle, &size) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(size);
+    return PyLong_FromLong(size);
 }
 
 
@@ -408,14 +408,14 @@ static PyObject *cxoLob_getFileName(cxoLob *lob, PyObject *args)
     result = PyTuple_New(2);
     if (!result)
         return NULL;
-    temp = cxoPyString_fromEncodedString(directoryAlias, directoryAliasLength,
+    temp = PyUnicode_Decode(directoryAlias, directoryAliasLength,
             lob->connection->encodingInfo.encoding, NULL);
     if (!temp) {
         Py_DECREF(result);
         return NULL;
     }
     PyTuple_SET_ITEM(result, 0, temp);
-    temp = cxoPyString_fromEncodedString(fileName, fileNameLength,
+    temp = PyUnicode_Decode(fileName, fileNameLength,
             lob->connection->encodingInfo.encoding, NULL);
     if (!temp) {
         Py_DECREF(result);

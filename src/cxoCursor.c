@@ -522,20 +522,20 @@ static PyObject *cxoCursor_itemDescription(cxoCursor *cursor, uint32_t pos)
         return NULL;
 
     // set each of the items in the tuple
-    PyTuple_SET_ITEM(tuple, 0, cxoPyString_fromEncodedString(queryInfo.name,
+    PyTuple_SET_ITEM(tuple, 0, PyUnicode_Decode(queryInfo.name,
             queryInfo.nameLength, cursor->connection->encodingInfo.encoding,
             NULL));
     Py_INCREF(varType->pythonType);
     PyTuple_SET_ITEM(tuple, 1, (PyObject*) varType->pythonType);
     if (displaySize)
-        PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(displaySize));
+        PyTuple_SET_ITEM(tuple, 2, PyLong_FromLong(displaySize));
     else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 2, Py_None);
     }
     if (queryInfo.typeInfo.clientSizeInBytes)
         PyTuple_SET_ITEM(tuple, 3,
-                PyInt_FromLong(queryInfo.typeInfo.clientSizeInBytes));
+                PyLong_FromLong(queryInfo.typeInfo.clientSizeInBytes));
     else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 3, Py_None);
@@ -543,9 +543,9 @@ static PyObject *cxoCursor_itemDescription(cxoCursor *cursor, uint32_t pos)
     if (queryInfo.typeInfo.precision || queryInfo.typeInfo.scale ||
             queryInfo.typeInfo.fsPrecision) {
         PyTuple_SET_ITEM(tuple, 4,
-                PyInt_FromLong(queryInfo.typeInfo.precision));
+                PyLong_FromLong(queryInfo.typeInfo.precision));
         PyTuple_SET_ITEM(tuple, 5,
-                PyInt_FromLong(queryInfo.typeInfo.scale +
+                PyLong_FromLong(queryInfo.typeInfo.scale +
                         queryInfo.typeInfo.fsPrecision));
     } else {
         Py_INCREF(Py_None);
@@ -553,7 +553,7 @@ static PyObject *cxoCursor_itemDescription(cxoCursor *cursor, uint32_t pos)
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(tuple, 5, Py_None);
     }
-    PyTuple_SET_ITEM(tuple, 6, PyInt_FromLong(queryInfo.nullOk != 0));
+    PyTuple_SET_ITEM(tuple, 6, PyLong_FromLong(queryInfo.nullOk != 0));
 
     // make sure the tuple is ok
     for (index = 0; index < 7; index++) {
@@ -632,7 +632,7 @@ static PyObject *cxoCursor_getLastRowid(cxoCursor *cursor, void *unused)
         if (rowid) {
             if (dpiRowid_getStringValue(rowid, &rowidStr, &rowidStrLength) < 0)
                 return cxoError_raiseAndReturnNull();
-            return cxoPyString_fromEncodedString(rowidStr, rowidStrLength,
+            return PyUnicode_Decode(rowidStr, rowidStrLength,
                     cursor->connection->encodingInfo.encoding, NULL);
         }
     }
@@ -1474,7 +1474,7 @@ static PyObject *cxoCursor_executeMany(cxoCursor *cursor, PyObject *args,
             &statement, &parameters, &batchErrorsEnabled,
             &arrayDMLRowCountsEnabled))
         return NULL;
-    if (!PyList_Check(parameters) && !PyInt_Check(parameters)) {
+    if (!PyList_Check(parameters) && !PyLong_Check(parameters)) {
         PyErr_SetString(PyExc_TypeError,
                 "parameters should be a list of sequences/dictionaries "
                 "or an integer specifying the number of times to execute "
@@ -1499,8 +1499,8 @@ static PyObject *cxoCursor_executeMany(cxoCursor *cursor, PyObject *args,
         return NULL;
 
     // perform binds, as required
-    if (PyInt_Check(parameters))
-        numRows = (uint32_t) PyInt_AsLong(parameters);
+    if (PyLong_Check(parameters))
+        numRows = (uint32_t) PyLong_AsLong(parameters);
     else {
         numRows = (uint32_t) PyList_GET_SIZE(parameters);
         for (i = 0; i < numRows; i++) {
@@ -1692,7 +1692,7 @@ static PyObject *cxoCursor_fetchRaw(cxoCursor *cursor, PyObject *args,
         return cxoError_raiseAndReturnNull();
     cursor->rowCount += numRowsFetched;
     cursor->numRowsInFetchBuffer = 0;
-    return PyInt_FromLong(numRowsFetched);
+    return PyLong_FromLong(numRowsFetched);
 }
 
 
@@ -1936,8 +1936,8 @@ static PyObject *cxoCursor_arrayVar(cxoCursor *cursor, PyObject *args)
     // determine the number of elements to create
     if (PyList_Check(value))
         numElements = (uint32_t) PyList_GET_SIZE(value);
-    else if (PyInt_Check(value)) {
-        numElements = (uint32_t) PyInt_AsLong(value);
+    else if (PyLong_Check(value)) {
+        numElements = (uint32_t) PyLong_AsLong(value);
         if (PyErr_Occurred())
             return NULL;
     } else {
@@ -2010,7 +2010,7 @@ static PyObject *cxoCursor_bindNames(cxoCursor *cursor, PyObject *args)
     namesList = PyList_New(numBinds);
     if (namesList) {
         for (i = 0; i < numBinds; i++) {
-            temp = cxoPyString_fromEncodedString(names[i], nameLengths[i],
+            temp = PyUnicode_Decode(names[i], nameLengths[i],
                     cursor->connection->encodingInfo.encoding, NULL);
             if (!temp) {
                 Py_CLEAR(namesList);

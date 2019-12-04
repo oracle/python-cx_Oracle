@@ -169,7 +169,7 @@ static PyObject *cxoMsgProps_getAttrInt32(cxoMsgProps *props,
 
     if ((*func)(props->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 
@@ -182,7 +182,7 @@ static int cxoMsgProps_setAttrInt32(cxoMsgProps *props, PyObject *valueObj,
 {
     int32_t value;
 
-    value = PyInt_AsLong(valueObj);
+    value = PyLong_AsLong(valueObj);
     if (PyErr_Occurred())
         return -1;
     if ((*func)(props->handle, value) < 0)
@@ -214,8 +214,7 @@ static PyObject *cxoMsgProps_getCorrelation(cxoMsgProps *props, void *unused)
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxoPyString_fromEncodedString(value, valueLength, props->encoding,
-            NULL);
+    return PyUnicode_Decode(value, valueLength, props->encoding, NULL);
 }
 
 
@@ -239,7 +238,7 @@ static PyObject *cxoMsgProps_getDeliveryMode(cxoMsgProps *props, void *unused)
 
     if (dpiMsgProps_getDeliveryMode(props->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 
@@ -271,8 +270,7 @@ static PyObject *cxoMsgProps_getExceptionQ(cxoMsgProps *props, void *unused)
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxoPyString_fromEncodedString(value, valueLength, props->encoding,
-            NULL);
+    return PyUnicode_Decode(value, valueLength, props->encoding, NULL);
 }
 
 
@@ -323,7 +321,7 @@ static PyObject *cxoMsgProps_getState(cxoMsgProps *props, void *unused)
 
     if (dpiMsgProps_getState(props->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 

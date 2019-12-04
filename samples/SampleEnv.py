@@ -41,17 +41,9 @@
 # user for on premises databases is SYSTEM.
 #------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import getpass
 import os
 import sys
-
-# for Python 2.7 we need raw_input
-try:
-    input = raw_input
-except NameError:
-    pass
 
 # default values
 DEFAULT_MAIN_USER = "pythondemo"

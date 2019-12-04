@@ -10,8 +10,6 @@
 # demonstration of PL/SQL editioning.
 #------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import cx_Oracle
 
 import SampleEnv

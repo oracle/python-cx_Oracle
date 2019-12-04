@@ -10,8 +10,6 @@
 """Driver specific portion of the DB API test suite provided by Stuart Bishop
    available at http://stuartbishop.net/Software/DBAPI20TestSuite/"""
 
-from __future__ import print_function
-
 import cx_Oracle
 import dbapi20
 import unittest

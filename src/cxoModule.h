@@ -16,42 +16,6 @@
 #include <time.h>
 #include <dpi.h>
 
-// define integer macros/methods for Python 3.x
-#ifndef PyInt_Check
-#define PyInt_Check                     PyLong_Check
-#define PyInt_FromLong                  PyLong_FromLong
-#define PyInt_AsLong                    PyLong_AsLong
-#endif
-
-// use the bytes methods in cx_Oracle and define them as the equivalent string
-// type methods as is done in Python 2.6
-#ifndef PyBytes_Check
-    #define PyBytes_Type                PyString_Type
-    #define PyBytes_AS_STRING           PyString_AS_STRING
-    #define PyBytes_GET_SIZE            PyString_GET_SIZE
-    #define PyBytes_Check               PyString_Check
-    #define PyBytes_FromStringAndSize   PyString_FromStringAndSize
-#endif
-
-// define string/binary types and methods
-#if PY_MAJOR_VERSION >= 3
-    #define CXO_BASE_EXCEPTION          NULL
-    #define cxoPyTypeBinary             PyBytes_Type
-    #define cxoPyTypeString             PyUnicode_Type
-    #define cxoPyString_fromAscii(str) \
-        PyUnicode_DecodeASCII(str, strlen(str), NULL)
-    #define cxoPyString_fromEncodedString(buffer, numBytes, encoding, errors) \
-        PyUnicode_Decode(buffer, numBytes, encoding, errors)
-#else
-    #define CXO_BASE_EXCEPTION          PyExc_StandardError
-    #define cxoPyTypeBinary             PyBuffer_Type
-    #define cxoPyTypeString             PyString_Type
-    #define cxoPyString_fromAscii(str) \
-        PyBytes_FromString(str)
-    #define cxoPyString_fromEncodedString(buffer, numBytes, encoding, errors) \
-        PyBytes_FromStringAndSize(buffer, numBytes)
-#endif
-
 // define macros to get the build version as a string and the driver name
 #define xstr(s)                         str(s)
 #define str(s)                          #s

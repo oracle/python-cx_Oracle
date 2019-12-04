@@ -213,29 +213,17 @@ static Py_ssize_t cxoVarType_calculateSize(PyObject *value,
         cxoTransformNum transformNum)
 {
     Py_ssize_t size = 0;
-#if PY_MAJOR_VERSION < 3
-    const void *ptr;
-#endif
 
     switch (transformNum) {
         case CXO_TRANSFORM_NONE:
             return 1;
         case CXO_TRANSFORM_BINARY:
-#if PY_MAJOR_VERSION >= 3
             return PyBytes_GET_SIZE(value);
-#else
-            PyObject_AsReadBuffer(value, &ptr, &size);
-            return size;
-#endif
         case CXO_TRANSFORM_NSTRING:
             size = PyUnicode_GET_SIZE(value);
             return (size == 0) ? 1 : size;
         case CXO_TRANSFORM_STRING:
-#if PY_MAJOR_VERSION >= 3
             size = PyUnicode_GET_SIZE(value);
-#else
-            size = PyString_GET_SIZE(value);
-#endif
             return (size == 0) ? 1 : size;
         default:
             break;

@@ -157,7 +157,7 @@ cxoError *cxoError_newFromInfo(dpiErrorInfo *errorInfo)
     error->isRecoverable = (char) errorInfo->isRecoverable;
 
     // create message
-    error->message = cxoPyString_fromEncodedString(errorInfo->message,
+    error->message = PyUnicode_Decode(errorInfo->message,
             errorInfo->messageLength, errorInfo->encoding, NULL);
     if (!error->message) {
         Py_DECREF(error);
@@ -165,13 +165,8 @@ cxoError *cxoError_newFromInfo(dpiErrorInfo *errorInfo)
     }
 
     // create context composed of function name and action
-#if PY_MAJOR_VERSION >= 3
     error->context = PyUnicode_FromFormat("%s: %s", errorInfo->fnName,
             errorInfo->action);
-#else
-    error->context = PyString_FromFormat("%s: %s", errorInfo->fnName,
-            errorInfo->action);
-#endif
     if (!error->context) {
         Py_DECREF(error);
         return NULL;
@@ -195,7 +190,7 @@ static cxoError *cxoError_newFromString(const char *message)
         return NULL;
     Py_INCREF(Py_None);
     error->context = Py_None;
-    error->message = cxoPyString_fromAscii(message);
+    error->message = PyUnicode_DecodeASCII(message, strlen(message), NULL);
     if (!error->message) {
         Py_DECREF(error);
         return NULL;

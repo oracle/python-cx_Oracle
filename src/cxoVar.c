@@ -307,7 +307,7 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
     }
     if (ok) {
         numElementsObj = PyList_GET_ITEM(value, 1);
-        ok = PyInt_Check(numElementsObj);
+        ok = PyLong_Check(numElementsObj);
     }
     if (!ok) {
         cxoError_raiseFromString(cxoProgrammingErrorException,
@@ -319,7 +319,7 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
     varType = cxoVarType_fromPythonType(typeObj, &objType);
     if (!varType)
         return NULL;
-    numElements = PyInt_AsLong(numElementsObj);
+    numElements = PyLong_AsLong(numElementsObj);
     if (PyErr_Occurred())
         return NULL;
     return cxoVar_new(cursor, numElements, varType, varType->size, 1, objType);
@@ -338,11 +338,11 @@ cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
     long size;
 
     // passing an integer is assumed to be a string
-    if (PyInt_Check(value)) {
-        size = PyInt_AsLong(value);
+    if (PyLong_Check(value)) {
+        size = PyLong_AsLong(value);
         if (PyErr_Occurred())
             return NULL;
-        varType = cxoVarType_fromPythonType((PyObject*) &cxoPyTypeString,
+        varType = cxoVarType_fromPythonType((PyObject*) &PyUnicode_Type,
                 &objType);
         return cxoVar_new(cursor, numElements, varType, size, 0, objType);
     }
@@ -764,7 +764,7 @@ static PyObject *cxoVar_externalGetActualElements(cxoVar *var,
     if (var->isArray &&
             dpiVar_getNumElementsInArray(var->handle, &numElements) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(numElements);
+    return PyLong_FromLong(numElements);
 }
 
 

@@ -15,8 +15,6 @@
 # This script requires cx_Oracle 5.0 and higher and will only work in Python 2.
 #------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import cx_Oracle
 import SampleEnv
 

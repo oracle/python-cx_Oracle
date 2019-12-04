@@ -112,11 +112,11 @@ static int cxoObjectType_initialize(cxoObjectType *objType,
         return cxoError_raiseAndReturnInt();
     Py_INCREF(connection);
     objType->connection = connection;
-    objType->schema = cxoPyString_fromEncodedString(info.schema,
-            info.schemaLength, connection->encodingInfo.encoding, NULL);
+    objType->schema = PyUnicode_Decode(info.schema, info.schemaLength,
+            connection->encodingInfo.encoding, NULL);
     if (!objType->schema)
         return -1;
-    objType->name = cxoPyString_fromEncodedString(info.name, info.nameLength,
+    objType->name = PyUnicode_Decode(info.name, info.nameLength,
             connection->encodingInfo.encoding, NULL);
     if (!objType->name)
         return -1;

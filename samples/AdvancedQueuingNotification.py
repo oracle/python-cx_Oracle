@@ -12,8 +12,6 @@
 # This script requires cx_Oracle 6.4 and higher.
 #------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import cx_Oracle
 import SampleEnv
 import threading

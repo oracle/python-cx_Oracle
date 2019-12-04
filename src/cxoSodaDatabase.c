@@ -325,8 +325,8 @@ static PyObject *cxoSodaDatabase_getCollectionNames(cxoSodaDatabase *db,
     if (!result)
         return NULL;
     for (i = 0; i < collNames.numNames; i++) {
-        temp = cxoPyString_fromEncodedString(collNames.names[i],
-                collNames.nameLengths[i], encoding, NULL);
+        temp = PyUnicode_Decode(collNames.names[i], collNames.nameLengths[i],
+                encoding, NULL);
         if (!temp) {
             Py_DECREF(result);
             return NULL;

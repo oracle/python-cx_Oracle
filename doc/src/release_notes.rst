@@ -5,6 +5,12 @@
 cx_Oracle Release Notes
 =======================
 
+Version 8.0 (TBD)
+-----------------
+
+#)  Dropped support for Python 2.7.
+
+
 Version 7.3 (December 2019)
 ---------------------------
 

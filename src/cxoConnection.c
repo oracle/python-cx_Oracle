@@ -415,21 +415,12 @@ static int cxoConnectionParams_processShardingKey(cxoConnectionParams *params,
         return 0;
 
     // allocate memory for the sharding key values
-#if PY_MAJOR_VERSION >= 3
     columns = PyMem_Calloc(numColumns, sizeof(dpiShardingKeyColumn));
     buffers = PyMem_Calloc(numColumns, sizeof(cxoBuffer));
-#else
-    columns = PyMem_Malloc(numColumns * sizeof(dpiShardingKeyColumn));
-    buffers = PyMem_Malloc(numColumns * sizeof(cxoBuffer));
-#endif
     if (!columns || !buffers) {
         PyErr_NoMemory();
         return -1;
     }
-#if PY_MAJOR_VERSION < 3
-    memset(columns, 0, numColumns * sizeof(dpiShardingKeyColumn));
-    memset(buffers, 0, numColumns * sizeof(cxoBuffer));
-#endif
     if (isSuperShardingKey) {
         params->superShardingKeyColumns = columns;
         params->superShardingKeyBuffers = buffers;
@@ -565,8 +556,8 @@ static PyObject *cxoConnection_getAttrText(cxoConnection *conn,
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
-    return cxoPyString_fromEncodedString(value, valueLength,
-            conn->encodingInfo.encoding, NULL);
+    return PyUnicode_Decode(value, valueLength, conn->encodingInfo.encoding,
+            NULL);
 }
 
 
@@ -668,7 +659,7 @@ static int cxoConnection_splitComponent(PyObject *sourceObj,
     posObj = PyObject_CallMethod(sourceObj, methodName, "s", splitString);
     if (!posObj)
         return -1;
-    pos = PyInt_AsLong(posObj);
+    pos = PyLong_AsLong(posObj);
     Py_DECREF(posObj);
     if (PyErr_Occurred())
         return -1;
@@ -884,7 +875,7 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
 
     // set tag property
     if (dpiCreateParams.outTagLength > 0) {
-        conn->tag = cxoPyString_fromEncodedString(dpiCreateParams.outTag,
+        conn->tag = PyUnicode_Decode(dpiCreateParams.outTag,
                 dpiCreateParams.outTagLength, conn->encodingInfo.encoding,
                 NULL);
         if (!conn->tag)
@@ -968,7 +959,7 @@ static PyObject *cxoConnection_getStmtCacheSize(cxoConnection* conn, void* arg)
         return NULL;
     if (dpiConn_getStmtCacheSize(conn->handle, &cacheSize) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(cacheSize);
+    return PyLong_FromLong(cacheSize);
 }
 
 
@@ -983,11 +974,11 @@ static int cxoConnection_setStmtCacheSize(cxoConnection* conn, PyObject *value,
 
     if (cxoConnection_isConnected(conn) < 0)
         return -1;
-    if (!PyInt_Check(value)) {
+    if (!PyLong_Check(value)) {
         PyErr_SetString(PyExc_TypeError, "value must be an integer");
         return -1;
     }
-    cacheSize = (uint32_t) PyInt_AsLong(value);
+    cacheSize = (uint32_t) PyLong_AsLong(value);
     if (dpiConn_setStmtCacheSize(conn->handle, cacheSize) < 0)
         return cxoError_raiseAndReturnInt();
     return 0;
@@ -1007,7 +998,7 @@ static PyObject *cxoConnection_getCallTimeout(cxoConnection* conn, void* arg)
         return NULL;
     if (dpiConn_getCallTimeout(conn->handle, &callTimeout) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(callTimeout);
+    return PyLong_FromLong(callTimeout);
 }
 
 
@@ -1105,7 +1096,7 @@ static PyObject *cxoConnection_getVersion(cxoConnection *conn, void *unused)
     snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d.%d", versionInfo.versionNum,
             versionInfo.releaseNum, versionInfo.updateNum,
             versionInfo.portReleaseNum, versionInfo.portUpdateNum);
-    return cxoPyString_fromAscii(buffer);
+    return PyUnicode_DecodeASCII(buffer, strlen(buffer), NULL);
 }
 
 
@@ -1115,7 +1106,8 @@ static PyObject *cxoConnection_getVersion(cxoConnection *conn, void *unused)
 //-----------------------------------------------------------------------------
 static PyObject *cxoConnection_getEncoding(cxoConnection *conn, void *unused)
 {
-    return cxoPyString_fromAscii(conn->encodingInfo.encoding);
+    return PyUnicode_DecodeASCII(conn->encodingInfo.encoding,
+            strlen(conn->encodingInfo.encoding), NULL);
 }
 
 
@@ -1160,7 +1152,8 @@ static PyObject *cxoConnection_getHandle(cxoConnection *conn, void *unused)
 static PyObject *cxoConnection_getNationalEncoding(cxoConnection *conn,
         void *unused)
 {
-    return cxoPyString_fromAscii(conn->encodingInfo.nencoding);
+    return PyUnicode_DecodeASCII(conn->encodingInfo.nencoding,
+            strlen(conn->encodingInfo.nencoding), NULL);
 }
 
 
@@ -1171,7 +1164,7 @@ static PyObject *cxoConnection_getNationalEncoding(cxoConnection *conn,
 static PyObject *cxoConnection_getMaxBytesPerCharacter(cxoConnection *conn,
         void *unused)
 {
-    return PyInt_FromLong(conn->encodingInfo.maxBytesPerCharacter);
+    return PyLong_FromLong(conn->encodingInfo.maxBytesPerCharacter);
 }
 
 

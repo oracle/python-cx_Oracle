@@ -13,8 +13,6 @@
 # This script requires cx_Oracle 2.5 and higher.
 #------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import cx_Oracle
 import SampleEnv
 import threading

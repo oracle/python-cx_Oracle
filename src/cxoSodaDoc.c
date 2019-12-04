@@ -145,7 +145,7 @@ static PyObject *cxoSodaDoc_repr(cxoSodaDoc *doc)
 
     if (dpiSodaDoc_getKey(doc->handle, &key, &keyLength) < 0)
         return cxoError_raiseAndReturnNull();
-    keyObj = cxoPyString_fromEncodedString(key, keyLength,
+    keyObj = PyUnicode_Decode(key, keyLength,
             doc->db->connection->encodingInfo.encoding, NULL);
     if (!keyObj)
         return NULL;
@@ -174,7 +174,7 @@ static PyObject *cxoSodaDoc_getCreatedOn(cxoSodaDoc *doc, void *unused)
     if (dpiSodaDoc_getCreatedOn(doc->handle, &value, &valueLength) < 0)
         return cxoError_raiseAndReturnNull();
     if (valueLength > 0)
-        return cxoPyString_fromEncodedString(value, valueLength,
+        return PyUnicode_Decode(value, valueLength,
                 doc->db->connection->encodingInfo.encoding, NULL);
     Py_RETURN_NONE;
 }
@@ -192,7 +192,7 @@ static PyObject *cxoSodaDoc_getKey(cxoSodaDoc *doc, void *unused)
     if (dpiSodaDoc_getKey(doc->handle, &value, &valueLength) < 0)
         return cxoError_raiseAndReturnNull();
     if (valueLength > 0)
-        return cxoPyString_fromEncodedString(value, valueLength,
+        return PyUnicode_Decode(value, valueLength,
                 doc->db->connection->encodingInfo.encoding, NULL);
     Py_RETURN_NONE;
 }
@@ -211,7 +211,7 @@ static PyObject *cxoSodaDoc_getLastModified(cxoSodaDoc *doc, void *unused)
     if (dpiSodaDoc_getLastModified(doc->handle, &value, &valueLength) < 0)
         return cxoError_raiseAndReturnNull();
     if (valueLength > 0)
-        return cxoPyString_fromEncodedString(value, valueLength,
+        return PyUnicode_Decode(value, valueLength,
                 doc->db->connection->encodingInfo.encoding, NULL);
     Py_RETURN_NONE;
 }
@@ -229,7 +229,7 @@ static PyObject *cxoSodaDoc_getMediaType(cxoSodaDoc *doc, void *unused)
     if (dpiSodaDoc_getMediaType(doc->handle, &value, &valueLength) < 0)
         return cxoError_raiseAndReturnNull();
     if (valueLength > 0)
-        return cxoPyString_fromEncodedString(value, valueLength,
+        return PyUnicode_Decode(value, valueLength,
                 doc->db->connection->encodingInfo.encoding, NULL);
     Py_RETURN_NONE;
 }
@@ -247,7 +247,7 @@ static PyObject *cxoSodaDoc_getVersion(cxoSodaDoc *doc, void *unused)
     if (dpiSodaDoc_getVersion(doc->handle, &value, &valueLength) < 0)
         return cxoError_raiseAndReturnNull();
     if (valueLength > 0)
-        return cxoPyString_fromEncodedString(value, valueLength,
+        return PyUnicode_Decode(value, valueLength,
                 doc->db->connection->encodingInfo.encoding, NULL);
     Py_RETURN_NONE;
 }

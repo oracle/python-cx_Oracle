@@ -31,32 +31,14 @@ int cxoBuffer_fromObject(cxoBuffer *buf, PyObject *obj, const char *encoding)
             return -1;
         buf->ptr = PyBytes_AS_STRING(buf->obj);
         buf->size = (uint32_t) PyBytes_GET_SIZE(buf->obj);
-#if PY_MAJOR_VERSION < 3
-        buf->numCharacters = (uint32_t) PyUnicode_GET_SIZE(obj);
-#else
         buf->numCharacters = (uint32_t) PyUnicode_GET_LENGTH(obj);
-#endif
     } else if (PyBytes_Check(obj)) {
         Py_INCREF(obj);
         buf->obj = obj;
         buf->ptr = PyBytes_AS_STRING(buf->obj);
         buf->size = buf->numCharacters = (uint32_t) PyBytes_GET_SIZE(buf->obj);
-#if PY_MAJOR_VERSION < 3
-    } else if (PyBuffer_Check(obj)) {
-        Py_ssize_t temp;
-        if (PyObject_AsReadBuffer(obj, (void*) &buf->ptr, &temp) < 0)
-            return -1;
-        Py_INCREF(obj);
-        buf->obj = obj;
-        buf->numCharacters = buf->size = (uint32_t) temp;
-#endif
     } else {
-#if PY_MAJOR_VERSION >= 3
         PyErr_SetString(PyExc_TypeError, "expecting string or bytes object");
-#else
-        PyErr_SetString(PyExc_TypeError,
-                "expecting string, unicode or buffer object");
-#endif
         return -1;
     }
     return 0;

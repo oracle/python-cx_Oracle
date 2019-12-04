@@ -323,8 +323,8 @@ static int cxoMessageRow_initialize(cxoMessageRow *rowObj,
         const char *encoding, dpiSubscrMessageRow *row)
 {
     rowObj->operation = row->operation;
-    rowObj->rowid = cxoPyString_fromEncodedString(row->rowid, row->rowidLength,
-            encoding, NULL);
+    rowObj->rowid = PyUnicode_Decode(row->rowid, row->rowidLength, encoding,
+            NULL);
     if (!rowObj->rowid)
         return -1;
 
@@ -343,8 +343,8 @@ static int cxoMessageTable_initialize(cxoMessageTable *tableObj,
     uint32_t i;
 
     tableObj->operation = table->operation;
-    tableObj->name = cxoPyString_fromEncodedString(table->name,
-            table->nameLength, encoding, NULL);
+    tableObj->name = PyUnicode_Decode(table->name, table->nameLength, encoding,
+            NULL);
     tableObj->rows = PyList_New(table->numRows);
     if (!tableObj->rows)
         return -1;
@@ -408,7 +408,7 @@ static int cxoMessage_initialize(cxoMessage *messageObj,
     encoding = subscription->connection->encodingInfo.encoding;
     messageObj->type = message->eventType;
     messageObj->registered = message->registered;
-    messageObj->dbname = cxoPyString_fromEncodedString(message->dbName,
+    messageObj->dbname = PyUnicode_Decode(message->dbName,
             message->dbNameLength, encoding, NULL);
     if (!messageObj->dbname)
         return -1;
@@ -419,15 +419,14 @@ static int cxoMessage_initialize(cxoMessage *messageObj,
             return -1;
     }
     if (message->queueName) {
-        messageObj->queueName = cxoPyString_fromEncodedString(
-                message->queueName, message->queueNameLength, encoding, NULL);
+        messageObj->queueName = PyUnicode_Decode(message->queueName,
+                message->queueNameLength, encoding, NULL);
         if (!messageObj->queueName)
             return -1;
     }
     if (message->consumerName) {
-        messageObj->consumerName = cxoPyString_fromEncodedString(
-                message->consumerName, message->consumerNameLength, encoding,
-                NULL);
+        messageObj->consumerName = PyUnicode_Decode(message->consumerName,
+                message->consumerNameLength, encoding, NULL);
         if (!messageObj->consumerName)
             return -1;
     }
@@ -649,7 +648,7 @@ static PyObject *cxoSubscr_registerQuery(cxoSubscr *subscr,
             return NULL;
         }
         Py_DECREF(cursor);
-        return PyInt_FromLong((long) queryId);
+        return PyLong_FromLong((long) queryId);
     }
 
     Py_DECREF(cursor);

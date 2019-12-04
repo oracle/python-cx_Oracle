@@ -25,22 +25,14 @@ PyObject *cxoUtils_formatString(const char *format, PyObject *args)
         return NULL;
 
     // convert string format to Python object
-#if PY_MAJOR_VERSION >= 3
     formatObj = PyUnicode_DecodeASCII(format, strlen(format), NULL);
-#else
-    formatObj = PyString_FromString(format);
-#endif
     if (!formatObj) {
         Py_DECREF(args);
         return NULL;
     }
 
     // create formatted result
-#if PY_MAJOR_VERSION >= 3
     result = PyUnicode_Format(formatObj, args);
-#else
-    result = PyString_Format(formatObj, args);
-#endif
     Py_DECREF(args);
     Py_DECREF(formatObj);
     return result;

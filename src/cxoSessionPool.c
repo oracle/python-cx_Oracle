@@ -296,7 +296,7 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
             cxoUtils_getAdjustedEncoding(pool->encodingInfo.encoding);
     pool->encodingInfo.nencoding =
             cxoUtils_getAdjustedEncoding(pool->encodingInfo.nencoding);
-    pool->name = cxoPyString_fromEncodedString(dpiCreateParams.outPoolName,
+    pool->name = PyUnicode_Decode(dpiCreateParams.outPoolName,
             dpiCreateParams.outPoolNameLength, pool->encodingInfo.encoding,
             NULL);
     if (!pool->name)
@@ -484,11 +484,7 @@ static PyObject *cxoSessionPool_getAttribute(cxoSessionPool *pool,
 
     if ((*func)(pool->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-#if PY_MAJOR_VERSION >= 3
     return PyLong_FromUnsignedLong(value);
-#else
-    return PyInt_FromLong(value);
-#endif
 }
 
 
@@ -501,15 +497,11 @@ static int cxoSessionPool_setAttribute(cxoSessionPool *pool, PyObject *value,
 {
     uint32_t cValue;
 
-    if (!PyInt_Check(value)) {
+    if (!PyLong_Check(value)) {
         PyErr_SetString(PyExc_TypeError, "value must be an integer");
         return -1;
     }
-#if PY_MAJOR_VERSION >= 3
     cValue = PyLong_AsUnsignedLong(value);
-#else
-    cValue = PyInt_AsLong(value);
-#endif
     if (PyErr_Occurred())
         return -1;
     if ((*func)(pool->handle, cValue) < 0)
@@ -540,7 +532,7 @@ static PyObject *cxoSessionPool_getGetMode(cxoSessionPool *pool, void *unused)
 
     if (dpiPool_getGetMode(pool->handle, &value) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(value);
+    return PyLong_FromLong(value);
 }
 
 
@@ -607,7 +599,7 @@ static int cxoSessionPool_setGetMode(cxoSessionPool *pool, PyObject *value,
 {
     dpiPoolGetMode cValue;
 
-    cValue = PyInt_AsLong(value);
+    cValue = PyLong_AsLong(value);
     if (PyErr_Occurred())
         return -1;
     if (dpiPool_setGetMode(pool->handle, cValue) < 0)

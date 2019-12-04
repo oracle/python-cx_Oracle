@@ -417,7 +417,7 @@ static PyObject *cxoObject_asDict(cxoObject *obj, PyObject *args)
             Py_DECREF(dict);
             return NULL;
         }
-        key = PyInt_FromLong(index);
+        key = PyLong_FromLong(index);
         if (!key) {
             Py_DECREF(value);
             Py_DECREF(dict);
@@ -582,7 +582,7 @@ static PyObject *cxoObject_getFirstIndex(cxoObject *obj, PyObject *args)
     if (dpiObject_getFirstIndex(obj->handle, &index, &exists) < 0)
         return cxoError_raiseAndReturnNull();
     if (exists)
-        return PyInt_FromLong(index);
+        return PyLong_FromLong(index);
     Py_RETURN_NONE;
 }
 
@@ -599,7 +599,7 @@ static PyObject *cxoObject_getLastIndex(cxoObject *obj, PyObject *args)
     if (dpiObject_getLastIndex(obj->handle, &index, &exists) < 0)
         return cxoError_raiseAndReturnNull();
     if (exists)
-        return PyInt_FromLong(index);
+        return PyLong_FromLong(index);
     Py_RETURN_NONE;
 }
 
@@ -619,7 +619,7 @@ static PyObject *cxoObject_getNextIndex(cxoObject *obj, PyObject *args)
     if (dpiObject_getNextIndex(obj->handle, index, &nextIndex, &exists) < 0)
         return cxoError_raiseAndReturnNull();
     if (exists)
-        return PyInt_FromLong(nextIndex);
+        return PyLong_FromLong(nextIndex);
     Py_RETURN_NONE;
 }
 
@@ -639,7 +639,7 @@ static PyObject *cxoObject_getPrevIndex(cxoObject *obj, PyObject *args)
     if (dpiObject_getPrevIndex(obj->handle, index, &prevIndex, &exists) < 0)
         return cxoError_raiseAndReturnNull();
     if (exists)
-        return PyInt_FromLong(prevIndex);
+        return PyLong_FromLong(prevIndex);
     Py_RETURN_NONE;
 }
 
@@ -655,7 +655,7 @@ static PyObject *cxoObject_getSize(cxoObject *obj, PyObject *args)
 
     if (dpiObject_getSize(obj->handle, &size) < 0)
         return cxoError_raiseAndReturnNull();
-    return PyInt_FromLong(size);
+    return PyLong_FromLong(size);
 }
 
 
