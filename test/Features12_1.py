@@ -13,10 +13,6 @@ import TestEnv
 
 import cx_Oracle
 import datetime
-# import sys
-
-# if sys.version_info > (3,):
-#     long = int
 
 class TestCase(TestEnv.BaseTestCase):
 
