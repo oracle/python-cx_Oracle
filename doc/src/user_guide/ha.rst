@@ -114,7 +114,7 @@ When AC or TAC are configured on the database service, they are transparently
 available to cx_Oracle applications.
 
 You must thoroughly test your application because not all lower level calls in
-the the cx_Oracle implementation can be replayed.
+the cx_Oracle implementation can be replayed.
 
 See `OCI and Application Continuity
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__
