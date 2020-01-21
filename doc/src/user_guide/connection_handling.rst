@@ -530,6 +530,19 @@ scalability.
 In this example tagging was not being used, so the ``requestedTag`` parameter
 is ignored.
 
+Note: if you need to execute multiple SQL statements in the callback, use an
+anonymous PL/SQL block to save round-trips of repeated ``execute()`` calls.
+With ALTER SESSION, pass multiple settings in the one statement:
+
+.. code-block:: python
+
+    cursor.execute("""
+            begin
+                execute immediate
+                        'alter session set nls_date_format = ''YYYY-MM-DD'' nls_language = AMERICAN';
+                -- other SQL statements could be put here
+            end;""")
+
 **Connection Tagging**
 
 Connection tagging is used when connections in a pool should have differing
