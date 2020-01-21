@@ -19,7 +19,6 @@
 
 import cx_Oracle
 import SampleEnv
-import threading
 import time
 
 registered = True
