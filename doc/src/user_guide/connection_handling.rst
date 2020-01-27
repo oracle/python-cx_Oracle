@@ -384,7 +384,6 @@ obtained from a pool by calling :meth:`~SessionPool.acquire()`.  The initial
 pool size and the maximum pool size are provided at the time of pool creation.
 When the pool needs to grow, new connections are created automatically.  The
 pool can shrink back to the minimum size when connections are no longer in use.
-See `Connection Pooling`_ for more information.
 
 Connections acquired from the pool should be released back to the pool using
 :meth:`SessionPool.release()` or :meth:`Connection.close()` when they are no
