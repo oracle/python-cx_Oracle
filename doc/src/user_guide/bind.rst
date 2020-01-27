@@ -58,7 +58,7 @@ bind variables in a statement are associated with a name. For example:
 
     # alternatively, the parameters can be passed as a dictionary instead of as
     # keyword parameters
-    data = { dept_id=280, dept_name="Facility" }
+    data = { "dept_id": 280, "dept_name": "Facility" }
     cursor.execute("""
             insert into departments (department_id, department_name)
             values (:dept_id, :dept_name)""", data)
