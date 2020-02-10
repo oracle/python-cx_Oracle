@@ -19,8 +19,8 @@ Object Type Objects
 
 .. attribute:: ObjectType.attributes
 
-    This read-only attribute returns a list of the attributes that make up the
-    object type. Each attribute has a name attribute on it.
+    This read-only attribute returns a list of the :ref:`attributes
+    <objectattr>` that make up the object type.
 
 
 .. attribute:: ObjectType.iscollection
@@ -32,6 +32,17 @@ Object Type Objects
 .. attribute:: ObjectType.name
 
     This read-only attribute returns the name of the type.
+
+
+.. attribute:: ObjectType.element_type
+
+    This read-only attribute returns the type of elements found in collections
+    of this type, if :attr:`~ObjectType.iscollection` is ``True``; otherwise,
+    it returns ``None``. If the collection contains objects, this will be
+    another object type; otherwise, it will be one of the
+    :ref:`database type constants <dbtypes>`.
+
+    .. versionadded:: 8.0
 
 
 .. method:: ObjectType.newobject([sequence])
@@ -151,3 +162,29 @@ Object Objects
 .. method:: Object.trim(num)
 
     Remove the specified number of elements from the end of the collection.
+
+
+.. _objectattr:
+
+Object Attribute Objects
+------------------------
+
+.. note::
+
+    This object is an extension to the DB API. The elements of
+    :attr:`ObjectType.attributes` are instances of this type.
+
+
+.. attribute:: ObjectAttribute.name
+
+    This read-only attribute returns the name of the attribute.
+
+
+.. attribute:: ObjectAttribute.type
+
+    This read-only attribute returns the type of the attribute. This will be an
+    :ref:`Oracle Object Type <objecttype>` if the variable binds
+    Oracle objects; otherwise, it will be one of the
+    :ref:`database type constants <dbtypes>`.
+
+    .. versionadded:: 8.0

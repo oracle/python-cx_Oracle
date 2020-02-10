@@ -79,6 +79,14 @@ See :ref:`lobdata` for more information about using LOBs.
     Trim the LOB to the new size.
 
 
+.. attribute:: LOB.type
+
+    This read-only attribute returns the type of the LOB as one of the
+    :ref:`database type constants <dbtypes>`.
+
+    .. versionadded:: 8.0
+
+
 .. method:: LOB.write(data, [offset=1])
 
     Write the data to the LOB object at the given offset. The offset is in

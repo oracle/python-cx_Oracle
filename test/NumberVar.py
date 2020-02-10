@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -19,7 +19,8 @@ class TestCase(TestEnv.BaseTestCase):
 
     def outputTypeHandlerNativeInt(self, cursor, name, defaultType, size,
             precision, scale):
-        return cursor.var(cx_Oracle.NATIVE_INT, arraysize=cursor.arraysize)
+        return cursor.var(cx_Oracle.DB_TYPE_BINARY_INTEGER,
+                arraysize=cursor.arraysize)
 
     def outputTypeHandlerDecimal(self, cursor, name, defaultType, size,
             precision, scale):
@@ -272,12 +273,15 @@ class TestCase(TestEnv.BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestNumbers")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('LONGINTCOL', cx_Oracle.NUMBER, 17, None, 16, 0, 0),
-                  ('NUMBERCOL', cx_Oracle.NUMBER, 13, None, 9, 2, 0),
-                  ('FLOATCOL', cx_Oracle.NUMBER, 127, None, 126, -127, 0),
-                  ('UNCONSTRAINEDCOL', cx_Oracle.NUMBER, 127, None, 0, -127, 0),
-                  ('NULLABLECOL', cx_Oracle.NUMBER, 39, None, 38, 0, 1) ])
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('LONGINTCOL', cx_Oracle.DB_TYPE_NUMBER, 17, None, 16, 0, 0),
+                  ('NUMBERCOL', cx_Oracle.DB_TYPE_NUMBER, 13, None, 9, 2, 0),
+                  ('FLOATCOL', cx_Oracle.DB_TYPE_NUMBER, 127, None, 126, -127,
+                        0),
+                  ('UNCONSTRAINEDCOL', cx_Oracle.DB_TYPE_NUMBER, 127, None, 0,
+                        -127, 0),
+                  ('NULLABLECOL', cx_Oracle.DB_TYPE_NUMBER, 39, None, 38, 0,
+                        1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"
@@ -369,23 +373,28 @@ class TestCase(TestEnv.BaseTestCase):
     def testStringFormat(self):
         "test that string format is returned properly"
         var = self.cursor.var(cx_Oracle.NUMBER)
-        self.assertEqual(str(var), "<cx_Oracle.NUMBER with value None>")
+        self.assertEqual(str(var),
+                "<cx_Oracle.Var of type DB_TYPE_NUMBER with value None>")
         var.setvalue(0, 4)
-        self.assertEqual(str(var), "<cx_Oracle.NUMBER with value 4.0>")
+        self.assertEqual(str(var),
+                "<cx_Oracle.Var of type DB_TYPE_NUMBER with value 4.0>")
 
     def testBindNativeFloat(self):
         "test that binding native float is possible"
-        self.cursor.setinputsizes(cx_Oracle.NATIVE_FLOAT)
+        self.cursor.setinputsizes(cx_Oracle.DB_TYPE_BINARY_DOUBLE)
         self.cursor.execute("select :1 from dual", (5,))
-        self.assertEqual(type(self.cursor.bindvars[0]), cx_Oracle.NATIVE_FLOAT)
+        self.assertEqual(self.cursor.bindvars[0].type,
+                cx_Oracle.DB_TYPE_BINARY_DOUBLE)
         value, = self.cursor.fetchone()
         self.assertEqual(value, 5)
         self.cursor.execute("select :1 from dual", (1.5,))
-        self.assertEqual(type(self.cursor.bindvars[0]), cx_Oracle.NATIVE_FLOAT)
+        self.assertEqual(self.cursor.bindvars[0].type,
+                cx_Oracle.DB_TYPE_BINARY_DOUBLE)
         value, = self.cursor.fetchone()
         self.assertEqual(value, 1.5)
         self.cursor.execute("select :1 from dual", (decimal.Decimal("NaN"),))
-        self.assertEqual(type(self.cursor.bindvars[0]), cx_Oracle.NATIVE_FLOAT)
+        self.assertEqual(self.cursor.bindvars[0].type,
+                cx_Oracle.DB_TYPE_BINARY_DOUBLE)
         value, = self.cursor.fetchone()
         self.assertEqual(str(value), str(float("NaN")))
 
@@ -399,4 +408,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

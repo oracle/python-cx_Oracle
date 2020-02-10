@@ -34,7 +34,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindInterval(self):
         "test binding in an interval"
-        self.cursor.setinputsizes(value = cx_Oracle.INTERVAL)
+        self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 select * from TestIntervals
                 where IntervalCol = :value""",
@@ -44,7 +44,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindNull(self):
         "test binding in a null"
-        self.cursor.setinputsizes(value = cx_Oracle.INTERVAL)
+        self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 select * from TestIntervals
                 where IntervalCol = :value""",
@@ -53,7 +53,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindOutSetInputSizes(self):
         "test binding out with set input sizes defined"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.INTERVAL)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 begin
                   :value := to_dsinterval('8 09:24:18.123789');
@@ -64,7 +64,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindInOutSetInputSizes(self):
         "test binding in/out with set input sizes defined"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.INTERVAL)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 begin
                   :value := :value + to_dsinterval('5 08:30:00');
@@ -75,7 +75,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindInOutFractionalSecond(self):
         "test binding in/out with set input sizes defined"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.INTERVAL)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 begin
                   :value := :value + to_dsinterval('5 08:30:00');
@@ -87,7 +87,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindOutVar(self):
         "test binding out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.INTERVAL)
+        var = self.cursor.var(cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 begin
                   :value := to_dsinterval('15 18:35:45.586');
@@ -99,7 +99,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindInOutVarDirectSet(self):
         "test binding in/out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.INTERVAL)
+        var = self.cursor.var(cx_Oracle.DB_TYPE_INTERVAL_DS)
         var.setvalue(0, datetime.timedelta(days = 1, minutes = 50))
         self.cursor.execute("""
                 begin
@@ -113,9 +113,11 @@ class TestCase(TestEnv.BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestIntervals")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('INTERVALCOL', cx_Oracle.INTERVAL, None, None, 2, 6, 0),
-                  ('NULLABLECOL', cx_Oracle.INTERVAL, None, None, 2, 6, 1) ])
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('INTERVALCOL', cx_Oracle.DB_TYPE_INTERVAL_DS, None, None, 2,
+                        6, 0),
+                  ('NULLABLECOL', cx_Oracle.DB_TYPE_INTERVAL_DS, None, None, 2,
+                        6, 1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"

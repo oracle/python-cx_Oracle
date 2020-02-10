@@ -15,7 +15,7 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of common variable functions.
+// forward declaration of functions
 //-----------------------------------------------------------------------------
 static void cxoVar_free(cxoVar*);
 static PyObject *cxoVar_repr(cxoVar*);
@@ -24,35 +24,36 @@ static PyObject *cxoVar_externalSetValue(cxoVar*, PyObject*);
 static PyObject *cxoVar_externalGetValue(cxoVar*, PyObject*, PyObject*);
 static PyObject *cxoVar_externalGetActualElements(cxoVar*, void*);
 static PyObject *cxoVar_externalGetValues(cxoVar*, void*);
+static PyObject *cxoVar_getType(cxoVar*, void*);
 
 
 //-----------------------------------------------------------------------------
-// declaration of members for variables
+// declaration of members
 //-----------------------------------------------------------------------------
-static PyMemberDef cxoVarMembers[] = {
+static PyMemberDef cxoMembers[] = {
     { "bufferSize", T_INT, offsetof(cxoVar, bufferSize), READONLY },
     { "inconverter", T_OBJECT, offsetof(cxoVar, inConverter), 0 },
     { "numElements", T_INT, offsetof(cxoVar, allocatedElements),
             READONLY },
     { "outconverter", T_OBJECT, offsetof(cxoVar, outConverter), 0 },
     { "size", T_INT, offsetof(cxoVar, size), READONLY },
-    { "type", T_OBJECT, offsetof(cxoVar, objectType), READONLY },
     { NULL }
 };
 
 
 //-----------------------------------------------------------------------------
-// declaration of calculated members for variables
+// declaration of calculated members
 //-----------------------------------------------------------------------------
-static PyGetSetDef cxoVarCalcMembers[] = {
+static PyGetSetDef cxoCalcMembers[] = {
     { "actualElements", (getter) cxoVar_externalGetActualElements, 0, 0, 0 },
+    { "type", (getter) cxoVar_getType, 0, 0, 0 },
     { "values", (getter) cxoVar_externalGetValues, 0, 0, 0 },
     { NULL }
 };
 
 
 //-----------------------------------------------------------------------------
-// declaration of methods for variables
+// declaration of methods
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoVarMethods[] = {
     { "copy", (PyCFunction) cxoVar_externalCopy, METH_VARARGS },
@@ -64,58 +65,35 @@ static PyMethodDef cxoVarMethods[] = {
 
 
 //-----------------------------------------------------------------------------
-// declaration of all variable types
+// declaration of Python type
 //-----------------------------------------------------------------------------
-#define DECLARE_VARIABLE_TYPE(INTERNAL_NAME, EXTERNAL_NAME) \
-    PyTypeObject INTERNAL_NAME = { \
-        PyVarObject_HEAD_INIT(NULL, 0) \
-        .tp_name = "cx_Oracle." #EXTERNAL_NAME, \
-        .tp_basicsize = sizeof(cxoVar), \
-        .tp_dealloc = (destructor) cxoVar_free, \
-        .tp_repr = (reprfunc) cxoVar_repr, \
-        .tp_flags = Py_TPFLAGS_DEFAULT, \
-        .tp_methods = cxoVarMethods, \
-        .tp_members = cxoVarMembers, \
-        .tp_getset = cxoVarCalcMembers \
-    };
-
-DECLARE_VARIABLE_TYPE(cxoPyTypeBfileVar, BFILE)
-DECLARE_VARIABLE_TYPE(cxoPyTypeBinaryVar, BINARY)
-DECLARE_VARIABLE_TYPE(cxoPyTypeBlobVar, BLOB)
-DECLARE_VARIABLE_TYPE(cxoPyTypeBooleanVar, BOOLEAN)
-DECLARE_VARIABLE_TYPE(cxoPyTypeClobVar, CLOB)
-DECLARE_VARIABLE_TYPE(cxoPyTypeCursorVar, CURSOR)
-DECLARE_VARIABLE_TYPE(cxoPyTypeDateTimeVar, DATETIME)
-DECLARE_VARIABLE_TYPE(cxoPyTypeFixedCharVar, FIXED_CHAR)
-DECLARE_VARIABLE_TYPE(cxoPyTypeFixedNcharVar, FIXED_NCHAR)
-DECLARE_VARIABLE_TYPE(cxoPyTypeIntervalVar, INTERVAL)
-DECLARE_VARIABLE_TYPE(cxoPyTypeLongBinaryVar, LONG_BINARY)
-DECLARE_VARIABLE_TYPE(cxoPyTypeLongStringVar, LONG_STRING)
-DECLARE_VARIABLE_TYPE(cxoPyTypeNativeFloatVar, NATIVE_FLOAT)
-DECLARE_VARIABLE_TYPE(cxoPyTypeNativeIntVar, NATIVE_INT)
-DECLARE_VARIABLE_TYPE(cxoPyTypeNcharVar, NCHAR)
-DECLARE_VARIABLE_TYPE(cxoPyTypeNclobVar, NCLOB)
-DECLARE_VARIABLE_TYPE(cxoPyTypeNumberVar, NUMBER)
-DECLARE_VARIABLE_TYPE(cxoPyTypeObjectVar, OBJECT)
-DECLARE_VARIABLE_TYPE(cxoPyTypeRowidVar, ROWID)
-DECLARE_VARIABLE_TYPE(cxoPyTypeStringVar, STRING)
-DECLARE_VARIABLE_TYPE(cxoPyTypeTimestampVar, TIMESTAMP)
+PyTypeObject cxoPyTypeVar = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.Var",
+    .tp_basicsize = sizeof(cxoVar),
+    .tp_dealloc = (destructor) cxoVar_free,
+    .tp_repr = (reprfunc) cxoVar_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoVarMethods,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers
+};
 
 
 //-----------------------------------------------------------------------------
 // cxoVar_new()
 //   Allocate a new variable.
 //-----------------------------------------------------------------------------
-cxoVar *cxoVar_new(cxoCursor *cursor, Py_ssize_t numElements, cxoVarType *type,
-        Py_ssize_t size, int isArray, cxoObjectType *objType)
+cxoVar *cxoVar_new(cxoCursor *cursor, Py_ssize_t numElements,
+        cxoTransformNum transformNum, Py_ssize_t size, int isArray,
+        cxoObjectType *objType)
 {
     dpiObjectType *typeHandle = NULL;
     dpiOracleTypeNum oracleTypeNum;
-    dpiNativeTypeNum nativeTypeNum;
     cxoVar *var;
 
     // attempt to allocate the object
-    var = (cxoVar*) type->pythonType->tp_alloc(type->pythonType, 0);
+    var = (cxoVar*) cxoPyTypeVar.tp_alloc(&cxoPyTypeVar, 0);
     if (!var)
         return NULL;
 
@@ -130,15 +108,25 @@ cxoVar *cxoVar_new(cxoCursor *cursor, Py_ssize_t numElements, cxoVarType *type,
     if (numElements == 0)
         numElements = 1;
     var->allocatedElements = (uint32_t) numElements;
-    var->type = type;
-    var->size = (size == 0) ? type->size : (uint32_t) size;
+    var->transformNum = transformNum;
+    var->size = (uint32_t) size;
+    if (var->size == 0)
+        var->size = cxoTransform_getDefaultSize(transformNum);
     var->isArray = isArray;
 
+    // determine database type
+    var->dbType = cxoDbType_fromTransformNum(var->transformNum);
+    if (!var->dbType) {
+        Py_DECREF(var);
+        return NULL;
+    }
+    Py_INCREF(var->dbType);
+
     // acquire and initialize DPI variable
-    cxoTransform_getTypeInfo(type->transformNum, &oracleTypeNum,
-            &nativeTypeNum);
+    cxoTransform_getTypeInfo(transformNum, &oracleTypeNum,
+            &var->nativeTypeNum);
     if (dpiConn_newVar(cursor->connection->handle, oracleTypeNum,
-            nativeTypeNum, var->allocatedElements, var->size, 0, isArray,
+            var->nativeTypeNum, var->allocatedElements, var->size, 0, isArray,
             typeHandle, &var->handle, &var->data) < 0) {
         cxoError_raiseAndReturnNull();
         Py_DECREF(var);
@@ -174,6 +162,7 @@ static void cxoVar_free(cxoVar *var)
     Py_CLEAR(var->inConverter);
     Py_CLEAR(var->outConverter);
     Py_CLEAR(var->objectType);
+    Py_CLEAR(var->dbType);
     Py_TYPE(var)->tp_free((PyObject*) var);
 }
 
@@ -184,29 +173,7 @@ static void cxoVar_free(cxoVar *var)
 //-----------------------------------------------------------------------------
 int cxoVar_check(PyObject *object)
 {
-    PyTypeObject *objectType = Py_TYPE(object);
-
-    return (objectType == &cxoPyTypeBfileVar ||
-            objectType == &cxoPyTypeBinaryVar ||
-            objectType == &cxoPyTypeBlobVar ||
-            objectType == &cxoPyTypeBooleanVar ||
-            objectType == &cxoPyTypeClobVar ||
-            objectType == &cxoPyTypeCursorVar ||
-            objectType == &cxoPyTypeDateTimeVar ||
-            objectType == &cxoPyTypeFixedCharVar ||
-            objectType == &cxoPyTypeFixedNcharVar ||
-            objectType == &cxoPyTypeIntervalVar ||
-            objectType == &cxoPyTypeLongBinaryVar ||
-            objectType == &cxoPyTypeLongStringVar ||
-            objectType == &cxoPyTypeNativeFloatVar ||
-            objectType == &cxoPyTypeNativeIntVar ||
-            objectType == &cxoPyTypeNcharVar ||
-            objectType == &cxoPyTypeNclobVar ||
-            objectType == &cxoPyTypeNumberVar ||
-            objectType == &cxoPyTypeObjectVar ||
-            objectType == &cxoPyTypeRowidVar ||
-            objectType == &cxoPyTypeStringVar ||
-            objectType == &cxoPyTypeTimestampVar);
+    return (Py_TYPE(object) == &cxoPyTypeVar);
 }
 
 
@@ -219,7 +186,7 @@ cxoVar *cxoVar_newByValue(cxoCursor *cursor, PyObject *value,
 {
     PyObject *result, *inputTypeHandler = NULL;
     cxoObjectType *objType = NULL;
-    cxoVarType *varType;
+    cxoTransformNum transformNum;
     Py_ssize_t size;
     cxoObject *obj;
     int isArray;
@@ -253,15 +220,15 @@ cxoVar *cxoVar_newByValue(cxoCursor *cursor, PyObject *value,
     }
 
     // default processing
-    varType = cxoVarType_fromPythonValue(value,
-            &isArray, &size, &numElements, cursor->stmtInfo.isPLSQL);
-    if (!varType)
+    if (cxoTransform_getNumFromValue(value, &isArray, &size, &numElements,
+            cursor->stmtInfo.isPLSQL, &transformNum) < 0)
         return NULL;
-    if (varType->transformNum == CXO_TRANSFORM_OBJECT) {
+    if (transformNum == CXO_TRANSFORM_OBJECT) {
         obj = (cxoObject*) value;
         objType = obj->objectType;
     }
-    return cxoVar_new(cursor, numElements, varType, size, isArray, objType);
+    return cxoVar_new(cursor, numElements, transformNum, size, isArray,
+            objType);
 }
 
 
@@ -273,8 +240,8 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
         PyObject *value)
 {
     PyObject *typeObj, *numElementsObj;
+    cxoTransformNum transformNum;
     cxoObjectType *objType;
-    cxoVarType *varType;
     uint32_t numElements;
     int ok;
 
@@ -282,9 +249,6 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
     ok = (PyList_GET_SIZE(value) == 2);
     if (ok) {
         typeObj = PyList_GET_ITEM(value, 0);
-        ok = PyType_Check(typeObj);
-    }
-    if (ok) {
         numElementsObj = PyList_GET_ITEM(value, 1);
         ok = PyLong_Check(numElementsObj);
     }
@@ -295,13 +259,12 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
     }
 
     // create variable
-    varType = cxoVarType_fromPythonType(typeObj, &objType);
-    if (!varType)
+    if (cxoTransform_getNumFromType(typeObj, &transformNum, &objType) < 0)
         return NULL;
     numElements = PyLong_AsLong(numElementsObj);
     if (PyErr_Occurred())
         return NULL;
-    return cxoVar_new(cursor, numElements, varType, varType->size, 1, objType);
+    return cxoVar_new(cursor, numElements, transformNum, 0, 1, objType);
 }
 
 
@@ -312,8 +275,8 @@ static cxoVar *cxoVar_newArrayByType(cxoCursor *cursor,
 cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
         uint32_t numElements)
 {
+    cxoTransformNum transformNum;
     cxoObjectType *objType;
-    cxoVarType *varType;
     long size;
 
     // passing an integer is assumed to be a string
@@ -321,9 +284,8 @@ cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
         size = PyLong_AsLong(value);
         if (PyErr_Occurred())
             return NULL;
-        varType = cxoVarType_fromPythonType((PyObject*) &PyUnicode_Type,
-                &objType);
-        return cxoVar_new(cursor, numElements, varType, size, 0, objType);
+        return cxoVar_new(cursor, numElements, CXO_TRANSFORM_STRING, size, 0,
+                NULL);
     }
 
     // passing an array of two elements to define an array
@@ -336,11 +298,11 @@ cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
         return (cxoVar*) value;
     }
 
-    // everything else ought to be a Python type or object type
-    varType = cxoVarType_fromPythonType(value, &objType);
-    if (!varType)
+    // everything else ought to be a Python type, database type constant or
+    // object type
+    if (cxoTransform_getNumFromType(value, &transformNum, &objType) < 0)
         return NULL;
-    return cxoVar_new(cursor, numElements, varType, varType->size, 0, objType);
+    return cxoVar_new(cursor, numElements, transformNum, 0, 0, objType);
 }
 
 
@@ -426,10 +388,10 @@ PyObject *cxoVar_getSingleValue(cxoVar *var, dpiData *data, uint32_t arrayPos)
     else data = &var->data[arrayPos];
     if (data->isNull)
         Py_RETURN_NONE;
-    value = cxoTransform_toPython(var->type->transformNum, var->connection,
+    value = cxoTransform_toPython(var->transformNum, var->connection,
             var->objectType, &data->value, var->encodingErrors);
     if (value) {
-        switch (var->type->transformNum) {
+        switch (var->transformNum) {
             case CXO_TRANSFORM_BFILE:
             case CXO_TRANSFORM_BLOB:
             case CXO_TRANSFORM_CLOB:
@@ -491,7 +453,7 @@ static int cxoVar_setValueBytes(cxoVar *var, uint32_t pos, dpiData *data,
     int status;
 
     if (buffer->size > var->bufferSize) {
-        cxoTransform_getTypeInfo(var->type->transformNum, &oracleTypeNum,
+        cxoTransform_getTypeInfo(var->transformNum, &oracleTypeNum,
                 &nativeTypeNum);
         if (dpiConn_newVar(var->connection->handle, oracleTypeNum,
                 nativeTypeNum, var->allocatedElements, buffer->size, 0,
@@ -605,18 +567,18 @@ static int cxoVar_setSingleValue(cxoVar *var, uint32_t arrayPos,
     data = &var->data[arrayPos];
     data->isNull = (value == Py_None);
     if (!data->isNull) {
-        if (var->type->transformNum == CXO_TRANSFORM_CURSOR)
+        if (var->transformNum == CXO_TRANSFORM_CURSOR)
             result = cxoVar_setValueCursor(var, arrayPos, data, value);
         else {
             cxoBuffer_init(&buffer);
-            if (var->type->size > 0)
+            if (var->nativeTypeNum == DPI_NATIVE_TYPE_BYTES)
                 dbValue = &tempDbValue;
             else dbValue = &data->value;
-            result = cxoTransform_fromPython(var->type->transformNum,
+            result = cxoTransform_fromPython(var->transformNum,
                     &nativeTypeNum, value, dbValue, &buffer,
                     var->connection->encodingInfo.encoding,
                     var->connection->encodingInfo.nencoding, var, arrayPos);
-            if (result == 0 && var->type->size > 0)
+            if (result == 0 && var->nativeTypeNum == DPI_NATIVE_TYPE_BYTES)
                 result = cxoVar_setValueBytes(var, arrayPos, data, &buffer);
             cxoBuffer_clear(&buffer);
         }
@@ -763,12 +725,29 @@ static PyObject *cxoVar_externalGetValues(cxoVar *var, void *unused)
 
 
 //-----------------------------------------------------------------------------
+// cxoVar_getType()
+//   Return the type associated with the variable. This is either an object
+// type or one of the database type constants.
+//-----------------------------------------------------------------------------
+static PyObject *cxoVar_getType(cxoVar *var, void *unused)
+{
+    if (var->objectType) {
+        Py_INCREF(var->objectType);
+        return (PyObject*) var->objectType;
+    }
+
+    Py_INCREF(var->dbType);
+    return (PyObject*) var->dbType;
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoVar_repr()
 //   Return a string representation of the variable.
 //-----------------------------------------------------------------------------
 static PyObject *cxoVar_repr(cxoVar *var)
 {
-    PyObject *value, *module, *name, *result;
+    PyObject *value, *module, *name, *result, *typeName;
     uint32_t numElements;
 
     if (var->isArray) {
@@ -780,14 +759,22 @@ static PyObject *cxoVar_repr(cxoVar *var)
     else value = cxoVar_getArrayValue(var, var->allocatedElements, NULL);
     if (!value)
         return NULL;
-    if (cxoUtils_getModuleAndName(Py_TYPE(var), &module, &name) < 0) {
+    typeName = PyUnicode_DecodeASCII(var->dbType->name,
+            strlen(var->dbType->name), NULL);
+    if (!typeName) {
         Py_DECREF(value);
         return NULL;
     }
-    result = cxoUtils_formatString("<%s.%s with value %r>",
-            PyTuple_Pack(3, module, name, value));
+    if (cxoUtils_getModuleAndName(Py_TYPE(var), &module, &name) < 0) {
+        Py_DECREF(typeName);
+        Py_DECREF(value);
+        return NULL;
+    }
+    result = cxoUtils_formatString("<%s.%s of type %s with value %r>",
+            PyTuple_Pack(4, module, name, typeName, value));
     Py_DECREF(module);
     Py_DECREF(name);
     Py_DECREF(value);
+    Py_DECREF(typeName);
     return result;
 }

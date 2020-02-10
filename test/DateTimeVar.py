@@ -215,9 +215,9 @@ class TestCase(TestEnv.BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestDates")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('DATECOL', cx_Oracle.DATETIME, 23, None, None, None, 0),
-                  ('NULLABLECOL', cx_Oracle.DATETIME, 23, None, None, None,
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('DATECOL', cx_Oracle.DB_TYPE_DATE, 23, None, None, None, 0),
+                  ('NULLABLECOL', cx_Oracle.DB_TYPE_DATE, 23, None, None, None,
                         1) ])
 
     def testFetchAll(self):

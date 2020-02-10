@@ -972,210 +972,369 @@ or more of these values can be OR'ed together.
 
 .. _types:
 
-Types
-=====
+DB API Types
+------------
 
 .. data:: BINARY
 
     This type object is used to describe columns in a database that contain
-    binary data. In Oracle this is RAW columns.
-
-
-.. data:: BFILE
-
-    This type object is used to describe columns in a database that are BFILEs.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: BLOB
-
-    This type object is used to describe columns in a database that are BLOBs.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: BOOLEAN
-
-    This type object is used to represent PL/SQL booleans.
-
-    .. versionadded:: 5.2.1
-
-    .. note::
-
-        This type is an extension to the DB API definition. It is only
-        available in Oracle 12.1 and higher and only within PL/SQL. It cannot
-        be used in columns.
-
-
-.. data:: CLOB
-
-    This type object is used to describe columns in a database that are CLOBs.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: CURSOR
-
-    This type object is used to describe columns in a database that are cursors
-    (in PL/SQL these are known as ref cursors).
-
-    .. note::
-
-        This type is an extension to the DB API definition.
+    binary data. The database types :data:`DB_TYPE_RAW`,
+    :data:`DB_TYPE_LONG_RAW`, :data:`DB_TYPE_BLOB` and :data:`DB_TYPE_BFILE`.
+    will all compare equal to this value. If a variable is created with this
+    type, the database type :data:`DB_TYPE_RAW` will be used.
 
 
 .. data:: DATETIME
 
     This type object is used to describe columns in a database that are dates.
-
-
-.. data:: FIXED_CHAR
-
-    This type object is used to describe columns in a database that are fixed
-    length strings (in Oracle these is CHAR columns); these behave differently
-    in Oracle than varchar2 so they are differentiated here even though the DB
-    API does not differentiate them.
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
-
-
-.. data:: FIXED_NCHAR
-
-    This type object is used to describe columns in a database that are NCHAR
-    columns in Oracle; these behave differently in Oracle than nvarchar2 so
-    they are differentiated here even though the DB API does not differentiate
-    them.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: INTERVAL
-
-    This type object is used to describe columns in a database that are of type
-    interval day to second.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: LOB
-
-    This type object is the Python type of :data:`BLOB` and :data:`CLOB` data
-    that is returned from cursors.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: LONG_BINARY
-
-    This type object is used to describe columns in a database that are long
-    binary (in Oracle these are LONG RAW columns).
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: LONG_STRING
-
-    This type object is used to describe columns in a database that are long
-    strings (in Oracle these are LONG columns).
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: NATIVE_FLOAT
-
-    This type object is used to describe columns in a database that are of type
-    binary_double or binary_float.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: NATIVE_INT
-
-    This type object is used to bind integers using Oracle's native integer
-    support, rather than the standard number support.
-
-    .. versionadded:: 5.3
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: NCHAR
-
-    This type object is used to describe national character strings (NVARCHAR2)
-    in Oracle.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
-
-
-.. data:: NCLOB
-
-    This type object is used to describe columns in a database that are NCLOBs.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
+    The database types :data:`DB_TYPE_DATE`, :data:`DB_TYPE_TIMESTAMP`,
+    :data:`DB_TYPE_TIMESTAMP_LTZ` and :data:`DB_TYPE_TIMESTAMP_TZ` will all
+    compare equal to this value. If a variable is created with this
+    type, the database type :data:`DB_TYPE_DATE` will be used.
 
 
 .. data:: NUMBER
 
     This type object is used to describe columns in a database that are
-    numbers.
-
-
-.. data:: OBJECT
-
-    This type object is used to describe columns in a database that are
-    objects.
-
-    .. note::
-
-        This type is an extension to the DB API definition.
+    numbers. The database types :data:`DB_TYPE_BINARY_DOUBLE`,
+    :data:`DB_TYPE_BINARY_FLOAT`, :data:`DB_TYPE_BINARY_INTEGER` and
+    :data:`DB_TYPE_NUMBER` will all compare equal to this value. If a variable
+    is created with this type, the database type :data:`DB_TYPE_NUMBER` will be
+    used.
 
 
 .. data:: ROWID
 
-    This type object is used to describe the pseudo column "rowid".
+    This type object is used to describe the pseudo column "rowid". The
+    database type :data:`DB_TYPE_ROWID` will compare equal to this value. If a
+    variable is created with this type, the database type
+    :data:`DB_TYPE_VARCHAR` will be used.
 
 
 .. data:: STRING
 
-    This type object is used to describe columns in a database that are strings
-    (in Oracle this is VARCHAR2 columns).
+    This type object is used to describe columns in a database that are
+    strings. The database types :data:`DB_TYPE_CHAR`, :data:`DB_TYPE_CLOB`,
+    :data:`DB_TYPE_LONG`, :data:`DB_TYPE_NCHAR`, :data:`DB_TYPE_NCLOB`,
+    :data:`DB_TYPE_NVARCHAR` and :data:`DB_TYPE_VARCHAR` will all compare equal
+    to this value. If a variable is created with this type, the database type
+    :data:`DB_TYPE_VARCHAR` will be used.
+
+
+.. _dbtypes:
+
+Database Types
+--------------
+
+All of these types are extensions to the DB API definition. They are found in
+query and object metadata. They can also be used to specify the database type
+when binding data.
+
+.. data:: DB_TYPE_BFILE
+
+    Describes columns, attributes or array elements in a database that are of
+    type BFILE. It will compare equal to the DB API type :data:`BINARY`.
+
+
+.. data:: DB_TYPE_BINARY_DOUBLE
+
+    Describes columns, attributes or array elements in a database that are of
+    type BINARY_DOUBLE. It will compare equal to the DB API type
+    :data:`NUMBER`.
+
+
+.. data:: DB_TYPE_BINARY_FLOAT
+
+    Describes columns, attributes or array elements in a database that are
+    of type BINARY_FLOAT. It will compare equal to the DB API type
+    :data:`NUMBER`.
+
+
+.. data:: DB_TYPE_BINARY_INTEGER
+
+    Describes attributes or array elements in a database that are of type
+    BINARY_INTEGER. It will compare equal to the DB API type :data:`NUMBER`.
+
+
+.. data:: DB_TYPE_BLOB
+
+    Describes columns, attributes or array elements in a database that are of
+    type BLOB. It will compare equal to the DB API type :data:`BINARY`.
+
+
+.. data:: DB_TYPE_BOOLEAN
+
+    Describes attributes or array elements in a database that are of type
+    BOOLEAN. It is only available in Oracle 12.1 and higher and only within
+    PL/SQL.
+
+
+.. data:: DB_TYPE_CHAR
+
+    Describes columns, attributes or array elements in a database that are of
+    type CHAR. It will compare equal to the DB API type :data:`STRING`.
+
+    Note that these are fixed length string values and behave differently from
+    VARCHAR2.
+
+
+.. data:: DB_TYPE_CLOB
+
+    Describes columns, attributes or array elements in a database that are of
+    type CLOB. It will compare equal to the DB API type :data:`STRING`.
+
+
+.. data:: DB_TYPE_CURSOR
+
+    Describes columns in a database that are of type CURSOR. In PL/SQL these
+    are knoown as REF CURSOR.
+
+
+.. data:: DB_TYPE_DATE
+
+    Describes columns, attributes or array elements in a database that are of
+    type DATE. It will compare equal to the DB API type :data:`DATETIME`.
+
+
+.. data:: DB_TYPE_INTERVAL_DS
+
+    Describes columns, attributes or array elements in a database that are of
+    type INTERVAL DAY TO SECOND.
+
+
+.. data:: DB_TYPE_INTERVAL_YM
+
+    Describes columns, attributes or array elements in a database that are of
+    type INTERVAL YEAR TO MONTH. This database type is not currently supported
+    by cx_Oracle.
+
+
+.. data:: DB_TYPE_LONG
+
+    Describes columns, attributes or array elements in a database that are of
+    type LONG. It will compare equal to the DB API type :data:`STRING`.
+
+
+.. data:: DB_TYPE_LONG_RAW
+
+    Describes columns, attributes or array elements in a database that are of
+    type LONG RAW. It will compare equal to the DB API type :data:`BINARY`.
+
+
+.. data:: DB_TYPE_NCHAR
+
+    Describes columns, attributes or array elements in a database that are of
+    type NCHAR. It will compare equal to the DB API type :data:`STRING`.
+
+    Note that these are fixed length string values and behave differently from
+    NVARCHAR2.
+
+
+.. data:: DB_TYPE_NCLOB
+
+    Describes columns, attributes or array elements in a database that are of
+    type NCLOB. It will compare equal to the DB API type :data:`STRING`.
+
+
+.. data:: DB_TYPE_NUMBER
+
+    Describes columns, attributes or array elements in a database that are of
+    type NUMBER. It will compare equal to the DB API type :data:`NUMBER`.
+
+
+.. data:: DB_TYPE_NVARCHAR
+
+    Describes columns, attributes or array elements in a database that are of
+    type NVARCHAR2. It will compare equal to the DB API type :data:`STRING`.
+
+
+.. data:: DB_TYPE_OBJECT
+
+    Describes columns, attributes or array elements in a database that are an
+    instance of a named SQL or PL/SQL type.
+
+
+.. data:: DB_TYPE_RAW
+
+    Describes columns, attributes or array elements in a database that are of
+    type RAW. It will compare equal to the DB API type :data:`BINARY`.
+
+
+.. data:: DB_TYPE_ROWID
+
+    Describes columns, attributes or array elements in a database that are of
+    type ROWID or UROWID. It will compare equal to the DB API type
+    :data:`ROWID`.
+
+
+.. data:: DB_TYPE_TIMESTAMP
+
+    Describes columns, attributes or array elements in a database that are of
+    type TIMESTAMP. It will compare equal to the DB API type :data:`DATETIME`.
+
+
+.. data:: DB_TYPE_TIMESTAMP_LTZ
+
+    Describes columns, attributes or array elements in a database that are of
+    type TIMESTAMP WITH LOCAL TIME ZONE. It will compare equal to the DB API
+    type :data:`DATETIME`.
+
+
+.. data:: DB_TYPE_TIMESTAMP_TZ
+
+    Describes columns, attributes or array elements in a database that are of
+    type TIMESTAMP WITH TIME ZONE. It will compare equal to the DB API type
+    :data:`DATETIME`.
+
+
+.. data:: DB_TYPE_VARCHAR
+
+    Describes columns, attributes or array elements in a database that are of
+    type VARCHAR2. It will compare equal to the DB API type :data:`STRING`.
+
+
+.. _dbtypesynonyms:
+
+Database Type Synonyms
+----------------------
+
+All of the following constants are deprecated and will be removed in a future
+version of cx_Oracle.
+
+.. data:: BFILE
+
+    A synonym for :data:`DB_TYPE_BFILE`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: BLOB
+
+    A synonym for :data:`DB_TYPE_BLOB`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: BOOLEAN
+
+    A synonym for :data:`DB_TYPE_BOOLEAN`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: CLOB
+
+    A synonym for :data:`DB_TYPE_CLOB`.
+
+    .. deprecated:: 8.0
+
+.. data:: CURSOR
+
+    A synonym for :data:`DB_TYPE_CURSOR`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: FIXED_CHAR
+
+    A synonym for :data:`DB_TYPE_CHAR`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: FIXED_NCHAR
+
+    A synonym for :data:`DB_TYPE_NCHAR`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: INTERVAL
+
+    A synonym for :data:`DB_TYPE_INTERVAL_DS`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: LONG_BINARY
+
+    A synonym for :data:`DB_TYPE_LONG_RAW`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: LONG_STRING
+
+    A synonym for :data:`DB_TYPE_LONG`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: NATIVE_FLOAT
+
+    A synonym for :data:`DB_TYPE_BINARY_DOUBLE`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: NATIVE_INT
+
+    A synonym for :data:`DB_TYPE_BINARY_INTEGER`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: NCHAR
+
+    A synonym for :data:`DB_TYPE_NVARCHAR`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: NCLOB
+
+    A synonym for :data:`DB_TYPE_NCLOB`.
+
+    .. deprecated:: 8.0
+
+
+.. data:: OBJECT
+
+    A synonym for :data:`DB_TYPE_OBJECT`.
+
+    .. deprecated:: 8.0
 
 
 .. data:: TIMESTAMP
 
-    This type object is used to describe columns in a database that are
-    timestamps.
+    A synonym for :data:`DB_TYPE_TIMESTAMP`.
 
-    .. note::
+    .. deprecated:: 8.0
 
-        This attribute is an extension to the DB API definition.
+
+Other Types
+-----------
+
+All of these types are extensions to the DB API definition.
+
+.. data:: ApiType
+
+    This type object is the Python type of the database API type constants
+    :data:`BINARY`, :data:`DATETIME`, :data:`NUMBER`, :data:`ROWID` and
+    :data:`STRING`.
+
+
+.. data:: DbType
+
+    This type object is the Python type of the
+    :ref:`database type constants <dbtypes>`.
+
+
+.. data:: LOB
+
+    This type object is the Python type of :data:`DB_TYPE_BLOB`,
+    :data:`DB_TYPE_BFILE`, :data:`DB_TYPE_CLOB` and :data:`DB_TYPE_NCLOB` data
+    that is returned from cursors.
 
 
 .. _exceptions:

@@ -59,7 +59,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testLongs(self):
         "test binding and fetching long data"
-        self.__PerformTest("Long", cx_Oracle.LONG_STRING)
+        self.__PerformTest("Long", cx_Oracle.DB_TYPE_LONG)
 
     def testLongWithExecuteMany(self):
         "test binding long data with executemany()"
@@ -77,23 +77,23 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testLongRaws(self):
         "test binding and fetching long raw data"
-        self.__PerformTest("LongRaw", cx_Oracle.LONG_BINARY)
+        self.__PerformTest("LongRaw", cx_Oracle.DB_TYPE_LONG_RAW)
 
     def testLongCursorDescription(self):
         "test cursor description is accurate for longs"
         self.cursor.execute("select * from TestLongs")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('LONGCOL', cx_Oracle.LONG_STRING, None, None, None, None,
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('LONGCOL', cx_Oracle.DB_TYPE_LONG, None, None, None, None,
                         0) ])
 
     def testLongRawCursorDescription(self):
         "test cursor description is accurate for long raws"
         self.cursor.execute("select * from TestLongRaws")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('LONGRAWCOL', cx_Oracle.LONG_BINARY, None, None, None, None,
-                        0) ])
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('LONGRAWCOL', cx_Oracle.DB_TYPE_LONG_RAW, None, None, None,
+                        None, 0) ])
 
     def testArraySizeTooLarge(self):
         "test array size too large generates an exception"

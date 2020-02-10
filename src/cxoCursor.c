@@ -329,10 +329,12 @@ static int cxoCursor_fetchRow(cxoCursor *cursor, int *found,
 static int cxoCursor_performDefine(cxoCursor *cursor, uint32_t numQueryColumns)
 {
     PyObject *outputTypeHandler, *result;
+    cxoTransformNum transformNum;
     cxoObjectType *objectType;
-    cxoVarType *varType;
     dpiQueryInfo queryInfo;
     uint32_t pos, size;
+    cxoDbType *dbType;
+    char message[120];
     cxoVar *var;
 
     // initialize fetching variables; these are used to reduce the number of
@@ -372,9 +374,17 @@ static int cxoCursor_performDefine(cxoCursor *cursor, uint32_t numQueryColumns)
                 return -1;
         }
 
-        // determine the default type 
-        varType = cxoVarType_fromDataTypeInfo(&queryInfo.typeInfo);
-        if (!varType)
+        // determine the default types to use
+        transformNum =
+                cxoTransform_getNumFromDataTypeInfo(&queryInfo.typeInfo);
+        if (transformNum == CXO_TRANSFORM_UNSUPPORTED) {
+            snprintf(message, sizeof(message), "Oracle type %d not supported.",
+                    queryInfo.typeInfo.oracleTypeNum);
+            cxoError_raiseFromString(cxoNotSupportedErrorException, message);
+            return -1;
+        }
+        dbType = cxoDbType_fromTransformNum(transformNum);
+        if (!dbType)
             return -1;
 
         // see if an output type handler should be used
@@ -390,7 +400,7 @@ static int cxoCursor_performDefine(cxoCursor *cursor, uint32_t numQueryColumns)
         if (outputTypeHandler) {
             result = PyObject_CallFunction(outputTypeHandler, "Os#Oiii",
                     cursor, queryInfo.name, (Py_ssize_t) queryInfo.nameLength,
-                    varType->pythonType, size, queryInfo.typeInfo.precision,
+                    dbType, size, queryInfo.typeInfo.precision,
                     queryInfo.typeInfo.scale);
             if (!result) {
                 Py_XDECREF(objectType);
@@ -418,8 +428,8 @@ static int cxoCursor_performDefine(cxoCursor *cursor, uint32_t numQueryColumns)
 
         // if no variable created yet, use the database metadata
         if (!var) {
-            var = cxoVar_new(cursor, cursor->fetchArraySize, varType, size, 0,
-                    objectType);
+            var = cxoVar_new(cursor, cursor->fetchArraySize, transformNum,
+                    size, 0, objectType);
             if (!var) {
                 Py_XDECREF(objectType);
                 return -1;
@@ -444,16 +454,16 @@ static int cxoCursor_performDefine(cxoCursor *cursor, uint32_t numQueryColumns)
 //-----------------------------------------------------------------------------
 static PyObject *cxoCursor_itemDescription(cxoCursor *cursor, uint32_t pos)
 {
-    cxoVarType *varType;
     int displaySize, index;
     dpiQueryInfo queryInfo;
     PyObject *tuple, *temp;
+    cxoDbType *dbType;
 
     // get information about the column position
     if (dpiStmt_getQueryInfo(cursor->handle, pos, &queryInfo) < 0)
         return NULL;
-    varType = cxoVarType_fromDataTypeInfo(&queryInfo.typeInfo);
-    if (!varType)
+    dbType = cxoDbType_fromDataTypeInfo(&queryInfo.typeInfo);
+    if (!dbType)
         return NULL;
 
     // set display size based on data type
@@ -496,8 +506,8 @@ static PyObject *cxoCursor_itemDescription(cxoCursor *cursor, uint32_t pos)
     PyTuple_SET_ITEM(tuple, 0, PyUnicode_Decode(queryInfo.name,
             queryInfo.nameLength, cursor->connection->encodingInfo.encoding,
             NULL));
-    Py_INCREF(varType->pythonType);
-    PyTuple_SET_ITEM(tuple, 1, (PyObject*) varType->pythonType);
+    Py_INCREF(dbType);
+    PyTuple_SET_ITEM(tuple, 1, (PyObject*) dbType);
     if (displaySize)
         PyTuple_SET_ITEM(tuple, 2, PyLong_FromLong(displaySize));
     else {
@@ -673,7 +683,7 @@ static int cxoCursor_setBindVariableHelper(cxoCursor *cursor,
             // can happen if all of the values in a previous invocation of
             // executemany() were None) and there is now a value; in this case,
             // discard the original variable and have a new one created
-            if (origVar->type->transformNum == CXO_TRANSFORM_NONE &&
+            if (origVar->transformNum == CXO_TRANSFORM_NONE &&
                     value != Py_None) {
                 origVar = NULL;
                 varToSet = NULL;
@@ -682,8 +692,9 @@ static int cxoCursor_setBindVariableHelper(cxoCursor *cursor,
             // variable this is only necessary for executemany() since
             // execute() always passes a value of 1 for the number of elements
             } else if (numElements > origVar->allocatedElements) {
-                *newVar = cxoVar_new(cursor, numElements, origVar->type,
-                        origVar->size, origVar->isArray, origVar->objectType);
+                *newVar = cxoVar_new(cursor, numElements,
+                        origVar->transformNum, origVar->size, origVar->isArray,
+                        origVar->objectType);
                 if (!*newVar)
                     return -1;
                 varToSet = *newVar;
@@ -1826,9 +1837,9 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
             "inconverter", "outconverter", "typename", "encodingErrors",
             NULL };
     PyObject *inConverter, *outConverter, *typeNameObj;
+    cxoTransformNum transformNum;
     const char *encodingErrors;
     cxoObjectType *objType;
-    cxoVarType *varType;
     int size, arraySize;
     PyObject *type;
     cxoVar *var;
@@ -1844,12 +1855,9 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
         return NULL;
 
     // determine the type of variable
-    varType = cxoVarType_fromPythonType(type, &objType);
-    if (!varType)
+    if (cxoTransform_getNumFromType(type, &transformNum, &objType) < 0)
         return NULL;
     Py_XINCREF(objType);
-    if (size == 0)
-        size = varType->size;
     if (typeNameObj && typeNameObj != Py_None && !objType) {
         objType = cxoObjectType_newByName(cursor->connection, typeNameObj);
         if (!objType)
@@ -1857,7 +1865,7 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
     }
 
     // create the variable
-    var = cxoVar_new(cursor, arraySize, varType, size, 0, objType);
+    var = cxoVar_new(cursor, arraySize, transformNum, size, 0, objType);
     Py_XDECREF(objType);
     if (!var)
         return NULL;
@@ -1886,23 +1894,20 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
 //-----------------------------------------------------------------------------
 static PyObject *cxoCursor_arrayVar(cxoCursor *cursor, PyObject *args)
 {
+    cxoTransformNum transformNum;
     uint32_t size, numElements;
     PyObject *type, *value;
     cxoObjectType *objType;
-    cxoVarType *varType;
     cxoVar *var;
 
     // parse arguments
     size = 0;
-    if (!PyArg_ParseTuple(args, "O!O|i", &PyType_Type, &type, &value, &size))
+    if (!PyArg_ParseTuple(args, "OO|i", &type, &value, &size))
         return NULL;
 
-    // determine the type of variable
-    varType = cxoVarType_fromPythonType(type, &objType);
-    if (!varType)
+    // determine the transform to use for the variable
+    if (cxoTransform_getNumFromType(type, &transformNum, &objType) < 0)
         return NULL;
-    if (size == 0)
-        size = varType->size;
 
     // determine the number of elements to create
     if (PyList_Check(value))
@@ -1918,7 +1923,7 @@ static PyObject *cxoCursor_arrayVar(cxoCursor *cursor, PyObject *args)
     }
 
     // create the variable
-    var = cxoVar_new(cursor, numElements, varType, size, 1, objType);
+    var = cxoVar_new(cursor, numElements, transformNum, size, 1, objType);
     if (!var)
         return NULL;
 

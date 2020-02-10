@@ -225,8 +225,8 @@ can be obtained using :attr:`Cursor.description`:
 
 This could result in metadata like::
 
-    ('ID', <class 'cx_Oracle.NUMBER'>, 39, None, 38, 0, 0)
-    ('NAME', <class 'cx_Oracle.STRING'>, 20, 20, None, None, 1)
+    ('ID', <class 'cx_Oracle.DB_TYPE_NUMBER'>, 39, None, 38, 0, 0)
+    ('NAME', <class 'cx_Oracle.DB_TYPE_VARCHAR'>, 20, 20, None, None, 1)
 
 
 .. _defaultfetchtypes:
@@ -236,8 +236,8 @@ Fetch Data Types
 
 The following table provides a list of all of the data types that cx_Oracle
 knows how to fetch. The middle column gives the type that is returned in the
-:ref:`query metadata <querymetadata>`.  The last column gives the type of Python
-object that is returned by default. Python types can be changed with
+:ref:`query metadata <querymetadata>`.  The last column gives the type of
+Python object that is returned by default. Python types can be changed with
 :ref:`Output Type Handlers <outputtypehandlers>`.
 
 .. list-table::
@@ -246,91 +246,87 @@ object that is returned by default. Python types can be changed with
     :align: left
 
     * - Oracle Database Type
-      - cx_Oracle Type
+      - cx_Oracle Database Type
       - Default Python type
     * - BFILE
-      - :attr:`cx_Oracle.BFILE`
+      - :attr:`cx_Oracle.DB_TYPE_BFILE`
       - :ref:`cx_Oracle.LOB <lobobj>`
     * - BINARY_DOUBLE
-      - :attr:`cx_Oracle.NATIVE_FLOAT`
+      - :attr:`cx_Oracle.DB_TYPE_BINARY_DOUBLE`
       - float
     * - BINARY_FLOAT
-      - :attr:`cx_Oracle.NATIVE_FLOAT`
+      - :attr:`cx_Oracle.DB_TYPE_BINARY_FLOAT`
       - float
     * - BLOB
-      - :attr:`cx_Oracle.BLOB`
+      - :attr:`cx_Oracle.DB_TYPE_BLOB`
       - :ref:`cx_Oracle.LOB <lobobj>`
     * - CHAR
-      - :attr:`cx_Oracle.FIXED_CHAR`
+      - :attr:`cx_Oracle.DB_TYPE_CHAR`
       - str
     * - CLOB
-      - :attr:`cx_Oracle.CLOB`
+      - :attr:`cx_Oracle.DB_TYPE_CLOB`
       - :ref:`cx_Oracle.LOB <lobobj>`
     * - CURSOR
-      - :attr:`cx_Oracle.CURSOR`
+      - :attr:`cx_Oracle.DB_TYPE_CURSOR`
       - :ref:`cx_Oracle.Cursor <cursorobj>`
     * - DATE
-      - :attr:`cx_Oracle.DATETIME`
+      - :attr:`cx_Oracle.DB_TYPE_DATE`
       - datetime.datetime
     * - INTERVAL DAY TO SECOND
-      - :attr:`cx_Oracle.INTERVAL`
+      - :attr:`cx_Oracle.DB_TYPE_INTERVAL_DS`
       - datetime.timedelta
     * - LONG
-      - :attr:`cx_Oracle.LONG_STRING`
+      - :attr:`cx_Oracle.DB_TYPE_LONG`
       - str
     * - LONG RAW
-      - :attr:`cx_Oracle.LONG_BINARY`
-      - bytes [4]_
+      - :attr:`cx_Oracle.DB_TYPE_LONG_RAW`
+      - bytes
     * - NCHAR
-      - :attr:`cx_Oracle.FIXED_NCHAR`
-      - str [1]_
+      - :attr:`cx_Oracle.DB_TYPE_NCHAR`
+      - str
     * - NCLOB
-      - :attr:`cx_Oracle.NCLOB`
+      - :attr:`cx_Oracle.DB_TYPE_NCLOB`
       - :ref:`cx_Oracle.LOB <lobobj>`
     * - NUMBER
-      - :attr:`cx_Oracle.NUMBER`
-      - float or int [2]_
+      - :attr:`cx_Oracle.DB_TYPE_NUMBER`
+      - float or int [1]_
     * - NVARCHAR2
-      - :attr:`cx_Oracle.NCHAR`
-      - str [1]_
-    * - OBJECT [5]_
-      - :attr:`cx_Oracle.OBJECT`
+      - :attr:`cx_Oracle.DB_TYPE_NVARCHAR`
+      - str
+    * - OBJECT [3]_
+      - :attr:`cx_Oracle.DB_TYPE_OBJECT`
       - :ref:`cx_Oracle.Object <objecttype>`
     * - RAW
-      - :attr:`cx_Oracle.BINARY`
-      - bytes [4]_
+      - :attr:`cx_Oracle.DB_TYPE_RAW`
+      - bytes
     * - ROWID
-      - :attr:`cx_Oracle.ROWID`
+      - :attr:`cx_Oracle.DB_TYPE_ROWID`
       - str
     * - TIMESTAMP
-      - :attr:`cx_Oracle.TIMESTAMP`
+      - :attr:`cx_Oracle.DB_TYPE_TIMESTAMP`
       - datetime.datetime
     * - TIMESTAMP WITH LOCAL TIME ZONE
-      - :attr:`cx_Oracle.TIMESTAMP`
-      - datetime.datetime [3]_
+      - :attr:`cx_Oracle.DB_TYPE_TIMESTAMP_LTZ`
+      - datetime.datetime [2]_
     * - TIMESTAMP WITH TIME ZONE
-      - :attr:`cx_Oracle.TIMESTAMP`
-      - datetime.datetime [3]_
+      - :attr:`cx_Oracle.DB_TYPE_TIMESTAMP_TZ`
+      - datetime.datetime [2]_
     * - UROWID
-      - :attr:`cx_Oracle.ROWID`
+      - :attr:`cx_Oracle.DB_TYPE_ROWID`
       - str
     * - VARCHAR2
-      - :attr:`cx_Oracle.STRING`
+      - :attr:`cx_Oracle.DB_TYPE_VARCHAR`
       - str
 
-.. [1] In Python 2 these are fetched as unicode objects.
-.. [2] If the precision and scale obtained from query column metadata indicate
+.. [1] If the precision and scale obtained from query column metadata indicate
        that the value can be expressed as an integer, the value will be
        returned as an int. If the column is unconstrained (no precision and
        scale specified), the value will be returned as a float or an int
        depending on whether the value itself is an integer. In all other cases
-       the value is returned as a float. Note that in Python 2, values returned
-       as integers will be int or long depending on the size of the integer.
-.. [3] The timestamps returned are naive timestamps without any time zone
+       the value is returned as a float.
+.. [2] The timestamps returned are naive timestamps without any time zone
        information present.
-.. [4] In Python 2 these are identical to str objects since Python 2 doesn't
-       have a native bytes object.
-.. [5] These include all user-defined types such as VARRAY, NESTED TABLE, etc.
+.. [3] These include all user-defined types such as VARRAY, NESTED TABLE, etc.
 
 
 .. _outputtypehandlers:
@@ -399,7 +395,7 @@ Using Python decimal objects, however, there is no loss of precision:
     import decimal
 
     def NumberToDecimal(cursor, name, defaultType, size, precision, scale):
-        if defaultType == cx_Oracle.NUMBER:
+        if defaultType == cx_Oracle.DB_TYPE_NUMBER:
             return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
     cur = connection.cursor()
@@ -432,7 +428,7 @@ For example, to make queries return empty strings instead of NULLs:
         return value
 
     def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
-        if defaultType in (cx_Oracle.STRING, cx_Oracle.FIXED_CHAR):
+        if defaultType in (cx_Oracle.DB_TYPE_VARCHAR, cx_Oracle.DB_TYPE_CHAR):
             return cursor.var(str, size, cur.arraysize, outconverter=OutConverter)
 
     connection.outputtypehandler = OutputTypeHandler

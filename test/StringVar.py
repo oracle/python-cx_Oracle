@@ -272,7 +272,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindLongString(self):
         "test that binding a long string succeeds"
-        self.cursor.setinputsizes(bigString = cx_Oracle.LONG_STRING)
+        self.cursor.setinputsizes(bigString = cx_Oracle.DB_TYPE_LONG)
         self.cursor.execute("""
                 declare
                   t_Temp varchar2(20000);
@@ -295,15 +295,15 @@ class TestCase(TestEnv.BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestStrings")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('STRINGCOL', cx_Oracle.STRING, 20,
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('STRINGCOL', cx_Oracle.DB_TYPE_VARCHAR, 20,
                         20 * TestEnv.GetCharSetRatio(), None,
                     None, 0),
-                  ('RAWCOL', cx_Oracle.BINARY, 30, 30, None, None, 0),
-                  ('FIXEDCHARCOL', cx_Oracle.FIXED_CHAR, 40,
+                  ('RAWCOL', cx_Oracle.DB_TYPE_RAW, 30, 30, None, None, 0),
+                  ('FIXEDCHARCOL', cx_Oracle.DB_TYPE_CHAR, 40,
                         40 * TestEnv.GetCharSetRatio(),
                     None, None, 0),
-                  ('NULLABLECOL', cx_Oracle.STRING, 50,
+                  ('NULLABLECOL', cx_Oracle.DB_TYPE_VARCHAR, 50,
                         50 * TestEnv.GetCharSetRatio(), None,
                     None, 1) ])
 

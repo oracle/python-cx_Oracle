@@ -191,7 +191,7 @@ class TestCase(TestEnv.BaseTestCase):
                 encoding="UTF-8", nencoding="UTF-16")
         value = u"\u03b4\u4e2a"
         cursor = connection.cursor()
-        ncharVar = cursor.var(cx_Oracle.NCHAR, 100)
+        ncharVar = cursor.var(cx_Oracle.DB_TYPE_NVARCHAR, 100)
         ncharVar.setvalue(0, value)
         cursor.execute("select :value from dual", value = ncharVar)
         result, = cursor.fetchone()

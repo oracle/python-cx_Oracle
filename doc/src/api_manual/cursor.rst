@@ -157,7 +157,8 @@ Cursor Object
     will be None for operations that do not return rows or if the cursor has
     not had an operation invoked via the :meth:`~Cursor.execute()` method yet.
 
-    The type will be one of the type objects defined at the module level.
+    The type will be one of the :ref:`database type constants <dbtypes>`
+    defined at the module level.
 
 
 .. method:: Cursor.execute(statement, [parameters], \*\*keywordParameters)
@@ -554,10 +555,34 @@ Cursor Object
     use in input and output type handlers defined on cursors or connections.
 
     The dataType parameter specifies the type of data that should be stored in
-    the variable. This should be one of the types defined at the module level
-    (such as :data:`cx_Oracle.STRING`) or a Python type that cx_Oracle knows
-    how to process (such as str) or an object type returned from the method
-    :meth:`Connection.gettype()`.
+    the variable. This should be one of the
+    :ref:`database type constants <dbtypes>`, :ref:`DB API constants <types>`,
+    an object type returned from the method :meth:`Connection.gettype()` or one
+    of the following Python types:
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Python Type
+          - Database Type
+        * - bool
+          - :attr:`cx_Oracle.DB_TYPE_BOOLEAN`
+        * - bytes
+          - :attr:`cx_Oracle.DB_TYPE_RAW`
+        * - datetime.date
+          - :attr:`cx_Oracle.DB_TYPE_DATE`
+        * - datetime.datetime
+          - :attr:`cx_Oracle.DB_TYPE_DATE`
+        * - datetime.timedelta
+          - :attr:`cx_Oracle.DB_TYPE_INTERVAL_DS`
+        * - decimal.Decimal
+          - :attr:`cx_Oracle.DB_TYPE_NUMBER`
+        * - float
+          - :attr:`cx_Oracle.DB_TYPE_NUMBER`
+        * - int
+          - :attr:`cx_Oracle.DB_TYPE_NUMBER`
+        * - str
+          - :attr:`cx_Oracle.DB_TYPE_VARCHAR`
 
     The size parameter specifies the length of string and raw variables and is
     ignored in all other cases. If not specified for string and raw variables,
@@ -577,8 +602,8 @@ Cursor Object
     was passed directly as the first parameter.
 
     The encodingErrors parameter specifies what should happen when decoding
-    byte strings fetched from the database into strings (Python 3) or unicode
-    objects (Python 2). It should be one of the values noted in the builtin
+    byte strings fetched from the database into strings. It should be one of
+    the values noted in the builtin
     `decode <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__
     function.
 

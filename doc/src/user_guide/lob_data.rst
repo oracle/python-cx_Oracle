@@ -11,15 +11,16 @@ the size of the tablespace storing it.
 There are four types of LOB (large object):
 
     * BLOB - Binary Large Object, used for storing binary data. cx_Oracle uses
-      the type :attr:`cx_Oracle.BLOB`.
+      the type :attr:`cx_Oracle.DB_TYPE_BLOB`.
     * CLOB - Character Large Object, used for string strings in the database
-      character set format. cx_Oracle uses the type :attr:`cx_Oracle.CLOB`.
+      character set format. cx_Oracle uses the type
+      :attr:`cx_Oracle.DB_TYPE_CLOB`.
     * NCLOB - National Character Large Object, used for string strings in the
       national character set format. cx_Oracle uses the type
-      :attr:`cx_Oracle.NCLOB`.
+      :attr:`cx_Oracle.DB_TYPE_NCLOB`.
     * BFILE - External Binary File, used for referencing a file stored on the
       host operating system outside of the database. cx_Oracle uses the type
-      :attr:`cx_Oracle.BFILE`.
+      :attr:`cx_Oracle.DB_TYPE_BFILE`.
 
 LOBs can be streamed to, and from, Oracle Database.
 
@@ -76,10 +77,10 @@ to be used as shown in this example:
 .. code-block:: python
 
     def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
-        if defaultType == cx_Oracle.CLOB:
-            return cursor.var(cx_Oracle.LONG_STRING, arraysize=cursor.arraysize)
-        if defaultType == cx_Oracle.BLOB:
-            return cursor.var(cx_Oracle.LONG_BINARY, arraysize=cursor.arraysize)
+        if defaultType == cx_Oracle.DB_TYPE_CLOB:
+            return cursor.var(cx_Oracle.DB_TYPE_LONG, arraysize=cursor.arraysize)
+        if defaultType == cx_Oracle.DB_TYPE_BLOB:
+            return cursor.var(cx_Oracle.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
 
     idVal = 1
     textData = "The quick brown fox jumps over the lazy dog"
@@ -161,7 +162,7 @@ in the following code:
 .. code-block:: python
 
     idVal = 9
-    lobVar = cursor.var(cx_Oracle.BLOB)
+    lobVar = cursor.var(cx_Oracle.DB_TYPE_BLOB)
     cursor.execute("""
             insert into lob_tbl (id, b)
             values (:1, empty_blob())

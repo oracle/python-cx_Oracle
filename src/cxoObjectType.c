@@ -20,12 +20,14 @@
 static void cxoObjectType_free(cxoObjectType*);
 static PyObject *cxoObjectType_repr(cxoObjectType*);
 static PyObject *cxoObjectType_newObject(cxoObjectType*, PyObject*, PyObject*);
+static PyObject *cxoObjectType_richCompare(cxoObjectType*, PyObject*, int);
+static PyObject *cxoObjectType_getElementType(cxoObjectType*, void*);
 
 
 //-----------------------------------------------------------------------------
-// declaration of methods for Python type "ObjectType"
+// declaration of methods
 //-----------------------------------------------------------------------------
-static PyMethodDef cxoObjectTypeMethods[] = {
+static PyMethodDef cxoMethods[] = {
     { "newobject", (PyCFunction) cxoObjectType_newObject,
             METH_VARARGS | METH_KEYWORDS },
     { NULL }
@@ -33,16 +35,23 @@ static PyMethodDef cxoObjectTypeMethods[] = {
 
 
 //-----------------------------------------------------------------------------
-// declaration of members for Python type "ObjectType"
+// declaration of members
 //-----------------------------------------------------------------------------
-static PyMemberDef cxoObjectTypeMembers[] = {
+static PyMemberDef cxoMembers[] = {
     { "schema", T_OBJECT, offsetof(cxoObjectType, schema), READONLY },
     { "name", T_OBJECT, offsetof(cxoObjectType, name), READONLY },
     { "attributes", T_OBJECT, offsetof(cxoObjectType, attributes), READONLY },
-    { "elementType", T_OBJECT, offsetof(cxoObjectType, elementType),
-            READONLY },
     { "iscollection", T_BOOL, offsetof(cxoObjectType, isCollection),
             READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "element_type", (getter) cxoObjectType_getElementType, 0, 0, 0 },
     { NULL }
 };
 
@@ -58,8 +67,10 @@ PyTypeObject cxoPyTypeObjectType = {
     .tp_repr = (reprfunc) cxoObjectType_repr,
     .tp_call = (ternaryfunc) cxoObjectType_newObject,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoObjectTypeMethods,
-    .tp_members = cxoObjectTypeMembers,
+    .tp_methods = cxoMethods,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers,
+    .tp_richcompare = (richcmpfunc) cxoObjectType_richCompare
 };
 
 
@@ -89,14 +100,21 @@ static int cxoObjectType_initialize(cxoObjectType *objType,
     if (!objType->name)
         return -1;
     objType->isCollection = info.isCollection;
-    objType->elementOracleTypeNum = info.elementTypeInfo.oracleTypeNum;
-    objType->elementTransformNum =
-            cxoTransform_getNumFromDataTypeInfo(&info.elementTypeInfo);
-    if (info.elementTypeInfo.objectType) {
-        objType->elementType = (PyObject*) cxoObjectType_new(connection,
-                info.elementTypeInfo.objectType);
-        if (!objType->elementType)
+    if (info.isCollection) {
+        objType->elementOracleTypeNum = info.elementTypeInfo.oracleTypeNum;
+        objType->elementTransformNum =
+                cxoTransform_getNumFromDataTypeInfo(&info.elementTypeInfo);
+        objType->elementDbType =
+                cxoDbType_fromTransformNum(objType->elementTransformNum);
+        if (!objType->elementDbType)
             return -1;
+        Py_INCREF(objType->elementDbType);
+        if (info.elementTypeInfo.objectType) {
+            objType->elementObjectType = cxoObjectType_new(connection,
+                    info.elementTypeInfo.objectType);
+            if (!objType->elementObjectType)
+                return -1;
+        }
     }
 
     // allocate the attribute list (temporary and permanent) and dictionary
@@ -205,8 +223,31 @@ static void cxoObjectType_free(cxoObjectType *objType)
     Py_CLEAR(objType->name);
     Py_CLEAR(objType->attributes);
     Py_CLEAR(objType->attributesByName);
-    Py_CLEAR(objType->elementType);
+    Py_CLEAR(objType->elementObjectType);
+    Py_CLEAR(objType->elementDbType);
     Py_TYPE(objType)->tp_free((PyObject*) objType);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoObjectType_getElementType()
+//   Return the element type associated with a collection. This is either an
+// object type or one of the database type constants. If the object type is not
+// a collection, None is returned.
+//-----------------------------------------------------------------------------
+static PyObject *cxoObjectType_getElementType(cxoObjectType *type,
+        void *unused)
+{
+    if (type->elementObjectType) {
+        Py_INCREF(type->elementObjectType);
+        return (PyObject*) type->elementObjectType;
+    }
+    if (type->elementDbType) {
+        Py_INCREF(type->elementDbType);
+        return (PyObject*) type->elementDbType;
+    }
+
+    Py_RETURN_NONE;
 }
 
 
@@ -225,6 +266,54 @@ static PyObject *cxoObjectType_repr(cxoObjectType *objType)
     Py_DECREF(module);
     Py_DECREF(name);
     return result;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoObjectType_richCompare()
+//   Peforms a comparison between the object type and another Python object.
+// Equality (and inequality) are suppported to match object types; no other
+// operations are supported.
+//-----------------------------------------------------------------------------
+static PyObject *cxoObjectType_richCompare(cxoObjectType* objType,
+        PyObject* otherObj, int op)
+{
+    cxoObjectType *otherObjType;
+    int status, equal = 0;
+
+    // only equality and inequality can be checked
+    if (op != Py_EQ && op != Py_NE) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    // check to see if the other object is an object type, too
+    status = PyObject_IsInstance(otherObj, (PyObject*) &cxoPyTypeObjectType);
+    if (status < 0)
+        return NULL;
+    if (status == 1) {
+        otherObjType = (cxoObjectType*) otherObj;
+        if (otherObjType->connection == objType->connection ||
+                otherObjType->connection->sessionPool ==
+                objType->connection->sessionPool) {
+            equal = PyObject_RichCompareBool(otherObjType->schema,
+                    objType->schema, Py_EQ);
+            if (equal < 0)
+                return NULL;
+            if (equal) {
+                equal = PyObject_RichCompareBool(otherObjType->name,
+                        objType->name, Py_EQ);
+                if (equal < 0)
+                    return NULL;
+            }
+        }
+    }
+
+    // determine return value
+    if ((equal && op == Py_EQ) || (!equal && op == Py_NE)) {
+        Py_RETURN_TRUE;
+    }
+    Py_RETURN_FALSE;
 }
 
 

@@ -70,9 +70,14 @@ Variable Objects
 
 .. attribute:: Variable.type
 
-    This read-only attribute returns the type of the variable for those
-    variables that bind Oracle objects (it is not present for any other type of
-    variable).
+    This read-only attribute returns the type of the variable. This will be an
+    :ref:`Oracle Object Type <objecttype>` if the variable binds
+    Oracle objects; otherwise, it will be one of the
+    :ref:`database type constants <dbtypes>`.
+
+    .. versionchanged:: 8.0
+        Database type constants are now used when the variable is not used for
+        binding Oracle objects.
 
 
 .. attribute:: Variable.values

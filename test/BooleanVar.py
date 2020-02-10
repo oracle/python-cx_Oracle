@@ -31,7 +31,7 @@ class TestCase(TestEnv.BaseTestCase):
     def testBindOutFalse(self):
         "test binding out a boolean value (False)"
         result = self.cursor.callfunc("pkg_TestBooleans.IsLessThan10",
-                cx_Oracle.BOOLEAN, (15,))
+                cx_Oracle.DB_TYPE_BOOLEAN, (15,))
         self.assertEqual(result, False)
 
     def testBindOutTrue(self):

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
 //
 // Licensed under BSD license (see LICENSE.txt).
 //-----------------------------------------------------------------------------
@@ -29,12 +29,14 @@
 //-----------------------------------------------------------------------------
 // Forward Declarations
 //-----------------------------------------------------------------------------
+typedef struct cxoApiType cxoApiType;
 typedef struct cxoBuffer cxoBuffer;
-typedef struct cxoError cxoError;
 typedef struct cxoConnection cxoConnection;
 typedef struct cxoCursor cxoCursor;
+typedef struct cxoDbType cxoDbType;
 typedef struct cxoDeqOptions cxoDeqOptions;
 typedef struct cxoEnqOptions cxoEnqOptions;
+typedef struct cxoError cxoError;
 typedef struct cxoFuture cxoFuture;
 typedef struct cxoLob cxoLob;
 typedef struct cxoMessage cxoMessage;
@@ -54,7 +56,6 @@ typedef struct cxoSodaDocCursor cxoSodaDocCursor;
 typedef struct cxoSodaOperation cxoSodaOperation;
 typedef struct cxoSubscr cxoSubscr;
 typedef struct cxoVar cxoVar;
-typedef struct cxoVarType cxoVarType;
 
 
 //-----------------------------------------------------------------------------
@@ -74,54 +75,70 @@ extern PyObject *cxoProgrammingErrorException;
 extern PyObject *cxoNotSupportedErrorException;
 
 // type objects
-extern PyTypeObject cxoPyTypeBfileVar;
-extern PyTypeObject cxoPyTypeBinaryVar;
-extern PyTypeObject cxoPyTypeBlobVar;
-extern PyTypeObject cxoPyTypeBooleanVar;
-extern PyTypeObject cxoPyTypeClobVar;
+extern PyTypeObject cxoPyTypeApiType;
 extern PyTypeObject cxoPyTypeConnection;
 extern PyTypeObject cxoPyTypeCursor;
-extern PyTypeObject cxoPyTypeCursorVar;
-extern PyTypeObject cxoPyTypeDateTimeVar;
+extern PyTypeObject cxoPyTypeDbType;
 extern PyTypeObject cxoPyTypeDeqOptions;
 extern PyTypeObject cxoPyTypeEnqOptions;
 extern PyTypeObject cxoPyTypeError;
-extern PyTypeObject cxoPyTypeFixedCharVar;
-extern PyTypeObject cxoPyTypeFixedNcharVar;
 extern PyTypeObject cxoPyTypeFuture;
-extern PyTypeObject cxoPyTypeIntervalVar;
 extern PyTypeObject cxoPyTypeLob;
-extern PyTypeObject cxoPyTypeLongBinaryVar;
-extern PyTypeObject cxoPyTypeLongStringVar;
 extern PyTypeObject cxoPyTypeMsgProps;
 extern PyTypeObject cxoPyTypeMessage;
 extern PyTypeObject cxoPyTypeMessageQuery;
 extern PyTypeObject cxoPyTypeMessageRow;
 extern PyTypeObject cxoPyTypeMessageTable;
-extern PyTypeObject cxoPyTypeNativeFloatVar;
-extern PyTypeObject cxoPyTypeNativeIntVar;
-extern PyTypeObject cxoPyTypeNcharVar;
-extern PyTypeObject cxoPyTypeNclobVar;
-extern PyTypeObject cxoPyTypeNumberVar;
 extern PyTypeObject cxoPyTypeObject;
 extern PyTypeObject cxoPyTypeObjectAttr;
 extern PyTypeObject cxoPyTypeObjectType;
-extern PyTypeObject cxoPyTypeObjectVar;
 extern PyTypeObject cxoPyTypeQueue;
-extern PyTypeObject cxoPyTypeRowidVar;
 extern PyTypeObject cxoPyTypeSessionPool;
 extern PyTypeObject cxoPyTypeSodaCollection;
 extern PyTypeObject cxoPyTypeSodaDatabase;
 extern PyTypeObject cxoPyTypeSodaDoc;
 extern PyTypeObject cxoPyTypeSodaDocCursor;
 extern PyTypeObject cxoPyTypeSodaOperation;
-extern PyTypeObject cxoPyTypeStringVar;
 extern PyTypeObject cxoPyTypeSubscr;
-extern PyTypeObject cxoPyTypeTimestampVar;
+extern PyTypeObject cxoPyTypeVar;
 
 // datetime types
 extern PyTypeObject *cxoPyTypeDate;
 extern PyTypeObject *cxoPyTypeDateTime;
+
+// database types
+extern cxoDbType *cxoDbTypeBfile;
+extern cxoDbType *cxoDbTypeBinaryDouble;
+extern cxoDbType *cxoDbTypeBinaryFloat;
+extern cxoDbType *cxoDbTypeBinaryInteger;
+extern cxoDbType *cxoDbTypeBlob;
+extern cxoDbType *cxoDbTypeBoolean;
+extern cxoDbType *cxoDbTypeChar;
+extern cxoDbType *cxoDbTypeClob;
+extern cxoDbType *cxoDbTypeCursor;
+extern cxoDbType *cxoDbTypeDate;
+extern cxoDbType *cxoDbTypeIntervalDS;
+extern cxoDbType *cxoDbTypeIntervalYM;
+extern cxoDbType *cxoDbTypeLong;
+extern cxoDbType *cxoDbTypeLongRaw;
+extern cxoDbType *cxoDbTypeNchar;
+extern cxoDbType *cxoDbTypeNclob;
+extern cxoDbType *cxoDbTypeNumber;
+extern cxoDbType *cxoDbTypeNvarchar;
+extern cxoDbType *cxoDbTypeObject;
+extern cxoDbType *cxoDbTypeRaw;
+extern cxoDbType *cxoDbTypeRowid;
+extern cxoDbType *cxoDbTypeTimestamp;
+extern cxoDbType *cxoDbTypeTimestampLTZ;
+extern cxoDbType *cxoDbTypeTimestampTZ;
+extern cxoDbType *cxoDbTypeVarchar;
+
+// database API types
+extern cxoApiType *cxoApiTypeBinary;
+extern cxoApiType *cxoApiTypeDatetime;
+extern cxoApiType *cxoApiTypeNumber;
+extern cxoApiType *cxoApiTypeRowid;
+extern cxoApiType *cxoApiTypeString;
 
 // JSON dump and load functions for use with SODA
 extern PyObject *cxoJsonDumpFunction;
@@ -166,6 +183,7 @@ typedef enum {
     CXO_TRANSFORM_TIMEDELTA,
     CXO_TRANSFORM_TIMESTAMP,
     CXO_TRANSFORM_TIMESTAMP_LTZ,
+    CXO_TRANSFORM_TIMESTAMP_TZ,
     CXO_TRANSFORM_UNSUPPORTED
 } cxoTransformNum;
 
@@ -173,6 +191,13 @@ typedef enum {
 //-----------------------------------------------------------------------------
 // Structures
 //-----------------------------------------------------------------------------
+struct cxoApiType {
+    PyObject_HEAD
+    const char *name;
+    PyObject *dbTypes;
+    cxoTransformNum defaultTransformNum;
+};
+
 struct cxoBuffer {
     const char *ptr;
     uint32_t numCharacters;
@@ -228,6 +253,13 @@ struct cxoCursor {
     int isOpen;
 };
 
+struct cxoDbType {
+    PyObject_HEAD
+    uint32_t num;
+    const char *name;
+    cxoTransformNum defaultTransformNum;
+};
+
 struct cxoDeqOptions {
     PyObject_HEAD
     dpiDeqOptions *handle;
@@ -247,7 +279,7 @@ struct cxoFuture {
 struct cxoLob {
     PyObject_HEAD
     cxoConnection *connection;
-    dpiOracleTypeNum oracleTypeNum;
+    cxoDbType *dbType;
     dpiLob *handle;
 };
 
@@ -303,7 +335,8 @@ struct cxoObjectAttr {
     dpiObjectAttr *handle;
     dpiOracleTypeNum oracleTypeNum;
     cxoTransformNum transformNum;
-    cxoObjectType *type;
+    cxoObjectType *objectType;
+    cxoDbType *dbType;
 };
 
 struct cxoObjectType {
@@ -316,7 +349,8 @@ struct cxoObjectType {
     cxoConnection *connection;
     dpiOracleTypeNum elementOracleTypeNum;
     cxoTransformNum elementTransformNum;
-    PyObject *elementType;
+    cxoObjectType *elementObjectType;
+    cxoDbType *elementDbType;
     char isCollection;
 };
 
@@ -418,13 +452,9 @@ struct cxoVar {
     int isArray;
     int isValueSet;
     int getReturnedData;
-    cxoVarType *type;
-};
-
-struct cxoVarType {
     cxoTransformNum transformNum;
-    PyTypeObject *pythonType;
-    uint32_t size;
+    dpiNativeTypeNum nativeTypeNum;
+    cxoDbType *dbType;
 };
 
 
@@ -441,6 +471,9 @@ int cxoCursor_performBind(cxoCursor *cursor);
 int cxoCursor_setBindVariables(cxoCursor *cursor, PyObject *parameters,
         unsigned numElements, unsigned arrayPos, int deferTypeAssignment);
 
+cxoDbType *cxoDbType_fromDataTypeInfo(dpiDataTypeInfo *info);
+cxoDbType *cxoDbType_fromTransformNum(cxoTransformNum transformNum);
+
 cxoDeqOptions *cxoDeqOptions_new(cxoConnection *connection,
         dpiDeqOptions *handle);
 
@@ -454,7 +487,7 @@ int cxoError_raiseFromInfo(dpiErrorInfo *errorInfo);
 PyObject *cxoError_raiseFromString(PyObject *exceptionType,
         const char *message);
 
-PyObject *cxoLob_new(cxoConnection *connection, dpiOracleTypeNum oracleTypeNum,
+PyObject *cxoLob_new(cxoConnection *connection, cxoDbType *dbType,
         dpiLob *handle);
 
 cxoMsgProps *cxoMsgProps_new(cxoConnection*, dpiMsgProps *handle);
@@ -491,9 +524,15 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
         dpiNativeTypeNum *nativeTypeNum, PyObject *pyValue,
         dpiDataBuffer *dbValue, cxoBuffer *buffer, const char *encoding,
         const char *nencoding, cxoVar *var, uint32_t arrayPos);
+uint32_t cxoTransform_getDefaultSize(cxoTransformNum transformNum);
 cxoTransformNum cxoTransform_getNumFromDataTypeInfo(dpiDataTypeInfo *info);
-cxoTransformNum cxoTransform_getNumFromType(PyTypeObject *type);
-cxoTransformNum cxoTransform_getNumFromValue(PyObject *value, int plsql);
+cxoTransformNum cxoTransform_getNumFromPythonValue(PyObject *value,
+        int plsql);
+int cxoTransform_getNumFromType(PyObject *type, cxoTransformNum *transformNum,
+        cxoObjectType **objType);
+int cxoTransform_getNumFromValue(PyObject *value, int *isArray,
+        Py_ssize_t *size, Py_ssize_t *numElements, int plsql,
+        cxoTransformNum *transformNum);
 void cxoTransform_getTypeInfo(cxoTransformNum transformNum,
         dpiOracleTypeNum *oracleTypeNum, dpiNativeTypeNum *nativeTypeNum);
 int cxoTransform_init(void);
@@ -512,20 +551,15 @@ int cxoUtils_processJsonArg(PyObject *arg, cxoBuffer *buffer);
 int cxoUtils_processSodaDocArg(cxoSodaDatabase *db, PyObject *arg,
         dpiSodaDoc **handle);
 
-cxoVarType *cxoVarType_fromDataTypeInfo(dpiDataTypeInfo *info);
-cxoVarType *cxoVarType_fromPythonType(PyObject *type, cxoObjectType **objType);
-cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
-        Py_ssize_t *size, Py_ssize_t *numElements, int plsql);
-
 int cxoVar_bind(cxoVar *var, cxoCursor *cursor, PyObject *name, uint32_t pos);
 int cxoVar_check(PyObject *object);
 PyObject *cxoVar_getSingleValue(cxoVar *var, dpiData *data, uint32_t arrayPos);
 PyObject *cxoVar_getValue(cxoVar *var, uint32_t arrayPos);
-cxoVar *cxoVar_new(cxoCursor *cursor, Py_ssize_t numElements, cxoVarType *type,
-        Py_ssize_t size, int isArray, cxoObjectType *objType);
+cxoVar *cxoVar_new(cxoCursor *cursor, Py_ssize_t numElements,
+        cxoTransformNum transformNum, Py_ssize_t size, int isArray,
+        cxoObjectType *objType);
 cxoVar *cxoVar_newByType(cxoCursor *cursor, PyObject *value,
         uint32_t numElements);
 cxoVar *cxoVar_newByValue(cxoCursor *cursor, PyObject *value,
         Py_ssize_t numElements);
 int cxoVar_setValue(cxoVar *var, uint32_t arrayPos, PyObject *value);
-

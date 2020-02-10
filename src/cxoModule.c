@@ -21,6 +21,21 @@
     if (PyModule_AddIntConstant(module, name, value) < 0) \
         return NULL;
 
+// define macro for adding Python Database API types
+#define CXO_ADD_API_TYPE(name, transformNum, typeObj) \
+    if (cxoModule_addApiType(module, name, transformNum, typeObj) < 0) \
+        return NULL;
+
+// define macro for adding database types
+#define CXO_ADD_DB_TYPE(num, name, transformNum, typeObj) \
+    if (cxoModule_addDbType(module, num, name, transformNum, typeObj) < 0) \
+        return NULL;
+
+// define macro for associating database types with Database API types
+#define CXO_ASSOCIATE_DB_TYPE(apiType, dbType) \
+    if (PyList_Append(apiType->dbTypes, (PyObject*) dbType) < 0) \
+        return NULL;
+
 // define macro for adding type objects
 #define CXO_ADD_TYPE_OBJECT(name, type) \
     Py_INCREF(type); \
@@ -48,9 +63,97 @@ PyObject *cxoProgrammingErrorException = NULL;
 PyObject *cxoNotSupportedErrorException = NULL;
 PyObject *cxoJsonDumpFunction = NULL;
 PyObject *cxoJsonLoadFunction = NULL;
+
+cxoDbType *cxoDbTypeBfile = NULL;
+cxoDbType *cxoDbTypeBinaryDouble = NULL;
+cxoDbType *cxoDbTypeBinaryFloat = NULL;
+cxoDbType *cxoDbTypeBinaryInteger = NULL;
+cxoDbType *cxoDbTypeBlob = NULL;
+cxoDbType *cxoDbTypeBoolean = NULL;
+cxoDbType *cxoDbTypeChar = NULL;
+cxoDbType *cxoDbTypeClob = NULL;
+cxoDbType *cxoDbTypeCursor = NULL;
+cxoDbType *cxoDbTypeDate = NULL;
+cxoDbType *cxoDbTypeIntervalDS = NULL;
+cxoDbType *cxoDbTypeIntervalYM = NULL;
+cxoDbType *cxoDbTypeLong = NULL;
+cxoDbType *cxoDbTypeLongRaw = NULL;
+cxoDbType *cxoDbTypeNchar = NULL;
+cxoDbType *cxoDbTypeNclob = NULL;
+cxoDbType *cxoDbTypeNumber = NULL;
+cxoDbType *cxoDbTypeNvarchar = NULL;
+cxoDbType *cxoDbTypeObject = NULL;
+cxoDbType *cxoDbTypeRaw = NULL;
+cxoDbType *cxoDbTypeRowid = NULL;
+cxoDbType *cxoDbTypeTimestamp = NULL;
+cxoDbType *cxoDbTypeTimestampLTZ = NULL;
+cxoDbType *cxoDbTypeTimestampTZ = NULL;
+cxoDbType *cxoDbTypeVarchar = NULL;
+
+cxoApiType *cxoApiTypeBinary = NULL;
+cxoApiType *cxoApiTypeDatetime = NULL;
+cxoApiType *cxoApiTypeNumber = NULL;
+cxoApiType *cxoApiTypeRowid = NULL;
+cxoApiType *cxoApiTypeString = NULL;
+
 cxoFuture *cxoFutureObj = NULL;
 dpiContext *cxoDpiContext = NULL;
 dpiVersionInfo cxoClientVersionInfo;
+
+
+//-----------------------------------------------------------------------------
+// cxoModule_addApiType()
+//   Create a Python Database API type and add it to the module.
+//-----------------------------------------------------------------------------
+static int cxoModule_addApiType(PyObject *module, const char *name,
+        cxoTransformNum defaultTransformNum, cxoApiType **apiType)
+{
+    cxoApiType *tempApiType;
+
+    tempApiType =
+            (cxoApiType*) cxoPyTypeApiType.tp_alloc(&cxoPyTypeApiType, 0);
+    if (!tempApiType)
+        return -1;
+    tempApiType->name = name;
+    tempApiType->defaultTransformNum = defaultTransformNum;
+    tempApiType->dbTypes = PyList_New(0);
+    if (!tempApiType->dbTypes) {
+        Py_DECREF(tempApiType);
+        return -1;
+    }
+    if (PyModule_AddObject(module, name, (PyObject*) tempApiType) < 0) {
+        Py_DECREF(tempApiType);
+        return -1;
+    }
+    *apiType = tempApiType;
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoModule_addDbType()
+//   Create a database type and add it to the module.
+//-----------------------------------------------------------------------------
+static int cxoModule_addDbType(PyObject *module, uint32_t num,
+        const char *name, cxoTransformNum defaultTransformNum,
+        cxoDbType **dbType)
+{
+    cxoDbType *tempDbType;
+
+    tempDbType = (cxoDbType*) cxoPyTypeDbType.tp_alloc(&cxoPyTypeDbType, 0);
+    if (!tempDbType)
+        return -1;
+    tempDbType->num = num;
+    tempDbType->name = name;
+    tempDbType->defaultTransformNum = defaultTransformNum;
+    if (PyModule_AddObject(module, name, (PyObject*) tempDbType) < 0) {
+        Py_DECREF(tempDbType);
+        return -1;
+    }
+    *dbType = tempDbType;
+    return 0;
+}
+
 
 //-----------------------------------------------------------------------------
 // cxoModule_setException()
@@ -242,50 +345,32 @@ static PyObject *cxoModule_initialize(void)
         return NULL;
 
     // prepare the types for use by the module
-    CXO_MAKE_TYPE_READY(&cxoPyTypeBfileVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeBinaryVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeBlobVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeBooleanVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeClobVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeApiType);
     CXO_MAKE_TYPE_READY(&cxoPyTypeConnection);
     CXO_MAKE_TYPE_READY(&cxoPyTypeCursor);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeCursorVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeDateTimeVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeDbType);
     CXO_MAKE_TYPE_READY(&cxoPyTypeDeqOptions);
     CXO_MAKE_TYPE_READY(&cxoPyTypeEnqOptions);
     CXO_MAKE_TYPE_READY(&cxoPyTypeError);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeFixedCharVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeFixedNcharVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeFuture);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeIntervalVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeLob);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeLongBinaryVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeLongStringVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeMsgProps);
     CXO_MAKE_TYPE_READY(&cxoPyTypeMessage);
     CXO_MAKE_TYPE_READY(&cxoPyTypeMessageQuery);
     CXO_MAKE_TYPE_READY(&cxoPyTypeMessageRow);
     CXO_MAKE_TYPE_READY(&cxoPyTypeMessageTable);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeNativeFloatVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeNativeIntVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeNcharVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeNclobVar);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeNumberVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeObjectAttr);
     CXO_MAKE_TYPE_READY(&cxoPyTypeObject);
     CXO_MAKE_TYPE_READY(&cxoPyTypeObjectType);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeObjectVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeQueue);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeRowidVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSessionPool);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSodaCollection);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSodaDatabase);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSodaDoc);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSodaDocCursor);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSodaOperation);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeStringVar);
     CXO_MAKE_TYPE_READY(&cxoPyTypeSubscr);
-    CXO_MAKE_TYPE_READY(&cxoPyTypeTimestampVar);
+    CXO_MAKE_TYPE_READY(&cxoPyTypeVar);
 
     // initialize module and retrieve the dictionary
     module = PyModule_Create(&cxoModuleDef);
@@ -325,50 +410,129 @@ static PyObject *cxoModule_initialize(void)
         return NULL;
 
     // set up the types that are available
+    CXO_ADD_TYPE_OBJECT("ApiType", &cxoPyTypeApiType)
     CXO_ADD_TYPE_OBJECT("Binary", &PyBytes_Type)
     CXO_ADD_TYPE_OBJECT("Connection", &cxoPyTypeConnection)
     CXO_ADD_TYPE_OBJECT("Cursor", &cxoPyTypeCursor)
-    CXO_ADD_TYPE_OBJECT("Timestamp", cxoPyTypeDateTime)
     CXO_ADD_TYPE_OBJECT("Date", cxoPyTypeDate)
-    CXO_ADD_TYPE_OBJECT("SessionPool", &cxoPyTypeSessionPool)
+    CXO_ADD_TYPE_OBJECT("DbType", &cxoPyTypeDbType)
+    CXO_ADD_TYPE_OBJECT("DeqOptions", &cxoPyTypeDeqOptions)
+    CXO_ADD_TYPE_OBJECT("EnqOptions", &cxoPyTypeEnqOptions)
     CXO_ADD_TYPE_OBJECT("_Error", &cxoPyTypeError)
+    CXO_ADD_TYPE_OBJECT("LOB", &cxoPyTypeLob)
+    CXO_ADD_TYPE_OBJECT("MessageProperties", &cxoPyTypeMsgProps)
     CXO_ADD_TYPE_OBJECT("Object", &cxoPyTypeObject)
     CXO_ADD_TYPE_OBJECT("ObjectType", &cxoPyTypeObjectType)
-    CXO_ADD_TYPE_OBJECT("EnqOptions", &cxoPyTypeEnqOptions)
-    CXO_ADD_TYPE_OBJECT("DeqOptions", &cxoPyTypeDeqOptions)
-    CXO_ADD_TYPE_OBJECT("MessageProperties", &cxoPyTypeMsgProps)
+    CXO_ADD_TYPE_OBJECT("SessionPool", &cxoPyTypeSessionPool)
     CXO_ADD_TYPE_OBJECT("SodaCollection", &cxoPyTypeSodaCollection)
     CXO_ADD_TYPE_OBJECT("SodaDatabase", &cxoPyTypeSodaDatabase)
     CXO_ADD_TYPE_OBJECT("SodaDoc", &cxoPyTypeSodaDoc)
     CXO_ADD_TYPE_OBJECT("SodaDocCursor", &cxoPyTypeSodaDocCursor)
     CXO_ADD_TYPE_OBJECT("SodaOperation", &cxoPyTypeSodaOperation)
+    CXO_ADD_TYPE_OBJECT("Timestamp", cxoPyTypeDateTime)
+    CXO_ADD_TYPE_OBJECT("Var", &cxoPyTypeVar)
 
     // the name "connect" is required by the DB API
     CXO_ADD_TYPE_OBJECT("connect", &cxoPyTypeConnection)
 
-    // create the basic data types for setting input sizes
-    CXO_ADD_TYPE_OBJECT("BINARY", &cxoPyTypeBinaryVar)
-    CXO_ADD_TYPE_OBJECT("BFILE", &cxoPyTypeBfileVar)
-    CXO_ADD_TYPE_OBJECT("BLOB", &cxoPyTypeBlobVar)
-    CXO_ADD_TYPE_OBJECT("CLOB", &cxoPyTypeClobVar)
-    CXO_ADD_TYPE_OBJECT("CURSOR", &cxoPyTypeCursorVar)
-    CXO_ADD_TYPE_OBJECT("OBJECT", &cxoPyTypeObjectVar)
-    CXO_ADD_TYPE_OBJECT("DATETIME", &cxoPyTypeDateTimeVar)
-    CXO_ADD_TYPE_OBJECT("FIXED_CHAR", &cxoPyTypeFixedCharVar)
-    CXO_ADD_TYPE_OBJECT("FIXED_NCHAR", &cxoPyTypeFixedNcharVar)
-    CXO_ADD_TYPE_OBJECT("NCHAR", &cxoPyTypeNcharVar)
-    CXO_ADD_TYPE_OBJECT("INTERVAL", &cxoPyTypeIntervalVar)
-    CXO_ADD_TYPE_OBJECT("LOB", &cxoPyTypeLob)
-    CXO_ADD_TYPE_OBJECT("LONG_BINARY", &cxoPyTypeLongBinaryVar)
-    CXO_ADD_TYPE_OBJECT("LONG_STRING", &cxoPyTypeLongStringVar)
-    CXO_ADD_TYPE_OBJECT("NCLOB", &cxoPyTypeNclobVar)
-    CXO_ADD_TYPE_OBJECT("NUMBER", &cxoPyTypeNumberVar)
-    CXO_ADD_TYPE_OBJECT("ROWID", &cxoPyTypeRowidVar)
-    CXO_ADD_TYPE_OBJECT("STRING", &cxoPyTypeStringVar)
-    CXO_ADD_TYPE_OBJECT("TIMESTAMP", &cxoPyTypeTimestampVar)
-    CXO_ADD_TYPE_OBJECT("NATIVE_INT", &cxoPyTypeNativeIntVar)
-    CXO_ADD_TYPE_OBJECT("NATIVE_FLOAT", &cxoPyTypeNativeFloatVar)
-    CXO_ADD_TYPE_OBJECT("BOOLEAN", &cxoPyTypeBooleanVar)
+    // create the database types (preferred names)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_BFILE, "DB_TYPE_BFILE",
+            CXO_TRANSFORM_BFILE, &cxoDbTypeBfile)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_NATIVE_DOUBLE, "DB_TYPE_BINARY_DOUBLE",
+            CXO_TRANSFORM_NATIVE_DOUBLE, &cxoDbTypeBinaryDouble)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_NATIVE_FLOAT, "DB_TYPE_BINARY_FLOAT",
+            CXO_TRANSFORM_NATIVE_FLOAT, &cxoDbTypeBinaryFloat)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_NATIVE_INT, "DB_TYPE_BINARY_INTEGER",
+            CXO_TRANSFORM_NATIVE_INT, &cxoDbTypeBinaryInteger)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_BLOB, "DB_TYPE_BLOB",
+            CXO_TRANSFORM_BLOB, &cxoDbTypeBlob)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_BOOLEAN, "DB_TYPE_BOOLEAN",
+            CXO_TRANSFORM_BOOLEAN, &cxoDbTypeBoolean)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_CHAR, "DB_TYPE_CHAR",
+            CXO_TRANSFORM_FIXED_CHAR, &cxoDbTypeChar)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_CLOB, "DB_TYPE_CLOB",
+            CXO_TRANSFORM_CLOB, &cxoDbTypeClob)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_STMT, "DB_TYPE_CURSOR",
+            CXO_TRANSFORM_CURSOR, &cxoDbTypeCursor)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_DATE, "DB_TYPE_DATE",
+            CXO_TRANSFORM_DATETIME, &cxoDbTypeDate)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_INTERVAL_DS, "DB_TYPE_INTERVAL_DS",
+            CXO_TRANSFORM_TIMEDELTA, &cxoDbTypeIntervalDS)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_INTERVAL_YM, "DB_TYPE_INTERVAL_YM",
+            CXO_TRANSFORM_UNSUPPORTED, &cxoDbTypeIntervalYM)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_LONG_VARCHAR, "DB_TYPE_LONG",
+            CXO_TRANSFORM_LONG_STRING, &cxoDbTypeLong)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_LONG_RAW, "DB_TYPE_LONG_RAW",
+            CXO_TRANSFORM_LONG_BINARY, &cxoDbTypeLongRaw)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_NCHAR, "DB_TYPE_NCHAR",
+            CXO_TRANSFORM_FIXED_NCHAR, &cxoDbTypeNchar)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_NCLOB, "DB_TYPE_NCLOB",
+            CXO_TRANSFORM_NCLOB, &cxoDbTypeNclob)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_NUMBER, "DB_TYPE_NUMBER",
+            CXO_TRANSFORM_FLOAT, &cxoDbTypeNumber)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_NVARCHAR, "DB_TYPE_NVARCHAR",
+            CXO_TRANSFORM_NSTRING, &cxoDbTypeNvarchar)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_OBJECT, "DB_TYPE_OBJECT",
+            CXO_TRANSFORM_OBJECT, &cxoDbTypeObject)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_RAW, "DB_TYPE_RAW",
+            CXO_TRANSFORM_BINARY, &cxoDbTypeRaw)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_ROWID, "DB_TYPE_ROWID",
+            CXO_TRANSFORM_ROWID, &cxoDbTypeRowid)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_TIMESTAMP, "DB_TYPE_TIMESTAMP",
+            CXO_TRANSFORM_TIMESTAMP, &cxoDbTypeTimestamp)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_TIMESTAMP_LTZ, "DB_TYPE_TIMESTAMP_LTZ",
+            CXO_TRANSFORM_TIMESTAMP_LTZ, &cxoDbTypeTimestampLTZ)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_TIMESTAMP_TZ, "DB_TYPE_TIMESTAMP_TZ",
+            CXO_TRANSFORM_TIMESTAMP_TZ, &cxoDbTypeTimestampTZ)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_VARCHAR, "DB_TYPE_VARCHAR",
+            CXO_TRANSFORM_STRING, &cxoDbTypeVarchar)
+
+    // create the synonyms for database types (deprecated names)
+    CXO_ADD_TYPE_OBJECT("BFILE", cxoDbTypeBfile)
+    CXO_ADD_TYPE_OBJECT("BLOB", cxoDbTypeBlob)
+    CXO_ADD_TYPE_OBJECT("CLOB", cxoDbTypeClob)
+    CXO_ADD_TYPE_OBJECT("CURSOR", cxoDbTypeCursor)
+    CXO_ADD_TYPE_OBJECT("OBJECT", cxoDbTypeObject)
+    CXO_ADD_TYPE_OBJECT("FIXED_CHAR", cxoDbTypeChar)
+    CXO_ADD_TYPE_OBJECT("FIXED_NCHAR", cxoDbTypeNchar)
+    CXO_ADD_TYPE_OBJECT("NCHAR", cxoDbTypeNvarchar)
+    CXO_ADD_TYPE_OBJECT("INTERVAL", cxoDbTypeIntervalDS)
+    CXO_ADD_TYPE_OBJECT("LONG_BINARY", cxoDbTypeLongRaw)
+    CXO_ADD_TYPE_OBJECT("LONG_STRING", cxoDbTypeLong)
+    CXO_ADD_TYPE_OBJECT("NCLOB", cxoDbTypeNclob)
+    CXO_ADD_TYPE_OBJECT("TIMESTAMP", cxoDbTypeTimestamp)
+    CXO_ADD_TYPE_OBJECT("NATIVE_INT", cxoDbTypeBinaryInteger)
+    CXO_ADD_TYPE_OBJECT("NATIVE_FLOAT", cxoDbTypeBinaryDouble)
+    CXO_ADD_TYPE_OBJECT("BOOLEAN", cxoDbTypeBoolean)
+
+    // create the Python Database API types
+    CXO_ADD_API_TYPE("BINARY", CXO_TRANSFORM_BINARY, &cxoApiTypeBinary)
+    CXO_ADD_API_TYPE("DATETIME", CXO_TRANSFORM_DATETIME, &cxoApiTypeDatetime)
+    CXO_ADD_API_TYPE("NUMBER", CXO_TRANSFORM_FLOAT, &cxoApiTypeNumber)
+    CXO_ADD_API_TYPE("ROWID", CXO_TRANSFORM_ROWID, &cxoApiTypeRowid)
+    CXO_ADD_API_TYPE("STRING", CXO_TRANSFORM_STRING, &cxoApiTypeString)
+
+    // associate the Python Database API types with the database types
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeBinary, cxoDbTypeBfile)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeBinary, cxoDbTypeBlob)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeBinary, cxoDbTypeLongRaw)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeBinary, cxoDbTypeRaw)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeDatetime, cxoDbTypeDate)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeDatetime, cxoDbTypeTimestamp)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeDatetime, cxoDbTypeTimestampLTZ)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeDatetime, cxoDbTypeTimestampTZ)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeNumber, cxoDbTypeBinaryDouble)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeNumber, cxoDbTypeBinaryFloat)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeNumber, cxoDbTypeBinaryInteger)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeNumber, cxoDbTypeNumber)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeRowid, cxoDbTypeRowid)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeString, cxoDbTypeChar)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeString, cxoDbTypeClob)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeString, cxoDbTypeLong)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeString, cxoDbTypeNchar)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeString, cxoDbTypeNclob)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeString, cxoDbTypeNvarchar)
+    CXO_ASSOCIATE_DB_TYPE(cxoApiTypeString, cxoDbTypeVarchar)
 
     // create constants required by Python DB API 2.0
     if (PyModule_AddStringConstant(module, "apilevel", "2.0") < 0)

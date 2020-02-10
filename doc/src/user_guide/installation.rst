@@ -637,6 +637,25 @@ Upgrading from Older Versions
 Review the :ref:`release notes <releasenotes>` for deprecations and modify any
 affected code.
 
+If you are upgrading from cx_Oracle 7 note these changes:
+
+    - Any uses of ``type(var)`` need to be changed to ``var.type``.
+
+    - Any uses of ``var.type is not None`` need to be changed to
+      ``isinstance(var.type, cx_Oracle.ObjectType)``
+
+    - Note that ``TIMESTAMP WITH TIME ZONE`` columns will now be reported as
+      :data:`cx_Oracle.DB_TYPE_TIMESTAMP_TZ` instead of
+      :data:`cx_Oracle.TIMESTAMP` in :data:`Cursor.description`.
+
+    - Note that ``TIMESTAMP WITH LOCAL TIME ZONE`` columns will now be reported
+      as :data:`cx_Oracle.DB_TYPE_TIMESTAMP_LTZ` instead of
+      :data:`cx_Oracle.TIMESTAMP` in :data:`Cursor.description`.
+
+    - Note that ``BINARY_FLOAT`` columns will now be reported as
+      :data:`cx_Oracle.DB_TYPE_BINARY_FLOAT` instead of
+      :data:`cx_Oracle.NATIVE_DOUBLE` in :data:`Cursor.description`.
+
 If you are upgrading from cx_Oracle 5 note these installation changes:
 
     - When using Oracle Instant Client, you should not set ``ORACLE_HOME``.
@@ -684,9 +703,8 @@ If installation fails:
       or venv?
 
     - Do you get the error "``No module named pip``"? The pip module is builtin
-      to Python from version 2.7.9 but is sometimes removed by the OS. Use the
-      venv module (builtin to Python 3.x) or virtualenv module (Python 2.x)
-      instead.
+      to Python but is sometimes removed by the OS. Use the venv module
+      (builtin to Python 3.x) or virtualenv module instead.
 
     - Do you get the error "``fatal error: dpi.h: No such file or directory``"
       when building from source code? Ensure that your source installation has
@@ -723,6 +741,5 @@ If using cx_Oracle fails:
       supported on Windows 7.  Similar steps shown above for ``DPI-1047`` may
       help.
 
-    - If you have both Python 2 and 3 installed, make sure you are
-      using the correct python and pip (or python3 and pip3)
-      executables.
+    - If you have multiple versions of Python installed, make sure you are
+      using the correct python and pip (or python3 and pip3) executables.

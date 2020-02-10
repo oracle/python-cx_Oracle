@@ -9,9 +9,48 @@ Version 8.0 (TBD)
 -----------------
 
 #)  Dropped support for Python 2.7.
+#)  Updated embedded ODPI-C to `version 3.4
+    <https://oracle.github.io/odpi/doc/releasenotes.html#version-3-4-tbd>`__.
+#)  Reworked type management to clarify and simplify code
+
+    - Added :ref:`constants <dbtypes>` for all database types. The database
+      types :data:`cx_Oracle.DB_TYPE_BINARY_FLOAT`,
+      :data:`cx_Oracle.DB_TYPE_INTERVAL_YM`,
+      :data:`cx_Oracle.DB_TYPE_TIMESTAMP_LTZ` and
+      :data:`cx_Oracle.DB_TYPE_TIMESTAMP_TZ` are completely new. The other
+      types were found in earlier releases under a different name. These types
+      will be found in :data:`Cursor.description` and passed as the defaultType
+      parameter to the :data:`Connection.outputtypehandler` and
+      :data:`Cursor.outputtypehandler` functions.
+    - Added :ref:`synonyms <dbtypesynonyms>` from the old type names to the new
+      type names for backwards compatibility. They are deprecated and will be
+      removed in a future version of cx_Oracle.
+    - The DB API :ref:`constants <types>` are now a specialized constant that
+      matches to the corresponding database types, as recommended by the DB
+      API.
+    - The variable attribute :data:`~Variable.type` now refers to one of the
+      new database type constants if the variable does not contain objects
+      (previously it was None in that case).
+    - The attribute :data:`~LOB.type` was added to LOB values.
+    - The attribute :data:`~ObjectAttribute.type` was added to attributes of
+      object types.
+    - The attribute :data:`~ObjectType.element_type` was added to object types.
+    - :ref:`Object types <objecttype>` now compare equal if they were created
+      by the same connection or session pool and their schemas and names match.
+    - All variables are now instances of the same class (previously each type
+      was an instance of a separate variable type). The attribute
+      :data:`~Variable.type` can be examined to determine the database type it
+      is associated with.
+    - The string representation of variables has changed to include the type
+      in addition to the value.
+
 #)  Added support for starting up a database using a parameter file (PFILE),
     as requested
     (`issue 295 <https://github.com/oracle/python-cx_Oracle/issues/295>`__).
+#)  Fixed overflow issue when calling :meth:`Cursor.getbatcherrors()` with
+    row offsets exceeding 65536.
+#)  Eliminated spurious error when accessing :attr:`Cursor.lastrowid` after
+    executing an INSERT ALL statement.
 
 
 Version 7.3 (December 2019)

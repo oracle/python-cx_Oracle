@@ -45,7 +45,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindTimestamp(self):
         "test binding in a timestamp"
-        self.cursor.setinputsizes(value = cx_Oracle.TIMESTAMP)
+        self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 select * from TestTimestamps
                 where TimestampCol = :value""",
@@ -54,7 +54,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindNull(self):
         "test binding in a null"
-        self.cursor.setinputsizes(value = cx_Oracle.TIMESTAMP)
+        self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 select * from TestTimestamps
                 where TimestampCol = :value""",
@@ -63,7 +63,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindOutSetInputSizes(self):
         "test binding out with set input sizes defined"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.TIMESTAMP)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 begin
                   :value := to_timestamp('20021209', 'YYYYMMDD');
@@ -73,7 +73,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindInOutSetInputSizes(self):
         "test binding in/out with set input sizes defined"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.TIMESTAMP)
+        vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 begin
                   :value := :value + 5.25;
@@ -84,7 +84,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindOutVar(self):
         "test binding out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.TIMESTAMP)
+        var = self.cursor.var(cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 begin
                   :value := to_date('20021231 12:31:00',
@@ -96,7 +96,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindInOutVarDirectSet(self):
         "test binding in/out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.TIMESTAMP)
+        var = self.cursor.var(cx_Oracle.DB_TYPE_TIMESTAMP)
         var.setvalue(0, cx_Oracle.Timestamp(2002, 12, 9, 6, 0, 0))
         self.cursor.execute("""
                 begin
@@ -110,9 +110,11 @@ class TestCase(TestEnv.BaseTestCase):
         "test cursor description is accurate"
         self.cursor.execute("select * from TestTimestamps")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('TIMESTAMPCOL', cx_Oracle.TIMESTAMP, 23, None, 0, 6, 0),
-                  ('NULLABLECOL', cx_Oracle.TIMESTAMP, 23, None, 0, 6, 1) ])
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('TIMESTAMPCOL', cx_Oracle.DB_TYPE_TIMESTAMP, 23, None, 0, 6,
+                      0),
+                  ('NULLABLECOL', cx_Oracle.DB_TYPE_TIMESTAMP, 23, None, 0, 6,
+                      1) ])
 
     def testFetchAll(self):
         "test that fetching all of the data returns the correct results"

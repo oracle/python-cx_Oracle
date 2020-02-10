@@ -47,7 +47,7 @@ Features
 The cx_Oracle feature highlights are:
 
     *   Easily installed from PyPI
-    *   Support for Python 2 and 3, and for multiple Oracle Database versions
+    *   Support for multiple Oracle Client and Database versions
     *   Execution of SQL and PL/SQL statements
     *   Extensive Oracle data type support, including large objects (CLOB and
         BLOB) and binding of SQL objects

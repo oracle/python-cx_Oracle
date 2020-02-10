@@ -174,7 +174,8 @@ class TestCase(TestEnv.BaseTestCase):
         stringValue = "The string that will be verified"
         obj = typeObj.newobject()
         obj.STRINGVALUE = stringValue
-        outVar = self.cursor.var(cx_Oracle.OBJECT, typename = "UDT_OBJECT")
+        outVar = self.cursor.var(cx_Oracle.DB_TYPE_OBJECT,
+                typename = "UDT_OBJECT")
         self.cursor.execute("""
                 insert into TestObjects (IntCol, ObjectCol)
                 values (4, :obj)

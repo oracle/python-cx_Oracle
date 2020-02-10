@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -50,7 +50,8 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindNullIn(self):
         "test binding a null value (IN)"
-        var = self.cursor.var(cx_Oracle.OBJECT, typename = "UDT_OBJECT")
+        var = self.cursor.var(cx_Oracle.DB_TYPE_OBJECT,
+                typename = "UDT_OBJECT")
         result = self.cursor.callfunc("pkg_TestBindObject.GetStringRep", str,
                 (var,))
         self.assertEqual(result, "null")
@@ -122,9 +123,11 @@ class TestCase(TestEnv.BaseTestCase):
                 from TestObjects
                 order by IntCol""")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('OBJECTCOL', cx_Oracle.OBJECT, None, None, None, None, 1),
-                  ('ARRAYCOL', cx_Oracle.OBJECT, None, None, None, None, 1) ])
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('OBJECTCOL', cx_Oracle.DB_TYPE_OBJECT, None, None, None,
+                        None, 1),
+                  ('ARRAYCOL', cx_Oracle.DB_TYPE_OBJECT, None, None, None,
+                        None, 1) ])
         self.__TestData(1, (1, 'First row', 'First     ', 'N First Row',
                 'N First   ', b'Raw Data 1', 2, 5, 12.125, 0.5, 12.5, 25.25,
                 50.125, cx_Oracle.Timestamp(2007, 3, 6, 0, 0, 0),
@@ -154,6 +157,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(typeObj.iscollection, False)
         self.assertEqual(typeObj.schema, self.connection.username.upper())
         self.assertEqual(typeObj.name, "UDT_OBJECT")
+        subObjectValueType = self.connection.gettype("UDT_SUBOBJECT")
+        subObjectArrayType = self.connection.gettype("UDT_OBJECTARRAY")
         expectedAttributeNames = ["NUMBERVALUE", "STRINGVALUE",
                 "FIXEDCHARVALUE", "NSTRINGVALUE", "NFIXEDCHARVALUE",
                 "RAWVALUE", "INTVALUE", "SMALLINTVALUE", "REALVALUE",
@@ -163,9 +168,23 @@ class TestCase(TestEnv.BaseTestCase):
                 "NCLOBVALUE", "BLOBVALUE", "SUBOBJECTVALUE", "SUBOBJECTARRAY"]
         actualAttributeNames = [a.name for a in typeObj.attributes]
         self.assertEqual(actualAttributeNames, expectedAttributeNames)
-        typeObj = self.connection.gettype("UDT_OBJECTARRAY")
-        self.assertEqual(typeObj.iscollection, True)
-        self.assertEqual(typeObj.attributes, [])
+        expectedAttributeTypes = [cx_Oracle.DB_TYPE_NUMBER,
+                cx_Oracle.DB_TYPE_VARCHAR, cx_Oracle.DB_TYPE_CHAR,
+                cx_Oracle.DB_TYPE_NVARCHAR, cx_Oracle.DB_TYPE_NCHAR,
+                cx_Oracle.DB_TYPE_RAW, cx_Oracle.DB_TYPE_NUMBER,
+                cx_Oracle.DB_TYPE_NUMBER, cx_Oracle.DB_TYPE_NUMBER,
+                cx_Oracle.DB_TYPE_NUMBER, cx_Oracle.DB_TYPE_NUMBER,
+                cx_Oracle.DB_TYPE_BINARY_FLOAT,
+                cx_Oracle.DB_TYPE_BINARY_DOUBLE,
+                cx_Oracle.DB_TYPE_DATE, cx_Oracle.DB_TYPE_TIMESTAMP,
+                cx_Oracle.DB_TYPE_TIMESTAMP_TZ,
+                cx_Oracle.DB_TYPE_TIMESTAMP_LTZ, cx_Oracle.DB_TYPE_CLOB,
+                cx_Oracle.DB_TYPE_NCLOB, cx_Oracle.DB_TYPE_BLOB,
+                subObjectValueType, subObjectArrayType]
+        actualAttributeTypes = [a.type for a in typeObj.attributes]
+        self.assertEqual(actualAttributeTypes, expectedAttributeTypes)
+        self.assertEqual(subObjectArrayType.iscollection, True)
+        self.assertEqual(subObjectArrayType.attributes, [])
 
     def testObjectType(self):
         "test object type data"
@@ -316,7 +335,8 @@ class TestCase(TestEnv.BaseTestCase):
         "test setting value of object variable to wrong object type"
         wrongObjType = self.connection.gettype("UDT_OBJECTARRAY")
         wrongObj = wrongObjType.newobject()
-        var = self.cursor.var(cx_Oracle.OBJECT, typename = "UDT_OBJECT")
+        var = self.cursor.var(cx_Oracle.DB_TYPE_OBJECT,
+                typename = "UDT_OBJECT")
         self.assertRaises(cx_Oracle.DatabaseError, var.setvalue, 0, wrongObj)
 
     def testStringFormat(self):

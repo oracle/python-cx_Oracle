@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -23,6 +23,12 @@
 #ifndef PyDateTime_DELTA_GET_MICROSECONDS
 #define PyDateTime_DELTA_GET_MICROSECONDS(x) ((x)->microseconds)
 #endif
+
+// forward declarations
+static Py_ssize_t cxoTransform_calculateSize(PyObject *value,
+        cxoTransformNum transformNum);
+static cxoTransformNum cxoTransform_getNumFromPythonType(PyTypeObject *type);
+
 
 //-----------------------------------------------------------------------------
 // Types
@@ -175,8 +181,37 @@ static const cxoTransform cxoAllTransforms[] = {
         CXO_TRANSFORM_TIMESTAMP_LTZ,
         DPI_ORACLE_TYPE_TIMESTAMP_LTZ,
         DPI_NATIVE_TYPE_TIMESTAMP
+    },
+    {
+        CXO_TRANSFORM_TIMESTAMP_TZ,
+        DPI_ORACLE_TYPE_TIMESTAMP_TZ,
+        DPI_NATIVE_TYPE_TIMESTAMP
     }
 };
+
+
+//-----------------------------------------------------------------------------
+// cxoTransform_calculateSize()
+//   Calculate the size to use with the specified transform and Python value.
+// This function is only called by cxoTransform_getNumFromValue() and no
+// attempt is made to verify the value further.
+//-----------------------------------------------------------------------------
+static Py_ssize_t cxoTransform_calculateSize(PyObject *value,
+        cxoTransformNum transformNum)
+{
+    switch (transformNum) {
+        case CXO_TRANSFORM_NONE:
+            return 1;
+        case CXO_TRANSFORM_BINARY:
+            return PyBytes_GET_SIZE(value);
+        case CXO_TRANSFORM_NSTRING:
+        case CXO_TRANSFORM_STRING:
+            return PyUnicode_GET_SIZE(value);
+        default:
+            break;
+    }
+    return 0;
+}
 
 
 //-----------------------------------------------------------------------------
@@ -320,6 +355,7 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_DATETIME:
         case CXO_TRANSFORM_TIMESTAMP:
         case CXO_TRANSFORM_TIMESTAMP_LTZ:
+        case CXO_TRANSFORM_TIMESTAMP_TZ:
             if (PyDateTime_Check(pyValue)) {
                 memset(&dbValue->asTimestamp, 0, sizeof(dbValue->asTimestamp));
                 dbValue->asTimestamp.year = PyDateTime_GET_YEAR(pyValue);
@@ -369,6 +405,37 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
 
 
 //-----------------------------------------------------------------------------
+// cxoTransform_getDefaultSize()
+//   Return the default size for the specified transform.
+//-----------------------------------------------------------------------------
+uint32_t cxoTransform_getDefaultSize(cxoTransformNum transformNum)
+{
+    switch (transformNum) {
+        case CXO_TRANSFORM_NONE:
+            return 1;
+        case CXO_TRANSFORM_BINARY:
+        case CXO_TRANSFORM_NSTRING:
+        case CXO_TRANSFORM_STRING:
+            return 4000;
+        case CXO_TRANSFORM_DECIMAL:
+        case CXO_TRANSFORM_FLOAT:
+        case CXO_TRANSFORM_INT:
+            return 1000;
+        case CXO_TRANSFORM_FIXED_CHAR:
+        case CXO_TRANSFORM_FIXED_NCHAR:
+            return 2000;
+        case CXO_TRANSFORM_LONG_BINARY:
+        case CXO_TRANSFORM_LONG_STRING:
+            return 128 * 1024;
+        default:
+            break;
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoTransform_getNumFromDataTypeInfo()
 //   Get the default transformation to use for the specified data type.
 //-----------------------------------------------------------------------------
@@ -403,6 +470,7 @@ cxoTransformNum cxoTransform_getNumFromDataTypeInfo(dpiDataTypeInfo *info)
         case DPI_ORACLE_TYPE_TIMESTAMP:
             return CXO_TRANSFORM_TIMESTAMP;
         case DPI_ORACLE_TYPE_TIMESTAMP_TZ:
+            return CXO_TRANSFORM_TIMESTAMP_TZ;
         case DPI_ORACLE_TYPE_TIMESTAMP_LTZ:
             return CXO_TRANSFORM_TIMESTAMP_LTZ;
         case DPI_ORACLE_TYPE_INTERVAL_DS:
@@ -433,26 +501,14 @@ cxoTransformNum cxoTransform_getNumFromDataTypeInfo(dpiDataTypeInfo *info)
 
 
 //-----------------------------------------------------------------------------
-// cxoTransform_getNumFromType()
+// cxoTransform_getNumFromPythonType()
 //   Get the appropriate transformation to use for the specified Python type.
 //-----------------------------------------------------------------------------
-cxoTransformNum cxoTransform_getNumFromType(PyTypeObject *type)
+static cxoTransformNum cxoTransform_getNumFromPythonType(PyTypeObject *type)
 {
     if (type == &PyUnicode_Type)
         return CXO_TRANSFORM_STRING;
-    if (type == &cxoPyTypeStringVar)
-        return CXO_TRANSFORM_STRING;
-    if (type == &cxoPyTypeFixedCharVar)
-        return CXO_TRANSFORM_FIXED_CHAR;
-    if (type == &cxoPyTypeNcharVar)
-        return CXO_TRANSFORM_NSTRING;
-    if (type == &cxoPyTypeFixedNcharVar)
-        return CXO_TRANSFORM_FIXED_NCHAR;
-    if (type == &cxoPyTypeRowidVar)
-        return CXO_TRANSFORM_ROWID;
     if (type == &PyBytes_Type)
-        return CXO_TRANSFORM_BINARY;
-    if (type == &cxoPyTypeBinaryVar)
         return CXO_TRANSFORM_BINARY;
     if (type == &PyFloat_Type)
         return CXO_TRANSFORM_FLOAT;
@@ -460,56 +516,24 @@ cxoTransformNum cxoTransform_getNumFromType(PyTypeObject *type)
         return CXO_TRANSFORM_INT;
     if (type == cxoPyTypeDecimal)
         return CXO_TRANSFORM_DECIMAL;
-    if (type == &cxoPyTypeNumberVar)
-        return CXO_TRANSFORM_FLOAT;
-    if (type == &cxoPyTypeNativeFloatVar)
-        return CXO_TRANSFORM_NATIVE_DOUBLE;
-    if (type == &cxoPyTypeNativeIntVar)
-        return CXO_TRANSFORM_NATIVE_INT;
     if (type == &PyBool_Type)
-        return CXO_TRANSFORM_BOOLEAN;
-    if (type == &cxoPyTypeBooleanVar)
         return CXO_TRANSFORM_BOOLEAN;
     if (type == PyDateTimeAPI->DateType)
         return CXO_TRANSFORM_DATE;
     if (type == PyDateTimeAPI->DateTimeType)
         return CXO_TRANSFORM_DATETIME;
-    if (type == &cxoPyTypeDateTimeVar)
-        return CXO_TRANSFORM_DATETIME;
-    if (type == &cxoPyTypeTimestampVar)
-        return CXO_TRANSFORM_TIMESTAMP;
     if (type == PyDateTimeAPI->DeltaType)
         return CXO_TRANSFORM_TIMEDELTA;
-    if (type == &cxoPyTypeIntervalVar)
-        return CXO_TRANSFORM_TIMEDELTA;
-    if (type == &cxoPyTypeObject)
-        return CXO_TRANSFORM_OBJECT;
-    if (type == &cxoPyTypeObjectVar)
-        return CXO_TRANSFORM_OBJECT;
-    if (type == &cxoPyTypeClobVar)
-        return CXO_TRANSFORM_CLOB;
-    if (type == &cxoPyTypeNclobVar)
-        return CXO_TRANSFORM_NCLOB;
-    if (type == &cxoPyTypeBlobVar)
-        return CXO_TRANSFORM_BLOB;
-    if (type == &cxoPyTypeBfileVar)
-        return CXO_TRANSFORM_BFILE;
-    if (type == &cxoPyTypeCursorVar)
-        return CXO_TRANSFORM_CURSOR;
-    if (type == &cxoPyTypeLongStringVar)
-        return CXO_TRANSFORM_LONG_STRING;
-    if (type == &cxoPyTypeLongBinaryVar)
-        return CXO_TRANSFORM_LONG_BINARY;
 
     return CXO_TRANSFORM_UNSUPPORTED;
 }
 
 
 //-----------------------------------------------------------------------------
-// cxoTransform_getNumFromValue()
-//   Get the appropriate transformation to use for the specified Python object.
+// cxoTransform_getNumFromPythonValue()
+//   Get the appropriate transformation to use for the specified Python value.
 //-----------------------------------------------------------------------------
-cxoTransformNum cxoTransform_getNumFromValue(PyObject *value, int plsql)
+cxoTransformNum cxoTransform_getNumFromPythonValue(PyObject *value, int plsql)
 {
     cxoLob *lob;
 
@@ -542,16 +566,141 @@ cxoTransformNum cxoTransform_getNumFromValue(PyObject *value, int plsql)
         return CXO_TRANSFORM_OBJECT;
     if (PyObject_TypeCheck(value, &cxoPyTypeLob)) {
         lob = (cxoLob*) value;
-        if (lob->oracleTypeNum == DPI_ORACLE_TYPE_CLOB)
-            return CXO_TRANSFORM_CLOB;
-        if (lob->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
-            return CXO_TRANSFORM_NCLOB;
-        if (lob->oracleTypeNum == DPI_ORACLE_TYPE_BLOB)
-            return CXO_TRANSFORM_BLOB;
-        if (lob->oracleTypeNum == DPI_ORACLE_TYPE_BFILE)
-            return CXO_TRANSFORM_BFILE;
+        return lob->dbType->defaultTransformNum;
     }
     return CXO_TRANSFORM_UNSUPPORTED;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoTransform_getNumFromType()
+//   Get the appropriate transformation to use for the specified type. This
+// can be either a database type constant defined at the module level or a
+// Python type.
+//-----------------------------------------------------------------------------
+int cxoTransform_getNumFromType(PyObject *type, cxoTransformNum *transformNum,
+        cxoObjectType **objType)
+{
+    PyTypeObject *pyType;
+    cxoApiType *apiType;
+    cxoDbType *dbType;
+    char message[250];
+    int status;
+
+    // check to see if a database type constant has been specified
+    status = PyObject_IsInstance(type, (PyObject*) &cxoPyTypeDbType);
+    if (status < 0)
+        return -1;
+    if (status == 1) {
+        dbType = (cxoDbType*) type;
+        *transformNum = dbType->defaultTransformNum;
+        *objType = NULL;
+        return 0;
+    }
+
+    // check to see if a DB API type constant has been specified
+    status = PyObject_IsInstance(type, (PyObject*) &cxoPyTypeApiType);
+    if (status < 0)
+        return -1;
+    if (status == 1) {
+        apiType = (cxoApiType*) type;
+        *transformNum = apiType->defaultTransformNum;
+        *objType = NULL;
+        return 0;
+    }
+
+    // check to see if an object type has been specified
+    if (Py_TYPE(type) == &cxoPyTypeObjectType) {
+        *transformNum = CXO_TRANSFORM_OBJECT;
+        *objType = (cxoObjectType*) type;
+        return 0;
+    }
+
+    // check to see if a Python type has been specified
+    if (Py_TYPE(type) != &PyType_Type) {
+        PyErr_SetString(PyExc_TypeError, "expecting type");
+        return -1;
+    }
+
+    // check to see if the Python type is a supported type
+    pyType = (PyTypeObject*) type;
+    *objType = NULL;
+    *transformNum = cxoTransform_getNumFromPythonType(pyType);
+    if (*transformNum != CXO_TRANSFORM_UNSUPPORTED)
+        return 0;
+
+    // no valid type specified
+    snprintf(message, sizeof(message), "Python type %s not supported.",
+            pyType->tp_name);
+    cxoError_raiseFromString(cxoNotSupportedErrorException, message);
+    return -1;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoTransform_getNumFromValue()
+//   Get the appropriate transformation to use for the specified value. If the
+// value is an array, determine the transformation that can be used for all of
+// the elements in that array.
+//-----------------------------------------------------------------------------
+int cxoTransform_getNumFromValue(PyObject *value, int *isArray,
+        Py_ssize_t *size, Py_ssize_t *numElements, int plsql,
+        cxoTransformNum *transformNum)
+{
+    cxoTransformNum tempTransformNum;
+    PyObject *elementValue;
+    Py_ssize_t i, tempSize;
+    char message[250];
+
+    // initialization (except numElements which always has a valid value and is
+    // only overridden when a an array is encountered)
+    *size = 0;
+    *isArray = 0;
+
+    // handle arrays
+    if (PyList_Check(value)) {
+        *transformNum = CXO_TRANSFORM_NONE;
+        for (i = 0; i < PyList_GET_SIZE(value); i++) {
+            elementValue = PyList_GET_ITEM(value, i);
+            tempTransformNum = cxoTransform_getNumFromPythonValue(elementValue,
+                    1);
+            if (tempTransformNum == CXO_TRANSFORM_UNSUPPORTED) {
+                snprintf(message, sizeof(message),
+                        "element %u value of type %s is not supported",
+                        (unsigned) i, Py_TYPE(value)->tp_name);
+                cxoError_raiseFromString(cxoNotSupportedErrorException,
+                        message);
+                return -1;
+            } else if (*transformNum == CXO_TRANSFORM_NONE) {
+                *transformNum = tempTransformNum;
+            } else if (*transformNum != tempTransformNum) {
+                snprintf(message, sizeof(message),
+                        "element %u value is not the same type as previous "
+                        "elements", (unsigned) i);
+                cxoError_raiseFromString(cxoNotSupportedErrorException,
+                        message);
+                return -1;
+            }
+            tempSize = cxoTransform_calculateSize(elementValue, *transformNum);
+            if (tempSize > *size)
+                *size = tempSize;
+        }
+        *isArray = 1;
+        *numElements = PyList_GET_SIZE(value);
+        return 0;
+    }
+
+    // handle scalar values
+    *transformNum = cxoTransform_getNumFromPythonValue(value, plsql);
+    if (*transformNum == CXO_TRANSFORM_UNSUPPORTED) {
+        snprintf(message, sizeof(message),
+                "Python value of type %s not supported.",
+                Py_TYPE(value)->tp_name);
+        cxoError_raiseFromString(cxoNotSupportedErrorException, message);
+        return -1;
+    }
+    *size = cxoTransform_calculateSize(value, *transformNum);
+    return 0;
 }
 
 
@@ -618,17 +767,16 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         cxoConnection *connection, cxoObjectType *objType,
         dpiDataBuffer *dbValue, const char *encodingErrors)
 {
-    const cxoTransform *transform;
     PyObject *stringObj, *result;
     dpiIntervalDS *intervalDS;
     dpiTimestamp *timestamp;
     uint32_t rowidLength;
+    cxoDbType *dbType;
     const char *rowid;
     cxoCursor *cursor;
     dpiBytes *bytes;
     int32_t seconds;
 
-    transform = &cxoAllTransforms[transformNum];
     switch (transformNum) {
         case CXO_TRANSFORM_BINARY:
         case CXO_TRANSFORM_LONG_BINARY:
@@ -638,8 +786,8 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_BLOB:
         case CXO_TRANSFORM_CLOB:
         case CXO_TRANSFORM_NCLOB:
-            return cxoLob_new(connection, transform->oracleTypeNum,
-                    dbValue->asLOB);
+            dbType = cxoDbType_fromTransformNum(transformNum);
+            return cxoLob_new(connection, dbType, dbValue->asLOB);
         case CXO_TRANSFORM_BOOLEAN:
             if (dbValue->asBoolean)
                 Py_RETURN_TRUE;
@@ -660,6 +808,7 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_DATETIME:
         case CXO_TRANSFORM_TIMESTAMP:
         case CXO_TRANSFORM_TIMESTAMP_LTZ:
+        case CXO_TRANSFORM_TIMESTAMP_TZ:
             timestamp = &dbValue->asTimestamp;
             return PyDateTime_FromDateAndTime(timestamp->year,
                     timestamp->month, timestamp->day, timestamp->hour,

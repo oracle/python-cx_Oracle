@@ -214,9 +214,10 @@ LOB Bind Variables
 ==================
 
 Database CLOBs, NCLOBS, BLOBs and BFILEs can be bound with types
-:attr:`cx_Oracle.CLOB`, :attr:`cx_Oracle.NCLOB`, :attr:`cx_Oracle.BLOB`
-and :attr:`cx_Oracle.BFILE` respectively. LOBs fetched from the database or
-created with :meth:`Connection.createlob()` can also be bound.
+:attr:`cx_Oracle.DB_TYPE_CLOB`, :attr:`cx_Oracle.DB_TYPE_NCLOB`,
+:attr:`cx_Oracle.DB_TYPE_BLOB` and :attr:`cx_Oracle.DB_TYPE_BFILE`
+respectively. LOBs fetched from the database or created with
+:meth:`Connection.createlob()` can also be bound.
 
 LOBs may represent Oracle Database persistent LOBs (those stored in tables) or
 temporary LOBs (such as those created with :meth:`Connection.createlob()` or
@@ -268,12 +269,12 @@ employees with the last name 'Smith' so the result is::
     (159, 'Lindsey', 'Smith')
     (171, 'William', 'Smith')
 
-To return a REF CURSOR from a PL/SQL function, use ``cx_Oracle.CURSOR`` for the
+To return a REF CURSOR from a PL/SQL function, use ``cx_Oracle.DB_TYPE_CURSOR`` for the
 return type of :meth:`Cursor.callfunc()`:
 
 .. code-block:: python
 
-    refCursor = cursor.callfunc('example_package.f_get_cursor', cx_Oracle.CURSOR)
+    refCursor = cursor.callfunc('example_package.f_get_cursor', cx_Oracle.DB_TYPE_CURSOR)
     for row in refCursor:
         print(row)
 
@@ -659,7 +660,7 @@ objects seamlessly:
 
     def InputTypeHandler(cursor, value, numElements):
         if isinstance(value, Building):
-            return cursor.var(cx_Oracle.OBJECT, arraysize = numElements,
+            return cursor.var(cx_Oracle.DB_TYPE_OBJECT, arraysize = numElements,
                     inconverter = BuildingInConverter, typename = objType.name)
 
 

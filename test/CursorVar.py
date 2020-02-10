@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -26,7 +26,7 @@ class TestCase(TestEnv.BaseTestCase):
                 end;""",
                 cursor = cursor)
         self.assertEqual(cursor.description,
-                [ ('STRINGVALUE', cx_Oracle.FIXED_CHAR, 1,
+                [ ('STRINGVALUE', cx_Oracle.DB_TYPE_CHAR, 1,
                         TestEnv.GetCharSetRatio(), None, None, 1) ])
         self.assertEqual(cursor.fetchall(), [('X',)])
 
@@ -36,8 +36,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(cursor.description, None)
         self.cursor.callproc("pkg_TestRefCursors.TestOutCursor", (2, cursor))
         self.assertEqual(cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('STRINGCOL', cx_Oracle.STRING, 20, 20 *
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('STRINGCOL', cx_Oracle.DB_TYPE_VARCHAR, 20, 20 *
                         TestEnv.GetCharSetRatio(), None, None, 0) ])
         self.assertEqual(cursor.fetchall(),
                 [ (1, 'String 1'), (2, 'String 2') ])
@@ -80,9 +80,9 @@ class TestCase(TestEnv.BaseTestCase):
                 from TestNumbers
                 order by IntCol""")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('CURSORVALUE', cx_Oracle.CURSOR, None, None, None, None,
-                        1) ])
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('CURSORVALUE', cx_Oracle.DB_TYPE_CURSOR, None, None, None,
+                      None, 1) ])
         for i in range(1, 11):
             number, cursor = self.cursor.fetchone()
             self.assertEqual(number, i)
@@ -90,4 +90,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

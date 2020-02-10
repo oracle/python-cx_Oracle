@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -117,8 +117,10 @@ class TestCase(TestEnv.BaseTestCase):
 
     def __ValidateQuery(self, rows, lobType):
         longString = ""
+        dbType = getattr(cx_Oracle, "DB_TYPE_" + lobType)
         for row in rows:
             integerValue, lob = row
+            self.assertEqual(lob.type, dbType)
             if integerValue == 0:
                 self.assertEqual(lob.size(), 0)
                 expectedValue = ""
@@ -158,16 +160,17 @@ class TestCase(TestEnv.BaseTestCase):
         "test cursor description is accurate for BLOBs"
         self.cursor.execute("select * from TestBLOBs")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('BLOBCOL', cx_Oracle.BLOB, None, None, None, None, 0) ])
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('BLOBCOL', cx_Oracle.DB_TYPE_BLOB, None, None, None, None,
+                        0) ])
 
     def testBLOBsDirect(self):
         "test binding and fetching BLOB data (directly)"
-        self.__PerformTest("BLOB", cx_Oracle.BLOB)
+        self.__PerformTest("BLOB", cx_Oracle.DB_TYPE_BLOB)
 
     def testBLOBsIndirect(self):
         "test binding and fetching BLOB data (indirectly)"
-        self.__PerformTest("BLOB", cx_Oracle.LONG_BINARY)
+        self.__PerformTest("BLOB", cx_Oracle.DB_TYPE_LONG_RAW)
 
     def testBLOBOperations(self):
         "test operations on BLOBs"
@@ -177,16 +180,17 @@ class TestCase(TestEnv.BaseTestCase):
         "test cursor description is accurate for CLOBs"
         self.cursor.execute("select * from TestCLOBs")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('CLOBCOL', cx_Oracle.CLOB, None, None, None, None, 0) ])
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('CLOBCOL', cx_Oracle.DB_TYPE_CLOB, None, None, None, None,
+                        0) ])
 
     def testCLOBsDirect(self):
         "test binding and fetching CLOB data (directly)"
-        self.__PerformTest("CLOB", cx_Oracle.CLOB)
+        self.__PerformTest("CLOB", cx_Oracle.DB_TYPE_CLOB)
 
     def testCLOBsIndirect(self):
         "test binding and fetching CLOB data (indirectly)"
-        self.__PerformTest("CLOB", cx_Oracle.LONG_STRING)
+        self.__PerformTest("CLOB", cx_Oracle.DB_TYPE_LONG)
 
     def testCLOBOperations(self):
         "test operations on CLOBs"
@@ -215,12 +219,13 @@ class TestCase(TestEnv.BaseTestCase):
         "test cursor description is accurate for NCLOBs"
         self.cursor.execute("select * from TestNCLOBs")
         self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.NUMBER, 10, None, 9, 0, 0),
-                  ('NCLOBCOL', cx_Oracle.NCLOB, None, None, None, None, 0) ])
+                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+                  ('NCLOBCOL', cx_Oracle.DB_TYPE_NCLOB, None, None, None, None,
+                      0) ])
 
     def testNCLOBsDirect(self):
         "test binding and fetching NCLOB data (directly)"
-        self.__PerformTest("NCLOB", cx_Oracle.NCLOB)
+        self.__PerformTest("NCLOB", cx_Oracle.DB_TYPE_NCLOB)
 
     def testNCLOBDifferentEncodings(self):
         "test binding and fetching NCLOB data (different encodings)"
@@ -230,11 +235,11 @@ class TestCase(TestEnv.BaseTestCase):
         value = u"\u03b4\u4e2a"
         cursor = connection.cursor()
         cursor.execute("truncate table TestNCLOBs")
-        cursor.setinputsizes(val = cx_Oracle.NCHAR)
+        cursor.setinputsizes(val = cx_Oracle.DB_TYPE_NVARCHAR)
         cursor.execute("insert into TestNCLOBs values (1, :val)", val = value)
         cursor.execute("select NCLOBCol from TestNCLOBs")
         nclob, = cursor.fetchone()
-        cursor.setinputsizes(val = cx_Oracle.NCHAR)
+        cursor.setinputsizes(val = cx_Oracle.DB_TYPE_NVARCHAR)
         cursor.execute("update TestNCLOBs set NCLOBCol = :val",
                 val = nclob.read() + value)
         cursor.execute("select NCLOBCol from TestNCLOBs")
@@ -243,7 +248,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testNCLOBsIndirect(self):
         "test binding and fetching NCLOB data (indirectly)"
-        self.__PerformTest("NCLOB", cx_Oracle.LONG_STRING)
+        self.__PerformTest("NCLOB", cx_Oracle.DB_TYPE_LONG)
 
     def testNCLOBOperations(self):
         "test operations on NCLOBs"
@@ -271,7 +276,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testAssignStringBeyondArraySize(self):
         "test assign string to NCLOB beyond array size"
-        nclobVar = self.cursor.var(cx_Oracle.NCLOB)
+        nclobVar = self.cursor.var(cx_Oracle.DB_TYPE_NCLOB)
         self.assertRaises(IndexError, nclobVar.setvalue, 1, "test char")
 
 if __name__ == "__main__":

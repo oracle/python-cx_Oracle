@@ -613,7 +613,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.cursor.parse(sql)
         self.assertEqual(self.cursor.statement, sql)
         self.assertEqual(self.cursor.description,
-                [ ('LONGINTCOL', cx_Oracle.NUMBER, 17, None, 16, 0, 0) ])
+                [ ('LONGINTCOL', cx_Oracle.DB_TYPE_NUMBER, 17, None, 16, 0,
+                        0) ])
 
     def testSetOutputSize(self):
         "test cursor.setoutputsize() does not fail (but does nothing)"

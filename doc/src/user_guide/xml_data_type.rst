@@ -38,7 +38,7 @@ as shown:
 
 .. code-block:: python
 
-    clob = connection.createlob(cx_Oracle.CLOB)
+    clob = connection.createlob(cx_Oracle.DB_TYPE_CLOB)
     clob.write(xmlData)
     cursor.execute("insert into xml_table values (:id, sys.xmltype(:xml))",
             id=2, xml=clob)

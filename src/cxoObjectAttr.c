@@ -14,13 +14,23 @@
 //-----------------------------------------------------------------------------
 static void cxoObjectAttr_free(cxoObjectAttr*);
 static PyObject *cxoObjectAttr_repr(cxoObjectAttr*);
+static PyObject *cxoObjectAttr_getType(cxoObjectAttr*, void*);
 
 
 //-----------------------------------------------------------------------------
-// declaration of members for Python type "ObjectAttribute"
+// declaration of members
 //-----------------------------------------------------------------------------
-static PyMemberDef cxoObjectAttrMembers[] = {
+static PyMemberDef cxoMembers[] = {
     { "name", T_OBJECT, offsetof(cxoObjectAttr, name), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "type", (getter) cxoObjectAttr_getType, 0, 0, 0 },
     { NULL }
 };
 
@@ -35,7 +45,8 @@ PyTypeObject cxoPyTypeObjectAttr = {
     .tp_dealloc = (destructor) cxoObjectAttr_free,
     .tp_repr = (reprfunc) cxoObjectAttr_repr,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoObjectAttrMembers
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers
 };
 
 
@@ -51,15 +62,19 @@ static int cxoObjectAttr_initialize(cxoObjectAttr *attr,
     if (dpiObjectAttr_getInfo(attr->handle, &info) < 0)
         return cxoError_raiseAndReturnInt();
     attr->transformNum = cxoTransform_getNumFromDataTypeInfo(&info.typeInfo);
+    attr->dbType = cxoDbType_fromTransformNum(attr->transformNum);
+    if (!attr->dbType)
+        return -1;
+    Py_INCREF(attr->dbType);
     attr->oracleTypeNum = info.typeInfo.oracleTypeNum;
     attr->name = PyUnicode_Decode(info.name, info.nameLength,
             connection->encodingInfo.encoding, NULL);
     if (!attr->name)
         return -1;
     if (info.typeInfo.objectType) {
-        attr->type = cxoObjectType_new(connection,
+        attr->objectType = cxoObjectType_new(connection,
                 info.typeInfo.objectType);
-        if (!attr->type)
+        if (!attr->objectType)
             return -1;
     }
 
@@ -103,8 +118,26 @@ static void cxoObjectAttr_free(cxoObjectAttr *attr)
         attr->handle = NULL;
     }
     Py_CLEAR(attr->name);
-    Py_CLEAR(attr->type);
+    Py_CLEAR(attr->objectType);
+    Py_CLEAR(attr->dbType);
     Py_TYPE(attr)->tp_free((PyObject*) attr);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoObjectAttr_getType()
+//   Return the type associated with the attribute. This is either an object
+// type or one of the database type constants.
+//-----------------------------------------------------------------------------
+static PyObject *cxoObjectAttr_getType(cxoObjectAttr *attr, void *unused)
+{
+    if (attr->objectType) {
+        Py_INCREF(attr->objectType);
+        return (PyObject*) attr->objectType;
+    }
+
+    Py_INCREF(attr->dbType);
+    return (PyObject*) attr->dbType;
 }
 
 

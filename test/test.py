@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -36,6 +36,7 @@ moduleNames = [
     "Cursor",
     "CursorVar",
     "DateTimeVar",
+    "DbTypes",
     "DMLReturning",
     "Error",
     "IntervalVar",

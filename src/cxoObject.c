@@ -211,7 +211,7 @@ static PyObject *cxoObject_getAttributeValue(cxoObject *obj,
             nativeTypeNum, &data) < 0)
         return cxoError_raiseAndReturnNull();
     return cxoObject_convertToPython(obj, attribute->transformNum, &data,
-            attribute->type);
+            attribute->objectType);
 }
 
 
@@ -367,7 +367,7 @@ static PyObject *cxoObject_internalGetElementByIndex(cxoObject *obj,
                 &data) < 0)
         return cxoError_raiseAndReturnNull();
     return cxoObject_convertToPython(obj, obj->objectType->elementTransformNum,
-            &data, (cxoObjectType*) obj->objectType->elementType);
+            &data, obj->objectType->elementObjectType);
 }
 
 

@@ -34,7 +34,7 @@ static PyObject *cxoLob_reduce(cxoLob*);
 
 
 //-----------------------------------------------------------------------------
-// declaration of methods for Python type "LOB"
+// declaration of methods
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoLobMethods[] = {
     { "size", (PyCFunction) cxoLob_size, METH_NOARGS },
@@ -54,6 +54,15 @@ static PyMethodDef cxoLobMethods[] = {
 
 
 //-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "type", T_OBJECT, offsetof(cxoLob, dbType), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
 // Python type declaration
 //-----------------------------------------------------------------------------
 PyTypeObject cxoPyTypeLob = {
@@ -63,7 +72,8 @@ PyTypeObject cxoPyTypeLob = {
     .tp_dealloc = (destructor) cxoLob_free,
     .tp_str = (reprfunc) cxoLob_str,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoLobMethods
+    .tp_methods = cxoLobMethods,
+    .tp_members = cxoMembers
 };
 
 
@@ -71,7 +81,7 @@ PyTypeObject cxoPyTypeLob = {
 // cxoLob_new()
 //   Create a new LOB.
 //-----------------------------------------------------------------------------
-PyObject *cxoLob_new(cxoConnection *connection, dpiOracleTypeNum oracleTypeNum,
+PyObject *cxoLob_new(cxoConnection *connection, cxoDbType *dbType,
         dpiLob *handle)
 {
     cxoLob *lob;
@@ -80,9 +90,10 @@ PyObject *cxoLob_new(cxoConnection *connection, dpiOracleTypeNum oracleTypeNum,
     if (!lob)
         return NULL;
     lob->handle = handle;
-    lob->oracleTypeNum = oracleTypeNum;
     Py_INCREF(connection);
     lob->connection = connection;
+    Py_INCREF(dbType);
+    lob->dbType = dbType;
     return (PyObject*) lob;
 }
 
@@ -97,6 +108,7 @@ static void cxoLob_free(cxoLob *lob)
         dpiLob_release(lob->handle);
         lob->handle = NULL;
     }
+    Py_CLEAR(lob->dbType);
     Py_CLEAR(lob->connection);
     Py_TYPE(lob)->tp_free((PyObject*) lob);
 }
@@ -141,13 +153,15 @@ static PyObject *cxoLob_internalRead(cxoLob *lob, uint64_t offset,
     }
 
     // return the result
-    if (lob->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
+    if (lob->dbType == cxoDbTypeNclob) {
         result = PyUnicode_Decode(buffer, (Py_ssize_t) bufferSize,
                 lob->connection->encodingInfo.nencoding, NULL);
-    else if (lob->oracleTypeNum == DPI_ORACLE_TYPE_CLOB)
+    } else if (lob->dbType == cxoDbTypeClob) {
         result = PyUnicode_Decode(buffer, (Py_ssize_t) bufferSize,
                 lob->connection->encodingInfo.encoding, NULL);
-    else result = PyBytes_FromStringAndSize(buffer, (Py_ssize_t) bufferSize);
+    } else {
+        result = PyBytes_FromStringAndSize(buffer, (Py_ssize_t) bufferSize);
+    }
     PyMem_Free(buffer);
     return result;
 }
@@ -164,7 +178,7 @@ static int cxoLob_internalWrite(cxoLob *lob, PyObject *dataObj,
     cxoBuffer buffer;
     int status;
 
-    if (lob->oracleTypeNum == DPI_ORACLE_TYPE_NCLOB)
+    if (lob->dbType == cxoDbTypeNclob)
         encoding = lob->connection->encodingInfo.nencoding;
     else encoding = lob->connection->encodingInfo.encoding;
     if (cxoBuffer_fromObject(&buffer, dataObj, encoding) < 0)

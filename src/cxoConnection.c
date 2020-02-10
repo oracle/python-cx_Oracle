@@ -347,7 +347,7 @@ static int cxoConnectionParams_processShardingKeyValue(
     dpiNativeTypeNum nativeTypeNum;
     cxoTransformNum transformNum;
 
-    transformNum = cxoTransform_getNumFromValue(value, 0);
+    transformNum = cxoTransform_getNumFromPythonValue(value, 0);
     if (cxoTransform_fromPython(transformNum, &nativeTypeNum, value,
             &column->value, buffer, params->encoding, params->nencoding, NULL,
             0) < 0)
@@ -1011,7 +1011,7 @@ static PyObject *cxoConnection_getType(cxoConnection *conn, PyObject *nameObj)
 static PyObject *cxoConnection_createLob(cxoConnection *conn,
         PyObject *lobType)
 {
-    dpiOracleTypeNum oracleTypeNum;
+    cxoDbType *dbType;
     dpiLob *handle;
     PyObject *lob;
 
@@ -1020,23 +1020,20 @@ static PyObject *cxoConnection_createLob(cxoConnection *conn,
         return NULL;
 
     // verify the LOB type
-    if (lobType == (PyObject*) &cxoPyTypeClobVar)
-        oracleTypeNum = DPI_ORACLE_TYPE_CLOB;
-    else if (lobType == (PyObject*) &cxoPyTypeBlobVar)
-        oracleTypeNum = DPI_ORACLE_TYPE_BLOB;
-    else if (lobType == (PyObject*) &cxoPyTypeNclobVar)
-        oracleTypeNum = DPI_ORACLE_TYPE_NCLOB;
-    else {
+    if (lobType != (PyObject*) cxoDbTypeClob &&
+            lobType != (PyObject*) cxoDbTypeBlob &&
+            lobType != (PyObject*) cxoDbTypeNclob) {
         PyErr_SetString(PyExc_TypeError,
-                "parameter should be one of cx_Oracle.CLOB, cx_Oracle.BLOB "
-                "or cx_Oracle.NCLOB");
+                "parameter should be one of cx_Oracle.DB_TYPE_CLOB, "
+                "cx_Oracle.DB_TYPE_BLOB or cx_Oracle.DB_TYPE_NCLOB");
         return NULL;
     }
 
     // create a temporary LOB
-    if (dpiConn_newTempLob(conn->handle, oracleTypeNum, &handle) < 0)
+    dbType = (cxoDbType*) lobType;
+    if (dpiConn_newTempLob(conn->handle, dbType->num, &handle) < 0)
         return cxoError_raiseAndReturnNull();
-    lob = cxoLob_new(conn, oracleTypeNum, handle);
+    lob = cxoLob_new(conn, dbType, handle);
     if (!lob)
         dpiLob_release(handle);
     return lob;
