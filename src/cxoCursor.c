@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -128,47 +128,18 @@ static PyGetSetDef cxoCursorCalcMembers[] = {
 //-----------------------------------------------------------------------------
 PyTypeObject cxoPyTypeCursor = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.Cursor",                 // tp_name
-    sizeof(cxoCursor),                  // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoCursor_free,        // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    (reprfunc) cxoCursor_repr,          // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-                                        // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    (getiterfunc) cxoCursor_getIter,    // tp_iter
-    (iternextfunc) cxoCursor_getNext,   // tp_iternext
-    cxoCursorMethods,                   // tp_methods
-    cxoCursorMembers,                   // tp_members
-    cxoCursorCalcMembers,               // tp_getset
-    0,                                  // tp_base
-    0,                                  // tp_dict
-    0,                                  // tp_descr_get
-    0,                                  // tp_descr_set
-    0,                                  // tp_dictoffset
-    (initproc) cxoCursor_init,          // tp_init
-    0,                                  // tp_alloc
-    cxoCursor_new,                      // tp_new
-    0,                                  // tp_free
-    0,                                  // tp_is_gc
-    0                                   // tp_bases
+    .tp_name = "cx_Oracle.Cursor",
+    .tp_basicsize = sizeof(cxoCursor),
+    .tp_dealloc = (destructor) cxoCursor_free,
+    .tp_repr = (reprfunc) cxoCursor_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_iter = (getiterfunc) cxoCursor_getIter,
+    .tp_iternext = (iternextfunc) cxoCursor_getNext,
+    .tp_methods = cxoCursorMethods,
+    .tp_members = cxoCursorMembers,
+    .tp_getset = cxoCursorCalcMembers,
+    .tp_init = (initproc) cxoCursor_init,
+    .tp_new = cxoCursor_new
 };
 
 
@@ -2217,4 +2188,3 @@ static PyObject *cxoCursor_contextManagerExit(cxoCursor *cursor,
     Py_INCREF(Py_False);
     return Py_False;
 }
-

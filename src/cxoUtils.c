@@ -190,4 +190,3 @@ int cxoUtils_processSodaDocArg(cxoSodaDatabase *db, PyObject *arg,
 
     return 0;
 }
-

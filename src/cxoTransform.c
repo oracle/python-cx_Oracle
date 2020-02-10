@@ -724,4 +724,3 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
     return cxoError_raiseFromString(cxoNotSupportedErrorException,
             "Database value cannot be converted to a Python value");
 }
-

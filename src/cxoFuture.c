@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -23,25 +23,12 @@ static int cxoFuture_setAttr(cxoFuture*, PyObject*, PyObject*);
 //-----------------------------------------------------------------------------
 PyTypeObject cxoPyTypeFuture = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.__future__",             // tp_name
-    sizeof(cxoFuture),                  // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoFuture_free,        // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    (getattrofunc) cxoFuture_getAttr,   // tp_getattro
-    (setattrofunc) cxoFuture_setAttr,   // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT                  // tp_flags
+    .tp_name = "cx_Oracle.__future__",
+    .tp_basicsize = sizeof(cxoFuture),
+    .tp_dealloc = (destructor) cxoFuture_free,
+    .tp_getattro = (getattrofunc) cxoFuture_getAttr,
+    .tp_setattro = (setattrofunc) cxoFuture_setAttr,
+    .tp_flags = Py_TPFLAGS_DEFAULT
 };
 
 
@@ -75,4 +62,3 @@ static int cxoFuture_setAttr(cxoFuture *obj, PyObject *nameObject,
 {
     return 0;
 }
-

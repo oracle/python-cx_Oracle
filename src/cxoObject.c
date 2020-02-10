@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -75,34 +75,15 @@ static PyMemberDef cxoObjectMembers[] = {
 //-----------------------------------------------------------------------------
 PyTypeObject cxoPyTypeObject = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.Object",                 // tp_name
-    sizeof(cxoObject),                  // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoObject_free,        // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    (reprfunc) cxoObject_repr,          // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    (getattrofunc) cxoObject_getAttr,   // tp_getattro
-    (setattrofunc) cxoObject_setAttr,   // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    0,                                  // tp_iter
-    0,                                  // tp_iternext
-    cxoObjectMethods,                   // tp_methods
-    cxoObjectMembers                    // tp_members
+    .tp_name = "cx_Oracle.Object",
+    .tp_basicsize = sizeof(cxoObject),
+    .tp_dealloc = (destructor) cxoObject_free,
+    .tp_repr = (reprfunc) cxoObject_repr,
+    .tp_getattro = (getattrofunc) cxoObject_getAttr,
+    .tp_setattro = (setattrofunc) cxoObject_setAttr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoObjectMethods,
+    .tp_members = cxoObjectMembers
 };
 
 
@@ -702,4 +683,3 @@ static PyObject *cxoObject_trim(cxoObject *obj, PyObject *args)
         return cxoError_raiseAndReturnNull();
     Py_RETURN_NONE;
 }
-

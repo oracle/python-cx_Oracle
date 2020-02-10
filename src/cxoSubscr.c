@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -94,224 +94,51 @@ static PyMethodDef cxoSubscrTypeMethods[] = {
 //-----------------------------------------------------------------------------
 PyTypeObject cxoPyTypeSubscr = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.Subscription",           // tp_name
-    sizeof(cxoSubscr),                  // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoSubscr_free,        // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    (reprfunc) cxoSubscr_repr,          // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    0,                                  // tp_iter
-    0,                                  // tp_iternext
-    cxoSubscrTypeMethods,               // tp_methods
-    cxoSubscrTypeMembers,               // tp_members
-    0,                                  // tp_getset
-    0,                                  // tp_base
-    0,                                  // tp_dict
-    0,                                  // tp_descr_get
-    0,                                  // tp_descr_set
-    0,                                  // tp_dictoffset
-    0,                                  // tp_init
-    0,                                  // tp_alloc
-    0,                                  // tp_new
-    0,                                  // tp_free
-    0,                                  // tp_is_gc
-    0                                   // tp_bases
+    .tp_name = "cx_Oracle.Subscription",
+    .tp_basicsize = sizeof(cxoSubscr),
+    .tp_dealloc = (destructor) cxoSubscr_free,
+    .tp_repr = (reprfunc) cxoSubscr_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoSubscrTypeMethods,
+    .tp_members = cxoSubscrTypeMembers
 };
 
 PyTypeObject cxoPyTypeMessage = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.Message",                // tp_name
-    sizeof(cxoMessage),                 // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoMessage_free,       // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    0,                                  // tp_iter
-    0,                                  // tp_iternext
-    0,                                  // tp_methods
-    cxoMessageTypeMembers,              // tp_members
-    0,                                  // tp_getset
-    0,                                  // tp_base
-    0,                                  // tp_dict
-    0,                                  // tp_descr_get
-    0,                                  // tp_descr_set
-    0,                                  // tp_dictoffset
-    0,                                  // tp_init
-    0,                                  // tp_alloc
-    0,                                  // tp_new
-    0,                                  // tp_free
-    0,                                  // tp_is_gc
-    0                                   // tp_bases
+    .tp_name = "cx_Oracle.Message",
+    .tp_basicsize = sizeof(cxoMessage),
+    .tp_dealloc = (destructor) cxoMessage_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMessageTypeMembers
 };
 
 PyTypeObject cxoPyTypeMessageTable = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.MessageTable",           // tp_name
-    sizeof(cxoMessageTable),            // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoMessageTable_free,  // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    0,                                  // tp_iter
-    0,                                  // tp_iternext
-    0,                                  // tp_methods
-    cxoMessageTableTypeMembers,         // tp_members
-    0,                                  // tp_getset
-    0,                                  // tp_base
-    0,                                  // tp_dict
-    0,                                  // tp_descr_get
-    0,                                  // tp_descr_set
-    0,                                  // tp_dictoffset
-    0,                                  // tp_init
-    0,                                  // tp_alloc
-    0,                                  // tp_new
-    0,                                  // tp_free
-    0,                                  // tp_is_gc
-    0                                   // tp_bases
+    .tp_name = "cx_Oracle.MessageTable",
+    .tp_basicsize = sizeof(cxoMessageTable),
+    .tp_dealloc = (destructor) cxoMessageTable_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMessageTableTypeMembers
 };
 
 
 PyTypeObject cxoPyTypeMessageRow = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.MessageRow",             // tp_name
-    sizeof(cxoMessageRow),              // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoMessageRow_free,    // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    0,                                  // tp_iter
-    0,                                  // tp_iternext
-    0,                                  // tp_methods
-    cxoMessageRowTypeMembers,           // tp_members
-    0,                                  // tp_getset
-    0,                                  // tp_base
-    0,                                  // tp_dict
-    0,                                  // tp_descr_get
-    0,                                  // tp_descr_set
-    0,                                  // tp_dictoffset
-    0,                                  // tp_init
-    0,                                  // tp_alloc
-    0,                                  // tp_new
-    0,                                  // tp_free
-    0,                                  // tp_is_gc
-    0                                   // tp_bases
+    .tp_name = "cx_Oracle.MessageRow",
+    .tp_basicsize = sizeof(cxoMessageRow),
+    .tp_dealloc = (destructor) cxoMessageRow_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMessageRowTypeMembers
 };
 
 
 PyTypeObject cxoPyTypeMessageQuery = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.MessageQuery",           // tp_name
-    sizeof(cxoMessageQuery),            // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoMessageQuery_free,  // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    0,                                  // tp_iter
-    0,                                  // tp_iternext
-    0,                                  // tp_methods
-    cxoMessageQueryTypeMembers,         // tp_members
-    0,                                  // tp_getset
-    0,                                  // tp_base
-    0,                                  // tp_dict
-    0,                                  // tp_descr_get
-    0,                                  // tp_descr_set
-    0,                                  // tp_dictoffset
-    0,                                  // tp_init
-    0,                                  // tp_alloc
-    0,                                  // tp_new
-    0,                                  // tp_free
-    0,                                  // tp_is_gc
-    0                                   // tp_bases
+    .tp_name = "cx_Oracle.MessageQuery",
+    .tp_basicsize = sizeof(cxoMessageQuery),
+    .tp_dealloc = (destructor) cxoMessageQuery_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMessageQueryTypeMembers
 };
 
 
@@ -705,4 +532,3 @@ static void cxoMessageTable_free(cxoMessageTable *table)
     Py_CLEAR(table->rows);
     Py_TYPE(table)->tp_free((PyObject*) table);
 }
-

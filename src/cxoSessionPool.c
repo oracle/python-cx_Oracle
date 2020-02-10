@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -96,47 +96,15 @@ static PyGetSetDef cxoSessionPoolCalcMembers[] = {
 //-----------------------------------------------------------------------------
 PyTypeObject cxoPyTypeSessionPool = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.SessionPool",            // tp_name
-    sizeof(cxoSessionPool),             // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoSessionPool_free,   // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    0,                                  // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-                                        // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    0,                                  // tp_iter
-    0,                                  // tp_iternext
-    cxoSessionPoolMethods,              // tp_methods
-    cxoSessionPoolMembers,              // tp_members
-    cxoSessionPoolCalcMembers,          // tp_getset
-    0,                                  // tp_base
-    0,                                  // tp_dict
-    0,                                  // tp_descr_get
-    0,                                  // tp_descr_set
-    0,                                  // tp_dictoffset
-    (initproc) cxoSessionPool_init,        // tp_init
-    0,                                  // tp_alloc
-    (newfunc) cxoSessionPool_new,          // tp_new
-    0,                                  // tp_free
-    0,                                  // tp_is_gc
-    0                                   // tp_bases
+    .tp_name = "cx_Oracle.SessionPool",
+    .tp_basicsize = sizeof(cxoSessionPool),
+    .tp_dealloc = (destructor) cxoSessionPool_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_methods = cxoSessionPoolMethods,
+    .tp_members = cxoSessionPoolMembers,
+    .tp_getset = cxoSessionPoolCalcMembers,
+    .tp_init = (initproc) cxoSessionPool_init,
+    .tp_new = (newfunc) cxoSessionPool_new
 };
 
 
@@ -653,4 +621,3 @@ static int cxoSessionPool_setWaitTimeout(cxoSessionPool *pool, PyObject *value,
 {
     return cxoSessionPool_setAttribute(pool, value, dpiPool_setWaitTimeout);
 }
-

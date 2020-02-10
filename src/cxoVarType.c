@@ -294,4 +294,3 @@ cxoVarType *cxoVarType_fromPythonValue(PyObject *value, int *isArray,
     *size = cxoVarType_calculateSize(value, transformNum);
     return &cxoAllVarTypes[transformNum];
 }
-

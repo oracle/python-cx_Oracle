@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -43,46 +43,12 @@ static PyMethodDef cxoMethods[] = {
 //-----------------------------------------------------------------------------
 PyTypeObject cxoPyTypeSodaDatabase = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "cx_Oracle.SodaDatabase",           // tp_name
-    sizeof(cxoSodaDatabase),            // tp_basicsize
-    0,                                  // tp_itemsize
-    (destructor) cxoSodaDatabase_free,  // tp_dealloc
-    0,                                  // tp_print
-    0,                                  // tp_getattr
-    0,                                  // tp_setattr
-    0,                                  // tp_compare
-    (reprfunc) cxoSodaDatabase_repr,    // tp_repr
-    0,                                  // tp_as_number
-    0,                                  // tp_as_sequence
-    0,                                  // tp_as_mapping
-    0,                                  // tp_hash
-    0,                                  // tp_call
-    0,                                  // tp_str
-    0,                                  // tp_getattro
-    0,                                  // tp_setattro
-    0,                                  // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                 // tp_flags
-    0,                                  // tp_doc
-    0,                                  // tp_traverse
-    0,                                  // tp_clear
-    0,                                  // tp_richcompare
-    0,                                  // tp_weaklistoffset
-    0,                                  // tp_iter
-    0,                                  // tp_iternext
-    cxoMethods,                         // tp_methods
-    0,                                  // tp_members
-    0,                                  // tp_getset
-    0,                                  // tp_base
-    0,                                  // tp_dict
-    0,                                  // tp_descr_get
-    0,                                  // tp_descr_set
-    0,                                  // tp_dictoffset
-    0,                                  // tp_init
-    0,                                  // tp_alloc
-    0,                                  // tp_new
-    0,                                  // tp_free
-    0,                                  // tp_is_gc
-    0                                   // tp_bases
+    .tp_name = "cx_Oracle.SodaDatabase",
+    .tp_basicsize = sizeof(cxoSodaDatabase),
+    .tp_dealloc = (destructor) cxoSodaDatabase_free,
+    .tp_repr = (reprfunc) cxoSodaDatabase_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoMethods
 };
 
 
@@ -378,4 +344,3 @@ static PyObject *cxoSodaDatabase_openCollection(cxoSodaDatabase *db,
 
     return (PyObject*) coll;
 }
-
