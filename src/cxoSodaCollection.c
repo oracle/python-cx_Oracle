@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -30,6 +30,8 @@ static PyObject *cxoSodaCollection_insertOne(cxoSodaCollection*, PyObject*);
 static PyObject *cxoSodaCollection_insertOneAndGet(cxoSodaCollection*,
         PyObject*);
 static PyObject *cxoSodaCollection_getMetadata(cxoSodaCollection*, PyObject*);
+static PyObject *cxoSodaCollection_save(cxoSodaCollection*, PyObject*);
+static PyObject *cxoSodaCollection_saveAndGet(cxoSodaCollection*, PyObject*);
 
 
 //-----------------------------------------------------------------------------
@@ -49,6 +51,8 @@ static PyMethodDef cxoMethods[] = {
     { "insertMany", (PyCFunction) cxoSodaCollection_insertMany, METH_O },
     { "insertManyAndGet", (PyCFunction) cxoSodaCollection_insertManyAndGet,
             METH_O },
+    { "save", (PyCFunction) cxoSodaCollection_save, METH_O },
+    { "saveAndGet", (PyCFunction) cxoSodaCollection_saveAndGet, METH_O },
     { NULL }
 };
 
@@ -506,3 +510,57 @@ static PyObject *cxoSodaCollection_getMetadata(cxoSodaCollection *coll,
     return result;
 }
 
+
+//-----------------------------------------------------------------------------
+// cxoSodaCollection_save()
+//   Insert a single document into the collection.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaCollection_save(cxoSodaCollection *coll,
+        PyObject *arg)
+{
+    dpiSodaDoc *handle;
+    uint32_t flags;
+    int status;
+
+    if (cxoUtils_processSodaDocArg(coll->db, arg, &handle) < 0)
+        return NULL;
+    if (cxoConnection_getSodaFlags(coll->db->connection, &flags) < 0)
+        return NULL;
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiSodaColl_save(coll->handle, handle, flags, NULL);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
+        cxoError_raiseAndReturnNull();
+    dpiSodaDoc_release(handle);
+    if (status < 0)
+        return NULL;
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSodaCollection_saveAndGet()
+//   Insert a single document into the collection and return a document
+// containing all but the content itself.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaCollection_saveAndGet(cxoSodaCollection *coll,
+        PyObject *arg)
+{
+    dpiSodaDoc *handle, *returnedHandle;
+    uint32_t flags;
+    int status;
+
+    if (cxoUtils_processSodaDocArg(coll->db, arg, &handle) < 0)
+        return NULL;
+    if (cxoConnection_getSodaFlags(coll->db->connection, &flags) < 0)
+        return NULL;
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiSodaColl_save(coll->handle, handle, flags, &returnedHandle);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
+        cxoError_raiseAndReturnNull();
+    dpiSodaDoc_release(handle);
+    if (status < 0)
+        return NULL;
+    return (PyObject*) cxoSodaDoc_new(coll->db, returnedHandle);
+}

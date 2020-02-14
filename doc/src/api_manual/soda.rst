@@ -247,6 +247,26 @@ SODA Collection Object
     .. versionadded:: 7.0
 
 
+.. method:: SodaCollection.save(doc)
+
+    Saves a document into the collection. This method is equivalent to
+    :meth:`~SodaCollection.insertOne()` except that if client-assigned keys are
+    used, and the document with the specified key already exists in the
+    collection, it will be replaced with the input document.
+
+    .. versionadded:: 8.0
+
+
+.. method:: SodaCollection.saveAndGet(doc)
+
+    Saves a document into the collection. This method is equivalent to
+    :meth:`~SodaCollection.insertOneAndGet()` except that if client-assigned
+    keys are used, and the document with the specified key already exists in
+    the collection, it will be replaced with the input document.
+
+    .. versionadded:: 8.0
+
+
 .. _sodadoc:
 
 --------------------

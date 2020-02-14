@@ -44,6 +44,9 @@ Version 8.0 (TBD)
     - The string representation of variables has changed to include the type
       in addition to the value.
 
+#)  Added functions :meth:`SodaCollection.save()` and
+    :meth:`SodaCollection.saveAndGet()` available in Oracle Client 20 and
+    higher
 #)  Added support for starting up a database using a parameter file (PFILE),
     as requested
     (`issue 295 <https://github.com/oracle/python-cx_Oracle/issues/295>`__).
