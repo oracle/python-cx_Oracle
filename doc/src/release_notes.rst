@@ -49,6 +49,9 @@ Version 8.0 (TBD)
     available in Oracle Client 20 and higher.
 #)  Added function :meth:`SodaOperation.fetchArraySize()` available in Oracle
     Client 19.5 and higher.
+#)  Internally make use of new mode available in Oracle Client 20 and higher in
+    order to avoid a round-trip when accessing :attr:`Connection.version` for
+    the first time.
 #)  Added support for starting up a database using a parameter file (PFILE),
     as requested
     (`issue 295 <https://github.com/oracle/python-cx_Oracle/issues/295>`__).
