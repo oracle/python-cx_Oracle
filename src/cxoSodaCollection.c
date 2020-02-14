@@ -32,6 +32,7 @@ static PyObject *cxoSodaCollection_insertOneAndGet(cxoSodaCollection*,
 static PyObject *cxoSodaCollection_getMetadata(cxoSodaCollection*, PyObject*);
 static PyObject *cxoSodaCollection_save(cxoSodaCollection*, PyObject*);
 static PyObject *cxoSodaCollection_saveAndGet(cxoSodaCollection*, PyObject*);
+static PyObject *cxoSodaCollection_truncate(cxoSodaCollection*, PyObject*);
 
 
 //-----------------------------------------------------------------------------
@@ -53,6 +54,7 @@ static PyMethodDef cxoMethods[] = {
             METH_O },
     { "save", (PyCFunction) cxoSodaCollection_save, METH_O },
     { "saveAndGet", (PyCFunction) cxoSodaCollection_saveAndGet, METH_O },
+    { "truncate", (PyCFunction) cxoSodaCollection_truncate, METH_NOARGS },
     { NULL }
 };
 
@@ -563,4 +565,22 @@ static PyObject *cxoSodaCollection_saveAndGet(cxoSodaCollection *coll,
     if (status < 0)
         return NULL;
     return (PyObject*) cxoSodaDoc_new(coll->db, returnedHandle);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSodaCollection_truncate()
+//   Remove all of the documents from the SODA collection.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaCollection_truncate(cxoSodaCollection *coll,
+        PyObject *arg)
+{
+    int status;
+
+    Py_BEGIN_ALLOW_THREADS
+    status = dpiSodaColl_truncate(coll->handle);
+    Py_END_ALLOW_THREADS
+    if (status < 0)
+        cxoError_raiseAndReturnNull();
+    Py_RETURN_NONE;
 }

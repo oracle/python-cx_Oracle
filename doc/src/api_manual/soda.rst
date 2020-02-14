@@ -267,6 +267,14 @@ SODA Collection Object
     .. versionadded:: 8.0
 
 
+.. method:: SodaCollection.truncate()
+
+    Removes all of the documents in the collection, similarly to what is done
+    for rows in a table by the TRUNCATE TABLE statement.
+
+    .. versionadded:: 8.0
+
+
 .. _sodadoc:
 
 --------------------
