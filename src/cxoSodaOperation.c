@@ -29,6 +29,7 @@ static PyObject *cxoSodaOperation_remove(cxoSodaOperation*, PyObject*);
 static PyObject *cxoSodaOperation_replaceOne(cxoSodaOperation*, PyObject*);
 static PyObject *cxoSodaOperation_replaceOneAndGet(cxoSodaOperation*,
         PyObject*);
+static PyObject *cxoSodaOperation_fetchArraySize(cxoSodaOperation*, PyObject*);
 
 
 //-----------------------------------------------------------------------------
@@ -49,6 +50,8 @@ static PyMethodDef cxoMethods[] = {
     { "remove", (PyCFunction) cxoSodaOperation_remove, METH_NOARGS },
     { "replaceOne", (PyCFunction) cxoSodaOperation_replaceOne, METH_O },
     { "replaceOneAndGet", (PyCFunction) cxoSodaOperation_replaceOneAndGet,
+            METH_O },
+    { "fetchArraySize", (PyCFunction) cxoSodaOperation_fetchArraySize,
             METH_O },
     { NULL }
 };
@@ -523,4 +526,19 @@ static PyObject *cxoSodaOperation_replaceOneAndGet(cxoSodaOperation *op,
     if (replacedHandle)
         return (PyObject*) cxoSodaDoc_new(op->coll->db, replacedHandle);
     Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSodaOperation_fetchArraySize()
+//   Set the fetch array size to be used for the operation.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaOperation_fetchArraySize(cxoSodaOperation *op,
+        PyObject *fetchArraySizeObj)
+{
+    op->options.fetchArraySize = PyLong_AsUnsignedLong(fetchArraySizeObj);
+    if (PyErr_Occurred())
+        return NULL;
+    Py_INCREF(op);
+    return (PyObject*) op;
 }

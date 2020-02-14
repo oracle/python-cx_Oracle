@@ -47,6 +47,8 @@ Version 8.0 (TBD)
 #)  Added functions :meth:`SodaCollection.save()`,
     :meth:`SodaCollection.saveAndGet()` and :meth:`SodaCollection.truncate()`
     available in Oracle Client 20 and higher.
+#)  Added function :meth:`SodaOperation.fetchArraySize()` available in Oracle
+    Client 19.5 and higher.
 #)  Added support for starting up a database using a parameter file (PFILE),
     as requested
     (`issue 295 <https://github.com/oracle/python-cx_Oracle/issues/295>`__).
