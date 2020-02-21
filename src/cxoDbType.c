@@ -15,6 +15,7 @@
 static void cxoDbType_free(cxoDbType*);
 static PyObject *cxoDbType_repr(cxoDbType*);
 static PyObject *cxoDbType_richCompare(cxoDbType*, PyObject*, int);
+static Py_hash_t cxoDbType_hash(cxoDbType*);
 
 
 //-----------------------------------------------------------------------------
@@ -37,7 +38,8 @@ PyTypeObject cxoPyTypeDbType = {
     .tp_repr = (reprfunc) cxoDbType_repr,
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_members = cxoMembers,
-    .tp_richcompare = (richcmpfunc) cxoDbType_richCompare
+    .tp_richcompare = (richcmpfunc) cxoDbType_richCompare,
+    .tp_hash = (hashfunc) cxoDbType_hash
 };
 
 
@@ -118,6 +120,16 @@ static PyObject *cxoDbType_richCompare(cxoDbType* dbType, PyObject* obj,
         Py_RETURN_TRUE;
     }
     Py_RETURN_FALSE;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoDbType_hash()
+//   Return a hash value for the instance.
+//-----------------------------------------------------------------------------
+static Py_hash_t cxoDbType_hash(cxoDbType *dbType)
+{
+    return (Py_hash_t) dbType->num;
 }
 
 
