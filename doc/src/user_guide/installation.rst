@@ -440,15 +440,28 @@ To use cx_Oracle with Oracle Instant Client zip files:
 
    Restart any open command prompt windows.
 
-   To avoid interfering with existing tools that require other Oracle
-   Client versions, instead of updating the system-wide ``PATH`` variable, you
-   may prefer to write a batch file that sets ``PATH``, for example::
+   To avoid interfering with existing tools that require other Oracle Client
+   versions, instead of updating the system-wide ``PATH`` variable you can set
+   the value for each script.
+
+   One way is to set it inside the application before cx_Oracle is used for the
+   first time:
+
+   .. code-block:: python
+
+       import os
+       os.environ['PATH'] = r'C:\instantclient_19_3' + os.pathsep + os.environ['PATH]
+
+   Note this only works on Windows.
+
+   Another alternative way to set ``PATH`` is to use a batch file that sets it
+   before Python is executed, for example::
 
        REM mypy.bat
        SET PATH=C:\oracle\instantclient_19_3;%PATH%
        python %*
 
-   Invoke this batch file every time you want to run python.
+   Invoke this batch file every time you want to run Python.
 
    Alternatively use ``SET`` to change your ``PATH`` in each command
    prompt window before you run python.
@@ -527,6 +540,9 @@ If you are behind a proxy, specify your proxy server::
 
    python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
+The ``--user`` option may also be useful, if you don't have permission to write
+to ``/usr``.
+
 The source will be downloaded, compiled, and the resulting binary
 installed.
 
@@ -537,7 +553,7 @@ Install Oracle Instant Client
 cx_Oracle requires Oracle Client libraries, which are found in Oracle
 Instant Client for macOS. These provide the necessary network
 connectivity allowing cx_Oracle to access an Oracle Database
-instance. Oracle Client versions 18, 12 and 11.2 are supported.
+instance. Oracle Client versions 19, 18, 12 and 11.2 are supported.
 
 To use cx_Oracle with Oracle Instant Client zip files:
 
@@ -547,33 +563,40 @@ To use cx_Oracle with Oracle Instant Client zip files:
    Python architecture.
 
 2. Unzip the package into a single directory that is accessible to your
-   application. For example::
+   application. For example, in Terminal you could unzip in your home directory::
 
-       mkdir -p /opt/oracle
+       cd ~
        unzip instantclient-basic-macos.x64-19.3.0.0.0dbru.zip
 
-3. Add links to ``$HOME/lib`` or ``/usr/local/lib`` to enable
-   applications to find the library. For example::
+   This will create a directory ``/Users/yourname/instantclient_19_3``.
+
+3. Add a link to ``$HOME/lib`` or ``/usr/local/lib`` to enable applications to
+   find Instant Client. If the ``lib`` sub-directory does not exist, you can
+   create it. For example::
 
        mkdir ~/lib
-       ln -s /opt/oracle/instantclient_19_3/libclntsh.dylib ~/lib/
+       ln -s ~/instantclient_19_3/libclntsh.dylib ~/lib/
+
+   If you now run ``ls -l ~/lib/libclntsh.dylib`` you will see something like::
+
+       lrwxr-xr-x  1 yourname  staff  48 12 Nov 15:04 /Users/yourname/lib/libclntsh.dylib -> /Users/yourname/instantclient_19_3/libclntsh.dylib
 
    Alternatively, copy the required OCI libraries. For example::
 
         mkdir ~/lib
-        cp /opt/oracle/instantclient_19_3/{libclntsh.dylib.19.1,libclntshcore.dylib.19.1,libnnz19.dylib,libociei.dylib} ~/lib/
+        cp ~/instantclient_19_3/{libclntsh.dylib.19.1,libclntshcore.dylib.19.1,libnnz19.dylib,libociei.dylib} ~/lib/
 
    For Instant Client 11.2, the OCI libraries must be copied. For example::
 
         mkdir ~/lib
-        cp /opt/oracle/instantclient_11_2/{libclntsh.dylib.11.1,libnnz11.dylib,libociei.dylib} ~/lib/
+        cp ~/instantclient_11_2/{libclntsh.dylib.11.1,libnnz11.dylib,libociei.dylib} ~/lib/
 
 4. If you intend to co-locate optional Oracle configuration files such
    as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
    Instant Client, then create a ``network/admin`` subdirectory, if it
    does not already exist.  For example::
 
-       mkdir -p /opt/oracle/instantclient_12_2/network/admin
+       mkdir -p ~/instantclient_12_2/network/admin
 
    This is the default Oracle configuration directory for executables
    linked with this Instant Client.

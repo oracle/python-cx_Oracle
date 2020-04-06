@@ -127,6 +127,7 @@ This code ensures that, once the block is completed, the cursor is closed and
 resources have been reclaimed by the database. In addition, any attempt to use
 the variable ``cursor`` outside of the block will simply fail.
 
+.. _tuningfetch:
 
 Tuning Fetch Performance
 ------------------------

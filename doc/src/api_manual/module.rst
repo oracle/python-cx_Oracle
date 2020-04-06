@@ -1441,8 +1441,8 @@ Exception handling
 .. attribute:: _Error.isrecoverable
 
     Boolean attribute representing whether the error is recoverable or not.
-    This is False in all cases unless Oracle Database 12.1 is being used on
-    both the server and the client.
+    This is False in all cases unless both Oracle Database 12.1 (or later) and
+    Oracle Client 12.1 (or later) are being used.
 
     .. versionadded:: 5.3
 

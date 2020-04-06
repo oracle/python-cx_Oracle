@@ -35,8 +35,8 @@ Network Configuration
 The operating system TCP and :ref:`Oracle Net configuration <optnetfiles>`
 should be configured for performance and availability.
 
-Options such as `SQLNET.CONNECT_TIMEOUT
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-F20C5DC5-C2FC-4145-9E4E-345CCB8148C7>`__,
+Options such as `SQLNET.OUTBOUND_CONNECT_TIMEOUT
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-0857C817-675F-4CF0-BFBB-C3667F119176>`__,
 `SQLNET.RECV_TIMEOUT
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4A19D81A-75F0-448E-B271-24E5187B5909>`__
 and `SQLNET.SEND_TIMEOUT

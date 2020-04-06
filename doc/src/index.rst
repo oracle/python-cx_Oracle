@@ -35,6 +35,7 @@ User Guide
     user_guide/cqn.rst
     user_guide/txn_management.rst
     user_guide/globalization.rst
+    user_guide/startup.rst
     user_guide/ha.rst
     user_guide/tracing_sql.rst
 

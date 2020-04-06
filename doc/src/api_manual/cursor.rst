@@ -25,14 +25,19 @@ Cursor Object
 
 .. attribute:: Cursor.arraysize
 
-    This read-write attribute specifies the number of rows to fetch at a time
-    internally and is the default number of rows to fetch with the
-    :meth:`~Cursor.fetchmany()` call.  It defaults to 100 meaning to fetch 100
-    rows at a time. Note that this attribute can drastically affect the
-    performance of a query since it directly affects the number of network
-    round trips that need to be performed. This is the reason for setting it to
-    100 instead of the 1 that the DB API recommends.
+    This read-write attribute can be used to tune the number of rows internally
+    fetched and buffered by internal calls to the database.  The value can
+    drastically affect the performance of a query since it directly affects the
+    number of network round trips between Python and the database.  For methods
+    like :meth:`~Cursor.fetchone()` and :meth:`~Cursor.fetchall()` it does not
+    change how many rows are returned to the application. For
+    :meth:`~Cursor.fetchmany()` it is the default number of rows to fetch.
 
+    Due to the performance benefits, the default ``Cursor.arraysize`` is 100
+    instead of the 1 that the DB API recommends.  This value means that 100 rows
+    are fetched by each internal call to the database.
+
+    See :ref:`Tuning Fetch Performance <tuningfetch>`.
 
 .. attribute:: Cursor.bindarraysize
 

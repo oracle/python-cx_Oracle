@@ -416,9 +416,11 @@ SODA Operation Object
 
 .. method:: SodaOperation.fetchArraySize(value)
 
-    Specifies the numnber of documents that are fetched at a single time from
-    the SODA collection. A value of 0 will use the default value (100). This
-    method is only available in Oracle Client 19.5 and higher.
+    This is a tuning method to specify the number of documents that are
+    internally fetched in batches by calls to :meth:`~SodaOperation.getCursor()`
+    and :meth:`~SodaOperation.getDocuments()`. It does not affect how many
+    documents are returned to the application. A value of 0 will use the default
+    value (100). This method is only available in Oracle Client 19.5 and higher.
 
     As a convenience, the SodaOperation object is returned so that further
     criteria can be specified by chaining methods together.

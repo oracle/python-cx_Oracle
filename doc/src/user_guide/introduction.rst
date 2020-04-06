@@ -13,7 +13,8 @@ Architecture
 ------------
 
 Python programs call cx_Oracle functions.  Internally cx_Oracle dynamically
-loads Oracle Client libraries to access Oracle Database.
+loads Oracle Client libraries to access Oracle Database.  The database can be on
+the same machine as Python, or it can be remote.
 
 .. _archfig:
 .. figure:: /images/cx_Oracle_arch.png

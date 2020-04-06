@@ -51,7 +51,7 @@ Variable Objects
 .. attribute:: Variable.outconverter
 
      This read-write attribute specifies the method used to convert data from
-     from the Oracle to Python. The method signature is converter(value)
+     the Oracle database to Python. The method signature is converter(value)
      and the expected return value is the value to return to Python. If this
      attribute is None, the value is returned directly without any conversion.
 
