@@ -125,5 +125,11 @@ The output is::
     ('Peter', 'Hall')
     ('Peter', 'Tucker')
 
-Example cx_Oracle scripts and a tutorial are in the `GitHub samples directory
-<https://github.com/oracle/python-cx_Oracle/tree/master/samples>`__.
+Examples and Tutorials
+----------------------
+
+Runnable examples are in the `GitHub samples directory
+<https://github.com/oracle/python-cx_Oracle/tree/master/samples>`__.  A `Python
+cx_Oracle tutorial
+<https://oracle.github.io/python-cx_Oracle/samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html>`__
+is also available.
