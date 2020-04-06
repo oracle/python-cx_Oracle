@@ -60,13 +60,12 @@ def callback(message):
 pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
         SampleEnv.GetMainPassword(), SampleEnv.GetConnectString(), min=2,
         max=5, increment=1, events=True, threaded=True)
-connection = pool.acquire()
-sub = connection.subscribe(callback=callback, timeout=1800,
-        qos=cx_Oracle.SUBSCR_QOS_QUERY | cx_Oracle.SUBSCR_QOS_ROWIDS)
-print("Subscription created with ID:", sub.id)
-queryId = sub.registerquery("select * from TestTempTable")
-print("Registered query with ID:", queryId)
-connection.close()
+with pool.acquire() as connection:
+    sub = connection.subscribe(callback=callback, timeout=1800,
+            qos=cx_Oracle.SUBSCR_QOS_QUERY | cx_Oracle.SUBSCR_QOS_ROWIDS)
+    print("Subscription created with ID:", sub.id)
+    queryId = sub.registerquery("select * from TestTempTable")
+    print("Registered query with ID:", queryId)
 
 while registered:
     print("Waiting for notifications....")

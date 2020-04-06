@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -22,41 +22,40 @@ pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
         max=5, increment=1, threaded=True)
 
 # dbms_session.sleep() replaces dbms_lock.sleep() from Oracle Database 18c
-conn = pool.acquire()
-sleepProcName = "dbms_session.sleep" \
-        if int(conn.version.split(".")[0]) >= 18 \
-        else "dbms_lock.sleep"
-conn.close()
+with pool.acquire() as conn:
+    sleepProcName = "dbms_session.sleep" \
+            if int(conn.version.split(".")[0]) >= 18 \
+            else "dbms_lock.sleep"
 
 def TheLongQuery():
-    conn = pool.acquire()
-    cursor = conn.cursor()
-    cursor.arraysize = 25000
-    print("TheLongQuery(): beginning execute...")
-    cursor.execute("""
-            select *
-            from
-                TestNumbers
-                cross join TestNumbers
-                cross join TestNumbers
-                cross join TestNumbers
-                cross join TestNumbers
-                cross join TestNumbers""")
-    print("TheLongQuery(): done execute...")
-    while True:
-        rows = cursor.fetchmany()
-        if not rows:
-            break
-        print("TheLongQuery(): fetched", len(rows), "rows...")
-    print("TheLongQuery(): all done!")
+    with pool.acquire() as conn:
+        cursor = conn.cursor()
+        cursor.arraysize = 25000
+        print("TheLongQuery(): beginning execute...")
+        cursor.execute("""
+                select *
+                from
+                    TestNumbers
+                    cross join TestNumbers
+                    cross join TestNumbers
+                    cross join TestNumbers
+                    cross join TestNumbers
+                    cross join TestNumbers""")
+        print("TheLongQuery(): done execute...")
+        while True:
+            rows = cursor.fetchmany()
+            if not rows:
+                break
+            print("TheLongQuery(): fetched", len(rows), "rows...")
+        print("TheLongQuery(): all done!")
 
 
 def DoALock():
-    conn = pool.acquire()
-    cursor = conn.cursor()
-    print("DoALock(): beginning execute...")
-    cursor.callproc(sleepProcName, (5,))
-    print("DoALock(): done execute...")
+    with pool.acquire() as conn:
+        cursor = conn.cursor()
+        print("DoALock(): beginning execute...")
+        cursor.callproc(sleepProcName, (5,))
+        print("DoALock(): done execute...")
 
 
 thread1 = threading.Thread(None, TheLongQuery)
@@ -69,4 +68,3 @@ thread1.join()
 thread2.join()
 
 print("All done!")
-

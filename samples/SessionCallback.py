@@ -81,46 +81,42 @@ pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
 # newly created, the callback will be invoked but since there is no tag
 # specified, no session state will be changed
 print("(1) acquire session without tag")
-conn = pool.acquire()
-cursor = conn.cursor()
-cursor.execute("select to_char(current_date) from dual")
-result, = cursor.fetchone()
-print("main(): result is", repr(result))
-conn.close()
+with pool.acquire() as conn:
+    cursor = conn.cursor()
+    cursor.execute("select to_char(current_date) from dual")
+    result, = cursor.fetchone()
+    print("main(): result is", repr(result))
 
 # acquire session, specifying a tag; since the session returned has no tag,
 # the callback will be invoked; session state will be changed and the tag will
 # be saved when the connection is closed
 print("(2) acquire session with tag")
-conn = pool.acquire(tag="NLS_DATE_FORMAT=SIMPLE")
-cursor = conn.cursor()
-cursor.execute("select to_char(current_date) from dual")
-result, = cursor.fetchone()
-print("main(): result is", repr(result))
-conn.close()
+with pool.acquire(tag="NLS_DATE_FORMAT=SIMPLE") as conn:
+    cursor = conn.cursor()
+    cursor.execute("select to_char(current_date) from dual")
+    result, = cursor.fetchone()
+    print("main(): result is", repr(result))
 
 # acquire session, specifying the same tag; since a session exists in the pool
 # with this tag, it will be returned and the callback will not be invoked but
 # the connection will still have the session state defined previously
 print("(3) acquire session with same tag")
-conn = pool.acquire(tag="NLS_DATE_FORMAT=SIMPLE")
-cursor = conn.cursor()
-cursor.execute("select to_char(current_date) from dual")
-result, = cursor.fetchone()
-print("main(): result is", repr(result))
-conn.close()
+with pool.acquire(tag="NLS_DATE_FORMAT=SIMPLE") as conn:
+    cursor = conn.cursor()
+    cursor.execute("select to_char(current_date) from dual")
+    result, = cursor.fetchone()
+    print("main(): result is", repr(result))
 
 # acquire session, specifying a different tag; since no session exists in the
 # pool with this tag, a new session will be returned and the callback will be
 # invoked; session state will be changed and the tag will be saved when the
 # connection is closed
 print("(4) acquire session with different tag")
-conn = pool.acquire(tag="NLS_DATE_FORMAT=FULL;TIME_ZONE=UTC")
-cursor = conn.cursor()
-cursor.execute("select to_char(current_date) from dual")
-result, = cursor.fetchone()
-print("main(): result is", repr(result))
-conn.close()
+with pool.acquire(tag="NLS_DATE_FORMAT=FULL;TIME_ZONE=UTC") as conn:
+    cursor = conn.cursor()
+    cursor.execute("select to_char(current_date) from dual")
+    result, = cursor.fetchone()
+    print("main(): result is", repr(result))
 
 # acquire session, specifying a different tag but also specifying that a
 # session with any tag can be acquired from the pool; a session with one of the
@@ -128,10 +124,9 @@ conn.close()
 # session state will be changed and the tag will be saved when the connection
 # is closed
 print("(4) acquire session with different tag but match any also specified")
-conn = pool.acquire(tag="NLS_DATE_FORMAT=FULL;TIME_ZONE=MST", matchanytag=True)
-cursor = conn.cursor()
-cursor.execute("select to_char(current_date) from dual")
-result, = cursor.fetchone()
-print("main(): result is", repr(result))
-conn.close()
-
+with pool.acquire(tag="NLS_DATE_FORMAT=FULL;TIME_ZONE=MST", matchanytag=True) \
+        as conn:
+    cursor = conn.cursor()
+    cursor.execute("select to_char(current_date) from dual")
+    result, = cursor.fetchone()
+    print("main(): result is", repr(result))
