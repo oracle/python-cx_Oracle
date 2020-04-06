@@ -133,33 +133,63 @@ See :ref:`bind` for information on binding.
 Using DBMS_OUTPUT
 -----------------
 
-The standard way to print output from PL/SQL is using the package
-`DBMS_OUTPUT <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-C1400094-18D5-4F36-A2C9-D28B0E12FD8C>`__. In order to use this package
-from Python use the following steps:
+The standard way to print output from PL/SQL is with the package `DBMS_OUTPUT
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-C1400094-18D5-4F36-A2C9-D28B0E12FD8C>`__.  Note, PL/SQL code that uses
+``DBMS_OUTPUT`` runs to completion before any output is available to the user.
+Also, other database connections cannot access the buffer.
+
+To use DBMS_OUTPUT:
 
 * Call the PL/SQL procedure ``DBMS_OUTPUT.ENABLE()`` to enable output to be
   buffered for the connection.
-* Execute some PL/SQL procedure that puts text in the buffer by calling
-  ``DBMS_OUTPUT.PUT_LINE()``.
-* Call ``DBMS_OUTPUT.GET_LINE()`` repeatedly to fetch the text from the buffer
-  until the status returned is non-zero.
+* Execute some PL/SQL that calls ``DBMS_OUTPUT.PUT_LINE()`` to put text in the
+  buffer.
+* Call ``DBMS_OUTPUT.GET_LINE()`` or ``DBMS_OUTPUT.GET_LINES()`` repeatedly to
+  fetch the text from the buffer until there is no more output.
+
 
 For example:
 
 .. code-block:: python
 
     # enable DBMS_OUTPUT
+
     cursor.callproc("dbms_output.enable")
 
     # execute some PL/SQL that calls DBMS_OUTPUT.PUT_LINE
+
     cursor.execute("""
             begin
                 dbms_output.put_line('This is the cx_Oracle manual');
                 dbms_output.put_line('Demonstrating use of DBMS_OUTPUT');
             end;""")
 
-    # perform loop to fetch the text that was added by PL/SQL
+    # fetch the text that was added by PL/SQL
+
+    chunkSize = 10  # Tune this size for your application
+
+    charArr = connection.gettype("SYS.DBMS_OUTPUT.CHARARR")
+    lines = charArr.newobject()
+
+    numLines = cursor.var(int)
+    numLines.setvalue(0, chunkSize)
+
+    while numLines.getvalue() == chunkSize:
+        cursor.callproc("dbms_output.get_lines", (lines, numLines))
+        for line in lines.aslist():
+            print(line)
+
+This will produce the following output::
+
+    This is the cx_Oracle manual
+    Demonstrating use of DBMS_OUTPUT
+
+An alternative is to call ``DBMS_OUTPUT.GET_LINE()`` once per output line, which
+may be much slower:
+
+.. code-block:: python
+
     textVar = cursor.var(str)
     statusVar = cursor.var(int)
     while True:
@@ -167,12 +197,6 @@ For example:
         if statusVar.getvalue() != 0:
             break
         print(textVar.getvalue())
-
-This will produce the following output::
-
-    This is the cx_Oracle manual
-    Demonstrating use of DBMS_OUTPUT
-
 
 Implicit results
 ----------------
