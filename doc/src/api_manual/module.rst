@@ -978,10 +978,9 @@ DB API Types
 .. data:: BINARY
 
     This type object is used to describe columns in a database that contain
-    binary data. The database types :data:`DB_TYPE_RAW`,
-    :data:`DB_TYPE_LONG_RAW`, :data:`DB_TYPE_BLOB` and :data:`DB_TYPE_BFILE`.
-    will all compare equal to this value. If a variable is created with this
-    type, the database type :data:`DB_TYPE_RAW` will be used.
+    binary data. The database types :data:`DB_TYPE_RAW` and
+    :data:`DB_TYPE_LONG_RAW` will compare equal to this value. If a variable is
+    created with this type, the database type :data:`DB_TYPE_RAW` will be used.
 
 
 .. data:: DATETIME
@@ -1014,11 +1013,10 @@ DB API Types
 .. data:: STRING
 
     This type object is used to describe columns in a database that are
-    strings. The database types :data:`DB_TYPE_CHAR`, :data:`DB_TYPE_CLOB`,
-    :data:`DB_TYPE_LONG`, :data:`DB_TYPE_NCHAR`, :data:`DB_TYPE_NCLOB`,
-    :data:`DB_TYPE_NVARCHAR` and :data:`DB_TYPE_VARCHAR` will all compare equal
-    to this value. If a variable is created with this type, the database type
-    :data:`DB_TYPE_VARCHAR` will be used.
+    strings. The database types :data:`DB_TYPE_CHAR`, :data:`DB_TYPE_LONG`,
+    :data:`DB_TYPE_NCHAR`, :data:`DB_TYPE_NVARCHAR` and :data:`DB_TYPE_VARCHAR`
+    will all compare equal to this value. If a variable is created with this
+    type, the database type :data:`DB_TYPE_VARCHAR` will be used.
 
 
 .. _dbtypes:
