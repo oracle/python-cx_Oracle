@@ -814,8 +814,11 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
                     timestamp->month, timestamp->day, timestamp->hour,
                     timestamp->minute, timestamp->second,
                     timestamp->fsecond / 1000);
+        case CXO_TRANSFORM_FIXED_CHAR:
         case CXO_TRANSFORM_FIXED_NCHAR:
+        case CXO_TRANSFORM_LONG_STRING:
         case CXO_TRANSFORM_NSTRING:
+        case CXO_TRANSFORM_STRING:
             bytes = &dbValue->asBytes;
             return PyUnicode_Decode(bytes->ptr, bytes->length, bytes->encoding,
                     encodingErrors);
@@ -854,12 +857,6 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
                 return cxoError_raiseAndReturnNull();
             return PyUnicode_Decode(rowid, rowidLength,
                     connection->encodingInfo.encoding, NULL);
-        case CXO_TRANSFORM_FIXED_CHAR:
-        case CXO_TRANSFORM_STRING:
-        case CXO_TRANSFORM_LONG_STRING:
-            bytes = &dbValue->asBytes;
-            return PyUnicode_Decode(bytes->ptr, bytes->length,
-                    bytes->encoding, encodingErrors);
         case CXO_TRANSFORM_TIMEDELTA:
             intervalDS = &dbValue->asIntervalDS; 
             seconds = intervalDS->hours * 60 * 60 + intervalDS->minutes * 60 +
