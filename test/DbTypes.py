@@ -23,7 +23,6 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBfile(self):
         "test cx_Oracle.DB_TYPE_BFILE comparisons"
-        self.__testCompare(cx_Oracle.DB_TYPE_BFILE, cx_Oracle.BINARY)
         self.assertEqual(cx_Oracle.DB_TYPE_BFILE, cx_Oracle.BFILE)
 
     def testBinaryDouble(self):
@@ -44,7 +43,6 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBlob(self):
         "test cx_Oracle.DB_TYPE_BLOB comparisons"
-        self.__testCompare(cx_Oracle.DB_TYPE_BLOB, cx_Oracle.BINARY)
         self.assertEqual(cx_Oracle.DB_TYPE_BLOB, cx_Oracle.BLOB)
 
     def testBoolean(self):
@@ -58,7 +56,6 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testClob(self):
         "test cx_Oracle.DB_TYPE_CLOB comparisons"
-        self.__testCompare(cx_Oracle.DB_TYPE_CLOB, cx_Oracle.STRING)
         self.assertEqual(cx_Oracle.DB_TYPE_CLOB, cx_Oracle.CLOB)
 
     def testCursor(self):
@@ -90,7 +87,6 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testNclob(self):
         "test cx_Oracle.DB_TYPE_NCLOB comparisons"
-        self.__testCompare(cx_Oracle.DB_TYPE_NCLOB, cx_Oracle.STRING)
         self.assertEqual(cx_Oracle.DB_TYPE_NCLOB, cx_Oracle.NCLOB)
 
     def testNumber(self):
