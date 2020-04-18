@@ -1050,7 +1050,7 @@ static PyObject *cxoConnection_getVersion(cxoConnection *conn, void *unused)
 {
     dpiVersionInfo versionInfo;
     char buffer[25];
-    int status;
+    int status, len;
 
     if (cxoConnection_isConnected(conn) < 0)
         return NULL;
@@ -1059,10 +1059,11 @@ static PyObject *cxoConnection_getVersion(cxoConnection *conn, void *unused)
     Py_END_ALLOW_THREADS
     if (status < 0)
         return cxoError_raiseAndReturnNull();
-    snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d.%d", versionInfo.versionNum,
-            versionInfo.releaseNum, versionInfo.updateNum,
-            versionInfo.portReleaseNum, versionInfo.portUpdateNum);
-    return PyUnicode_DecodeASCII(buffer, strlen(buffer), NULL);
+    len = snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d.%d",
+            versionInfo.versionNum, versionInfo.releaseNum,
+            versionInfo.updateNum, versionInfo.portReleaseNum,
+            versionInfo.portUpdateNum);
+    return PyUnicode_DecodeASCII(buffer, len, NULL);
 }
 
 
