@@ -146,8 +146,10 @@ static int cxoObjectType_initialize(cxoObjectType *objType,
         }
         PyList_SET_ITEM(objType->attributes, i, (PyObject*) attr);
         if (PyDict_SetItem(objType->attributesByName, attr->name,
-                (PyObject*) attr) < 0)
+                (PyObject*) attr) < 0) {
+            PyMem_Free(attributes);
             return -1;
+        }
     }
     PyMem_Free(attributes);
     return 0;
