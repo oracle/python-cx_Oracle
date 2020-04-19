@@ -782,7 +782,6 @@ int cxoCursor_setBindVariables(cxoCursor *cursor, PyObject *parameters,
         else cursor->bindVariables = PyDict_New();
         if (!cursor->bindVariables)
             return -1;
-        origNumParams = 0;
     }
 
     // handle positional binds
