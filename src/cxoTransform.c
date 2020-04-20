@@ -839,8 +839,6 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
             if (transformNum == CXO_TRANSFORM_INT &&
                     memchr(bytes->ptr, '.', bytes->length) == NULL) {
                 result = PyNumber_Long(stringObj);
-                Py_DECREF(stringObj);
-                return result;
             } else if (transformNum == CXO_TRANSFORM_DECIMAL) {
                 result = PyObject_CallFunctionObjArgs(
                         (PyObject*) cxoPyTypeDecimal, stringObj, NULL);
