@@ -59,6 +59,14 @@ Version 8.0 (TBD)
     row offsets exceeding 65536.
 #)  Eliminated spurious error when accessing :attr:`Cursor.lastrowid` after
     executing an INSERT ALL statement.
+#)  Miscellaneous code improvements supplied by Alex Henrie
+    (pull requests
+    `419 <https://github.com/oracle/python-cx_Oracle/pull/419>`__,
+    `420 <https://github.com/oracle/python-cx_Oracle/pull/420>`__,
+    `421 <https://github.com/oracle/python-cx_Oracle/pull/421>`__,
+    `422 <https://github.com/oracle/python-cx_Oracle/pull/422>`__ and
+    `423 <https://github.com/oracle/python-cx_Oracle/pull/423>`__).
+#)  Documentation and test suite improvements.
 
 
 Version 7.3 (December 2019)
