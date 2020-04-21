@@ -290,8 +290,7 @@ static int cxoCursor_verifyFetch(cxoCursor *cursor)
 // the buffer is managed in order to minimize calls to Py_BEGIN_ALLOW_THREADS
 // and Py_END_ALLOW_THREADS which have a significant overhead.
 //-----------------------------------------------------------------------------
-static int cxoCursor_fetchRow(cxoCursor *cursor, int *found,
-        uint32_t *bufferRowIndex)
+static int cxoCursor_fetchRow(cxoCursor *cursor, uint32_t *bufferRowIndex)
 {
     int status;
 
@@ -310,14 +309,11 @@ static int cxoCursor_fetchRow(cxoCursor *cursor, int *found,
 
     // keep track of where we are in the fetch buffer
     if (cursor->numRowsInFetchBuffer == 0)
-        *found = 0;
-    else {
-        *found = 1;
-        *bufferRowIndex = cursor->fetchBufferRowIndex++;
-        cursor->numRowsInFetchBuffer--;
-    }
+        return 0;
 
-    return 0;
+    *bufferRowIndex = cursor->fetchBufferRowIndex++;
+    cursor->numRowsInFetchBuffer--;
+    return 1;
 }
 
 
@@ -1574,7 +1570,8 @@ static PyObject *cxoCursor_multiFetch(cxoCursor *cursor, int rowLimit)
 
     // fetch as many rows as possible
     for (rowNum = 0; rowLimit == 0 || rowNum < rowLimit; rowNum++) {
-        if (cxoCursor_fetchRow(cursor, &found, &bufferRowIndex) < 0) {
+        found = cxoCursor_fetchRow(cursor, &bufferRowIndex);
+        if (found < 0) {
             Py_DECREF(results);
             return NULL;
         }
@@ -1604,11 +1601,12 @@ static PyObject *cxoCursor_multiFetch(cxoCursor *cursor, int rowLimit)
 static PyObject *cxoCursor_fetchOne(cxoCursor *cursor, PyObject *args)
 {
     uint32_t bufferRowIndex = 0;
-    int found = 0;
+    int found;
 
     if (cxoCursor_verifyFetch(cursor) < 0)
         return NULL;
-    if (cxoCursor_fetchRow(cursor, &found, &bufferRowIndex) < 0)
+    found = cxoCursor_fetchRow(cursor, &bufferRowIndex);
+    if (found < 0)
         return NULL;
     if (found)
         return cxoCursor_createRow(cursor, bufferRowIndex);
@@ -2020,11 +2018,12 @@ static PyObject *cxoCursor_getIter(cxoCursor *cursor)
 static PyObject *cxoCursor_getNext(cxoCursor *cursor)
 {
     uint32_t bufferRowIndex = 0;
-    int found = 0;
+    int found;
 
     if (cxoCursor_verifyFetch(cursor) < 0)
         return NULL;
-    if (cxoCursor_fetchRow(cursor, &found, &bufferRowIndex) < 0)
+    found = cxoCursor_fetchRow(cursor, &bufferRowIndex);
+    if (found < 0)
         return NULL;
     if (found)
         return cxoCursor_createRow(cursor, bufferRowIndex);
