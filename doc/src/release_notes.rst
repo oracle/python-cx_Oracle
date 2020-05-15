@@ -67,6 +67,10 @@ Version 8.0 (TBD)
     `422 <https://github.com/oracle/python-cx_Oracle/pull/422>`__ and
     `423 <https://github.com/oracle/python-cx_Oracle/pull/423>`__).
 #)  Documentation and test suite improvements.
+#)  Python objects bound to boolean variables are now converted to true or false
+    based on whether they would be considered true or false in a Python if
+    statement. (Previously, only True was treated as true and all other Python
+    values including 1, 1.0, and "foo" were treated as false.)
 
 
 Version 7.3 (December 2019)

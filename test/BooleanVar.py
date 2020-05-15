@@ -21,6 +21,32 @@ class TestCase(TestEnv.BaseTestCase):
                 (False,))
         self.assertEqual(result, "FALSE")
 
+    def testBindFloatAsBoolean(self):
+        "test binding in a float as a boolean"
+        var = self.cursor.var(bool)
+        var.setvalue(0, 0.0)
+        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
+                (var,))
+        self.assertEqual(result, "FALSE")
+        var = self.cursor.var(bool)
+        var.setvalue(0, 1.0)
+        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
+                (var,))
+        self.assertEqual(result, "TRUE")
+
+    def testBindIntegerAsBoolean(self):
+        "test binding in an integer as a boolean"
+        var = self.cursor.var(bool)
+        var.setvalue(0, 0)
+        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
+                (var,))
+        self.assertEqual(result, "FALSE")
+        var = self.cursor.var(bool)
+        var.setvalue(0, 1)
+        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
+                (var,))
+        self.assertEqual(result, "TRUE")
+
     def testBindNull(self):
         "test binding in a null value"
         self.cursor.setinputsizes(None, bool)
@@ -39,6 +65,19 @@ class TestCase(TestEnv.BaseTestCase):
         result = self.cursor.callfunc("pkg_TestBooleans.IsLessThan10", bool,
                 (5,))
         self.assertEqual(result, True)
+
+    def testBindStringAsBoolean(self):
+        "test binding in a string as a boolean"
+        var = self.cursor.var(bool)
+        var.setvalue(0, "")
+        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
+                (var,))
+        self.assertEqual(result, "FALSE")
+        var = self.cursor.var(bool)
+        var.setvalue(0, "0")
+        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
+                (var,))
+        self.assertEqual(result, "TRUE")
 
     def testBindTrue(self):
         "test binding in a True value"
