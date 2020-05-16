@@ -1838,6 +1838,7 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
     PyObject *inConverter, *outConverter, *typeNameObj;
     cxoTransformNum transformNum;
     const char *encodingErrors;
+    Py_ssize_t encodingErrorsLen;
     cxoObjectType *objType;
     int size, arraySize;
     PyObject *type;
@@ -1848,9 +1849,9 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
     encodingErrors = NULL;
     arraySize = cursor->bindArraySize;
     inConverter = outConverter = typeNameObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOOz",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOOz#",
             keywordList, &type, &size, &arraySize, &inConverter, &outConverter,
-            &typeNameObj, &encodingErrors))
+            &typeNameObj, &encodingErrors, &encodingErrorsLen))
         return NULL;
 
     // determine the type of variable
@@ -1875,7 +1876,7 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
 
     // assign encoding errors, if applicable
     if (encodingErrors) {
-        var->encodingErrors = PyMem_Malloc(strlen(encodingErrors) + 1);
+        var->encodingErrors = PyMem_Malloc(encodingErrorsLen + 1);
         if (!var->encodingErrors) {
             Py_DECREF(var);
             return NULL;
