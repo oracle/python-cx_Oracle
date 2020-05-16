@@ -15,6 +15,14 @@ import cx_Oracle
 
 class TestCase(TestEnv.BaseTestCase):
 
+    def __testBindValueAsBoolean(self, value):
+        expectedResult = str(bool(value)).upper()
+        var = self.cursor.var(bool)
+        var.setvalue(0, value)
+        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
+                (var,))
+        self.assertEqual(result, expectedResult)
+
     def testBindFalse(self):
         "test binding in a False value"
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
@@ -23,29 +31,13 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindFloatAsBoolean(self):
         "test binding in a float as a boolean"
-        var = self.cursor.var(bool)
-        var.setvalue(0, 0.0)
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (var,))
-        self.assertEqual(result, "FALSE")
-        var = self.cursor.var(bool)
-        var.setvalue(0, 1.0)
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (var,))
-        self.assertEqual(result, "TRUE")
+        self.__testBindValueAsBoolean(0.0)
+        self.__testBindValueAsBoolean(1.0)
 
     def testBindIntegerAsBoolean(self):
         "test binding in an integer as a boolean"
-        var = self.cursor.var(bool)
-        var.setvalue(0, 0)
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (var,))
-        self.assertEqual(result, "FALSE")
-        var = self.cursor.var(bool)
-        var.setvalue(0, 1)
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (var,))
-        self.assertEqual(result, "TRUE")
+        self.__testBindValueAsBoolean(0)
+        self.__testBindValueAsBoolean(1)
 
     def testBindNull(self):
         "test binding in a null value"
@@ -68,16 +60,8 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testBindStringAsBoolean(self):
         "test binding in a string as a boolean"
-        var = self.cursor.var(bool)
-        var.setvalue(0, "")
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (var,))
-        self.assertEqual(result, "FALSE")
-        var = self.cursor.var(bool)
-        var.setvalue(0, "0")
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (var,))
-        self.assertEqual(result, "TRUE")
+        self.__testBindValueAsBoolean("")
+        self.__testBindValueAsBoolean("0")
 
     def testBindTrue(self):
         "test binding in a True value"
@@ -87,4 +71,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

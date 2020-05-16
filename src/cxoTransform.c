@@ -244,6 +244,8 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
     switch (transformNum) {
         case CXO_TRANSFORM_BOOLEAN:
             dbValue->asBoolean = PyObject_IsTrue(pyValue);
+            if (PyErr_Occurred())
+                return -1;
             return 0;
         case CXO_TRANSFORM_BINARY:
         case CXO_TRANSFORM_FIXED_CHAR:
