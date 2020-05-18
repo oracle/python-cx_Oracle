@@ -59,20 +59,20 @@ Version 8.0 (TBD)
     row offsets exceeding 65536.
 #)  Eliminated spurious error when accessing :attr:`Cursor.lastrowid` after
     executing an INSERT ALL statement.
-#)  Miscellaneous code improvements supplied by Alex Henrie
-    (pull requests
+#)  Miscellaneous improvements supplied by Alex Henrie (pull requests
     `419 <https://github.com/oracle/python-cx_Oracle/pull/419>`__,
     `420 <https://github.com/oracle/python-cx_Oracle/pull/420>`__,
     `421 <https://github.com/oracle/python-cx_Oracle/pull/421>`__,
-    `422 <https://github.com/oracle/python-cx_Oracle/pull/422>`__ and
-    `423 <https://github.com/oracle/python-cx_Oracle/pull/423>`__).
+    `422 <https://github.com/oracle/python-cx_Oracle/pull/422>`__,
+    `423 <https://github.com/oracle/python-cx_Oracle/pull/423>`__ and
+    `437 <https://github.com/oracle/python-cx_Oracle/pull/437>`__).
 #)  Python objects bound to boolean variables are now converted to True or
     False based on whether they would be considered True or False in a Python
     if statement. Previously, only True was treated as True and all other
     Python values (including 1, 1.0, and "foo") were treated as False
     (pull request
     `435 <https://github.com/oracle/python-cx_Oracle/pull/435>`__).
-#)  Documentation and test suite improvements.
+#)  Documentation, samples and test suite improvements.
 
 
 Version 7.3 (December 2019)
