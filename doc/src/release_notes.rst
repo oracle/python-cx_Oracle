@@ -64,8 +64,9 @@ Version 8.0 (TBD)
     `420 <https://github.com/oracle/python-cx_Oracle/pull/420>`__,
     `421 <https://github.com/oracle/python-cx_Oracle/pull/421>`__,
     `422 <https://github.com/oracle/python-cx_Oracle/pull/422>`__,
-    `423 <https://github.com/oracle/python-cx_Oracle/pull/423>`__ and
-    `437 <https://github.com/oracle/python-cx_Oracle/pull/437>`__).
+    `423 <https://github.com/oracle/python-cx_Oracle/pull/423>`__,
+    `437 <https://github.com/oracle/python-cx_Oracle/pull/437>`__ and
+    `438 <https://github.com/oracle/python-cx_Oracle/pull/438>`__).
 #)  Python objects bound to boolean variables are now converted to True or
     False based on whether they would be considered True or False in a Python
     if statement. Previously, only True was treated as True and all other
