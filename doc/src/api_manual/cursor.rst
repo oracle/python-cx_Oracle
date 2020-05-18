@@ -473,6 +473,8 @@ Cursor Object
     would normally be returned, and the result of the method is returned
     instead.
 
+    See :ref:`rowfactories`.
+
     .. note::
 
         The DB API definition does not define this attribute.

@@ -7,7 +7,7 @@ Batch Statement Execution and Bulk Loading
 Inserting or updating multiple rows can be performed efficiently with
 :meth:`Cursor.executemany()`, making it easy to work with large data sets with
 cx_Oracle.  This method can significantly outperform repeated calls to
-:meth:`Cursor.execute()` by reducing network transfer costs and database load.
+:meth:`Cursor.execute()` by reducing network transfer costs and database overheads.
 The :meth:`~Cursor.executemany()` method can also be used to execute PL/SQL
 statements multiple times at once.
 

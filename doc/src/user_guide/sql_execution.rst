@@ -24,13 +24,13 @@ in ``RunSqlScript()`` in `samples/SampleEnv.py
 SQL statements should not contain a trailing semicolon (";") or forward slash
 ("/").  This will fail:
 
-.. code-block:: sql
+.. code-block:: python
 
     cur.execute("select * from MyTable;")
 
 This is correct:
 
-.. code-block:: sql
+.. code-block:: python
 
     cur.execute("select * from MyTable")
 
@@ -106,6 +106,9 @@ method :meth:`Cursor.fetchall()` can be used.
     for row in rows:
         print(row)
 
+The fetch methods return data as tuples.  To return results as dictionaries, see
+:ref:`rowfactories`.
+
 Closing Cursors
 ---------------
 
@@ -149,9 +152,14 @@ minimum or maximum number of rows returned by a query.
 
 Along with tuning ``arraysize``, make sure your `SQL statements are optimal
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=TGSQL>`_ and avoid
-selecting columns that are not required by the application.  For queries that do
-not need to fetch all data, use a :ref:`row limiting clause <rowlimit>` to
-reduce the number of rows processed by the database.
+selecting columns that are not required by the application. For queries that do
+not need to fetch all data, use appropriate ``WHERE`` clauses such as a
+:ref:`row limiting clause <rowlimit>` to reduce the number of rows processed by
+the database. For small, mostly static, lookup tables enable :ref:`Client Result
+Caching <crc>` to avoid round-trips between cx_Oracle and the database. For
+queries that return large data or a large number of rows, or when using a slow
+network, tune the network `Session Data Unit (SDU) and socket buffer sizes
+<https://static.rainfocus.com/oracle/oow19/sess/1553616880266001WLIh/PF/OOW19_Net_CON4641_1569022126580001esUl.pdf>`__.
 
 An example of setting ``arraysize`` is:
 
@@ -360,7 +368,8 @@ or the value ``None``. The value ``None`` indicates that the default type
 should be used.
 
 Examples of output handlers are shown in :ref:`numberprecision` and
-:ref:`directlobs`.
+:ref:`directlobs`.  Also see samples such as `samples/TypeHandlers.py
+<https://github.com/oracle/python-cx_Oracle/blob/master/samples/TypeHandlers.py>`__
 
 .. _numberprecision:
 
@@ -411,6 +420,10 @@ The Python ``decimal.Decimal`` converter gets called with the string
 representation of the Oracle number.  The output from ``decimal.Decimal`` is
 returned in the output tuple.
 
+See `samples/ReturnNumbersAsDecimals.py
+<https://github.com/oracle/python-cx_Oracle/blob/master/samples/ReturnNumbersAsDecimals.py>`__
+
+
 .. _outconverters:
 
 Changing Query Results with Outconverters
@@ -433,6 +446,44 @@ For example, to make queries return empty strings instead of NULLs:
             return cursor.var(str, size, cur.arraysize, outconverter=OutConverter)
 
     connection.outputtypehandler = OutputTypeHandler
+
+
+.. _rowfactories:
+
+Changing Query Results with Rowfactories
+----------------------------------------
+
+cx_Oracle "rowfactories" are methods called for each row that is retrieved from
+the database. The :meth:`Cursor.rowfactory` method is called with the tuple that
+would normally be returned from the database.  The method can convert the tuple
+to a different value and return it to the application in place of the tuple.
+
+For example, to fetch each row of a query as a dictionary:
+
+.. code-block:: python
+
+    cursor.execute("select * from locations where location_id = 1000")
+    columns = [col[0] for col in cursor.description]
+    cursor.rowfactory = lambda *args: dict(zip(columns, args))
+    data = cursor.fetchone()
+    print(data)
+
+The output is::
+
+    {'LOCATION_ID': 1000, 'STREET_ADDRESS': '1297 Via Cola di Rie', 'POSTAL_CODE': '00989', 'CITY': 'Roma', 'STATE_PROVINCE': None, 'COUNTRY_ID': 'IT'}
+
+If you join tables where the same column name occurs in both tables with
+different meanings or values, then use a column alias in the query.  Otherwise
+only one of the similarly named columns will be included in the dictionary:
+
+.. code-block:: sql
+
+    select
+        cat_name,
+        cats.color as cat_color,
+        dog_name,
+        dogs.color
+    from cats, dogs
 
 .. _scrollablecursors:
 
@@ -628,6 +679,52 @@ query is::
 
 Make sure to use :ref:`bind variables <bind>` for the upper and lower limit
 values.
+
+.. _crc:
+
+Client Result Cache
+-------------------
+
+Python cx_Oracle applications can use Oracle Database's `Client Result Cache
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-35CB2592-7588-4C2D-9075-6F639F25425E>`__
+The CRC enables client-side caching of SQL query (SELECT statement) results in
+client memory for immediate use when the same query is re-executed.  This is
+useful for reducing the cost of queries for small, mostly static, lookup tables,
+such as for postal codes.  CRC reduces network round-trips, and also reduces
+database server CPU usage.
+
+The cache is at the application process level.  Access and invalidation is
+managed by the Oracle Client libraries.  This removes the need for extra
+application logic, or external utilities, to implement a cache.
+
+CRC can be enabled by setting the `database parameters
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A9D4A5F5-B939-48FF-80AE-0228E7314C7D>`__
+``CLIENT_RESULT_CACHE_SIZE`` and ``CLIENT_RESULT_CACHE_LAG``, and then
+restarting the database.  For example, to set the parameters:
+
+.. code-block:: sql
+
+    SQL> ALTER SYSTEM SET CLIENT_RESULT_CACHE_LAG = 3000 SCOPE=SPFILE;
+    SQL> ALTER SYSTEM SET CLIENT_RESULT_CACHE_SIZE = 64K SCOPE=SPFILE;
+
+CRC can alternatively be configured in an :ref:`oraaccess.xml <optclientfiles>`
+or :ref:`sqlnet.ora <optnetfiles>` file on the Python host, see `Client
+Configuration Parameters
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E63D75A1-FCAA-4A54-A3D2-B068442CE766>`__.
+
+Tables can then be created, or altered, so repeated queries use CRC.  This
+allows existing applications to use CRC without needing modification.  For example:
+
+.. code-block:: sql
+
+    SQL> CREATE TABLE cities (id number, name varchar2(40)) RESULT_CACHE (MODE FORCE);
+    SQL> ALTER TABLE locations RESULT_CACHE (MODE FORCE);
+
+Alternatively, hints can be used in SQL statements.  For example:
+
+.. code-block:: sql
+
+    SELECT /*+ result_cache */ postal_code FROM locations
 
 .. _codecerror:
 

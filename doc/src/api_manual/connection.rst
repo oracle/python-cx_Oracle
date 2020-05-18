@@ -441,6 +441,8 @@ Connection Object
     None, the default behavior will take place for all columns fetched from
     cursors.
 
+    See :ref:`outputtypehandlers`.
+
     .. note::
 
         This attribute is an extension to the DB API definition.

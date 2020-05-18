@@ -11,7 +11,8 @@ cx_Oracle 8 has been tested with Python versions 3.5 through 3.8. You can use
 cx_Oracle with Oracle 11.2, 12c, 18c and 19c client libraries. Oracle's
 standard client-server version interoperability allows connection to both older
 and newer databases. For example Oracle 19c client libraries can connect to
-Oracle Database 11.2.
+Oracle Database 11.2.   Older versions of cx_Oracle may work with older
+versions of Python.
 
 ## Installation
 

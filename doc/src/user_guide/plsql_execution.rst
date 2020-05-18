@@ -154,31 +154,32 @@ For example:
 .. code-block:: python
 
     # enable DBMS_OUTPUT
-
     cursor.callproc("dbms_output.enable")
 
     # execute some PL/SQL that calls DBMS_OUTPUT.PUT_LINE
-
     cursor.execute("""
             begin
                 dbms_output.put_line('This is the cx_Oracle manual');
-                dbms_output.put_line('Demonstrating use of DBMS_OUTPUT');
+                dbms_output.put_line('Demonstrating how to use DBMS_OUTPUT');
             end;""")
 
+    # tune this size for your application
+    chunk_size = 100
+
+    # create variables to hold the output
+    lines_var = cursor.arrayvar(str, chunk_size)
+    num_lines_var = cursor.var(int)
+    num_lines_var.setvalue(0, chunk_size)
+
     # fetch the text that was added by PL/SQL
-
-    chunkSize = 10  # Tune this size for your application
-
-    charArr = connection.gettype("SYS.DBMS_OUTPUT.CHARARR")
-    lines = charArr.newobject()
-
-    numLines = cursor.var(int)
-    numLines.setvalue(0, chunkSize)
-
-    while numLines.getvalue() == chunkSize:
-        cursor.callproc("dbms_output.get_lines", (lines, numLines))
-        for line in lines.aslist():
-            print(line)
+    while True:
+        cursor.callproc("dbms_output.get_lines", (lines_var, num_lines_var))
+        num_lines = num_lines_var.getvalue()
+        lines = lines_var.getvalue()[:num_lines]
+        for line in lines:
+            print(line or "")
+        if num_lines < chunk_size:
+            break
 
 This will produce the following output::
 

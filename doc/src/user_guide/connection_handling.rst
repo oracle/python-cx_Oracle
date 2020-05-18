@@ -426,8 +426,8 @@ set the ``threaded`` parameter to *True* when creating a connection pool:
     pool = cx_Oracle.SessionPool("hr", userpwd, "dbhost.example.com/orclpdb1",
                   min=2, max=5, increment=1, threaded=True, encoding="UTF-8")
 
-See `Threads.py
-<https://github.com/oracle/python-cx_Oracle/tree/master/samples/Threads.py>`__
+See `ConnectionPool.py
+<https://github.com/oracle/python-cx_Oracle/tree/master/samples/ConnectionPool.py>`__
 for an example.
 
 Before :meth:`SessionPool.acquire()` returns, cx_Oracle does a lightweight check
@@ -806,7 +806,8 @@ be returned to the Python application.
 Although applications can choose whether or not to use pooled connections at
 runtime, care must be taken to configure the database appropriately for the
 number of expected connections, and also to stop inadvertent use of non-DRCP
-connections leading to a resource shortage.
+connections leading to a database server resource shortage. Conversely, avoid
+using DRCP connections for long-running operations.
 
 The example below shows how to connect to Oracle Database using Database
 Resident Connection Pooling:
@@ -842,8 +843,7 @@ then allows maximum use of DRCP pooled servers by the database:
 .. code-block:: python
 
      # Do some database operations
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1:pooled",
-            encoding="UTF-8")
+    connection = mypool.acquire(cclass="MYCLASS", purity=cx_Oracle.ATTR_PURITY_SELF)
     . . .
     connection.close();
 
@@ -851,8 +851,7 @@ then allows maximum use of DRCP pooled servers by the database:
     . . .
 
     # Do some more database operations
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1:pooled",
-            encoding="UTF-8")
+    connection = mypool.acquire(cclass="MYCLASS", purity=cx_Oracle.ATTR_PURITY_SELF)
     . . .
     connection.close();
 

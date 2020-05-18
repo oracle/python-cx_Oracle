@@ -1,18 +1,23 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # SessionCallback.py
 #
-# Demonstrate how to use a session callback written in Python. The callback is
-# invoked whenever a newly created session is acquired from the pool, or when
-# the requested tag does not match the tag that is associated with the
-# session. It is generally used to set session state, so that the application
-# can count on known session state, which allows the application to reduce the
-# number of round trips made to the database.
+# Demonstrate how to use a connection pool session callback written in
+# Python. The callback is invoked whenever a newly created session is acquired
+# from the pool, or when the requested tag does not match the tag that is
+# associated with the session. It is generally used to set session state, so
+# that the application can count on known session state, which allows the
+# application to reduce the number of round trips made to the database.
+# If all your connections should have the same session state, you can simplify
+# the session callback by removing the tagging logic.
 #
-# This script requires cx_Oracle 7.1 and higher.
+# This script requires cx_Oracle 7.1 or higher.
+#
+# Also see SessionCallbackPLSQL.py
+#
 #------------------------------------------------------------------------------
 
 import cx_Oracle

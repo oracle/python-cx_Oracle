@@ -1,21 +1,25 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # SessionCallbackPLSQL.py
 #
-# Demonstrate how to use a session callback written in PL/SQL. The callback is
-# invoked whenever the tag requested by the application does not match the tag
-# associated with the session in the pool. It should be used to set session
-# state, so that the application can count on known session state, which allows
-# the application to reduce the number of round trips to the database.
+# Demonstrate how to use a connection pool session callback written in
+# PL/SQL. The callback is invoked whenever the tag requested by the application
+# does not match the tag associated with the session in the pool. It should be
+# used to set session state, so that the application can count on known session
+# state, which allows the application to reduce the number of round trips to the
+# database.
 #
 # The primary advantage to this approach over the equivalent approach shown in
 # SessionCallback.py is when DRCP is used, as the callback is invoked on the
 # server and no round trip is required to set state.
 #
-# This script requires cx_Oracle 7.1 and higher.
+# This script requires cx_Oracle 7.1 or higher.
+#
+# Also see SessionCallback.py
+#
 #------------------------------------------------------------------------------
 
 import cx_Oracle
