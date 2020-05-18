@@ -109,11 +109,11 @@ and what optional settings are desired.
     * - TNS_ADMIN
       - The directory of Oracle Database client configuration files such as
         ``tnsnames.ora`` and ``sqlnet.ora``. Needed if the configuration files
-        are in a non-default location.  See :ref:`optnetfiles`."
+        are in a non-default location.  See :ref:`optnetfiles`.
     * - NLS_LANG
       - Determines the 'national language support' globalization options for
         cx_Oracle. If not set, a default value will be chosen by Oracle. See
-        :ref:`globalization`."
+        :ref:`globalization`.
     * - NLS_DATE_FORMAT, NLS_TIMESTAMP_FORMAT
       - Often set in Python applications to force a consistent date format
         independent of the locale. The variables are ignored if the environment
@@ -159,6 +159,8 @@ Python and set the ``TNS_ADMIN`` environment variable to
 that directory path.  For example, if the file
 ``/etc/my-oracle-config/tnsnames.ora`` is being used, set the
 ``TNS_ADMIN`` environment variable to ``/etc/my-oracle-config``.
+
+Also see :ref:`Network Configuration <hanetwork>`.
 
 .. _optclientfiles:
 
