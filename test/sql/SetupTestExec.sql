@@ -178,13 +178,13 @@ create table &main_user..TestXML (
 create table &main_user..TestLongs (
     IntCol                              number(9) not null,
     LongCol                             long not null
-)
+) nocompress
 /
 
 create table &main_user..TestLongRaws (
     IntCol                              number(9) not null,
     LongRawCol                          long raw not null
-)
+) nocompress
 /
 
 create table &main_user..TestTempTable (
