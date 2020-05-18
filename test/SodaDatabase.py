@@ -27,7 +27,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testCreateDocumentWithJson(self):
         "test creating documents with JSON data"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         val = {"testKey1" : "testValue1", "testKey2" : "testValue2" }
         strVal = json.dumps(val)
         bytesVal = strVal.encode("UTF-8")
@@ -42,7 +42,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testCreateDocumentWithRaw(self):
         "test creating documents with raw data"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         val = b"<html/>"
         key = "MyRawKey"
         mediaType = "text/html"
@@ -55,7 +55,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testGetCollectionNames(self):
         "test getting collection names from the database"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         self.__dropExistingCollections(sodaDatabase)
         self.assertEqual(sodaDatabase.getCollectionNames(), [])
         names = ["zCol", "dCol", "sCol", "aCol", "gCol"]
@@ -74,7 +74,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testOpenCollection(self):
         "test opening a collection"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         self.__dropExistingCollections(sodaDatabase)
         coll = sodaDatabase.openCollection("CollectionThatDoesNotExist")
         self.assertEqual(coll, None)
@@ -87,7 +87,7 @@ class TestCase(TestEnv.BaseTestCase):
         "test SodaDatabase representation"
         con1 = self.connection
         con2 = TestEnv.GetConnection()
-        sodaDatabase1 = con1.getSodaDatabase()
+        sodaDatabase1 = self.getSodaDatabase()
         sodaDatabase2 = con1.getSodaDatabase()
         sodaDatabase3 = con2.getSodaDatabase()
         self.assertEqual(str(sodaDatabase1), str(sodaDatabase2))
@@ -95,7 +95,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testNegative(self):
         "test negative cases for SODA database methods"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         self.assertRaises(TypeError, sodaDatabase.createCollection)
         self.assertRaises(TypeError, sodaDatabase.createCollection, 1)
         self.assertRaises(cx_Oracle.DatabaseError,
@@ -104,4 +104,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

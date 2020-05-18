@@ -19,7 +19,7 @@ class TestCase(TestEnv.BaseTestCase):
     def testInvalidJson(self):
         "test inserting invalid JSON value into SODA collection"
         invalidJson = "{testKey:testValue}"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoInvalidJSON")
         doc = sodaDatabase.createDocument(invalidJson)
         self.assertRaises(cx_Oracle.IntegrityError, coll.insertOne, doc)
@@ -27,7 +27,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testInsertDocuments(self):
         "test inserting documents into a SODA collection"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoInsertDocs")
         coll.find().remove()
         valuesToInsert = [
@@ -49,7 +49,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testSkipDocuments(self):
         "test skipping documents in a SODA collection"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoSkipDocs")
         coll.find().remove()
         valuesToInsert = [
@@ -69,7 +69,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testReplaceDocument(self):
         "test replace documents in SODA collection"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoReplaceDoc")
         coll.find().remove()
         content = {'name': 'John', 'address': {'city': 'Sydney'}}
@@ -83,7 +83,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testSearchDocumentsWithContent(self):
         "test search documents with content using $like and $regex"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoSearchDocContent")
         coll.find().remove()
         data = [
@@ -120,7 +120,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testDocumentRemove(self):
         "test removing documents"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoRemoveDocs")
         coll.find().remove()
         data = [
@@ -156,7 +156,7 @@ class TestCase(TestEnv.BaseTestCase):
                 }
             ]
         }
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoTestIndexes")
         coll.find().remove()
         self.connection.commit()
@@ -170,7 +170,7 @@ class TestCase(TestEnv.BaseTestCase):
     def testGetDocuments(self):
         "test getting documents from Collection"
         self.connection.autocommit = True
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoTestGetDocs")
         coll.find().remove()
         data = [
@@ -188,7 +188,7 @@ class TestCase(TestEnv.BaseTestCase):
     def testCursor(self):
         "test fetching documents from a cursor"
         self.connection.autocommit = True
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoFindViaCursor")
         coll.find().remove()
         data = [
@@ -203,7 +203,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testMultipleDocumentRemove(self):
         "test removing multiple documents using multiple keys"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoRemoveMultipleDocs")
         coll.find().remove()
         data = [
@@ -224,7 +224,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testDocumentVersion(self):
         "test using version to get documents and remove them"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoDocumentVersion")
         coll.find().remove()
         content = {'name': 'John', 'address': {'city': 'Bangalore'}}
@@ -248,7 +248,7 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testGetCursor(self):
         "test keys with GetCursor"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoKeysWithGetCursor")
         coll.find().remove()
         data = [
@@ -268,12 +268,31 @@ class TestCase(TestEnv.BaseTestCase):
 
     def testCreatedOn(self):
         "test createdOn attribute of Document"
-        sodaDatabase = self.connection.getSodaDatabase()
+        sodaDatabase = self.getSodaDatabase()
         coll = sodaDatabase.createCollection("cxoCreatedOn")
         coll.find().remove()
         data = {'name': 'John', 'address': {'city': 'Bangalore'}}
         doc = coll.insertOneAndGet(data)
         self.assertEqual(doc.createdOn, doc.lastModified)
+
+    def testSodaTruncate(self):
+        "test Soda truncate"
+        sodaDatabase = self.getSodaDatabase(minclient=(20,1))
+        coll = sodaDatabase.createCollection("cxoTruncateDocs")
+        coll.find().remove()
+        valuesToInsert = [
+            { "name" : "George", "age" : 47 },
+            { "name" : "Susan", "age" : 39 },
+            { "name" : "John", "age" : 50 },
+            { "name" : "Jill", "age" : 54 }
+        ]
+        for value in valuesToInsert:
+            coll.insertOne(value)
+        self.connection.commit()
+        self.assertEqual(coll.find().count(), len(valuesToInsert))
+        coll.truncate()
+        self.assertEqual(coll.find().count(), 0)
+        coll.drop()
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()

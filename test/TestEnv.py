@@ -165,6 +165,18 @@ def GetClientVersion():
 
 class BaseTestCase(unittest.TestCase):
 
+    def getSodaDatabase(self, minclient=(18, 3), minserver=(18, 0),
+            message="not supported with this client/server combination"):
+        client = cx_Oracle.clientversion()[:2]
+        if client < minclient:
+            self.skipTest(message)
+        server = tuple(int(s) for s in self.connection.version.split("."))[:2]
+        if server < minserver:
+            self.skipTest(message)
+        if server > (20, 1) and client < (20, 1):
+            self.skipTest(message)
+        return self.connection.getSodaDatabase()
+
     def isOnOracleCloud(self, connection=None):
         if connection is None:
             connection = self.connection

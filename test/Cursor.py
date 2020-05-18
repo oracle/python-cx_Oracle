@@ -698,5 +698,57 @@ class TestCase(TestEnv.BaseTestCase):
         result, = self.cursor.fetchone()
         self.assertEqual(result, expectedResult)
 
+    def testLastRowid(self):
+        "test last rowid"
+
+        # no statement executed: no rowid
+        self.assertEqual(None, self.cursor.lastrowid)
+
+        # DDL statement executed: no rowid
+        self.cursor.execute("truncate table TestTempTable")
+        self.assertEqual(None, self.cursor.lastrowid)
+
+        # statement prepared: no rowid
+        self.cursor.prepare("insert into TestTempTable (IntCol) values (:1)")
+        self.assertEqual(None, self.cursor.lastrowid)
+
+        # multiple rows inserted: rowid of last row inserted
+        rows = [(n,) for n in range(225)]
+        self.cursor.executemany(None, rows)
+        rowid = self.cursor.lastrowid
+        self.cursor.execute("""
+                select rowid
+                from TestTempTable
+                where IntCol = :1""", rows[-1])
+        self.assertEqual(rowid, self.cursor.fetchone()[0])
+
+        # statement executed but no rows updated: no rowid
+        self.cursor.execute("delete from TestTempTable where 1 = 0")
+        self.assertEqual(None, self.cursor.lastrowid)
+
+        # stetement executed with one row updated: rowid of updated row
+        self.cursor.execute("""
+                update TestTempTable set
+                    StringCol = 'Modified'
+                where IntCol = :1""", rows[-2])
+        rowid = self.cursor.lastrowid
+        self.cursor.execute("""
+                select rowid
+                from TestTempTable
+                where IntCol = :1""", rows[-2])
+        self.assertEqual(rowid, self.cursor.fetchone()[0])
+
+        # statement executed with many rows updated: rowid of last updated row
+        self.cursor.execute("""
+                update TestTempTable set
+                    StringCol = 'Row ' || to_char(IntCol)
+                where IntCol = :1""", rows[-3])
+        rowid = self.cursor.lastrowid
+        self.cursor.execute("""
+                select StringCol
+                from TestTempTable
+                where rowid = :1""", [rowid])
+        self.assertEqual("Row %s" % rows[-3], self.cursor.fetchone()[0])
+
 if __name__ == "__main__":
     TestEnv.RunTestCases()
