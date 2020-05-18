@@ -581,6 +581,6 @@ static PyObject *cxoSodaCollection_truncate(cxoSodaCollection *coll,
     status = dpiSodaColl_truncate(coll->handle);
     Py_END_ALLOW_THREADS
     if (status < 0)
-        cxoError_raiseAndReturnNull();
+        return cxoError_raiseAndReturnNull();
     Py_RETURN_NONE;
 }
