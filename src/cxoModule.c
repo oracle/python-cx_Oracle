@@ -336,10 +336,6 @@ static PyObject *cxoModule_initialize(void)
 {
     PyObject *module;
 
-#ifdef WITH_THREAD
-    PyEval_InitThreads();
-#endif
-
     // initialize transforms
     if (cxoTransform_init() < 0)
         return NULL;
