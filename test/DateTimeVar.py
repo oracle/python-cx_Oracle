@@ -44,7 +44,7 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
     def testBindDateTime(self):
-        "test binding in a Python 2.3 and higher date time"
+        "test binding in a datetime.datetime value"
         self.cursor.execute("""
                 select * from TestDates
                 where DateCol = :value""",
