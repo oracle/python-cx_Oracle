@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -7,8 +7,6 @@
 #
 # Drops the database objects used for the cx_Oracle test suite.
 #------------------------------------------------------------------------------
-
-from __future__ import print_function
 
 import cx_Oracle
 import TestEnv
@@ -23,4 +21,3 @@ if __name__ == "__main__":
     conn = cx_Oracle.connect(TestEnv.GetAdminConnectString())
     DropTests(conn)
     print("Done.")
-

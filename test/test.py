@@ -9,8 +9,6 @@
 
 """Runs all defined unit tests."""
 
-from __future__ import print_function
-
 import cx_Oracle
 import os
 import sys
@@ -77,4 +75,3 @@ if failures:
     for name in failures:
         print("      %s" % name)
     sys.exit(1)
-

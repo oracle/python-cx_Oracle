@@ -71,7 +71,6 @@ Create a script ``query.py`` as shown below:
 
     # query.py
 
-    from __future__ import print_function
     import cx_Oracle
 
     # Establish the database connection

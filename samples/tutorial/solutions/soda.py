@@ -3,10 +3,8 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
-
-from __future__ import print_function
 
 import cx_Oracle
 import db_config
