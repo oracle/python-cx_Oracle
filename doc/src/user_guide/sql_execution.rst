@@ -138,11 +138,11 @@ Tuning Fetch Performance
 For best performance, the cx_Oracle :attr:`Cursor.arraysize` value should be set
 before calling :meth:`Cursor.execute()`.  The default value is 100.  For queries
 that return a large number of rows, increasing ``arraysize`` can improve
-performance because it reduces the number of round-trips to the database.
-However increasing this value increases the amount of memory required.  The best
-value for your system depends on factors like your network speed, the query row
-size, and available memory.  An appropriate value can be found by experimenting
-with your application.
+performance because it reduces the number of :ref:`round-trips <roundtrips>` to
+the database.  However increasing this value increases the amount of memory
+required.  The best value for your system depends on factors like your network
+speed, the query row size, and available memory.  An appropriate value can be
+found by experimenting with your application.
 
 Regardless of which fetch method is used to get rows, internally all rows are
 fetched in batches corresponding to the value of ``arraysize``.  The size does
@@ -597,6 +597,10 @@ This might produce output like::
 Other information on using Oracle objects is in :ref:`Using Bind Variables
 <bind>`.
 
+Performance-sensitive applications should consider using scalar types instead of
+objects. If you do use objects, avoid calling :meth:`Connection.gettype()`
+unnecessarily, and avoid objects with large numbers of attributes.
+
 .. _rowlimit:
 
 Limiting Rows
@@ -690,8 +694,8 @@ Python cx_Oracle applications can use Oracle Database's `Client Result Cache
 The CRC enables client-side caching of SQL query (SELECT statement) results in
 client memory for immediate use when the same query is re-executed.  This is
 useful for reducing the cost of queries for small, mostly static, lookup tables,
-such as for postal codes.  CRC reduces network round-trips, and also reduces
-database server CPU usage.
+such as for postal codes.  CRC reduces network :ref:`round-trips <roundtrips>`,
+and also reduces database server CPU usage.
 
 The cache is at the application process level.  Access and invalidation is
 managed by the Oracle Client libraries.  This removes the need for extra
@@ -804,3 +808,72 @@ SDO_GEOMETRY <spatial>` object:
     cur = connection.cursor()
     cur.setinputsizes(typeObj)
     cur.execute("insert into sometable values (:1)", [None])
+
+.. _roundtrips:
+
+Database Round-trips
+====================
+
+A round-trip is defined as the trip from the Oracle Client libraries (:ref:`used by
+cx_Oracle <archfig>`) to the database and back.  Along with tuning an application's
+architecture and tuning its SQL statements, a general performance and
+scalability goal is to minimize `round-trips
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9B2F05F9-D841-4493-A42D-A7D89694A2D1>`__.
+
+Some general tips for reducing round-trips are:
+
+- Tune :attr:`Cursor.arraysize`, see :ref:`Tuning Fetch Performance <tuningfetch>`.
+- Use :meth:`Cursor.executemany()` for optimal DML execution, see :ref:`Batch Statement Execution and Bulk Loading <batchstmnt>`.
+- Only commit when necessary.  Use :attr:`Connection.autocommit` on the last statement of a transaction.
+- For connection pools, use a callback to set connection state, see :ref:`Session CallBacks for Setting Pooled Connection State <sessioncallback>`.
+- Make use of PL/SQL procedures which execute multiple SQL statements instead of executing them individually from cx_Oracle.
+- Use scalar types instead of :ref:`Oracle named object types <fetchobjects>`
+- Avoid overuse of :meth:`Connection.ping()`.
+
+Oracle's `Automatic Workload Repository (AWR)
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
+reports show 'SQL*Net roundtrips to/from client' and are useful for finding the
+overall behavior of a system.
+
+Sometimes you may wish to find the number of round-trips used for a
+specific application.  Snapshots of the ``V$SESSTAT`` view taken before
+and after doing some work can be used for this.
+
+First, find the session id of the current connection:
+
+.. code-block:: python
+
+    cursor.execute("select sys_context('userenv','sid') from dual")
+    sid, = cursor.fetchone();
+
+This can be used with ``V$SESSTAT`` to find the current number of round-trips.
+A second connection should be used to avoid affecting the count.  If your user
+does not have access to the V$ views, then use a SYSTEM connection:
+
+.. code-block:: python
+
+    def getRT(conn, sid):
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT ss.value
+               FROM v$sesstat ss, v$statname sn
+               WHERE ss.sid = :sid
+               AND ss.statistic# = sn.statistic#
+               AND sn.name LIKE '%roundtrip%client%'""", sid = sid)
+        rt, = cursor.fetchone();
+        return rt
+
+The main part of a benchmark application can perform "work" and use ``getRT()``
+to calculate the number of round-trips the work required:
+
+.. code-block:: python
+
+    rt = getRT(systemconn, sid)
+
+    cursor = conn.cursor()
+    cursor.execute("select * from dual")
+    row = cursor.fetchone()
+
+    rt = getRT(systemconn, sid) - rt
+
+    print("Round-trips", rt)

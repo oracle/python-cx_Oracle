@@ -30,8 +30,8 @@ An alternative way to commit is to set the attribute
 :attr:`~Connection.autocommit` of the connection to ``True``.  This ensures all
 :ref:`DML <dml>` statements (INSERT, UPDATE etc) are committed as they are
 executed.  Unlike :meth:`Connection.commit()`, this does not require an
-additional round-trip to the database so it is more efficient when used
-appropriately.
+additional :ref:`round-trip <roundtrips>` to the database so it is more
+efficient when used appropriately.
 
 Note that irrespective of the autocommit value, Oracle Database will always
 commit an open transaction when a DDL statement is executed.

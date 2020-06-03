@@ -83,8 +83,9 @@ The connection attributes, :attr:`~Connection.client_identifier`,
 end-to-end tracing.  You can use data dictionary and ``V$`` views to monitor
 tracing or use other application tracing utilities.
 
-The attributes are sent to the database when the next round-trip to the
-database occurs, for example when the next SQL statement is executed.
+The attributes are sent to the database when the next :ref:`round-trip
+<roundtrips>` to the database occurs, for example when the next SQL statement is
+executed.
 
 The attribute values will remain set in connections released back to connection
 pools.  When the application re-acquires a connection from the pool it should

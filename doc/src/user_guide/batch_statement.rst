@@ -51,14 +51,14 @@ The following example inserts five rows into the table ``ParentTable``:
     ]
     cursor.executemany("insert into ParentTable values (:1, :2)", dataToInsert)
 
-This code requires only one round-trip from the client to the database instead
-of the five round-trips that would be required for repeated calls to
-:meth:`~Cursor.execute()`.  For very large data sets there may be an external
-buffer or network limits to how many rows can be processed, so repeated calls
-to ``executemany()`` may be required.  The limits are based on both the number
-of rows being processed as well as the "size" of each row that is being
-processed.  Repeated calls to :meth:`~Cursor.executemany()` are still
-better than repeated calls to :meth:`~Cursor.execute()`.
+This code requires only one :ref:`round-trip <roundtrips>` from the client to
+the database instead of the five round-trips that would be required for
+repeated calls to :meth:`~Cursor.execute()`.  For very large data sets there
+may be an external buffer or network limits to how many rows can be processed,
+so repeated calls to ``executemany()`` may be required.  The limits are based
+on both the number of rows being processed as well as the "size" of each row
+that is being processed.  Repeated calls to :meth:`~Cursor.executemany()` are
+still better than repeated calls to :meth:`~Cursor.execute()`.
 
 
 Batch Execution of PL/SQL

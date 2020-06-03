@@ -128,9 +128,9 @@ calling :meth:`LOB.size()` and the data can be read by calling
     print("BLOB data:", b.read())
 
 This approach produces the same results as the previous example but it will
-perform more slowly because it requires more round-trips to Oracle Database and
-has higher overhead. It is needed, however, if the LOB data cannot be fetched as
-one block of data from the server.
+perform more slowly because it requires more :ref:`round-trips <roundtrips>` to
+Oracle Database and has higher overhead. It is needed, however, if the LOB data
+cannot be fetched as one block of data from the server.
 
 To stream the BLOB column, the :meth:`LOB.read()` method can be called
 repeatedly until all of the data has been read, as shown below:

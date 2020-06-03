@@ -436,9 +436,9 @@ it is not, then :meth:`~SessionPool.acquire()` will clean up the connection and
 return a different one.  This check will not detect cases such as where the
 database session has been killed by the DBA, or reached a database resource
 manager quota limit.  To help in those cases, :meth:`~SessionPool.acquire()`
-will also do a full round-trip ping to the database when it is about to return a
-connection that was unused in the pool for 60 seconds.  If the ping fails, the
-connection will be discarded and another one obtained before
+will also do a full :ref:`round-trip <roundtrips>` ping to the database when it
+is about to return a connection that was unused in the pool for 60 seconds.  If
+the ping fails, the connection will be discarded and another one obtained before
 :meth:`~SessionPool.acquire()` returns to the application.  Because this full
 ping is time based, it won't catch every failure.  Also since network timeouts
 and session kills may occur after :meth:`~SessionPool.acquire()` and before
@@ -461,6 +461,8 @@ decrease throughput.  See `Guideline for Preventing Connection Storms: Use
 Static Pools
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7DFBA826-7CC0-4D16-B19C-31D168069B54>`__,
 which contains details about sizing of pools.
+
+.. _sessioncallback:
 
 Session CallBacks for Setting Pooled Connection State
 -----------------------------------------------------
@@ -532,8 +534,9 @@ In this example tagging was not being used, so the ``requestedTag`` parameter
 is ignored.
 
 Note: if you need to execute multiple SQL statements in the callback, use an
-anonymous PL/SQL block to save round-trips of repeated ``execute()`` calls.
-With ALTER SESSION, pass multiple settings in the one statement:
+anonymous PL/SQL block to save :ref:`round-trips <roundtrips>` of repeated
+``execute()`` calls.  With ALTER SESSION, pass multiple settings in the one
+statement:
 
 .. code-block:: python
 
@@ -594,8 +597,8 @@ When cx_Oracle uses Oracle Client 12.2 or later, the session callback can also
 be the name of a PL/SQL procedure.  A PL/SQL callback will be initiated only
 when the tag currently associated with a connection does not match the tag that
 is requested.  A PL/SQL callback is most useful when using :ref:`drcp` because
-DRCP does not require a round-trip to invoke a PL/SQL session callback
-procedure.
+DRCP does not require a :ref:`round-trip <roundtrips>` to invoke a PL/SQL
+session callback procedure.
 
 The PL/SQL session callback should accept two VARCHAR2 arguments:
 
