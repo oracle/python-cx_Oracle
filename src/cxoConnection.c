@@ -684,13 +684,10 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     passwordObj = dsnObj = cclassObj = editionObj = NULL;
     threadedObj = eventsObj = newPasswordObj = usernameObj = NULL;
     matchAnyTagObj = contextObj = shardingKeyObj = superShardingKeyObj = NULL;
-    if (cxoUtils_initializeDPI() < 0)
+    if (cxoUtils_initializeDPI(NULL) < 0)
         return -1;
     if (dpiContext_initCommonCreateParams(cxoDpiContext, &dpiCommonParams) < 0)
         return cxoError_raiseAndReturnInt();
-    dpiCommonParams.driverName = CXO_DRIVER_NAME;
-    dpiCommonParams.driverNameLength =
-            (uint32_t) strlen(dpiCommonParams.driverName);
     if (dpiContext_initConnCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,

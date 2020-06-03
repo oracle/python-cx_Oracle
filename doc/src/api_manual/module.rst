@@ -95,7 +95,9 @@ Module Interface
     the password for the logon during the connection process.
 
     See the :ref:`globalization <globalization>` section for details on the
-    encoding and nencoding parameters.
+    encoding and nencoding parameters.  Note the default encoding and nencoding
+    values changed to "UTF-8" in cx_Oracle 8, and any character set in NLS_LANG
+    is ignored.
 
     The edition parameter is expected to be a string if specified and sets the
     edition to use for the session. It is only relevant if both the client and
@@ -144,6 +146,47 @@ Module Interface
     Construct an object holding a date value from the given ticks value (number
     of seconds since the epoch; see the documentation of the standard Python
     time module for details).
+
+
+.. function:: init_oracle_client(lib_dir=None, config_dir=None, \
+        error_url=None, driver_name=None)
+
+    Initialize the Oracle client library now, rather than when
+    :func:`cx_Oracle.clientversion()`, :func:`cx_Oracle.connect()` or
+    :func:`cx_Oracle.SessionPool()` is called for the first time. If
+    initialization has already taken place, an exception is raised.
+
+    If the parameter `lib_dir` is not `None` or the empty string,
+    the specified directory is the only one searched for the Oracle Client
+    libraries; otherwise, the standard way of locating the Oracle Client
+    library is used.
+
+    If the parameter `config_dir` is not `None` or the empty string, the
+    specified directory is used to find Oracle Client library configuration
+    files. This is equivalent to setting the environment variable `TNS_ADMIN`
+    and overrides any value already set in `TNS_ADMIN`. If this parameter is not
+    set, the standard way of locating Oracle Client library configuration files
+    is used.
+
+    If the parameter `error_url` is not `None` or the empty string, the
+    specified value is included in the message of the exception raised when the
+    Oracle Client library cannot be loaded; otherwise, the :ref:`installation`
+    URL is included.
+
+    If the parameter `driver_name` is not `None` or the empty string, the
+    specified value can be found in database views that give information about
+    connections. For example, it is in the ``CLIENT_DRIVER`` column of
+    ``V$SESSION_CONNECT_INFO``. The standard is to set this value to
+    ``"<name> : version>"``, where <name> is the name of the driver and
+    <version> is its version. Theere should be a single space character before
+    and after the colon. If this value is not specified, then the default
+    value of "cx_Oracle : <version>" is used.
+
+    See :ref:`initialization` for more discussion.
+
+    .. note::
+
+        This method is an extension to the DB API definition.
 
 
 .. function:: makedsn(host, port, sid=None, service_name=None, region=None, \
@@ -207,7 +250,9 @@ Module Interface
     system authentication and Oracle wallets.
 
     See the :ref:`globalization <globalization>` section for details on the
-    encoding and nencoding parameters.
+    encoding and nencoding parameters.  Note the default encoding and nencoding
+    values changed to "UTF-8" in cx_Oracle 8, and any character set in NLS_LANG
+    is ignored.
 
     The edition parameter is expected to be a string, if specified, and sets
     the edition to use for the sessions in the pool. It is only relevant if

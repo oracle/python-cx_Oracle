@@ -154,13 +154,10 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     maxSessions = 2;
     sessionIncrement = 1;
     maxSessionsPerShard = 0;
-    if (cxoUtils_initializeDPI() < 0)
+    if (cxoUtils_initializeDPI(NULL) < 0)
         return -1;
     if (dpiContext_initCommonCreateParams(cxoDpiContext, &dpiCommonParams) < 0)
         return cxoError_raiseAndReturnInt();
-    dpiCommonParams.driverName = CXO_DRIVER_NAME;
-    dpiCommonParams.driverNameLength =
-            (uint32_t) strlen(dpiCommonParams.driverName);
     if (dpiContext_initPoolCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,

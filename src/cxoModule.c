@@ -245,12 +245,49 @@ static PyObject* cxoModule_makeDSN(PyObject* self, PyObject* args,
 //-----------------------------------------------------------------------------
 static PyObject* cxoModule_clientVersion(PyObject* self, PyObject* args)
 {
-    if (cxoUtils_initializeDPI() < 0)
+    if (cxoUtils_initializeDPI(NULL) < 0)
         return NULL;
     return Py_BuildValue("(iiiii)", cxoClientVersionInfo.versionNum,
             cxoClientVersionInfo.releaseNum, cxoClientVersionInfo.updateNum,
             cxoClientVersionInfo.portReleaseNum,
             cxoClientVersionInfo.portUpdateNum);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoModule_initClientLib()
+//   Initialize the client library now, rather than when the first call to
+// get the Oracle Client library version, create a standalone connection or
+// session pool is performed.
+//-----------------------------------------------------------------------------
+static PyObject* cxoModule_initClientLib(PyObject* self, PyObject* args,
+        PyObject* keywordArgs)
+{
+    static char *keywordList[] = { "lib_dir", "config_dir", "error_url",
+            "driver_name", NULL };
+    Py_ssize_t libDirSize, configDirSize, errorUrlSize, driverNameSize;
+    dpiContextCreateParams params;
+
+    memset(&params, 0, sizeof(dpiContextCreateParams));
+    libDirSize = configDirSize = errorUrlSize = driverNameSize = 0;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|z#z#z#z#",
+            keywordList, &params.oracleClientLibDir, &libDirSize,
+            &params.oracleClientConfigDir, &configDirSize,
+            &params.loadErrorUrl, &errorUrlSize, &params.defaultDriverName,
+            &driverNameSize))
+        return NULL;
+    if (libDirSize == 0)
+        params.oracleClientLibDir = NULL;
+    if (configDirSize == 0)
+        params.oracleClientConfigDir = NULL;
+    if (errorUrlSize == 0)
+        params.loadErrorUrl = NULL;
+    if (driverNameSize == 0)
+        params.defaultDriverName = NULL;
+    if (cxoUtils_initializeDPI(&params) < 0)
+        return NULL;
+
+    Py_RETURN_NONE;
 }
 
 
@@ -308,6 +345,8 @@ static PyMethodDef cxoModuleMethods[] = {
     { "TimestampFromTicks", (PyCFunction) cxoModule_timestampFromTicks,
             METH_VARARGS },
     { "clientversion", (PyCFunction) cxoModule_clientVersion, METH_NOARGS },
+    { "init_oracle_client", (PyCFunction) cxoModule_initClientLib,
+            METH_VARARGS | METH_KEYWORDS },
     { NULL }
 };
 

@@ -106,20 +106,48 @@ int cxoUtils_getModuleAndName(PyTypeObject *type, PyObject **module,
 // work as expected. It also has the additional benefit of reducing the number
 // of errors that can take place when the module is imported.
 //-----------------------------------------------------------------------------
-int cxoUtils_initializeDPI(void)
+int cxoUtils_initializeDPI(dpiContextCreateParams *params)
 {
+    dpiContextCreateParams localParams;
     dpiErrorInfo errorInfo;
     dpiContext *context;
 
-    if (!cxoDpiContext) {
-        if (dpiContext_create(DPI_MAJOR_VERSION, DPI_MINOR_VERSION,
-                &context, &errorInfo) < 0)
-            return cxoError_raiseFromInfo(&errorInfo);
-        if (dpiContext_getClientVersion(context, &cxoClientVersionInfo) < 0)
-            return cxoError_raiseAndReturnInt();
-        cxoDpiContext = context;
+    // if already initialized and parameters were passed, raise an exception;
+    // otherwise do nothing as this is implicitly called when creating a
+    // standalone connection or session pool and when getting the Oracle Client
+    // library version
+    if (cxoDpiContext) {
+        if (!params)
+            return 0;
+        cxoError_raiseFromString(cxoProgrammingErrorException,
+                "Oracle Client library has already been initialized");
+        return -1;
     }
 
+    // set up parameters used for initializing ODPI-C
+    if (params) {
+        memcpy(&localParams, params, sizeof(dpiContextCreateParams));
+    } else {
+        memset(&localParams, 0, sizeof(dpiContextCreateParams));
+    }
+    localParams.defaultEncoding = "UTF-8";
+    if (!localParams.defaultDriverName)
+        localParams.defaultDriverName = CXO_DRIVER_NAME;
+    if (!localParams.loadErrorUrl)
+        localParams.loadErrorUrl = "https://cx-oracle.readthedocs.io/en/"
+                "latest/user_guide/installation.html";
+
+    // create ODPI-C context with the specified parameters
+    if (dpiContext_createWithParams(DPI_MAJOR_VERSION, DPI_MINOR_VERSION,
+            &localParams, &context, &errorInfo) < 0)
+        return cxoError_raiseFromInfo(&errorInfo);
+    if (dpiContext_getClientVersion(context, &cxoClientVersionInfo) < 0) {
+        cxoError_raiseAndReturnInt();
+        dpiContext_destroy(context);
+        return -1;
+    }
+
+    cxoDpiContext = context;
     return 0;
 }
 

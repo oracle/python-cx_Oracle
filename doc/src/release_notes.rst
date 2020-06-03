@@ -44,6 +44,8 @@ Version 8.0 (TBD)
     - The string representation of variables has changed to include the type
       in addition to the value.
 
+#)  Added function :meth:`cx_Oracle.init_oracle_client()` in order to enable
+    programmatic control of the initialization of the Oracle Client library.
 #)  Added functions :meth:`SodaCollection.save()`,
     :meth:`SodaCollection.saveAndGet()` and :meth:`SodaCollection.truncate()`
     available in Oracle Client 20 and higher.

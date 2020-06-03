@@ -546,7 +546,7 @@ const char *cxoUtils_getAdjustedEncoding(const char *encoding);
 int cxoUtils_getBooleanValue(PyObject *obj, int defaultValue, int *value);
 int cxoUtils_getModuleAndName(PyTypeObject *type, PyObject **module,
         PyObject **name);
-int cxoUtils_initializeDPI(void);
+int cxoUtils_initializeDPI(dpiContextCreateParams *params);
 int cxoUtils_processJsonArg(PyObject *arg, cxoBuffer *buffer);
 int cxoUtils_processSodaDocArg(cxoSodaDatabase *db, PyObject *arg,
         dpiSodaDoc **handle);

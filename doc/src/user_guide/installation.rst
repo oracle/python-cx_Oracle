@@ -12,7 +12,7 @@ To use cx_Oracle 8 with Python and Oracle Database you need:
 - Python 3.5 and higher.  Older versions of cx_Oracle may work with older
   versions of Python.
 
-- Oracle client libraries. These can be from the free `Oracle Instant
+- Oracle Client libraries. These can be from the free `Oracle Instant
   Client
   <https://www.oracle.com/database/technologies/instant-client.html>`__,
   or those included in Oracle Database if Python is on the same
@@ -24,16 +24,25 @@ To use cx_Oracle 8 with Python and Oracle Database you need:
   interoperability allows cx_Oracle to connect to both older and newer
   databases.
 
-If you are upgrading, review the :ref:`release notes <releasenotes>`.
+The cx_Oracle module loads Oracle Client libraries which communicate
+over Oracle Net to an existing database.  Oracle Net is not a separate
+product: it is how the Oracle Client and Oracle Database communicate.
+
+.. figure:: /images/cx_Oracle_arch.png
+
+   cx_Oracle Architecture
+
 
 Quick Start cx_Oracle Installation
 ==================================
 
-- An installation of `Python <https://www.python.org/downloads>`__ is
-  needed. Python 3.5 and higher are supported by cx_Oracle 8.
+- Install `Python <https://www.python.org/downloads>`__ 3, if not already
+  available. Python 3.5 and higher are supported by cx_Oracle 8.
 
 - Install cx_Oracle from `PyPI
-  <https://pypi.org/project/cx-Oracle/>`__ with::
+  <https://pypi.org/project/cx-Oracle/>`__ with:
+
+  .. code-block:: shell
 
       python -m pip install cx_Oracle --upgrade
 
@@ -41,14 +50,20 @@ Quick Start cx_Oracle Installation
   the source package will be downloaded instead. This will be compiled
   and the resulting binary installed.
 
-  If you are behind a proxy, specify your proxy server::
+  If you are behind a proxy, specify your proxy server:
+
+  .. code-block:: shell
 
       python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
-- Add Oracle 19, 18, 12 or 11.2 client libraries to your operating
-  system library search path such as ``PATH`` on Windows or
-  ``LD_LIBRARY_PATH`` on Linux.  On macOS move the files to ``~/lib``
-  or ``/usr/local/lib``.
+- Add Oracle 19, 18, 12 or 11.2 client libraries to your operating system
+  library search path such as ``PATH`` on Windows or ``LD_LIBRARY_PATH`` on
+  Linux.  On macOS move the files to ``~/lib`` or ``/usr/local/lib``.
+  Alternatively, on macOS and Windows, you may prefer to use
+  :meth:`~cx_Oracle.init_oracle_client()` in your application to pass the Oracle
+  Client directory name, see :ref:`libinit`.
+
+  To get the libraries:
 
     - If your database is on a remote computer, then download and unzip the client
       libraries from the free `Oracle Instant Client
@@ -56,14 +71,14 @@ Quick Start cx_Oracle Installation
       "Basic" or "Basic Light" package for your operating system
       architecture.
 
-      Instant Client on Windows requires an appropriate `Microsoft
-      Windows Redistributables
-      <https://oracle.github.io/odpi/doc/installation.html#windows>`__.
-      On Linux, the ``libaio`` (sometimes called ``libaio1``) package
-      is needed.
+      Instant Client on Windows requires an appropriate Microsoft Windows
+      Redistributables, see :ref:`wininstall`.  On Linux, the ``libaio``
+      (sometimes called ``libaio1``) package is needed.  Oracle Linux 8 also
+      needs the ``libnsl`` package.
 
-    - Alternatively use the client libraries already available in a
-      locally installed database such as the free `Oracle XE
+    - Alternatively, use the client libraries already available in a
+      locally installed database such as the free `Oracle Database
+      Express Edition ("XE")
       <https://www.oracle.com/database/technologies/appdev/xe.html>`__
       release.
 
@@ -71,12 +86,6 @@ Quick Start cx_Oracle Installation
   or greater. Version 12.1 client libraries can connect to Oracle Database 10.2
   or greater. Version 11.2 client libraries can connect to Oracle Database 9.2
   or greater.
-
-  The database abstraction layer in cx_Oracle is `ODPI-C
-  <https://github.com/oracle/odpi>`__, which means that the `ODPI-C
-  installation instructions
-  <https://oracle.github.io/odpi/doc/installation.html>`__ can be useful
-  to review.
 
 - Create a script like the one below:
 
@@ -102,7 +111,7 @@ Quick Start cx_Oracle Installation
   Locate your Oracle Database username and password, and the database
   connection string.  The connection string is commonly of the format
   ``hostname/servicename``, using the hostname where the database is
-  running, and the service name of the Oracle Database instance.
+  running, and using the service name of the Oracle Database instance.
 
   Substitute your username, password and connection string in the
   code. Run the Python script, for example::
@@ -151,7 +160,7 @@ application is tested in your intended release environments.  Newer
 Oracle clients support new features, such as the `oraaccess.xml
 <http://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9D12F489-EC02-46BE-8CD4-5AECED0E2BA2>`__ external configuration
 file available with 12.1 or later clients, session pool improvements,
-call timeouts with 18 or later clients, and `other enhancements
+improved high availability features, call timeouts, and `other enhancements
 <http://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D60519C3-406F-4588-8DA1-D475D5A3E1F6>`__.
 
 The cx_Oracle function :func:`~cx_Oracle.clientversion()` can be used
@@ -178,9 +187,8 @@ combination may result in runtime errors. These include:
 Installing cx_Oracle on Linux
 =============================
 
-This section discusses the generic installation method on Linux.
-Using Python and cx_Oracle RPM packages on Oracle Linux is discussed
-in :ref:`oraclelinux`.
+This section discusses the generic installation methods on Linux.  To use Python
+and cx_Oracle RPM packages from yum on Oracle Linux, see :ref:`oraclelinux`.
 
 Install cx_Oracle
 -----------------
@@ -188,19 +196,23 @@ Install cx_Oracle
 The generic way to install cx_Oracle on Linux is to use Python's `Pip
 <http://pip.readthedocs.io/en/latest/installing/>`__ package to
 install cx_Oracle from `PyPI
-<https://pypi.org/project/cx-Oracle/>`__::
+<https://pypi.org/project/cx-Oracle/>`__:
+
+.. code-block:: shell
 
     python -m pip install cx_Oracle --upgrade
 
-If you are behind a proxy, specify your proxy server::
+If you are behind a proxy, specify your proxy server:
 
-   python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
+.. code-block:: shell
+
+    python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
 This will download and install a pre-compiled binary `if one is
 available <https://pypi.org/project/cx-Oracle/>`__ for your
 architecture.  If a pre-compiled binary is not available, the source
 will be downloaded, compiled, and the resulting binary installed.
-Compiling cx_Oracle requires the `Python.h` header file.  If you are
+Compiling cx_Oracle requires the ``Python.h`` header file.  If you are
 using the default python package, this file is in the ``python-devel``
 package or equivalent.
 
@@ -209,8 +221,7 @@ Install Oracle Client
 
 Using cx_Oracle requires Oracle Client libraries to be installed.
 These provide the necessary network connectivity allowing cx_Oracle
-to access an Oracle Database instance. Oracle Client versions 19, 18,
-12 and 11.2 are supported.
+to access an Oracle Database instance.
 
     - If your database is on a remote computer, then download the free `Oracle
       Instant Client
@@ -219,8 +230,9 @@ to access an Oracle Database instance. Oracle Client versions 19, 18,
       architecture.  Use the RPM or ZIP packages, based on your
       preferences.
 
-    - Alternatively use the client libraries already available in a
-      locally installed database such as the free `Oracle XE
+    - Alternatively, use the client libraries already available in a
+      locally installed database such as the free `Oracle Database
+      Express Edition ("XE")
       <https://www.oracle.com/database/technologies/appdev/xe.html>`__
       release.
 
@@ -235,12 +247,17 @@ To use cx_Oracle with Oracle Instant Client zip files:
    <https://www.oracle.com/database/technologies/instant-client/linux-x86-32-downloads.html>`__, matching your
    Python architecture.
 
+   The latest version is recommended.  Oracle Instant Client 19 will
+   connect to Oracle Database 11.2 or later.
+
 2. Unzip the package into a single directory that is accessible to your
-   application. For example::
+   application. For example:
+
+   .. code-block:: shell
 
        mkdir -p /opt/oracle
        cd /opt/oracle
-       unzip instantclient-basic-linux.x64-19.3.0.0.0dbru.zip
+       unzip instantclient-basic-linux.x64-19.6.0.0.0dbru.zip
 
 3. Install the ``libaio`` package with sudo or as the root user. For example::
 
@@ -248,33 +265,40 @@ To use cx_Oracle with Oracle Instant Client zip files:
 
    On some Linux distributions this package is called ``libaio1`` instead.
 
+   On recent Linux versions, such as Oracle Linux 8, you may also need to
+   install the ``libnsl`` package.
+
 4. If there is no other Oracle software on the machine that will be
    impacted, permanently add Instant Client to the runtime link
-   path. For example, with sudo or as the root user::
+   path. For example, with sudo or as the root user:
 
-       sudo sh -c "echo /opt/oracle/instantclient_19_3 > /etc/ld.so.conf.d/oracle-instantclient.conf"
+   .. code-block:: shell
+
+       sudo sh -c "echo /opt/oracle/instantclient_19_6 > /etc/ld.so.conf.d/oracle-instantclient.conf"
        sudo ldconfig
 
    Alternatively, set the environment variable ``LD_LIBRARY_PATH`` to
    the appropriate directory for the Instant Client version. For
    example::
 
-       export LD_LIBRARY_PATH=/opt/oracle/instantclient_19_3:$LD_LIBRARY_PATH
+       export LD_LIBRARY_PATH=/opt/oracle/instantclient_19_6:$LD_LIBRARY_PATH
 
-5. If you intend to co-locate optional Oracle configuration files such
-   as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
-   Instant Client, then put them in the ``network/admin``
-   subdirectory.  With Instant Client 12.2 or earlier, create this
-   manually.  For example::
+5. If you use optional Oracle configuration files such as ``tnsnames.ora``,
+   ``sqlnet.ora`` or ``oraaccess.xml`` with Instant Client, then put the files
+   in an accessible directory, for example in
+   ``/opt/oracle/your_config_dir``. Then use:
 
-       mkdir -p /opt/oracle/instantclient_12_2/network/admin
+   .. code-block:: python
 
-   This is the default Oracle configuration directory for executables
-   linked with this Instant Client.
+       import cx_Oracle
+       cx_Oracle.init_oracle_client(config_dir = "/home/your_username/oracle/your_config_dir")
 
-   Alternatively, Oracle configuration files can be put in another,
-   accessible directory.  Then set the environment variable
-   ``TNS_ADMIN`` to that directory name.
+   Or set the environment variable ``TNS_ADMIN`` to that directory name.
+
+   Alternatively, put the files in the ``network/admin`` subdirectory of Instant
+   Client, for example in ``/opt/oracle/instantclient_19_6/network/admin``.
+   This is the default Oracle configuration directory for executables linked
+   with this Instant Client.
 
 Oracle Instant Client RPMs
 ++++++++++++++++++++++++++
@@ -293,18 +317,28 @@ To use cx_Oracle with Oracle Instant Client RPMs:
    <http://yum.oracle.com/repo/OracleLinux/OL6/oracle/instantclient/x86_64/index.html>`__
    that can be downloaded without needing a click-through.
 
-2. Install the downloaded RPM with sudo or as the root user. For example::
+   The latest version is recommended.  Oracle Instant Client 19 will
+   connect to Oracle Database 11.2 or later.
 
-       sudo yum install oracle-instantclient19.3-basic-19.3.0.0.0-1.x86_64.rpm
+2. Install the downloaded RPM with sudo or as the root user. For example:
+
+   .. code-block:: shell
+
+       sudo yum install oracle-instantclient19.6-basic-19.6.0.0.0-1.x86_64.rpm
 
    Yum will automatically install required dependencies, such as ``libaio``.
+
+   On recent Linux versions, such as Oracle Linux 8, you may need to manually
+   install the ``libnsl`` package.
 
 3. For Instant Client 19, the system library search path is
    automatically configured during installation.
 
    For older versions, if there is no other Oracle software on the machine that will be
    impacted, permanently add Instant Client to the runtime link
-   path. For example, with sudo or as the root user::
+   path. For example, with sudo or as the root user:
+
+   .. code-block:: shell
 
        sudo sh -c "echo /usr/lib/oracle/18.3/client64/lib > /etc/ld.so.conf.d/oracle-instantclient.conf"
        sudo ldconfig
@@ -316,20 +350,22 @@ To use cx_Oracle with Oracle Instant Client RPMs:
 
        export LD_LIBRARY_PATH=/usr/lib/oracle/18.3/client64/lib:$LD_LIBRARY_PATH
 
-4. If you intend to co-locate optional Oracle configuration files such
-   as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
-   Instant Client, then put them in the ``network/admin`` subdirectory
-   under ``lib/``.  With Instant Client 12.2 or earlier, create this
-   manually.  For example::
+4. If you use optional Oracle configuration files such as ``tnsnames.ora``,
+   ``sqlnet.ora`` or ``oraaccess.xml`` with Instant Client, then put the files
+   in an accessible directory, for example in
+   ``/opt/oracle/your_config_dir``. Then use:
 
-       sudo mkdir -p /usr/lib/oracle/12.2/client64/lib/network/admin
+   .. code-block:: python
 
-   This is the default Oracle configuration directory for executables
-   linked with this Instant Client.
+       import cx_Oracle
+       cx_Oracle.init_oracle_client(config_dir = "/opt/oracle/your_config_dir")
 
-   Alternatively, Oracle configuration files can be put in another,
-   accessible directory.  Then set the environment variable
-   ``TNS_ADMIN`` to that directory name.
+   Or set the environment variable ``TNS_ADMIN`` to that directory name.
+
+   Alternatively, put the files in the ``network/admin`` subdirectory of Instant
+   Client, for example in ``/usr/lib/oracle/19.6/client64/lib/network/admin``.
+   This is the default Oracle configuration directory for executables linked
+   with this Instant Client.
 
 Local Database or Full Oracle Client
 ++++++++++++++++++++++++++++++++++++
@@ -341,11 +377,15 @@ The libraries must be either 32-bit or 64-bit, matching your
 Python architecture.
 
 1. Set required Oracle environment variables by running the Oracle environment
-   script. For example::
+   script. For example:
+
+   .. code-block:: shell
 
        source /usr/local/bin/oraenv
 
-   For Oracle Database XE 11.2, run::
+   For Oracle Database Express Edition ("XE") 11.2, run:
+
+   .. code-block:: shell
 
        source /u01/app/oracle/product/11.2.0/xe/bin/oracle_env.sh
 
@@ -370,6 +410,8 @@ Using the yum server makes it easy to keep up to date.
 Installation instructions are at `Oracle Linux for Python
 Developers <https://yum.oracle.com/oracle-linux-python.html>`__.
 
+.. _wininstall:
+
 Installing cx_Oracle on Windows
 ===============================
 
@@ -382,7 +424,9 @@ package to install cx_Oracle from `PyPI
 
     python -m pip install cx_Oracle --upgrade
 
-If you are behind a proxy, specify your proxy server::
+If you are behind a proxy, specify your proxy server:
+
+.. code-block:: shell
 
    python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
@@ -405,8 +449,9 @@ to access an Oracle Database instance. Oracle Client versions 19, 18,
       "Basic" or "Basic Light" package for your operating system
       architecture.
 
-    - Alternatively use the client libraries already available in a
-      locally installed database such as the free `Oracle XE
+    - Alternatively, use the client libraries already available in a
+      locally installed database such as the free `Oracle Database
+      Express Edition ("XE")
       <https://www.oracle.com/database/technologies/appdev/xe.html>`__
       release.
 
@@ -423,46 +468,39 @@ To use cx_Oracle with Oracle Instant Client zip files:
    <https://www.oracle.com/database/technologies/instant-client/microsoft-windows-32-downloads.html>`__, matching your
    Python architecture.
 
+   The latest version is recommended.  Oracle Instant Client 19 will
+   connect to Oracle Database 11.2 or later.
+
    Windows 7 users: Note that Oracle 19c is not supported on Windows 7.
 
 2. Unzip the package into a directory that is accessible to your
    application. For example unzip
-   ``instantclient-basic-windows.x64-19.3.0.0.0dbru.zip`` to
-   ``C:\oracle\instantclient_19_3``.
+   ``instantclient-basic-windows.x64-19.6.0.0.0dbru.zip`` to
+   ``C:\oracle\instantclient_19_6``.
 
-3. Add this directory to the ``PATH`` environment variable. For
-   example, on Windows 7, update ``PATH`` in Control Panel -> System
-   -> Advanced System Settings -> Advanced -> Environment Variables ->
-   System Variables -> PATH.  The Instant Client directory must occur
-   in ``PATH`` before any other Oracle directories.
+3. There are several alternative ways to tell cx_Oracle where your Oracle Client
+   libraries are, see :ref:`initialization`.
 
-   Restart any open command prompt windows.
-
-   To avoid interfering with existing tools that require other Oracle Client
-   versions, instead of updating the system-wide ``PATH`` variable you can set
-   the value for each script.
-
-   One way is to set it inside the application before cx_Oracle is used for the
-   first time:
+   With Oracle Instant Client you can use :meth:`~cx_Oracle.init_oracle_client()`
+   in your application:
 
    .. code-block:: python
 
-       import os
-       os.environ['PATH'] = r'C:\instantclient_19_3' + os.pathsep + os.environ['PATH]
+       import cx_Oracle
+       cx_Oracle.init_oracle_client(lib_dir = "C:\oracle\instantclient_19_6")
 
-   Note this only works on Windows.
+   Alternatively, add the Oracle Client directory to the ``PATH`` environment
+   variable.  The Instant Client directory must occur in ``PATH`` before any
+   other Oracle directories.  Restart any open command prompt windows.
 
-   Another alternative way to set ``PATH`` is to use a batch file that sets it
-   before Python is executed, for example::
+   Another way to set ``PATH`` is to use a batch file that sets it before Python
+   is executed, for example::
 
        REM mypy.bat
-       SET PATH=C:\oracle\instantclient_19_3;%PATH%
+       SET PATH=C:\oracle\instantclient_19_6;%PATH%
        python %*
 
    Invoke this batch file every time you want to run Python.
-
-   Alternatively use ``SET`` to change your ``PATH`` in each command
-   prompt window before you run python.
 
 4. Oracle Instant Client libraries require a Visual Studio redistributable with
    a 64-bit or 32-bit architecture to match Instant Client's architecture.
@@ -473,17 +511,23 @@ To use cx_Oracle with Oracle Instant Client zip files:
        - For Instant Client 12.1 install `VS 2010 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2010>`__
        - For Instant Client 11.2 install `VS 2005 64-bit <https://www.microsoft.com/en-us/download/details.aspx?id=18471>`__ or `VS 2005 32-bit <https://www.microsoft.com/en-ca/download/details.aspx?id=3387>`__
 
-5. If you intend to co-locate optional Oracle configuration files such
-   as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
-   Instant Client, then create a ``network\admin`` subdirectory, for example
-   ``C:\oracle\instantclient_19_3\network\admin``.
+5. If you use optional Oracle configuration files such as ``tnsnames.ora``,
+   ``sqlnet.ora`` or ``oraaccess.xml`` with Instant Client, then put the files
+   in an accessible directory, for example in
+   ``C:\oracle\your_config_dir``. Then use:
 
-   This is the default Oracle configuration directory for executables
-   linked with this Instant Client.
+   .. code-block:: python
 
-   Alternatively, Oracle configuration files can be put in another,
-   accessible directory.  Then set the environment variable
-   ``TNS_ADMIN`` to that directory name.
+       import cx_Oracle
+       cx_Oracle.init_oracle_client(config_dir = "C:\oracle\your_config_dir")
+
+   Or set the environment variable ``TNS_ADMIN`` to that directory name.
+
+   Alternatively, put the files in a ``network\admin`` subdirectory of
+   Instant Client, for example in
+   ``C:\oracle\instantclient_19_6\network\admin``.  This is the default
+   Oracle configuration directory for executables linked with this
+   Instant Client.
 
 
 Local Database or Full Oracle Client
@@ -496,11 +540,8 @@ Client.
 The Oracle libraries must be either 32-bit or 64-bit, matching your
 Python architecture.
 
-1. Set the environment variable ``PATH`` to include the path that
-   contains OCI.dll, if it is not already set. For example, on Windows
-   7, update ``PATH`` in Control Panel -> System -> Advanced System
-   Settings -> Advanced -> Environment Variables -> System Variables
-   -> PATH.
+1. Set the environment variable ``PATH`` to include the path that contains
+   ``OCI.DLL``, if it is not already set.
 
    Restart any open command prompt windows.
 
@@ -509,10 +550,8 @@ Python architecture.
    ``network\admin`` subdirectory of the Oracle Database software
    installation.
 
-   Alternatively, Oracle configuration files can be put in another,
-   accessible directory.  Then set the environment variable
-   ``TNS_ADMIN`` to that directory name.
-
+   Alternatively, use :meth:`~cx_Oracle.init_oracle_client()` or set
+   ``TNS_ADMIN`` as shown in the previous section.
 
 Installing cx_Oracle on macOS
 =============================
@@ -525,6 +564,8 @@ entitlements and will fail to load Oracle client libraries.  Instead
 use `Homebrew <https://brew.sh>`__ or `Python.org
 <https://www.python.org/downloads>`__.
 
+Note Instant Client 19 and earlier are not supported on macOS 10.15 Catalina.
+
 Install cx_Oracle
 -----------------
 
@@ -534,7 +575,9 @@ package to install cx_Oracle from `PyPI
 
     python -m pip install cx_Oracle --upgrade
 
-If you are behind a proxy, specify your proxy server::
+If you are behind a proxy, specify your proxy server:
+
+.. code-block:: shell
 
    python -m pip install cx_Oracle --proxy=http://proxy.example.com:80 --upgrade
 
@@ -550,8 +593,7 @@ Install Oracle Instant Client
 
 cx_Oracle requires Oracle Client libraries, which are found in Oracle
 Instant Client for macOS. These provide the necessary network
-connectivity allowing cx_Oracle to access an Oracle Database
-instance. Oracle Client versions 19, 18, 12 and 11.2 are supported.
+connectivity allowing cx_Oracle to access an Oracle Database instance.
 
 To use cx_Oracle with Oracle Instant Client zip files:
 
@@ -560,48 +602,77 @@ To use cx_Oracle with Oracle Instant Client zip files:
    Choose either a 64-bit or 32-bit package, matching your
    Python architecture.
 
+   The latest version is recommended.  Oracle Instant Client 19 will
+   connect to Oracle Database 11.2 or later.
+
 2. Unzip the package into a single directory that is accessible to your
-   application. For example, in Terminal you could unzip in your home directory::
+   application. For example, in Terminal you could unzip in your home directory:
+
+   .. code-block:: shell
 
        cd ~
        unzip instantclient-basic-macos.x64-19.3.0.0.0dbru.zip
 
-   This will create a directory ``/Users/yourname/instantclient_19_3``.
+   This will create a directory ``/Users/your_username/instantclient_19_3``.
 
-3. Add a link to ``$HOME/lib`` or ``/usr/local/lib`` to enable applications to
-   find Instant Client. If the ``lib`` sub-directory does not exist, you can
-   create it. For example::
+3. There are several alternative ways to tell cx_Oracle where your Oracle Client
+   libraries are, see :ref:`initialization`.
+
+   You can use :meth:`~cx_Oracle.init_oracle_client()` in your
+   application:
+
+   .. code-block:: python
+
+       import cx_Oracle
+       cx_Oracle.init_oracle_client(lib_dir = "/Users/your_username/instantclient_19_3")
+
+
+   Alternatively, add a link to ``$HOME/lib`` or ``/usr/local/lib`` to enable
+   applications to find Instant Client. If the ``lib`` sub-directory does not
+   exist, you can create it. For example:
+
+   .. code-block:: shell
 
        mkdir ~/lib
        ln -s ~/instantclient_19_3/libclntsh.dylib ~/lib/
 
-   If you now run ``ls -l ~/lib/libclntsh.dylib`` you will see something like::
+   If you now run ``ls -l ~/lib/libclntsh.dylib`` you will see something like:
 
-       lrwxr-xr-x  1 yourname  staff  48 12 Nov 15:04 /Users/yourname/lib/libclntsh.dylib -> /Users/yourname/instantclient_19_3/libclntsh.dylib
+   .. code-block:: text
 
-   Alternatively, copy the required OCI libraries. For example::
+       lrwxr-xr-x  1 your_username  staff  48 12 Nov 15:04 /Users/your_username/lib/libclntsh.dylib -> /Users/your_username/instantclient_19_3/libclntsh.dylib
+
+   Instead of linking, you can copy the required OCI libraries. For example:
+
+   .. code-block:: shell
 
         mkdir ~/lib
         cp ~/instantclient_19_3/{libclntsh.dylib.19.1,libclntshcore.dylib.19.1,libnnz19.dylib,libociei.dylib} ~/lib/
 
-   For Instant Client 11.2, the OCI libraries must be copied. For example::
+   For Instant Client 11.2, the OCI libraries must be copied. For example:
+
+   .. code-block:: shell
 
         mkdir ~/lib
         cp ~/instantclient_11_2/{libclntsh.dylib.11.1,libnnz11.dylib,libociei.dylib} ~/lib/
 
-4. If you intend to co-locate optional Oracle configuration files such
-   as ``tnsnames.ora``, ``sqlnet.ora`` or ``oraaccess.xml`` with
-   Instant Client, then create a ``network/admin`` subdirectory, if it
-   does not already exist.  For example::
+4. If you use optional Oracle configuration files such as ``tnsnames.ora``,
+   ``sqlnet.ora`` or ``oraaccess.xml`` with Instant Client, then put the files
+   in an accessible directory, for example in
+   ``/Users/your_username/oracle/your_config_dir``. Then use:
 
-       mkdir -p ~/instantclient_12_2/network/admin
+   .. code-block:: python
 
-   This is the default Oracle configuration directory for executables
-   linked with this Instant Client.
+       import cx_Oracle
+       cx_Oracle.init_oracle_client(config_dir = "/Users/your_username/oracle/your_config_dir")
 
-   Alternatively, Oracle configuration files can be put in another,
-   accessible directory.  Then set the environment variable
-   ``TNS_ADMIN`` to that directory name.
+   Or set the environment variable ``TNS_ADMIN`` to that directory name.
+
+   Alternatively, put the files in the ``network/admin`` subdirectory of
+   Instant Client, for example in
+   ``/Users/your_username/instantclient_19_3/network/admin``.  This is the
+   default Oracle configuration directory for executables linked with
+   this Instant Client.
 
 Installing cx_Oracle without Internet Access
 ============================================
@@ -659,6 +730,12 @@ Review the :ref:`release notes <releasenotes>` for deprecations and modify any
 affected code.
 
 If you are upgrading from cx_Oracle 7 note these changes:
+
+    - The default character set used by cx_Oracle 8 is now "UTF-8". Also, the
+      character set component of the ``NLS_LANG`` environment variable is
+      ignored.  If you need to change the character set, then pass ``encoding``
+      and ``nendcoding`` parameters when creating a connection or connection
+      pool.  See :ref:`globalization`.
 
     - Any uses of ``type(var)`` need to be changed to ``var.type``.
 
@@ -741,20 +818,29 @@ If using cx_Oracle fails:
         are all 64-bit or all 32-bit.  The ``DPI-1047`` message will
         tell you whether the 64-bit or 32-bit Oracle Client is needed
         for your Python.
-      - On Windows, restart your command prompt and use ``set PATH``
-        to check the environment variable has the correct Oracle
-        Client listed before any other Oracle directories.
-      - On Windows, use the ``DIR`` command on the directory set in
-        ``PATH``. Verify that ``OCI.DLL`` exists there.
+      - On Windows, if you used :meth:`~cx_Oracle.init_oracle_client()` and have
+        a full database installation, make sure this database is the `currently
+        configured database
+        <http://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-33D575DD-47FF-42B1-A82F-049D3F2A8791>`__.
+      - On Windows, if you are not using
+        :meth:`~cx_Oracle.init_oracle_client()`, then restart your command prompt
+        and use ``set PATH`` to check the environment variable has the correct
+        Oracle Client listed before any other Oracle directories.
+      - On Windows, use the ``DIR`` command to verify that ``OCI.DLL`` exists in
+        the directory passed to ``init_oracle_client()`` or set in ``PATH``.
       - On Windows, check that the correct `Windows Redistributables
         <https://oracle.github.io/odpi/doc/installation.html#windows>`__ have
         been installed.
-      - On Linux, check the ``LD_LIBRARY_PATH`` environment variable
-        contains the Oracle Client library directory.
-      - On macOS, make sure Oracle Instant Client is in ``~/lib`` or
-        ``/usr/local/lib`` and that you are not using the bundled Python (use
-        `Homebrew <https://brew.sh>`__ or `Python.org
-        <https://www.python.org/downloads>`__ instead).
+      - On Linux, check the ``LD_LIBRARY_PATH`` environment variable contains
+        the Oracle Client library directory. If you are using Oracle Instant
+        Client, a preferred alternative is to ensure a file in the
+        ``/etc/ld.so.conf.d`` directory contains the path to the Instant Client
+        directory, and then run ``ldconfig``.
+      - On macOS, make sure you are not using the bundled Python (use `Homebrew
+        <https://brew.sh>`__ or `Python.org
+        <https://www.python.org/downloads>`__ instead).  If you are not using
+        :meth:`~cx_Oracle.init_oracle_client()`, then put the Oracle Instant
+        Client libraries in ``~/lib`` or ``/usr/local/lib``.
 
     - If you got "``DPI-1072: the Oracle Client library version is
       unsupported``", then review the installation requirements.  cx_Oracle

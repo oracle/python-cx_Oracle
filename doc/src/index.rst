@@ -21,6 +21,7 @@ User Guide
 
     user_guide/introduction.rst
     user_guide/installation.rst
+    user_guide/initialization.rst
     user_guide/connection_handling.rst
     user_guide/sql_execution.rst
     user_guide/plsql_execution.rst

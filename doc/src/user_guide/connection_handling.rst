@@ -4,8 +4,9 @@
 Connecting to Oracle Database
 *****************************
 
-This chapter covers connecting to Oracle Database using cx_Oracle.  It
-explains the various forms of connections and how to manage them.
+Connections between cx_Oracle and Oracle Database are used for executing
+:ref:`SQL <sqlexecution>`, :ref:`PL/SQL <plsqlexecution>`, and :ref:`SODA
+<sodausermanual>`.
 
 Establishing Database Connections
 =================================
@@ -30,12 +31,10 @@ There are two ways to connect to Oracle Database using cx_Oracle:
    :meth:`SessionPool.acquire()` can be called to obtain a connection
    from a pool.
 
-Optional connection creation parameters allow you to utilize features such as
-:ref:`Sharding <connsharding>` and `Database Resident Connection Pooling
-(DRCP)`_.
-
-Once a connection is established, you can use it for SQL, PL/SQL and
-SODA.
+Many connection behaviors can be controlled by cx_Oracle options.  Other
+settings can be configured in :ref:`optnetfiles` or in :ref:`optclientfiles`.
+These include limiting the amount of time that opening a connection can take, or
+enabling :ref:`network encryption <netencrypt>`.
 
 **Example: Standalone Connection to Oracle Database**
 
@@ -73,131 +72,6 @@ block is completed. For example:
 This code ensures that, once the block is completed, the connection is closed
 and resources have been reclaimed by the database. In addition, any attempt to
 use the variable ``connection`` outside of the block will simply fail.
-
-
-.. _envset:
-
-Oracle Environment Variables
-============================
-
-Before running Python, ensure that any necessary Oracle environment
-variables are configured correctly.  The variables needed by cx_Oracle
-depend on how Python is installed, how you connect to the database,
-and what optional settings are desired.
-
-.. list-table:: Common Oracle environment variables
-    :header-rows: 1
-    :widths: 1 2
-    :align: left
-
-    * - Oracle Environment Variables
-      - Purpose
-    * - ORACLE_HOME
-      - The directory containing the Oracle Database software. The directory
-        and various configuration files must be readable by the Python process.
-        This variable should not be set if you are using Oracle Instant Client.
-    * - LD_LIBRARY_PATH
-      - The library search path for platforms like Linux should include the
-        Oracle libraries, for example ``$ORACLE_HOME/lib`` or
-        ``/opt/instantclient_19_3``. This variable is not needed if the
-        libraries are located by an alternative method, such as with
-        ``ldconfig``. On other UNIX platforms you may need to set an OS
-        specific equivalent, such as ``LIBPATH`` or ``SHLIB_PATH``.
-    * - PATH
-      - The library search path for Windows should include the location where
-        ``OCI.DLL`` is found.
-    * - TNS_ADMIN
-      - The directory of Oracle Database client configuration files such as
-        ``tnsnames.ora`` and ``sqlnet.ora``. Needed if the configuration files
-        are in a non-default location.  See :ref:`optnetfiles`.
-    * - NLS_LANG
-      - Determines the 'national language support' globalization options for
-        cx_Oracle. If not set, a default value will be chosen by Oracle. See
-        :ref:`globalization`.
-    * - NLS_DATE_FORMAT, NLS_TIMESTAMP_FORMAT
-      - Often set in Python applications to force a consistent date format
-        independent of the locale. The variables are ignored if the environment
-        variable ``NLS_LANG`` is not set.
-
-It is recommended to set Oracle variables in the environment before
-invoking Python. However, they may also be set in application code with
-``os.putenv()`` before the first connection is established.  Note that setting
-operating system variables such as ``LD_LIBRARY_PATH`` must be done
-before running Python.
-
-
-Optional Oracle Configuration Files
-===================================
-
-.. _optnetfiles:
-
-Optional Oracle Net Configuration Files
----------------------------------------
-
-Optional Oracle Net configuration files affect connections and
-applications.
-
-Common files include:
-
-* ``tnsnames.ora``: A configuration file that defines databases addresses
-  for establishing connections. See :ref:`Net Service Name for Connection
-  Strings <netservice>`.
-
-* ``sqlnet.ora``: A profile configuration file that may contain information
-  on features such as connection failover, network encryption, logging, and
-  tracing.  See `Oracle Net Services Reference
-  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-  id=GUID-19423B71-3F6C-430F-84CC-18145CC2A818>`__ for more information.
-
-* ``cwallet.sso``: an Oracle wallet for secure connection.
-
-The default location for these files is the ``network/admin``
-directory under the Oracle Instant Client installation directory or the
-``$ORACLE_HOME`` directory (for full database or client installations). To use
-a non-default location, put the files in a directory that is accessible to
-Python and set the ``TNS_ADMIN`` environment variable to
-that directory path.  For example, if the file
-``/etc/my-oracle-config/tnsnames.ora`` is being used, set the
-``TNS_ADMIN`` environment variable to ``/etc/my-oracle-config``.
-
-Also see :ref:`Network Configuration <hanetwork>`.
-
-.. _optclientfiles:
-
-Optional Oracle Client Configuration Files
-------------------------------------------
-
-When cx_Oracle uses Oracle Database Clients 12.1, or later, an optional client
-parameter file called ``oraaccess.xml`` can be used.  This file can be used to
-override some application settings, which can be useful if the application
-cannot be altered.  The file also enables auto-tuning of the client statement
-cache.
-
-The file is read from the same directory as the
-`Optional Oracle Net Configuration Files`_.
-
-A sample ``oraaccess.xml`` file that sets the Oracle client ‘prefetch’
-value to 50 rows and the 'client statement cache' value to 1, is shown
-below::
-
-    <oraaccess xmlns="http://xmlns.oracle.com/oci/oraaccess"
-            xmlns:oci="http://xmlns.oracle.com/oci/oraaccess"
-            schemaLocation="http://xmlns.oracle.com/oci/oraaccess
-            http://xmlns.oracle.com/oci/oraaccess.xsd">
-        <default_parameters>
-            <prefetch>
-                <rows>50</rows>
-            </prefetch>
-            <statement_cache>
-                <size>1</size>
-            </statement_cache>
-        </default_parameters>
-    </oraaccess>
-
-Refer to the documentation on `oraaccess.xml
-<https://www.oracle.com/pls/topic/lookup?
-ctx=dblatest&id=GUID-9D12F489-EC02-46BE-8CD4-5AECED0E2BA2>`__
-for more details.
 
 .. _connstr:
 
@@ -1253,7 +1127,7 @@ Securely Encrypting Network Traffic to Oracle Database
 ======================================================
 
 You can encrypt data transferred between the Oracle Database and the Oracle
-client libraries used by cx_Oracle so that unauthorized parties are not able to
+Client libraries used by cx_Oracle so that unauthorized parties are not able to
 view plain text values as the data passes over the network.  The easiest
 configuration is Oracle’s native network encryption.  The standard SSL protocol
 can also be used if you have a PKI, but setup is necessarily more involved.
@@ -1365,7 +1239,7 @@ For cx_Oracle, only these files from the zip are needed:
 
 The other files and the wallet password are not needed.
 
-Place these files as shown in `Optional Oracle Net Configuration Files`_.
+Place these files as shown in :ref:`Optional Oracle Net Configuration Files <optnetfiles>`.
 
 Run Your Application
 --------------------
@@ -1428,7 +1302,7 @@ database table can be split so each shard contains a table with the same columns
 but a different subset of rows.  These tables are known as sharded tables.
 Sharding is configured in Oracle Database, see the `Oracle Sharding
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=SHARD>`__ manual.
-Sharding requires Oracle Database and client libraries 12.2, or later.
+Sharding requires Oracle Database and Oracle Client libraries 12.2, or later.
 
 The :meth:`cx_Oracle.connect()` and :meth:`SessionPool.acquire()` functions
 accept ``shardingkey`` and ``supershardingkey`` parameters that are a sequence
@@ -1439,7 +1313,7 @@ range (the super sharding key), and then further partitioned by a sharding key.
 
 When creating a connection pool, the :meth:`cx_Oracle.SessionPool()` attribute
 ``maxSessionsPerShard`` can be set.  This is used to balance connections in the
-pool equally across shards.  It requires Oracle client libraries 18.3, or later.
+pool equally across shards.  It requires Oracle Client libraries 18.3, or later.
 
 Shard key values may be of type string (mapping to VARCHAR2 shard keys), number
 (NUMBER), bytes (RAW), or date (DATE).  Multiple types may be used in each
