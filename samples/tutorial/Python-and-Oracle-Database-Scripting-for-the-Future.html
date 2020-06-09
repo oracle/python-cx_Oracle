@@ -33,10 +33,10 @@
       </li>
       <li><a href="#pooling">2. Connection Pooling</a>
         <ul>
-          <li>2.1 Session pooling</li>
-          <li>2.2 Session pool experiments</li>
+          <li>2.1 Connection pooling</li>
+          <li>2.2 Connection pool experiments</li>
           <li>2.3 Creating a DRCP Connection</li>
-          <li>2.4 Session pooling and DRCP</li>
+          <li>2.4 Connection pooling and DRCP</li>
           <li>2.5 More DRCP investigation</li>
         </ul>
       </li>
@@ -112,7 +112,7 @@
 
 <ol>
   <li><p><a target="_blank" href="https://www.python.org/">Python</a>. Version 3.6 (or later) is preferred.</p></li>
-  <li><p>cx_Oracle version 7.2 (or later) and the Oracle Client libraries.</p>
+  <li><p>cx_Oracle version 7.3 (or later) and the Oracle Client libraries.</p>
     <ul>
       <li><a target="_blank" href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#installing-cx-oracle-on-linux">Linux</a></li>
       <li><a target="_blank" href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#installing-cx-oracle-on-macos">macOS</a> - please note the special instructions for macOS in the link.</li>
@@ -130,6 +130,14 @@
 <pre>
 sqlplus sys/yoursyspassword@localhost/orclpdb1 as sysdba @sql/SetupSamples
 </pre>
+
+<p>If DRCP is not already running, connect to the SYS user again in
+SQL*Plus and execute the command:</p>
+
+<pre>
+execute dbms_connection_pool.start_pool()
+</pre>
+
 
   <h2><a name="connectioninformation">Connection Information</a></h2>
 
@@ -409,7 +417,7 @@ Client version: (18, 3, 0, 0, 0)
     <li><h3><a name="pooling">2. Connection Pooling</a></h3>
 
       <ul>
-        <li>  <h4>2.1 Session pooling</h4>
+        <li>  <h4>2.1 Connection pooling</h4>
 
       <p>Review the code contained in <code>connect_pool.py</code>:</p>
       <pre>
@@ -441,22 +449,22 @@ print("All done!")
 </pre>
 
           <p>The <code>SessionPool()</code> function creates a pool of
-          Oracle "sessions" for the user.  Sessions in the pool
-          can be used by cx_Oracle connections by calling
-          <code>pool.acquire()</code>.  The initial pool size is 2 sessions.
-          The maximum size is 5 sessions.  When the pool needs to grow, 1 new
-          session will be created at a time.  The pool can shrink back to the
-          minimum size of 2 when sessions are no longer in use.</p>
+          Oracle connections for the user.  Connections in the pool can
+          be used by cx_Oracle by calling <code>pool.acquire()</code>.
+          The initial pool size is 2 connections.  The maximum size is 5
+          connections.  When the pool needs to grow, 1 new connection
+          will be created at a time.  The pool can shrink back to the
+          minimum size of 2 when connections are no longer in use.</p>
 
           <p>The <code>def Query():</code> line creates a method that
           is called by each thread.  </p>
 
           <p>In the method, the <code>pool.acquire()</code> call gets
-          one session from the pool (as long as less than 5 are
-          already in use).  This session is used in a loop of 4
+          one connection from the pool (as long as less than 5 are
+          already in use).  This connection is used in a loop of 4
           iterations to query the sequence <code>myseq</code>.  At the
           end of the method, cx_Oracle will automatically close the
-          cursor and release the session back to the pool for
+          cursor and release the connection back to the pool for
           reuse.</p>
 
           <p>The <code>seqval, = cur.fetchone()</code> line fetches a
@@ -479,7 +487,7 @@ run.</p>
 </li>
 
     <li>
-      <h4>2.2 Session pool experiments</h4>
+      <h4>2.2 Connection pool experiments</h4>
 
 
 <p>Review <code>connect_pool2.py</code>, which has a loop for the number
@@ -521,19 +529,20 @@ print("All done!")
 
 <p>Experiment with different values of the pool parameters and
 <code>numberOfThreads</code>.  Larger initial pool sizes will make the
-pool creation slower, but the sessions will be available immediately
-when needed.  When <code>numberOfThreads</code> exceeds the maximum
-size of the pool, the <code>acquire()</code> call will generate an
-error.  Adding the additional argument <code>getmode =
+pool creation slower, but the connections will be available immediately
+when needed.  When <code>numberOfThreads</code> exceeds the maximum size
+of the pool, the <code>acquire()</code> call will generate an error such
+as "ORA-24459: OCISessionGet() timed out waiting for pool to create new
+connections".  Adding the additional argument <code>getmode =
 cx_Oracle.SPOOL_ATTRVAL_WAIT</code> to the
 <code>cx_Oracle.SessionPool()</code> call will prevent the exception
-from taking place, but will cause the thread to wait until a session
+from taking place, but will cause the thread to wait until a connection
 is available.</p>
 
 <p>Pool configurations where <code>min</code> is the same as
 <code>max</code> (and <code>increment = 0</code>) are often
-recommended as a way to avoid connection storms on the database
-server.</p>
+recommended as a best practice.  This avoids connection storms on the
+database server.</p>
 
 </li>
 
@@ -545,7 +554,7 @@ server.</p>
   server processes.</p>
 
   <p>Below left is a diagram without DRCP. Every application
-  connection or session has its own 'dedicated' database server
+  connection  has its own 'dedicated' database server
   process.  Application connect and close calls require the expensive
   create and destroy of those database server processes.  To avoid these
   costs, scripts may hold connections open even when not doing
@@ -572,7 +581,7 @@ server.</p>
   required.  However, if database host memory is large enough, then
   the default, 'dedicated' server process model is generally
   recommended.  If DRCP is enabled, it is best used in conjunction
-  with cx_Oracle session pooling.</p>
+  with cx_Oracle's middle-tier connection pooling.</p>
 
   <p>Batch scripts doing long running jobs should generally use
   dedicated connections. Both dedicated and DRCP servers can be used
@@ -617,9 +626,9 @@ print("Database version:", con.version)
   </li>
 
     <li>
-      <h4>2.4 Session pooling and DRCP</h4>
+      <h4>2.4 Connection pooling and DRCP</h4>
 
-      <p>DRCP works well with session pooling.</p>
+      <p>DRCP works well with cx_Oracle's connection pooling.</p>
 
   <p>Edit <code>connect_pool2.py</code>, reset any changed pool options, and modify it to use DRCP:</p>
   <pre>
@@ -658,12 +667,13 @@ print("All done!")
 
       <pre><strong>python connect_pool2.py</strong></pre>
 
-      <p>If you get the error "ORA-24418: Cannot open further
+      <p>If you get an error "ORA-24459: OCISessionGet() timed out waiting for
+      pool to create new connections" or "ORA-24418: Cannot open further
       sessions", it is because connection requests are being made
       while the pool is starting or growing.  Add the argument
       <code>getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT</code> to the
       <code>cx_Oracle.SessionPool()</code> call so connection
-      requests wait for pooled sessions to be available.</p>
+      requests wait for pooled connections to be available.</p>
 
       <p>Open a new a terminal window and invoke SQL*Plus:</p>
 
@@ -681,7 +691,7 @@ print("All done!")
     <li>
       <h4>2.5 More DRCP investigation</h4>
 
-      <p>To explore the behaviors of session and DRCP pooling futher,
+      <p>To explore the behaviors of cx_Oracle connection pooling and DRCP pooling futher,
       you could try changing the purity to
       <code>cx_Oracle.ATTR_PURITY_NEW</code> to see the effect on the
       DRCP NUM_MISSES statistic.</p>
@@ -921,7 +931,7 @@ print(elapsed, "seconds")
 
     <pre><strong>python query_arraysize.py</strong></pre>
 
-    <p>Reload a few times to see the average times.</p>
+    <p>Rerun a few times to see the average times.</p>
 
     <p>Experiment with different arraysize values.  For example, edit
     <code>query_arraysize.py</code> and change the arraysize to:</p>
@@ -1042,7 +1052,7 @@ print(res)
       <p>The '<code>rows</code>' array contains the data to be inserted.</p>
 
       <p>The <code>executemany()</code> call inserts all rows.  This
-      calls allows "array binding", which is an efficient way to
+      call uses "array binding", which is an efficient way to
       insert multiple records.</p>
 
       <p>The final part of the script queries the results back and displays them as a list of tuples.</p>
@@ -1121,11 +1131,11 @@ print(res)
 
       <p>The other data gets inserted and is queried back.</p>
 
-      <p>At the end of the script, cx_Oracle will rollback an uncommitted transaction. If you want to commit results, you can use:</p>
+      <p>At the end of the script, cx_Oracle will roll back an uncommitted transaction. If you want to commit results, you can use:</p>
 
 <pre>con.commit()</pre>
 
-      <p>To force a rollback in cx_Oracle, use:</p>
+      <p>To force cx_Oracle to roll back, use:</p>
 
 <pre>con.rollback()</pre>
 
@@ -2202,7 +2212,7 @@ for doc in myDocuments:
   <p>In this tutorial, you have learned how to: </p>
   <ul>
     <li>Create connections</li>
-    <li>Use sessions pooling and Database Resident Connection Pooling</li>
+    <li>Use cx_Oracle connection pooling and Database Resident Connection Pooling</li>
     <li>Execute queries and fetch data</li>
     <li>Use bind variables</li>
     <li>Use PL/SQL stored functions and procedures</li>
@@ -2297,12 +2307,6 @@ comment
 <p> Strings and variables can be displayed with a <code>print()</code> function:</p>
   <pre>print('Hello, World!')
 print('Value:', count)</pre>
-
-    <P>Note the <a
-    href="https://docs.python.org/3.0/whatsnew/3.0.html#print-is-a-function"
-    ><code>print</code></a> syntax and output is different in Python
-    2.  Examples in this lab use <code>from __future__ import print_function
-</code> so that they run with Python 2 and Python 3.</p>
 
     <h4>Data Structures</h4>
 
