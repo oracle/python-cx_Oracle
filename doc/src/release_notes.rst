@@ -9,8 +9,8 @@ Version 8.0 (TBD)
 -----------------
 
 #)  Dropped support for Python 2.7.
-#)  Updated embedded ODPI-C to `version 3.4
-    <https://oracle.github.io/odpi/doc/releasenotes.html#version-3-4-tbd>`__.
+#)  Updated embedded ODPI-C to `version 4.0
+    <https://oracle.github.io/odpi/doc/releasenotes.html#version-4-0-tbd>`__.
 #)  Reworked type management to clarify and simplify code
 
     - Added :ref:`constants <dbtypes>` for all database types. The database
