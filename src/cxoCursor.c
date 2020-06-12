@@ -40,6 +40,7 @@ static PyObject *cxoCursor_arrayVar(cxoCursor*, PyObject*);
 static PyObject *cxoCursor_bindNames(cxoCursor*, PyObject*);
 static PyObject *cxoCursor_getDescription(cxoCursor*, void*);
 static PyObject *cxoCursor_getLastRowid(cxoCursor*, void*);
+static PyObject *cxoCursor_getPrefetchRows(cxoCursor*, void*);
 static PyObject *cxoCursor_new(PyTypeObject*, PyObject*, PyObject*);
 static int cxoCursor_init(cxoCursor*, PyObject*, PyObject*);
 static PyObject *cxoCursor_repr(cxoCursor*);
@@ -49,10 +50,11 @@ static PyObject *cxoCursor_getImplicitResults(cxoCursor*);
 static PyObject *cxoCursor_contextManagerEnter(cxoCursor*, PyObject*);
 static PyObject *cxoCursor_contextManagerExit(cxoCursor*, PyObject*);
 static int cxoCursor_performDefine(cxoCursor*, uint32_t);
+static int cxoCursor_setPrefetchRows(cxoCursor*, PyObject*, void*);
 
 
 //-----------------------------------------------------------------------------
-// declaration of methods for Python type "Cursor"
+// declaration of methods for Python type
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoCursorMethods[] = {
     { "execute", (PyCFunction) cxoCursor_execute,
@@ -93,7 +95,7 @@ static PyMethodDef cxoCursorMethods[] = {
 
 
 //-----------------------------------------------------------------------------
-// declaration of members for Python type "Cursor"
+// declaration of members for Python type
 //-----------------------------------------------------------------------------
 static PyMemberDef cxoCursorMembers[] = {
     { "arraysize", T_UINT, offsetof(cxoCursor, arraySize), 0 },
@@ -114,11 +116,13 @@ static PyMemberDef cxoCursorMembers[] = {
 
 
 //-----------------------------------------------------------------------------
-// declaration of calculated members for Python type "Connection"
+// declaration of calculated members for Python type
 //-----------------------------------------------------------------------------
 static PyGetSetDef cxoCursorCalcMembers[] = {
     { "description", (getter) cxoCursor_getDescription, 0, 0, 0 },
     { "lastrowid", (getter) cxoCursor_getLastRowid, 0, 0, 0 },
+    { "prefetchrows", (getter) cxoCursor_getPrefetchRows,
+            (setter) cxoCursor_setPrefetchRows, 0, 0 },
     { NULL }
 };
 
@@ -180,6 +184,7 @@ static int cxoCursor_init(cxoCursor *cursor, PyObject *args,
     cursor->connection = connection;
     cursor->arraySize = 100;
     cursor->fetchArraySize = 100;
+    cursor->prefetchRows = DPI_DEFAULT_PREFETCH_ROWS;
     cursor->bindArraySize = 1;
     cursor->isOpen = 1;
 
@@ -623,6 +628,19 @@ static PyObject *cxoCursor_getLastRowid(cxoCursor *cursor, void *unused)
 
 
 //-----------------------------------------------------------------------------
+// cxoCursor_getPrefetchRows()
+//   Return an integer providing the number of rows that are prefetched by the
+// Oracle Client library.
+//-----------------------------------------------------------------------------
+static PyObject *cxoCursor_getPrefetchRows(cxoCursor *cursor, void *unused)
+{
+    if (cxoCursor_isOpen(cursor) < 0)
+        return NULL;
+    return PyLong_FromUnsignedLong(cursor->prefetchRows);
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoCursor_close()
 //   Close the cursor. Any action taken on this cursor from this point forward
 // results in an exception being raised.
@@ -995,6 +1013,12 @@ static int cxoCursor_internalPrepare(cxoCursor *cursor, PyObject *statement,
     // set the fetch array size, if applicable
     if (cursor->stmtInfo.statementType == DPI_STMT_TYPE_SELECT) {
         if (dpiStmt_setFetchArraySize(cursor->handle, cursor->arraySize) < 0)
+            return cxoError_raiseAndReturnInt();
+    }
+
+    // set number of rows to prefetch on execute, if applicable
+    if (cursor->prefetchRows != DPI_DEFAULT_PREFETCH_ROWS) {
+        if (dpiStmt_setPrefetchRows(cursor->handle, cursor->prefetchRows) < 0)
             return cxoError_raiseAndReturnInt();
     }
 
@@ -2192,4 +2216,26 @@ static PyObject *cxoCursor_contextManagerExit(cxoCursor *cursor,
     Py_DECREF(result);
     Py_INCREF(Py_False);
     return Py_False;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoCursor_setPrefetchRows()
+//   Set the number of rows that are prefetched by the Oracle Client library.
+//-----------------------------------------------------------------------------
+static int cxoCursor_setPrefetchRows(cxoCursor* cursor, PyObject *value,
+        void* arg)
+{
+    unsigned long numRows;
+
+    if (cxoCursor_isOpen(cursor) < 0)
+        return -1;
+    numRows = PyLong_AsUnsignedLong(value);
+    if (PyErr_Occurred())
+        return -1;
+    cursor->prefetchRows = (uint32_t) numRows;
+    if (cursor->handle && dpiStmt_setPrefetchRows(cursor->handle,
+            cursor->prefetchRows) < 0)
+        return cxoError_raiseAndReturnInt();
+    return 0;
 }

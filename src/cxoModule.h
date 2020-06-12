@@ -243,6 +243,7 @@ struct cxoCursor {
     uint32_t arraySize;
     uint32_t bindArraySize;
     uint32_t fetchArraySize;
+    uint32_t prefetchRows;
     int setInputSizes;
     uint64_t rowCount;
     uint32_t fetchBufferRowIndex;

@@ -552,6 +552,10 @@ Connection Object
     value can make a significant difference in performance (up to 100x) if you
     have a small number of statements that you execute repeatedly.
 
+    The default value is 20.
+
+    See :ref:`Statement Caching <stmtcache>` for more information.
+
     .. note::
 
         This attribute is an extension to the DB API definition.

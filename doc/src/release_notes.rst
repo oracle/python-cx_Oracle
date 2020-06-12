@@ -51,6 +51,9 @@ Version 8.0 (TBD)
     available in Oracle Client 20 and higher.
 #)  Added function :meth:`SodaOperation.fetchArraySize()` available in Oracle
     Client 19.5 and higher.
+#)  Added attribute :attr:`Cursor.prefetchrows` to control the number of rows
+    that the Oracle Client library fetches into internal buffers when a query
+    is executed.
 #)  Internally make use of new mode available in Oracle Client 20 and higher in
     order to avoid a round-trip when accessing :attr:`Connection.version` for
     the first time.

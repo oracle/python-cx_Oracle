@@ -37,7 +37,7 @@ Cursor Object
     instead of the 1 that the DB API recommends.  This value means that 100 rows
     are fetched by each internal call to the database.
 
-    See :ref:`Tuning Fetch Performance <tuningfetch>`.
+    See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
 
 .. attribute:: Cursor.bindarraysize
 
@@ -442,6 +442,21 @@ Cursor Object
         immediately and an implied commit takes place.
 
 
+.. attribute:: Cursor.prefetchrows
+
+    This read-write attribute can be used to tune the number of rows that the
+    Oracle Client library fetches when a query is executed. This value can
+    reduce the number of round-trips to the database that are required to
+    fetch rows but at the cost of additional memory. Setting this value to 0
+    can be useful when the timing of fetches must be explicitly controlled.
+
+    See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
+
+    .. note::
+
+        The DB API definition does not define this method.
+
+
 .. method:: Cursor.prepare(statement, [tag])
 
     This can be used before a call to :meth:`~Cursor.execute()` to define the
@@ -450,6 +465,8 @@ Cursor Object
     None or the same string object as the statement.  If specified the
     statement will be returned to the statement cache with the given tag. See
     the Oracle documentation for more information about the statement cache.
+
+    See :ref:`Statement Caching <stmtcache>` for more information.
 
     .. note::
 
