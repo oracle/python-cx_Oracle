@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>Python and Oracle Database: Scripting for the Future</title>
+<title>Python and Oracle Database Tutorial: Scripting for the Future</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 
 <link rel="stylesheet" href="resources/base.css" type="text/css"/>
@@ -9,17 +9,17 @@
 </head>
 <body bgcolor="#ffffff" text="#000000">
 
-  <h1>Python and Oracle Database: Scripting for the Future</h1>
+  <h1>Python and Oracle Database Tutorial: Scripting for the Future</h1>
 
   <img src="resources/community-py-200.png" alt="Python cx_Oracle logo">
 
   <h2>Contents</h2>
 
   <ul>
-    <li><a href="#preface" >Preface</a></li>
-    <li><a href="#connectioninformation" >Connection Information</a></li>
     <li><a href="#overview" >Overview</a></li>
-    <li><a href="#lab" >Using Python cx_Oracle 7 with Oracle Database</a></li>
+    <li><a href="#preface" >Setup</a></li>
+    <li><a href="#connectioninformation" >Connection Information</a></li>
+    <li><a href="#lab" >Using Python cx_Oracle 8 with Oracle Database</a></li>
     <ul>
       <li><a href="#connecting">1. Connecting to Oracle</a>
         <ul>
@@ -104,15 +104,31 @@
     <li><a href="#resources" >Resources</a></li>
   </ul>
 
-  <h2><a name="preface">Preface</a></h2>
+  <h2><a name="overview">Overview</a></h2>
 
-  <p>This is the cx_Oracle tutorial.  These instructions and the files used in them can be found in the <a href="https://github.com/oracle/python-cx_Oracle/tree/master/samples/tutorial" >cx_Oracle GitHub repository</a>.</p>
+  <p>This tutorial is an introduction to using Python with Oracle
+  Database.  It contains beginner and advanced material.  Sections can
+  be done in any order.  Choose the content that interests you and
+  your skill level.</p>
+
+  <p>Follow the steps in this document.  The <code>tutorial</code>
+  directory has scripts to run and modify.  The
+  <code>tutorial/solutions</code> directory has scripts with the
+  suggested code changes.</p>
+
+  <p>If you are new to Python review the <a href="#primer">Appendix:
+  Python Primer</a> to gain an understanding of the language. </p>
+
+  <h2><a name="preface">Setup</a></h2>
+
+  <p>These cx_Oracle tutorial instructions can be found <a href="https://oracle.github.io/python-cx_Oracle/samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html" >here</a>.   The files used in them can be found in the <a href="https://github.com/oracle/python-cx_Oracle/tree/master/samples/tutorial" >cx_Oracle GitHub repository</a>.</p>
 
   <p>If you are running this tutorial in your own environment, install the required software:</p>
 
 <ol>
   <li><p><a target="_blank" href="https://www.python.org/">Python</a>. Version 3.6 (or later) is preferred.</p></li>
-  <li><p>cx_Oracle version 7.3 (or later) and the Oracle Client libraries.</p>
+  <li><p>cx_Oracle version 7.3, or version 8, or later.</p>
+  <li><p>Oracle Client libraries.</p>
     <ul>
       <li><a target="_blank" href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#installing-cx-oracle-on-linux">Linux</a></li>
       <li><a target="_blank" href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#installing-cx-oracle-on-macos">macOS</a> - please note the special instructions for macOS in the link.</li>
@@ -150,31 +166,15 @@ execute dbms_connection_pool.start_pool()
 
   <p>The username is "pythonhol" with
   the password "welcome".  The connect string is "localhost/orclpdb1".
-  See <code>sql/SampleEnv.sql</code>.</p>
+.</p>
 
-  <p>It is easist to have a local pluggable database with the service
-  'orclpdb1' configured.  If your database is not local, or has a
-  different service, you will need to modify the connection information in db_config.py and db_config.sql.</p>
+  <p>If your database is not local, or has a different service, you will need to
+  modify the connection information in these two files.  If you are installing
+  your own schema, you can also modify the default username and password in
+  <code>sql/SampleEnv.sql</code>.</p>
 
   <p>The following sections may need adjusting, depending on how you
   have set up your environment.</p>
-
-  <h2><a name="overview">Overview</a></h2>
-
-  <p>This tutorial is an introduction to using Python with Oracle
-  Database.  It contains beginner and advanced material.  Sections can
-  be done in any order.  Choose the content that interests you and
-  your skill level.</p>
-
-  <p>Follow the steps in this document.  The <code>tutorial</code>
-  directory has scripts to run and modify.  The
-  <code>tutorial/solutions</code> directory has scripts with the
-  suggested code changes.</p>
-
-  <p>Use the Desktop icons to start editors and terminal windows.</p>
-
-  <p>If you are new to Python review the <a href="#primer">Appendix:
-  Python Primer</a> to gain an understanding of the language. </p>
 
   <h2><a name="lab">Using Python cx_Oracle 7 with Oracle Database</a></h2>
 
