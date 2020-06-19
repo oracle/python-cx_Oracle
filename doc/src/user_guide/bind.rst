@@ -739,14 +739,14 @@ Binding Column and Table Names
 ==============================
 
 Column and table names cannot be bound in SQL queries.  You can concatenate
-text to build up a SQL statement, but make sure you use a white-list or other
+text to build up a SQL statement, but make sure you use an Allow List or other
 means to validate the data in order to avoid SQL Injection security issues:
 
 .. code-block:: python
 
-    tableWhiteList = ['employees', 'departments']
+    tableAllowList = ['employees', 'departments']
     tableName = getTableName() #  get the table name from user input
-    if tableName not in tableWhiteList:
+    if tableName not in tableAllowList:
         raise Exception('Invalid table name')
     sql = 'select * from ' + tableName
 

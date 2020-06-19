@@ -60,14 +60,21 @@ cx_Oracle looks for the Oracle Client libraries as follows:
       ``lib_dir``, then an exception is raised.
 
     - If ``lib_dir`` was not specified, then Oracle Client libraries are looked
-      for in the directory where the cx_Oracle binary module is.  This
-      directory should contain the libraries from an unzipped Instant Client
-      'Basic' or 'Basic Light' package.  If the libraries are not found, no
-      exception is raised and the search continues, see next bullet point.
+      for in the directory where the cx_Oracle binary module is.  This directory
+      should contain the libraries from an unzipped Instant Client 'Basic' or
+      'Basic Light' package.  For example if
+      ``/Users/your_username/Library/Python/3.8/lib/python/site-packages``
+      contains ``cx_Oracle.cpython-38-darwin.so``, then you could run ``ln -s
+      ~/instantclient_19_3/libclntsh.dylib
+      ~/Library/Python/3.8/lib/python/site-packages``.  If the libraries are not
+      found, no exception is raised and the search continues, see next bullet
+      point.
 
     - In the directories on the system library search path, e.g. ``~/lib/`` and
-      ``/usr/lib``.  If the Oracle Client libraries cannot be loaded, then an
-      exception is raised.
+      ``/usr/local/lib``, or in ``$DYLD_LIBRARY_PATH``.  These paths will vary
+      with macOS version and Python version.  Any value in
+      ``DYLD_LIBRARY_PATH`` will not propagate to a sub-shell.  If the Oracle
+      Client libraries cannot be loaded, then an exception is raised.
 
 * On Linux and related platforms:
 
