@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright 2017, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  *---------------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------------
@@ -203,7 +203,7 @@ create table &main_user..PlsqlSessionCallbacks (
 )
 /
 
--- create queue table and queues for demonstrating advanced queuing
+-- create queue table, queues and subscribers for demonstrating Advanced Queuing
 begin
 
     dbms_aqadm.create_queue_table('&main_user..BOOK_QUEUE_TAB',
@@ -216,6 +216,17 @@ begin
     dbms_aqadm.create_queue('&main_user..DEMO_RAW_QUEUE',
             '&main_user..RAW_QUEUE_TAB');
     dbms_aqadm.start_queue('&main_user..DEMO_RAW_QUEUE');
+
+    dbms_aqadm.create_queue_table('&main_user..RAW_QUEUE_MULTI_TAB', 'RAW',
+             multiple_consumers => true);
+    dbms_aqadm.create_queue('&main_user..DEMO_RAW_QUEUE_MULTI',
+            '&main_user..RAW_QUEUE_MULTI_TAB');
+    dbms_aqadm.start_queue('&main_user..DEMO_RAW_QUEUE_MULTI');
+
+    dbms_aqadm.add_subscriber('&main_user..DEMO_RAW_QUEUE_MULTI',
+            sys.aq$_agent('SUBSCRIBER_A', null, null));
+    dbms_aqadm.add_subscriber('&main_user..DEMO_RAW_QUEUE_MULTI',
+            sys.aq$_agent('SUBSCRIBER_B', null, null));
 
 end;
 /
