@@ -10,7 +10,8 @@ Overview
 To use cx_Oracle 8 with Python and Oracle Database you need:
 
 - Python 3.5 and higher.  Older versions of cx_Oracle may work with older
-  versions of Python.
+  versions of Python, for example see :ref:`Installing cx_Oracle in Python 2
+  <python2>`
 
 - Oracle Client libraries. These can be from the free `Oracle Instant
   Client
@@ -18,11 +19,11 @@ To use cx_Oracle 8 with Python and Oracle Database you need:
   or those included in Oracle Database if Python is on the same
   machine as the database.  Oracle client libraries versions 19, 18, 12,
   and 11.2 are supported on Linux, Windows and macOS.  Users have
-  also reported success with other platforms.
+  also reported success with other platforms.  Use the latest client possible:
+  Oracle's standard client-server version interoperability allows connection to
+  both older and newer databases.
 
-- An Oracle Database. Oracle's standard client-server version
-  interoperability allows cx_Oracle to connect to both older and newer
-  databases.
+- An Oracle Database, either local or remote.
 
 The cx_Oracle module loads Oracle Client libraries which communicate
 over Oracle Net to an existing database.  Oracle Net is not a separate
@@ -39,8 +40,8 @@ Quick Start cx_Oracle Installation
 - Install `Python <https://www.python.org/downloads>`__ 3, if not already
   available.  On macOS you must always install your own Python.
 
-  Python 3.5 and higher are supported by cx_Oracle 8.  For Python 2, use
-  cx_Oracle 7.3.
+  Python 3.5 and higher are supported by cx_Oracle 8.  For Python 2, see
+  :ref:`Installing cx_Oracle in Python 2 <python2>`.
 
 - Install cx_Oracle from `PyPI
   <https://pypi.org/project/cx-Oracle/>`__ with:
@@ -499,6 +500,8 @@ To use cx_Oracle with Oracle Instant Client zip files:
          import cx_Oracle
          cx_Oracle.init_oracle_client(lib_dir=r"C:\oracle\instantclient_19_6")
 
+     Note a 'raw' string is used because backslashes occur in the path.
+
    * Alternatively, add the Oracle Instant Client directory to the ``PATH``
      environment variable.  The directory must occur in ``PATH`` before any
      other Oracle directories.  Restart any open command prompt windows.
@@ -786,6 +789,23 @@ If you are upgrading from cx_Oracle 5 note these installation changes:
       hosted.  Use the supplied cx_Oracle Wheels instead, or use RPMs
       from Oracle, see :ref:`oraclelinux`.
 
+.. _python2:
+
+Installing cx_Oracle in Python 2
+================================
+
+To install cx_Oracle in Python 2, use a command like::
+
+    python -m pip install cx_Oracle==7.3 --upgrade --user
+
+cx_Oracle 7.3 was the last version with support for Python 2.
+
+For other installation options such as installing through a proxy, see
+instructions above.  Make sure the Oracle Client libraries are in the system
+library search path because cx_Oracle 7 does not support the
+:meth:`cx_Oracle.init_oracle_client()` method and does not support loading the
+Oracle Client libraries from the directory containing the cx_Oracle module
+binary.
 
 Installing cx_Oracle 5.3
 ========================

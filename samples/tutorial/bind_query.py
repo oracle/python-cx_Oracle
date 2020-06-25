@@ -12,12 +12,12 @@ import db_config
 con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
-cur.prepare("select * from dept where deptno = :id order by deptno")
+sql = "select * from dept where deptno = :id order by deptno"
 
-cur.execute(None, id = 20)
+cur.execute(sql, id = 20)
 res = cur.fetchall()
 print(res)
 
-cur.execute(None, id = 10)
+cur.execute(sql, id = 10)
 res = cur.fetchall()
 print(res)

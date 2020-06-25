@@ -19,12 +19,11 @@ for i in range(5):
     char = chr(ord('A') + i)
     longString += char * 250
     cur.execute("insert into testclobs values (:1, :2)",
-                   (i + 1, "String data " + longString + ' End of string'))
+                (i + 1, "String data " + longString + ' End of string'))
 con.commit()
 
 print("Querying data...")
-cur.prepare("select * from testclobs where id = :id")
-cur.execute(None, {'id': 1})
+cur.execute("select * from testclobs where id = :id", {'id': 1})
 (id, clob) = cur.fetchone()
 print("CLOB length:", clob.size())
 clobdata = clob.read()

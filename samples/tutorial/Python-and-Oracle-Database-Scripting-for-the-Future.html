@@ -11,7 +11,7 @@
 
   <h1>Python and Oracle Database Tutorial: Scripting for the Future</h1>
 
-  <img src="resources/community-py-200.png" alt="Python cx_Oracle logo">
+  <img src="resources/community-py-200.png" alt="Python cx_Oracle logo" />
 
   <h2>Contents</h2>
 
@@ -19,7 +19,7 @@
     <li><a href="#overview" >Overview</a></li>
     <li><a href="#preface" >Setup</a></li>
     <li><a href="#connectioninformation" >Connection Information</a></li>
-    <li><a href="#lab" >Using Python cx_Oracle 8 with Oracle Database</a></li>
+    <li><a href="#lab" >Using Python cx_Oracle 8 with Oracle Database</a>
     <ul>
       <li><a href="#connecting">1. Connecting to Oracle</a>
         <ul>
@@ -99,6 +99,7 @@
         </ul>
       </li>
     </ul>
+    </li>
     <li><a href="#summary" >Summary</a></li>
     <li><a href="#primer" >Appendix: Python Primer</a></li>
     <li><a href="#resources" >Resources</a></li>
@@ -119,6 +120,10 @@
   <p>If you are new to Python review the <a href="#primer">Appendix:
   Python Primer</a> to gain an understanding of the language. </p>
 
+  <p>When you have finished this tutorial, we recommend reviewing the <a
+  href="http://cx-oracle.readthedocs.org/en/latest/index.html" >cx_Oracle
+  documention</a>. </p>
+
   <h2><a name="preface">Setup</a></h2>
 
   <p>These cx_Oracle tutorial instructions can be found <a href="https://oracle.github.io/python-cx_Oracle/samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html" >here</a>.   The files used in them can be found in the <a href="https://github.com/oracle/python-cx_Oracle/tree/master/samples/tutorial" >cx_Oracle GitHub repository</a>.</p>
@@ -127,7 +132,7 @@
 
 <ol>
   <li><p><a target="_blank" href="https://www.python.org/">Python</a>. Version 3.6 (or later) is preferred.</p></li>
-  <li><p>cx_Oracle version 7.3, or version 8, or later.</p>
+  <li><p>cx_Oracle version 7.3, or version 8, or later.</p></li>
   <li><p>Oracle Client libraries.</p>
     <ul>
       <li><a target="_blank" href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#installing-cx-oracle-on-linux">Linux</a></li>
@@ -157,16 +162,15 @@ execute dbms_connection_pool.start_pool()
 
   <h2><a name="connectioninformation">Connection Information</a></h2>
 
-  <p>The database connection information is set in two files:
+  <p>Database credentials and the connection string are set in two files:</p>
+
     <ul>
-      <li>db_config.py which is imported by the other Python modules.</li>
-      <li>db_config.sql which is used by the other SQL scripts.</li>
+      <li><p>db_config.py which is imported by the other Python modules.</p></li>
+      <li><p>db_config.sql which is used by the other SQL scripts.</p></li>
     </ul>
-  </p>
 
   <p>The username is "pythonhol" with
-  the password "welcome".  The connect string is "localhost/orclpdb1".
-.</p>
+  the password "welcome".  The connect string is "localhost/orclpdb1".</p>
 
   <p>If your database is not local, or has a different service, you will need to
   modify the connection information in these two files.  If you are installing
@@ -185,6 +189,12 @@ execute dbms_connection_pool.start_pool()
   <ul>
     <li>
       <h3><a name="connecting">1. Connecting to Oracle</a></h3>
+
+<p>You can connect from Python to a local or remote database.  <i>Documentation
+link for further reading: <a
+href="https://cx-oracle.readthedocs.io/en/latest/user_guide/connection_handling.html"
+>Connecting to Oracle Database</a></i>.</p>
+
       <ul>
         <li>
           <h4>1.1 Review the connection credentials</h4>
@@ -416,8 +426,16 @@ Client version: (18, 3, 0, 0, 0)
 
     <li><h3><a name="pooling">2. Connection Pooling</a></h3>
 
+      <p>Connection pooling is important for performance when applications
+      frequently connect and disconnect from the database. Pooling also gives
+      the best support for Oracle high availability features.  <i>Documentation
+      link for further reading: <a
+      href="https://cx-oracle.readthedocs.io/en/latest/user_guide/connection_handling.html#connection-pooling"
+      >Connection Pooling</a></i>.</p>
+
+
       <ul>
-        <li>  <h4>2.1 Connection pooling</h4>
+        <li> <h4>2.1 Connection pooling</h4>
 
       <p>Review the code contained in <code>connect_pool.py</code>:</p>
       <pre>
@@ -566,12 +584,12 @@ database server.</p>
   <table cellspacing="0" cellpadding="30" border="0" >
     <tr>
       <td>
-        <img width="400" src="resources/python_nopool.png" >
-        <p><center><strong>Without DRCP</strong></center></p>
+        <img width="400" src="resources/python_nopool.png" alt="Picture of 3-tier application architecture without DRCP showing connections from multiple application processes each going to a server process in the database tier" />
+        <div align="center"><p><strong>Without DRCP</strong></p></div>
       </td>
       <td>
-        <img width="400" src="resources/python_pool.png" >
-        <p><center><strong>With DRCP</strong></center></p>
+        <img width="400" src="resources/python_pool.png" alt="Picture of 3-tier application architecture with DRCP showing connections from multiple application processes going to a pool of server process in the database tier" />
+        <div align="center"><p><strong>With DRCP</strong></p></div>
       </td>
     </tr>
   </table>
@@ -709,8 +727,15 @@ import time</pre>
 
     </li>
   </ul>
+  </li>
 
 <li><h3><a name="fetching">3. Fetching Data</a> </h3>
+
+
+  <p>Executing SELECT queries is the primary way to get data from Oracle
+  Database.  <i>Documentation link for further reading: <a
+  href="https://cx-oracle.readthedocs.io/en/latest/user_guide/sql_execution.html"
+  >SQL Queries</a></i>.</p>
 
   <ul>
   <li><h4>3.1 A simple query</h4>
@@ -718,10 +743,9 @@ import time</pre>
   <p>There are a number of functions you can use to query an Oracle
   database, but the basics of querying are always the same:</p>
 
-  <p>1. Parse the statement for execution.<br />
+  <p>1. Execute the statement.<br />
   2. Bind data values (optional).<br />
-  3. Execute the statement.<br />
-  4. Fetch the results from the database.</p>
+  3. Fetch the results from the database.</p>
 
     <p>Review the code contained in <code>query2.py</code>:</p>
 
@@ -753,7 +777,7 @@ for deptno, dname, loc in cur:
 
   </li>
 
-<li><h4>3.2 Using fetchone()</h3>
+<li><h4>3.2 Using fetchone()</h4>
 
   <p>When the number of rows is large, the <code>fetchall()</code>
   call may use too much memory.</p>
@@ -954,21 +978,24 @@ print(elapsed, "seconds")
     <p>If you know a query only returns a few records,
     decrease the arraysize from the default to reduce memory
     usage.</p>
-
-  </ul>
+  </li>
+</ul>
 
 </li>
 
 <li><h3><a name="binding">4. Binding Data</a></h3>
 
-  <p>Bind variables enable you to re-execute statements with new data
-  values, without the overhead of reparsing the statement. Bind
-  variables improve code reusability, and can reduce the risk of SQL
-  injection attacks.</p>
+  <p>Bind variables enable you to re-execute statements with new data values
+  without the overhead of re-parsing the statement.  Binding improves code
+  reusability, improves application scalability, and can reduce the risk of SQL
+  injection attacks.  Using bind variables is strongly recommended.
+  <i>Documentation link for further reading: <a
+  href="https://cx-oracle.readthedocs.io/en/latest/user_guide/bind.html" >Using
+  Bind Variables</a></i>.</p>
 
   <ul>
 
-    <li><h4>4.1 Binding in queries</h3>
+    <li><h4>4.1 Binding in queries</h4>
 
   <p>Review the code contained in <code>bind_query.py</code>:</p>
 
@@ -979,31 +1006,20 @@ import db_config
 con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 cur = con.cursor()
 
-cur.prepare("select * from dept where deptno = :id order by deptno")
+sql = "select * from dept where deptno = :id order by deptno"
 
-cur.execute(None, id = 20)
+cur.execute(sql, id = 20)
 res = cur.fetchall()
 print(res)
 
-cur.execute(None, id = 10)
+cur.execute(sql, id = 10)
 res = cur.fetchall()
 print(res)
 </pre>
 
-      <p>The statement contains a bind variable "<code>:id</code>"
-      placeholder. The statement is only prepared once but executed
-      twice with different values for the <code>WHERE</code>
-      clause.</p>
-
-      <p> The special symbol "<code>None</code>" is used in place of
-      the statement text argument to <code>execute()</code> because
-      the <code>prepare()</code> method has already set the
-      statement. The second argument to the <code>execute()</code>
-      call can be a sequence (binding by position) or a dictionary (binding
-      by name) or an arbitrary number of named arguments (also binding by
-      name), which is what has been done in this example. In the first execute
-      call, this dictionary has the value 20 for the key of "id".  The second
-      execute uses the value 10. </p>
+      <p>The statement contains a bind variable "<code>:id</code>" placeholder.
+      The statement is executed twice with different values for the
+      <code>WHERE</code> clause.</p>
 
       <p>From a terminal window, run:</p>
 
@@ -1011,8 +1027,31 @@ print(res)
 
       <p>The output shows the details for the two departments.</p>
 
+      <p>An arbitrary number of named arguments can be used in an
+      <code>execute()</code> call.  Each argument name must match a bind
+      variable name.  Alternatively, instead of passing multiple arguments you
+      could pass a second argument to <code>execute()</code> that is a sequence
+      or a dictionary.  Later examples show these syntaxes.</p>
+
+      <p>cx_Oracle uses Oracle Database's Statement Cache.  As long as the
+      statement you pass to <code>execute()</code> is in that cache, you can use
+      different bind values and still avoid a full statement parse.  The
+      statement cache size is configurable for each connection.  To see the
+      default statement cache size, edit <code>bind_query.py</code> and add a
+      line at the end:</p>
+
+<pre>
+print(con.stmtcachesize)
+</pre>
+
+      <p>Re-run the file.</p>
+
+      <p>In your applications you would set the statement cache size to the
+      number of unique statements commonly executed.</p>
+
     </li>
-    <li><h4>4.2 Binding in inserts</h3>
+
+    <li><h4>4.2 Binding in inserts</h4>
 
   <p>Review the code in <code>bind_insert.sql </code> creating a table
   for inserting data:</p>
@@ -1067,7 +1106,7 @@ print(res)
 
     </li>
 
-    <li><h4>4.3 Batcherrors</h3>
+    <li><h4>4.3 Batcherrors</h4>
 
       <p>The Batcherrors features allows invalid data to be identified
       while allowing valid data to be inserted.</p>
@@ -1141,7 +1180,7 @@ print(res)
 
 </li>
 
-<li><h4>4.4 Binding named objects</h3>
+<li><h4>4.4 Binding named objects</h4>
 
   <p>cx_Oracle can fetch and bind named object types such as Oracle's
   Spatial Data Objects (SDO).</p>
@@ -1183,7 +1222,7 @@ cur = con.cursor()
 cur.execute("""begin
                  execute immediate 'drop table testgeometry';
                  exception when others then
-                   if sqlcode <> -942 then
+                   if sqlcode &lt;&gt; -942 then
                      raise;
                    end if;
                end;""")
@@ -1300,6 +1339,9 @@ is of type SDO_POINT_TYPE.</p>
 <p>The <code>gettype()</code> and <code>newobject()</code> methods can
 also be used to bind PL/SQL Records and Collections.</p>
 
+<p>Before deciding to use objects, review your performance goals because
+working with scalar values can be faster.</p>
+
 </li>
 </ul>
 
@@ -1312,10 +1354,13 @@ also be used to bind PL/SQL Records and Collections.</p>
   PL/SQL lets all database applications reuse logic, no matter how the
   application accesses the database. Many data-related operations can
   be performed in PL/SQL faster than extracting the data into a
-  program (for example, Python) and then processing it.</p>
+  program (for example, Python) and then processing it.  <i>Documentation link
+  for further reading: <a
+  href="https://cx-oracle.readthedocs.io/en/latest/user_guide/plsql_execution.html"
+  >PL/SQL Execution</a></i>.</p>
 
   <ul>
-    <li><h4>5.1 PL/SQL functions</h3>
+    <li><h4>5.1 PL/SQL functions</h4>
 
       <p>Review <code>plsql_func.sql</code> which creates a PL/SQL
       stored function <code>myfunc()</code> to insert a row into a new
@@ -1365,7 +1410,7 @@ print(res)
 
     </li>
 
-    <li><h4>5.2 PL/SQL procedures</h3>
+    <li><h4>5.2 PL/SQL procedures</h4>
 
 <p>Review <code>plsql_proc.sql</code> which creates a PL/SQL procedure
 <code>myproc()</code> to accept two parameters. The second parameter
@@ -1416,6 +1461,13 @@ print(myvar.getvalue())
 </li>
 
 <li><h3><a name="handlers">6. Type Handlers</a></h3>
+
+<p>Type handlers enable applications to alter data that is fetched from, or sent
+to, the database. <i>Documentation links for further reading: <a
+href="https://cx-oracle.readthedocs.io/en/latest/user_guide/sql_execution.html#changing-fetched-data-types-with-output-type-handlers"
+>Changing Fetched Data Types with Output Type Handlers</a> and <a
+href="https://cx-oracle.readthedocs.io/en/latest/user_guide/bind.html#changing-bind-data-types-using-an-input-type-handler"
+>Changing Bind Data Types using an Input Type Handler</a></i>.</p>
 
   <ul>
     <li>
@@ -1579,7 +1631,7 @@ cur = con.cursor()
 cur.execute("""begin
                  execute immediate 'drop table testgeometry';
                  exception when others then
-                   if sqlcode <> -942 then
+                   if sqlcode &lt;&gt; -942 then
                      raise;
                    end if;
                end;""")
@@ -1683,7 +1735,10 @@ an Oracle object from the Python object values.  The
 <li><h3><a name="lobs">7. LOBs</a></h3>
 
   <p>Oracle Database "LOB" long objects can be streamed using a LOB
-  locator, or worked with directly as strings or bytes.</p>
+  locator, or worked with directly as strings or bytes. <i>Documentation link
+  for further reading: <a
+  href="https://cx-oracle.readthedocs.io/en/latest/user_guide/lob_data.html"
+  >Using CLOB and BLOB Data</a></i>.</p>
 
   <ul>
     <li>
@@ -1709,8 +1764,7 @@ for i in range(5):
 con.commit()
 
 print("Querying data...")
-cur.prepare("select * from testclobs where id = :id")
-cur.execute(None, {'id': 1})
+cur.execute("select * from testclobs where id = :id", {'id': 1})
 (id, clob) = cur.fetchone()
 print("CLOB length:", clob.size())
 clobdata = clob.read()
@@ -1765,8 +1819,7 @@ con.commit()
 con.outputtypehandler = OutputTypeHandler</strong>
 
 print("Querying data...")
-cur.prepare("select * from testclobs where id = :id")
-cur.execute(None, {'id': 1})
+cur.execute("select * from testclobs where id = :id", {'id': 1})
 <strong>(id, clobdata) = cur.fetchone()
 print("CLOB length:", len(clobdata))
 print("CLOB data:", clobdata)</strong>
@@ -1865,7 +1918,10 @@ for row in rows:
 
   <p>Subclassing enables application to "hook" connection and cursor
   creation.  This can be used to alter or log connection and execution
-  parameters, and to extend cx_Oracle functionality. </p>
+  parameters, and to extend cx_Oracle functionality. <i>Documentation link for
+  further reading: <a
+  href="https://cx-oracle.readthedocs.io/en/latest/user_guide/tracing_sql.html"
+  >Tracing SQL and PL/SQL Statements</a></i>.</p>
 
   <ul>
     <li><h4>9.1 Subclassing connections</h4>
@@ -1970,6 +2026,12 @@ invoke the parent methods to do the actual statement execution.</p>
 </li>
 
 <li><h3><a name="aq">10. Advanced Queuing</a></h3>
+
+<p>Oracle Advanced Queuing (AQ) allows messages to be passed between
+applications. <i>Documentation link for further reading: <a
+href="https://cx-oracle.readthedocs.io/en/latest/user_guide/aq.html" >Oracle
+Advanced Queuing (AQ)</a></i>.</p>
+
   <ul>
     <li><h4>10.1 Message passing with Oracle Advanced Queuing</h4>
 
@@ -1995,7 +2057,7 @@ cur.execute(
          dbms_aqadm.drop_queue_table('""" + QUEUE_TABLE_NAME + """');
          execute immediate 'drop type """ + BOOK_TYPE_NAME + """';
          exception when others then
-           if sqlcode <> -24010 then
+           if sqlcode &lt;&gt; -24010 then
              raise;
            end if;
        end;""")
@@ -2094,18 +2156,18 @@ dequeue. </p>
 the <code>aq-dequeue.py</code>, <code>aq-enqueue.py</code> and
 <code>aq-queuestart.py</code> files.</p>
 
-
-</ul>
 </li>
-
+</ul>
 </li>
 
 <li><h3><a name="soda">11. Simple Oracle Document Access (SODA)</a></h3>
 
-  <p>Simple Oracle Document Access is a set of NoSQL-style APIs.
+  <p>Simple Oracle Document Access (SODA) is a set of NoSQL-style APIs.
   Documents can be inserted, queried, and retrieved from Oracle
   Database.  By default, documents are JSON strings.  SODA APIs
-  exist in many languages.</p>
+  exist in many languages. <i>Documentation link for further reading: <a
+  href="https://cx-oracle.readthedocs.io/en/latest/user_guide/soda.html" >Simple
+  Oracle Document Access (SODA)</a></i>.</p>
 
   <ul>
 
@@ -2206,7 +2268,7 @@ for doc in myDocuments:
 
 </li>
 
-</ol>
+</ul>
 
   <h2><a name="summary">Summary</a></h2>
   <p>In this tutorial, you have learned how to: </p>
@@ -2218,14 +2280,18 @@ for doc in myDocuments:
     <li>Use PL/SQL stored functions and procedures</li>
     <li>Extend cx_Oracle classes</li>
     <li>Use Oracle Advanced Queuing</li>
+    <li>Use the "SODA" document store API</li>
   </ul>
 
+  <p>For further reading see the <a
+  href="https://cx-oracle.readthedocs.io/en/latest/index.html" >cx_Oracle
+  documentation</a>.</p>
 
   <h2><a name="primer">Appendix: Python Primer</a></h2>
 
   <p>Python is a dynamically typed scripting language. It is most
-  often used to run command-line scripts but is also used in Web
-  applications.</p>
+  often used to run command-line scripts but is also used for web
+  applications and web services.</p>
 
   <h4>Running Python</h4>
 
@@ -2433,13 +2499,11 @@ import sys</pre>
 <div class="footer"></div>
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
   <tbody><tr>
-    <td align="right" width="54%">Copyright &copy; 2017, 2019, Oracle and/or its affiliates. All rights reserved</td>
+    <td align="right" width="54%">Copyright &copy; 2017, 2020, Oracle and/or its affiliates. All rights reserved</td>
   </tr>
   <tr><td colspan="2"></td></tr>
   </tbody>
 </table>
 
-
-</div>
 </body>
 </html>

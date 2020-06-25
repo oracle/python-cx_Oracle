@@ -29,8 +29,7 @@ def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
 con.outputtypehandler = OutputTypeHandler
 
 print("Querying data...")
-cur.prepare("select * from testclobs where id = :id")
-cur.execute(None, {'id': 1})
+cur.execute("select * from testclobs where id = :id", {'id': 1})
 (id, clobdata) = cur.fetchone()
 print("CLOB length:", len(clobdata))
 print("CLOB data:", clobdata)

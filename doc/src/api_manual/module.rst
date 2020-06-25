@@ -208,7 +208,13 @@ Module Interface
         edition=None, timeout=0, waitTimeout=0, maxLifetimeSession=0, \
         sessionCallback=None, maxSessionsPerShard=0)
 
-    Create and return a :ref:`session pool object <sesspool>`.
+    Create and return a :ref:`session pool object <sesspool>`.  Session pooling
+    (also known as connection pooling) creates a pool of available connections
+    to the database, allowing applications to acquire a connection very quickly.
+    It is of primary use in a server where connections are requested in rapid
+    succession and used for a short period of time, for example in a web server.
+    See :ref:`connpool` for more information.
+
     Connection pooling in cx_Oracle is handled by Oracle's
     `Session pooling <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__
@@ -216,15 +222,20 @@ Module Interface
     like `Application Continuity <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__.
 
-    See :ref:`connpool` for information on connection pooling.
+    The user, password and dsn parameters are the same as for
+    :meth:`cx_Oracle.connect()`
 
-    Session pooling creates a pool of available connections to the
-    database, allowing applications to acquire a connection very quickly.
-    It is of primary use in a server where connections are requested
-    in rapid succession and used for a short period of time, for example in a
-    web server.
+    The min, max and increment parameters control pool growth behavior.  A fixed
+    pool size where min equals max is recommended to help prevent connection
+    storms and to help overall system stability.  The min parameter is the
+    number of connections opened when the pool is created.  The increment is the
+    number of connections that are opened whenever a connection request exceeds
+    the number of currently open connections.  The max parameter is the maximum
+    number of connections that can be open in the connection pool.  Note that
+    when :ref:`external authentication <extauth>` or :ref:`heterogeneous pools
+    <connpooltypes>` are used, the pool growth behavior is different.
 
-    If the connection type is specified, all calls to
+    If the connectiontype parameter is specified, all calls to
     :meth:`~SessionPool.acquire()` will create connection objects of that type,
     rather than the base type defined at the module level.
 
@@ -232,6 +243,10 @@ Module Interface
     indicates whether Oracle should wrap accesses to connections with a mutex.
     Doing so in single threaded applications imposes a performance penalty of
     about 10-15% which is why the default is False.
+
+    The getmode parameter indicates whether or not future
+    :func:`SessionPool.acquire()` calls will wait for available connections.  It
+    can be one of the :ref:`Session Pool Get Modes <sesspoolmodes>` values.
 
     The events parameter is expected to be a boolean expression which indicates
     whether or not to initialize Oracle in events mode. This is required for
@@ -241,22 +256,26 @@ Module Interface
     indicates whether or not to create a homogeneous pool. A homogeneous pool
     requires that all connections in the pool use the same credentials. As such
     proxy authentication and external authentication is not possible with a
-    homogeneous pool.
+    homogeneous pool.  See :ref:`Heterogeneous and Homogeneous Connection Pools
+    <connpooltypes>`.
 
     The externalauth parameter is expected to be a boolean expression which
     indicates whether or not external authentication should be used. External
     authentication implies that something other than the database is
     authenticating the user to the database. This includes the use of operating
-    system authentication and Oracle wallets.
+    system authentication and Oracle wallets.  See :ref:`Connecting Using
+    External Authentication <extauth>`.
 
-    See the :ref:`globalization <globalization>` section for details on the
-    encoding and nencoding parameters.  Note the default encoding and nencoding
-    values changed to "UTF-8" in cx_Oracle 8, and any character set in NLS_LANG
-    is ignored.
+    The encoding and nencoding parameters set the encodings used for string
+    values transferred between cx_Oracle and Oracle Database, see
+    :ref:`Character Sets and Globalization <globalization>`. Note the default
+    encoding and nencoding values changed to "UTF-8" in cx_Oracle 8, and any
+    character set in NLS_LANG is ignored.
 
-    The edition parameter is expected to be a string, if specified, and sets
-    the edition to use for the sessions in the pool. It is only relevant if
-    both the client and the server are at least Oracle Database 11.2.
+    The edition parameter is expected to be a string, if specified, and sets the
+    edition to use for the sessions in the pool. It is only relevant if both the
+    client and the server are at least Oracle Database 11.2.  See
+    :ref:`Edition-Based Redefinition (EBR) <ebr>`.
 
     The timeout parameter is expected to be an integer, if specified, and sets
     the length of time (in seconds) after which idle sessions in the pool are
@@ -279,17 +298,18 @@ Module Interface
     may exist.
 
     The sessionCallback parameter is expected to be either a string or a
-    callable. If the parameter is a string, this refers to a PL/SQL procedure
-    that will be called when :func:`SessionPool.acquire()` requests a tag and
-    that tag does not match the connection's actual tag. Support for the PL/SQL
-    procedure requires Oracle Client libraries 12.2 or later. See the
-    `OCI documentation <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-B853A020-752F-494A-8D88-D0396EF57177>`__ for more
-    information. If the sessionCallback parameter is a callable, however, it
-    will be called when a newly created connection is returned from the pool
-    or when a tag is requested and that tag does not match the connection's
-    actual tag. The callable will be invoked with the connection and the
-    requested tag as its only parameters.
+    callable. If the sessionCallback parameter is a callable, it will be called
+    when a newly created connection is returned from the pool, or when a tag is
+    requested and that tag does not match the connection's actual tag. The
+    callable will be invoked with the connection and the requested tag as its
+    only parameters.  If the parameter is a string, it should be the name of a
+    PL/SQL procedure that will be called when :func:`SessionPool.acquire()`
+    requests a tag and that tag does not match the connection's actual tag. See
+    :ref:`Session CallBacks for Setting Pooled Connection State
+    <sessioncallback>`. Support for the PL/SQL procedure requires Oracle Client
+    libraries 12.2 or later.  See the `OCI documentation
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+    id=GUID-B853A020-752F-494A-8D88-D0396EF57177>`__ for more information.
 
     The maxSessionsPerShard parameter is expected to be an integer, if
     specified, and sets the maximum number of sessions in the pool that can be
@@ -823,6 +843,7 @@ also used by the :attr:`MessageTable.operation` or
     This constant is used to specify that messages should be sent when data is
     updated, or that the message identifies a row that has been updated.
 
+.. _sesspoolmodes:
 
 Session Pool Get Modes
 ----------------------

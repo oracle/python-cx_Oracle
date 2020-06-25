@@ -324,9 +324,9 @@ connections, so monitor the connection rate in AWR for an unexpected value.  You
 can explicitly initiate a full ping to check connection liveness with
 :meth:`Connection.ping()` but overuse will impact performance and scalability.
 
-The Oracle Real-World Performance Group's general recommendation for connection
-pools is use a fixed sized pool.  The values of `min` and `max` should be the
-same (and `increment` equal to zero).  the firewall, `resource manager
+The Oracle Real-World Performance Group's recommendation is to use fixed size
+connection pools.  The values of min and max should be the same (and the
+increment equal to zero).  The :ref:`firewall <hanetwork>`, `resource manager
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-2BEF5482-CF97-4A85-BD90-9195E41E74EF>`__
 or user profile `IDLE_TIME
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-ABC7AE4D-64A8-4EA9-857D-BEF7300B64C3>`__
@@ -335,6 +335,11 @@ decrease throughput.  See `Guideline for Preventing Connection Storms: Use
 Static Pools
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7DFBA826-7CC0-4D16-B19C-31D168069B54>`__,
 which contains details about sizing of pools.
+
+The Real-World Performance Group also recommends keeping pool sizes small, as
+they may perform better than larger pools. The pool attributes should be
+adjusted to handle the desired workload within the bounds of available resources
+in cx_Oracle and the database.
 
 .. _sessioncallback:
 

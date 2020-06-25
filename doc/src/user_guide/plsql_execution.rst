@@ -234,6 +234,7 @@ Data from both the result sets are returned::
     (1000, 1, 'BOOKS')
     (2000, 2, 'FURNITURE')
 
+.. _ebr:
 
 Edition-Based Redefinition (EBR)
 --------------------------------

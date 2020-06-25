@@ -150,9 +150,11 @@ SessionPool Object
 
     This read-write attribute specifies the size of the statement cache that
     will be used as the starting point for any connections that are created by
-    the session pool. Once created, the connection's statement cache size can
-    only be changed by setting the stmtcachesize attribute on the connection
-    itself.
+    the session pool. Once a connection is created, that connection's statement
+    cache size can only be changed by setting the
+    :attr:`Connection.stmtcachesize` attribute on the connection itself.
+
+    See :ref:`Statement Caching <stmtcache>` for more information.
 
     .. versionadded:: 6.0
 

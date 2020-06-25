@@ -38,8 +38,9 @@ cx_Oracle looks for the Oracle Client libraries as follows:
       database installation, such as Oracle Database "XE" Express Edition, then
       you will need to have previously set your environment to use that
       software installation, otherwise files such as message files will not be
-      located.  If the Oracle Client libraries cannot be loaded from
-      ``lib_dir``, then an exception is raised.
+      located. On Windows when the path contains backslashes, use a 'raw'
+      string like ``lib_dir = r"C:\instantclient_19_6"``. If the Oracle Client
+      libraries cannot be loaded from ``lib_dir``, then an exception is raised.
 
     - If ``lib_dir`` was not specified, then Oracle Client libraries are looked
       for in the directory where the cx_Oracle binary module is installed.

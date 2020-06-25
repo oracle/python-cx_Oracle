@@ -10,7 +10,7 @@ License
 
 .. centered:: **LICENSE AGREEMENT FOR CX_ORACLE**
 
-Copyright |copy| 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+Copyright |copy| 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 
 Copyright |copy| 2007-2015, Anthony Tuininga. All rights reserved.
 

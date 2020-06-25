@@ -37,7 +37,7 @@ Some general tuning tips are:
   Make good use of PL/SQL to avoid executing many individual statements from
   cx_Oracle.
 
-  Tune the Statement Cache with :attr:`Connection.stmtcachesize`.
+  Tune the :ref:`Statement Cache <stmtcache>`.
 
   Enable :ref:`Client Result Caching <clientresultcache>` for small lookup tables.
 
@@ -258,20 +258,21 @@ Statement Caching
 cx_Oracle's :meth:`Cursor.execute()` and :meth:`Cursor.executemany()` functions
 use the `Oracle Call Interface statement cache
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4947CAE8-1F00-4897-BB2B-7F921E495175>`__
-to make re-execution of statements efficient.  This cache removes most needs for
-using the :meth:`Cursor.prepare()` method.
+to make re-execution of statements efficient.  Each standalone or pooled
+connection has its own cache of statements with a default size of 20.  Statement
+caching lets cursors be used without re-parsing the statement.  Statement
+caching also reduces metadata transfer costs between the cx_Oracle and the
+database.  Performance and scalability are improved.
 
-The statement cache size can be set with :attr:`Connection.stmtcachesize`.
-
-Each non-pooled connection and each session in the connection pool has
-its own cache of statements with a default size of 20.  Statement
-caching lets cursors be used without re-parsing the statement.
-Statement caching also reduces meta data transfer costs between the
-cx_Oracle and the database.  Performance and scalability are
-improved.
-
-In general, set the statement cache to the size of the working set of
-statements being executed by the application.
+The statement cache size can be set with :attr:`Connection.stmtcachesize` or
+:attr:`SessionPool.stmtcachesize`.  In general, set the statement cache size to
+the size of the working set of statements being executed by the application.  To
+manually tune the cache, monitor the general application load and the `Automatic
+Workload Repository
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
+(AWR) "bytes sent via SQL*Net to client" values.  The latter statistic should
+benefit from not shipping statement metadata to cx_Oracle.  Adjust the statement
+cache size to your satisfaction.
 
 Statement caching can be disabled by setting the size to 0.  Disabling
 the cache may be beneficial when the quantity or order of statements
@@ -283,12 +284,24 @@ be flushed from the cache before the statements are re-executed.
 With Oracle Database 12c, or later, the statement cache size can be
 automatically tuned using the :ref:`oraaccess.xml <optclientfiles>` file.
 
-To manually tune the statement cache size, monitor general application load and
-the `Automatic Workload Repository
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
-(AWR) "bytes sent via SQL*Net to client" values.  The latter statistic should
-benefit from not shipping statement metadata to cx_Oracle.  Adjust the statement
-cache size to your satisfaction.
+When it is inconvenient to pass statement text through an application, the
+:meth:`Cursor.prepare()` call can be used to avoid statement re-parsing.
+Subsequent ``execute()`` calls use the value ``None`` instead of the SQL text:
+
+.. code-block:: python
+
+    cur.prepare("select * from dept where deptno = :id order by deptno")
+
+    cur.execute(None, id = 20)
+    res = cur.fetchall()
+    print(res)
+
+    cur.execute(None, id = 10)
+    res = cur.fetchall()
+    print(res)
+
+Statements passed to :meth:`~Cursor.prepare()` are also stored in the statement
+cache.
 
 .. _clientresultcache:
 
