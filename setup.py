@@ -24,7 +24,7 @@ except:
     from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "8.0.0-dev"
+BUILD_VERSION = "8.0.0"
 
 # setup extra link and compile args
 extraLinkArgs = []
@@ -64,9 +64,7 @@ classifiers = [
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: C",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
         "Topic :: Database"
 ]
 

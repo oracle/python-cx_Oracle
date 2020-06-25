@@ -5,12 +5,14 @@
 cx_Oracle Release Notes
 =======================
 
-Version 8.0 (TBD)
------------------
+Version 8.0 (June 2020)
+-----------------------
 
-#)  Dropped support for Python 2.7.
+#)  Dropped support for Python 2. For those still requiring Python 2, see
+    :ref:`python2`.
 #)  Updated embedded ODPI-C to `version 4.0
-    <https://oracle.github.io/odpi/doc/releasenotes.html#version-4-0-tbd>`__.
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-4-0-june-25-2020>`__.
 #)  Reworked type management to clarify and simplify code
 
     - Added :ref:`constants <dbtypes>` for all database types. The database
@@ -46,6 +48,8 @@ Version 8.0 (TBD)
 
 #)  Added function :meth:`cx_Oracle.init_oracle_client()` in order to enable
     programmatic control of the initialization of the Oracle Client library.
+#)  The default encoding for all character data is now UTF-8 and any character
+    set specified in the environment variable ``NLS_LANG`` is ignored.
 #)  Added functions :meth:`SodaCollection.save()`,
     :meth:`SodaCollection.saveAndGet()` and :meth:`SodaCollection.truncate()`
     available in Oracle Client 20 and higher.
