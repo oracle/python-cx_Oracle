@@ -10,9 +10,9 @@ Version 8.0 (June 2020)
 
 #)  Dropped support for Python 2. For those still requiring Python 2, see
     :ref:`python2`.
-#)  Updated embedded ODPI-C to `version 4.0
+#)  Updated embedded ODPI-C to `version 4.0.1
     <https://oracle.github.io/odpi/doc/releasenotes.html#
-    version-4-0-june-25-2020>`__.
+    version-4-0-1-june-26-2020>`__.
 #)  Reworked type management to clarify and simplify code
 
     - Added :ref:`constants <dbtypes>` for all database types. The database

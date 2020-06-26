@@ -16,16 +16,21 @@ import pickle
 
 class TestCase(TestEnv.BaseTestCase):
 
+    def testParseError(self):
+        "test parse error returns offset correctly"
+        with self.assertRaises(cx_Oracle.Error) as cm:
+            self.cursor.execute("begin t_Missing := 5; end;")
+        errorObj, = cm.exception.args
+        self.assertEqual(errorObj.offset, 6)
+
     def testPickleError(self):
         "test picking/unpickling an error object"
-        errorObj = None
-        try:
+        with self.assertRaises(cx_Oracle.Error) as cm:
             self.cursor.execute("""
                     begin
                         raise_application_error(-20101, 'Test!');
                     end;""")
-        except cx_Oracle.Error as e:
-            errorObj, = e.args
+        errorObj, = cm.exception.args
         self.assertEqual(type(errorObj), cx_Oracle._Error)
         self.assertTrue("Test!" in errorObj.message)
         self.assertEqual(errorObj.code, 20101)
@@ -42,4 +47,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-
