@@ -24,7 +24,7 @@ except:
     from distutils.extension import Extension
 
 # define build constants
-BUILD_VERSION = "8.0.0"
+BUILD_VERSION = "8.1.0-dev"
 
 # setup extra link and compile args
 extraLinkArgs = []

@@ -5,6 +5,18 @@
 cx_Oracle Release Notes
 =======================
 
+Version 8.1 (TBD)
+-----------------
+
+#)  Updated embedded ODPI-C to `version 4.1.0
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-4-1-0-tbd>`__.
+
+    - up to 40 digits can be represented in an unconstrained Oracle number so
+      allow for that possibility
+      (`issue 459 <https://github.com/oracle/python-cx_Oracle/issues/459>`__).
+
+
 Version 8.0 (June 2020)
 -----------------------
 
