@@ -16,6 +16,8 @@ Version 8.1 (TBD)
       allow for that possibility
       (`issue 459 <https://github.com/oracle/python-cx_Oracle/issues/459>`__).
 
+#)  Improved documentation.
+
 
 Version 8.0 (June 2020)
 -----------------------

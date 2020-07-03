@@ -231,9 +231,12 @@ Module Interface
     number of connections opened when the pool is created.  The increment is the
     number of connections that are opened whenever a connection request exceeds
     the number of currently open connections.  The max parameter is the maximum
-    number of connections that can be open in the connection pool.  Note that
-    when :ref:`external authentication <extauth>` or :ref:`heterogeneous pools
-    <connpooltypes>` are used, the pool growth behavior is different.
+    number of connections that can be open in the connection pool.
+
+    Note that when using :ref:`external authentication <extauth>`,
+    :ref:`heterogeneous pools <connpooltypes>`, or :ref:`drcp`, then the pool
+    growth behavior is different.  In these cases the number of connections
+    created at pool startup is always zero, and the increment is always one.
 
     If the connectiontype parameter is specified, all calls to
     :meth:`~SessionPool.acquire()` will create connection objects of that type,
