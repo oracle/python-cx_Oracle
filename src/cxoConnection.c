@@ -15,198 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// functions for the Python type "Connection"
-//-----------------------------------------------------------------------------
-static void cxoConnection_free(cxoConnection*);
-static PyObject *cxoConnection_new(PyTypeObject*, PyObject*, PyObject*);
-static int cxoConnection_init(cxoConnection*, PyObject*, PyObject*);
-static PyObject *cxoConnection_repr(cxoConnection*);
-static PyObject *cxoConnection_close(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_commit(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_begin(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_prepare(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_rollback(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_newCursor(cxoConnection*, PyObject*, PyObject*);
-static PyObject *cxoConnection_cancel(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_getCallTimeout(cxoConnection*, void*);
-static PyObject *cxoConnection_getVersion(cxoConnection*, void*);
-static PyObject *cxoConnection_getEncoding(cxoConnection*, void*);
-static PyObject *cxoConnection_getNationalEncoding(cxoConnection*, void*);
-static PyObject *cxoConnection_getMaxBytesPerCharacter(cxoConnection*, void*);
-static PyObject *cxoConnection_contextManagerEnter(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_contextManagerExit(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_changePassword(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_getType(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_createLob(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_getStmtCacheSize(cxoConnection*, void*);
-static PyObject *cxoConnection_newEnqueueOptions(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_newDequeueOptions(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_newMessageProperties(cxoConnection*, PyObject*,
-        PyObject*);
-static PyObject *cxoConnection_dequeue(cxoConnection*, PyObject*, PyObject*);
-static PyObject *cxoConnection_enqueue(cxoConnection*, PyObject*, PyObject*);
-static PyObject *cxoConnection_ping(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_queue(cxoConnection*, PyObject*, PyObject*);
-static PyObject *cxoConnection_shutdown(cxoConnection*, PyObject*, PyObject*);
-static PyObject *cxoConnection_startup(cxoConnection*, PyObject*, PyObject*);
-static PyObject *cxoConnection_subscribe(cxoConnection*, PyObject*, PyObject*);
-static PyObject *cxoConnection_unsubscribe(cxoConnection*, PyObject*,
-        PyObject*);
-static PyObject *cxoConnection_getSodaDatabase(cxoConnection*, PyObject*);
-static PyObject *cxoConnection_getLTXID(cxoConnection*, void*);
-static PyObject *cxoConnection_getHandle(cxoConnection*, void*);
-static PyObject *cxoConnection_getCurrentSchema(cxoConnection*, void*);
-static PyObject *cxoConnection_getEdition(cxoConnection*, void*);
-static PyObject *cxoConnection_getExternalName(cxoConnection*, void*);
-static PyObject *cxoConnection_getInternalName(cxoConnection*, void*);
-static PyObject *cxoConnection_getException(cxoConnection*, void*);
-static int cxoConnection_setCallTimeout(cxoConnection*, PyObject*, void*);
-static int cxoConnection_setStmtCacheSize(cxoConnection*, PyObject*, void*);
-static int cxoConnection_setAction(cxoConnection*, PyObject*, void*);
-static int cxoConnection_setClientIdentifier(cxoConnection*, PyObject*, void*);
-static int cxoConnection_setClientInfo(cxoConnection*, PyObject*, void*);
-static int cxoConnection_setCurrentSchema(cxoConnection*, PyObject*, void*);
-static int cxoConnection_setDbOp(cxoConnection*, PyObject*, void*);
-static int cxoConnection_setExternalName(cxoConnection*, PyObject*, void*);
-static int cxoConnection_setInternalName(cxoConnection*, PyObject*, void*);
-static int cxoConnection_setModule(cxoConnection*, PyObject*, void*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods for Python type "Connection"
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoConnectionMethods[] = {
-    { "cursor", (PyCFunction) cxoConnection_newCursor,
-            METH_VARARGS | METH_KEYWORDS },
-    { "commit", (PyCFunction) cxoConnection_commit, METH_NOARGS },
-    { "rollback", (PyCFunction) cxoConnection_rollback, METH_NOARGS },
-    { "begin", (PyCFunction) cxoConnection_begin, METH_VARARGS },
-    { "prepare", (PyCFunction) cxoConnection_prepare, METH_NOARGS },
-    { "close", (PyCFunction) cxoConnection_close, METH_NOARGS },
-    { "cancel", (PyCFunction) cxoConnection_cancel, METH_NOARGS },
-    { "__enter__", (PyCFunction) cxoConnection_contextManagerEnter,
-            METH_NOARGS },
-    { "__exit__", (PyCFunction) cxoConnection_contextManagerExit,
-            METH_VARARGS },
-    { "ping", (PyCFunction) cxoConnection_ping, METH_NOARGS },
-    { "shutdown", (PyCFunction) cxoConnection_shutdown,
-            METH_VARARGS | METH_KEYWORDS},
-    { "startup", (PyCFunction) cxoConnection_startup,
-            METH_VARARGS | METH_KEYWORDS},
-    { "subscribe", (PyCFunction) cxoConnection_subscribe,
-            METH_VARARGS | METH_KEYWORDS},
-    { "unsubscribe", (PyCFunction) cxoConnection_unsubscribe,
-            METH_VARARGS | METH_KEYWORDS},
-    { "changepassword", (PyCFunction) cxoConnection_changePassword,
-            METH_VARARGS },
-    { "gettype", (PyCFunction) cxoConnection_getType, METH_O },
-    { "deqoptions", (PyCFunction) cxoConnection_newDequeueOptions,
-            METH_NOARGS },
-    { "enqoptions", (PyCFunction) cxoConnection_newEnqueueOptions,
-            METH_NOARGS },
-    { "msgproperties", (PyCFunction) cxoConnection_newMessageProperties,
-            METH_VARARGS | METH_KEYWORDS },
-    { "deq", (PyCFunction) cxoConnection_dequeue,
-            METH_VARARGS | METH_KEYWORDS },
-    { "enq", (PyCFunction) cxoConnection_enqueue,
-            METH_VARARGS | METH_KEYWORDS },
-    { "queue", (PyCFunction) cxoConnection_queue,
-            METH_VARARGS | METH_KEYWORDS },
-    { "createlob", (PyCFunction) cxoConnection_createLob, METH_O },
-    { "getSodaDatabase", (PyCFunction) cxoConnection_getSodaDatabase,
-            METH_NOARGS },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of members for Python type "Connection"
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoConnectionMembers[] = {
-    { "username", T_OBJECT, offsetof(cxoConnection, username), READONLY },
-    { "dsn", T_OBJECT, offsetof(cxoConnection, dsn), READONLY },
-    { "tnsentry", T_OBJECT, offsetof(cxoConnection, dsn), READONLY },
-    { "tag", T_OBJECT, offsetof(cxoConnection, tag), 0 },
-    { "autocommit", T_INT, offsetof(cxoConnection, autocommit), 0 },
-    { "inputtypehandler", T_OBJECT,
-            offsetof(cxoConnection, inputTypeHandler), 0 },
-    { "outputtypehandler", T_OBJECT,
-            offsetof(cxoConnection, outputTypeHandler), 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members for Python type "Connection"
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoConnectionCalcMembers[] = {
-    { "version", (getter) cxoConnection_getVersion, 0, 0, 0 },
-    { "encoding", (getter) cxoConnection_getEncoding, 0, 0, 0 },
-    { "nencoding", (getter) cxoConnection_getNationalEncoding, 0, 0, 0 },
-    { "callTimeout", (getter) cxoConnection_getCallTimeout,
-            (setter) cxoConnection_setCallTimeout, 0, 0 },
-    { "maxBytesPerCharacter", (getter) cxoConnection_getMaxBytesPerCharacter,
-            0, 0, 0 },
-    { "stmtcachesize", (getter) cxoConnection_getStmtCacheSize,
-            (setter) cxoConnection_setStmtCacheSize, 0, 0 },
-    { "module", 0, (setter) cxoConnection_setModule, 0, 0 },
-    { "action", 0, (setter) cxoConnection_setAction, 0, 0 },
-    { "clientinfo", 0, (setter) cxoConnection_setClientInfo, 0, 0 },
-    { "client_identifier", 0, (setter) cxoConnection_setClientIdentifier, 0,
-            0 },
-    { "current_schema", (getter) cxoConnection_getCurrentSchema,
-            (setter) cxoConnection_setCurrentSchema, 0, 0 },
-    { "external_name", (getter) cxoConnection_getExternalName,
-            (setter) cxoConnection_setExternalName, 0, 0 },
-    { "internal_name", (getter) cxoConnection_getInternalName,
-            (setter) cxoConnection_setInternalName, 0, 0 },
-    { "dbop", 0, (setter) cxoConnection_setDbOp, 0, 0 },
-    { "edition", (getter) cxoConnection_getEdition, 0, 0, 0 },
-    { "ltxid", (getter) cxoConnection_getLTXID, 0, 0, 0 },
-    { "handle", (getter) cxoConnection_getHandle, 0, 0, 0 },
-    { "Error", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoErrorException },
-    { "Warning", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoWarningException },
-    { "InterfaceError", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoInterfaceErrorException },
-    { "DatabaseError", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoDatabaseErrorException },
-    { "InternalError", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoInternalErrorException },
-    { "OperationalError", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoOperationalErrorException },
-    { "ProgrammingError", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoProgrammingErrorException },
-    { "IntegrityError", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoIntegrityErrorException },
-    { "DataError", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoDataErrorException },
-    { "NotSupportedError", (getter) cxoConnection_getException, NULL, NULL,
-            &cxoNotSupportedErrorException },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of Python type
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeConnection = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.Connection",
-    .tp_basicsize = sizeof(cxoConnection),
-    .tp_dealloc = (destructor) cxoConnection_free,
-    .tp_repr = (reprfunc) cxoConnection_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_methods = cxoConnectionMethods,
-    .tp_members = cxoConnectionMembers,
-    .tp_getset = cxoConnectionCalcMembers,
-    .tp_init = (initproc) cxoConnection_init,
-    .tp_new = (newfunc) cxoConnection_new
-};
-
-
-//-----------------------------------------------------------------------------
 // structure used to help in establishing a connection
 //-----------------------------------------------------------------------------
 typedef struct {
@@ -2007,3 +1815,137 @@ static int cxoConnection_setModule(cxoConnection* conn, PyObject *value,
 {
     return cxoConnection_setAttrText(conn, value, dpiConn_setModule);
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods for the Python type
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "cursor", (PyCFunction) cxoConnection_newCursor,
+            METH_VARARGS | METH_KEYWORDS },
+    { "commit", (PyCFunction) cxoConnection_commit, METH_NOARGS },
+    { "rollback", (PyCFunction) cxoConnection_rollback, METH_NOARGS },
+    { "begin", (PyCFunction) cxoConnection_begin, METH_VARARGS },
+    { "prepare", (PyCFunction) cxoConnection_prepare, METH_NOARGS },
+    { "close", (PyCFunction) cxoConnection_close, METH_NOARGS },
+    { "cancel", (PyCFunction) cxoConnection_cancel, METH_NOARGS },
+    { "__enter__", (PyCFunction) cxoConnection_contextManagerEnter,
+            METH_NOARGS },
+    { "__exit__", (PyCFunction) cxoConnection_contextManagerExit,
+            METH_VARARGS },
+    { "ping", (PyCFunction) cxoConnection_ping, METH_NOARGS },
+    { "shutdown", (PyCFunction) cxoConnection_shutdown,
+            METH_VARARGS | METH_KEYWORDS},
+    { "startup", (PyCFunction) cxoConnection_startup,
+            METH_VARARGS | METH_KEYWORDS},
+    { "subscribe", (PyCFunction) cxoConnection_subscribe,
+            METH_VARARGS | METH_KEYWORDS},
+    { "unsubscribe", (PyCFunction) cxoConnection_unsubscribe,
+            METH_VARARGS | METH_KEYWORDS},
+    { "changepassword", (PyCFunction) cxoConnection_changePassword,
+            METH_VARARGS },
+    { "gettype", (PyCFunction) cxoConnection_getType, METH_O },
+    { "deqoptions", (PyCFunction) cxoConnection_newDequeueOptions,
+            METH_NOARGS },
+    { "enqoptions", (PyCFunction) cxoConnection_newEnqueueOptions,
+            METH_NOARGS },
+    { "msgproperties", (PyCFunction) cxoConnection_newMessageProperties,
+            METH_VARARGS | METH_KEYWORDS },
+    { "deq", (PyCFunction) cxoConnection_dequeue,
+            METH_VARARGS | METH_KEYWORDS },
+    { "enq", (PyCFunction) cxoConnection_enqueue,
+            METH_VARARGS | METH_KEYWORDS },
+    { "queue", (PyCFunction) cxoConnection_queue,
+            METH_VARARGS | METH_KEYWORDS },
+    { "createlob", (PyCFunction) cxoConnection_createLob, METH_O },
+    { "getSodaDatabase", (PyCFunction) cxoConnection_getSodaDatabase,
+            METH_NOARGS },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of members for the Python type
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "username", T_OBJECT, offsetof(cxoConnection, username), READONLY },
+    { "dsn", T_OBJECT, offsetof(cxoConnection, dsn), READONLY },
+    { "tnsentry", T_OBJECT, offsetof(cxoConnection, dsn), READONLY },
+    { "tag", T_OBJECT, offsetof(cxoConnection, tag), 0 },
+    { "autocommit", T_INT, offsetof(cxoConnection, autocommit), 0 },
+    { "inputtypehandler", T_OBJECT,
+            offsetof(cxoConnection, inputTypeHandler), 0 },
+    { "outputtypehandler", T_OBJECT,
+            offsetof(cxoConnection, outputTypeHandler), 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members for the Python type
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "version", (getter) cxoConnection_getVersion, 0, 0, 0 },
+    { "encoding", (getter) cxoConnection_getEncoding, 0, 0, 0 },
+    { "nencoding", (getter) cxoConnection_getNationalEncoding, 0, 0, 0 },
+    { "callTimeout", (getter) cxoConnection_getCallTimeout,
+            (setter) cxoConnection_setCallTimeout, 0, 0 },
+    { "maxBytesPerCharacter", (getter) cxoConnection_getMaxBytesPerCharacter,
+            0, 0, 0 },
+    { "stmtcachesize", (getter) cxoConnection_getStmtCacheSize,
+            (setter) cxoConnection_setStmtCacheSize, 0, 0 },
+    { "module", 0, (setter) cxoConnection_setModule, 0, 0 },
+    { "action", 0, (setter) cxoConnection_setAction, 0, 0 },
+    { "clientinfo", 0, (setter) cxoConnection_setClientInfo, 0, 0 },
+    { "client_identifier", 0, (setter) cxoConnection_setClientIdentifier, 0,
+            0 },
+    { "current_schema", (getter) cxoConnection_getCurrentSchema,
+            (setter) cxoConnection_setCurrentSchema, 0, 0 },
+    { "external_name", (getter) cxoConnection_getExternalName,
+            (setter) cxoConnection_setExternalName, 0, 0 },
+    { "internal_name", (getter) cxoConnection_getInternalName,
+            (setter) cxoConnection_setInternalName, 0, 0 },
+    { "dbop", 0, (setter) cxoConnection_setDbOp, 0, 0 },
+    { "edition", (getter) cxoConnection_getEdition, 0, 0, 0 },
+    { "ltxid", (getter) cxoConnection_getLTXID, 0, 0, 0 },
+    { "handle", (getter) cxoConnection_getHandle, 0, 0, 0 },
+    { "Error", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoErrorException },
+    { "Warning", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoWarningException },
+    { "InterfaceError", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoInterfaceErrorException },
+    { "DatabaseError", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoDatabaseErrorException },
+    { "InternalError", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoInternalErrorException },
+    { "OperationalError", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoOperationalErrorException },
+    { "ProgrammingError", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoProgrammingErrorException },
+    { "IntegrityError", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoIntegrityErrorException },
+    { "DataError", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoDataErrorException },
+    { "NotSupportedError", (getter) cxoConnection_getException, NULL, NULL,
+            &cxoNotSupportedErrorException },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of the Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeConnection = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.Connection",
+    .tp_basicsize = sizeof(cxoConnection),
+    .tp_dealloc = (destructor) cxoConnection_free,
+    .tp_repr = (reprfunc) cxoConnection_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_methods = cxoMethods,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers,
+    .tp_init = (initproc) cxoConnection_init,
+    .tp_new = (newfunc) cxoConnection_new
+};

@@ -15,100 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// functions for the Python type "SessionPool"
-//-----------------------------------------------------------------------------
-static PyObject *cxoSessionPool_new(PyTypeObject*, PyObject*, PyObject*);
-static int cxoSessionPool_init(cxoSessionPool*, PyObject*, PyObject*);
-static void cxoSessionPool_free(cxoSessionPool*);
-static PyObject *cxoSessionPool_acquire(cxoSessionPool*, PyObject*, PyObject*);
-static PyObject *cxoSessionPool_close(cxoSessionPool*, PyObject*, PyObject*);
-static PyObject *cxoSessionPool_drop(cxoSessionPool*, PyObject*);
-static PyObject *cxoSessionPool_release(cxoSessionPool*, PyObject*, PyObject*);
-static PyObject *cxoSessionPool_getBusyCount(cxoSessionPool*, void*);
-static PyObject *cxoSessionPool_getGetMode(cxoSessionPool*, void*);
-static PyObject *cxoSessionPool_getMaxLifetimeSession(cxoSessionPool*, void*);
-static PyObject *cxoSessionPool_getOpenCount(cxoSessionPool*, void*);
-static PyObject *cxoSessionPool_getStmtCacheSize(cxoSessionPool*, void*);
-static PyObject *cxoSessionPool_getTimeout(cxoSessionPool*, void*);
-static PyObject *cxoSessionPool_getWaitTimeout(cxoSessionPool*, void*);
-static int cxoSessionPool_setGetMode(cxoSessionPool*, PyObject*, void*);
-static int cxoSessionPool_setMaxLifetimeSession(cxoSessionPool*, PyObject*,
-        void*);
-static int cxoSessionPool_setStmtCacheSize(cxoSessionPool*, PyObject*, void*);
-static int cxoSessionPool_setTimeout(cxoSessionPool*, PyObject*, void*);
-static int cxoSessionPool_setWaitTimeout(cxoSessionPool*, PyObject*, void*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods for Python type "SessionPool"
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoSessionPoolMethods[] = {
-    { "acquire", (PyCFunction) cxoSessionPool_acquire,
-            METH_VARARGS | METH_KEYWORDS },
-    { "close", (PyCFunction) cxoSessionPool_close,
-            METH_VARARGS | METH_KEYWORDS },
-    { "drop", (PyCFunction) cxoSessionPool_drop, METH_VARARGS },
-    { "release", (PyCFunction) cxoSessionPool_release,
-            METH_VARARGS | METH_KEYWORDS },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of members for Python type "SessionPool"
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoSessionPoolMembers[] = {
-    { "username", T_OBJECT, offsetof(cxoSessionPool, username), READONLY },
-    { "dsn", T_OBJECT, offsetof(cxoSessionPool, dsn), READONLY },
-    { "tnsentry", T_OBJECT, offsetof(cxoSessionPool, dsn), READONLY },
-    { "name", T_OBJECT, offsetof(cxoSessionPool, name), READONLY },
-    { "max", T_INT, offsetof(cxoSessionPool, maxSessions), READONLY },
-    { "min", T_INT, offsetof(cxoSessionPool, minSessions), READONLY },
-    { "increment", T_INT, offsetof(cxoSessionPool, sessionIncrement),
-            READONLY },
-    { "homogeneous", T_INT, offsetof(cxoSessionPool, homogeneous), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members for Python type "SessionPool"
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoSessionPoolCalcMembers[] = {
-    { "opened", (getter) cxoSessionPool_getOpenCount, 0, 0, 0 },
-    { "busy", (getter) cxoSessionPool_getBusyCount, 0, 0, 0 },
-    { "timeout", (getter) cxoSessionPool_getTimeout,
-            (setter) cxoSessionPool_setTimeout, 0, 0 },
-    { "getmode", (getter) cxoSessionPool_getGetMode,
-            (setter) cxoSessionPool_setGetMode, 0, 0 },
-    { "max_lifetime_session", (getter) cxoSessionPool_getMaxLifetimeSession,
-            (setter) cxoSessionPool_setMaxLifetimeSession, 0, 0 },
-    { "stmtcachesize", (getter) cxoSessionPool_getStmtCacheSize,
-            (setter) cxoSessionPool_setStmtCacheSize, 0, 0 },
-    { "wait_timeout", (getter) cxoSessionPool_getWaitTimeout,
-            (setter) cxoSessionPool_setWaitTimeout, 0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of Python type "SessionPool"
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeSessionPool = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.SessionPool",
-    .tp_basicsize = sizeof(cxoSessionPool),
-    .tp_dealloc = (destructor) cxoSessionPool_free,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_methods = cxoSessionPoolMethods,
-    .tp_members = cxoSessionPoolMembers,
-    .tp_getset = cxoSessionPoolCalcMembers,
-    .tp_init = (initproc) cxoSessionPool_init,
-    .tp_new = (newfunc) cxoSessionPool_new
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoSessionPool_new()
 //   Create a new session pool object.
 //-----------------------------------------------------------------------------
@@ -618,3 +524,72 @@ static int cxoSessionPool_setWaitTimeout(cxoSessionPool *pool, PyObject *value,
 {
     return cxoSessionPool_setAttribute(pool, value, dpiPool_setWaitTimeout);
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods for Python type
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "acquire", (PyCFunction) cxoSessionPool_acquire,
+            METH_VARARGS | METH_KEYWORDS },
+    { "close", (PyCFunction) cxoSessionPool_close,
+            METH_VARARGS | METH_KEYWORDS },
+    { "drop", (PyCFunction) cxoSessionPool_drop, METH_VARARGS },
+    { "release", (PyCFunction) cxoSessionPool_release,
+            METH_VARARGS | METH_KEYWORDS },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of members for Python type
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "username", T_OBJECT, offsetof(cxoSessionPool, username), READONLY },
+    { "dsn", T_OBJECT, offsetof(cxoSessionPool, dsn), READONLY },
+    { "tnsentry", T_OBJECT, offsetof(cxoSessionPool, dsn), READONLY },
+    { "name", T_OBJECT, offsetof(cxoSessionPool, name), READONLY },
+    { "max", T_INT, offsetof(cxoSessionPool, maxSessions), READONLY },
+    { "min", T_INT, offsetof(cxoSessionPool, minSessions), READONLY },
+    { "increment", T_INT, offsetof(cxoSessionPool, sessionIncrement),
+            READONLY },
+    { "homogeneous", T_INT, offsetof(cxoSessionPool, homogeneous), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members for Python type
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "opened", (getter) cxoSessionPool_getOpenCount, 0, 0, 0 },
+    { "busy", (getter) cxoSessionPool_getBusyCount, 0, 0, 0 },
+    { "timeout", (getter) cxoSessionPool_getTimeout,
+            (setter) cxoSessionPool_setTimeout, 0, 0 },
+    { "getmode", (getter) cxoSessionPool_getGetMode,
+            (setter) cxoSessionPool_setGetMode, 0, 0 },
+    { "max_lifetime_session", (getter) cxoSessionPool_getMaxLifetimeSession,
+            (setter) cxoSessionPool_setMaxLifetimeSession, 0, 0 },
+    { "stmtcachesize", (getter) cxoSessionPool_getStmtCacheSize,
+            (setter) cxoSessionPool_setStmtCacheSize, 0, 0 },
+    { "wait_timeout", (getter) cxoSessionPool_getWaitTimeout,
+            (setter) cxoSessionPool_setWaitTimeout, 0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeSessionPool = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.SessionPool",
+    .tp_basicsize = sizeof(cxoSessionPool),
+    .tp_dealloc = (destructor) cxoSessionPool_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_methods = cxoMethods,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers,
+    .tp_init = (initproc) cxoSessionPool_init,
+    .tp_new = (newfunc) cxoSessionPool_new
+};

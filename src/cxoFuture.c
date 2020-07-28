@@ -11,28 +11,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// functions for the Python type "Object"
-//-----------------------------------------------------------------------------
-static void cxoFuture_free(cxoFuture*);
-static PyObject *cxoFuture_getAttr(cxoFuture*, PyObject*);
-static int cxoFuture_setAttr(cxoFuture*, PyObject*, PyObject*);
-
-
-//-----------------------------------------------------------------------------
-// Python type declaration
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeFuture = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.__future__",
-    .tp_basicsize = sizeof(cxoFuture),
-    .tp_dealloc = (destructor) cxoFuture_free,
-    .tp_getattro = (getattrofunc) cxoFuture_getAttr,
-    .tp_setattro = (setattrofunc) cxoFuture_setAttr,
-    .tp_flags = Py_TPFLAGS_DEFAULT
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoFuture_free()
 //   Free the future object and reset global.
 //-----------------------------------------------------------------------------
@@ -62,3 +40,17 @@ static int cxoFuture_setAttr(cxoFuture *obj, PyObject *nameObject,
 {
     return 0;
 }
+
+
+//-----------------------------------------------------------------------------
+// Python type declaration
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeFuture = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.__future__",
+    .tp_basicsize = sizeof(cxoFuture),
+    .tp_dealloc = (destructor) cxoFuture_free,
+    .tp_getattro = (getattrofunc) cxoFuture_getAttr,
+    .tp_setattro = (setattrofunc) cxoFuture_setAttr,
+    .tp_flags = Py_TPFLAGS_DEFAULT
+};

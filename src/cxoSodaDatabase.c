@@ -10,49 +10,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoSodaDatabase_free(cxoSodaDatabase*);
-static PyObject *cxoSodaDatabase_repr(cxoSodaDatabase*);
-static PyObject *cxoSodaDatabase_createCollection(cxoSodaDatabase*,
-        PyObject*, PyObject*);
-static PyObject *cxoSodaDatabase_createDocument(cxoSodaDatabase*,
-        PyObject*, PyObject*);
-static PyObject *cxoSodaDatabase_getCollectionNames(cxoSodaDatabase*,
-        PyObject*, PyObject*);
-static PyObject *cxoSodaDatabase_openCollection(cxoSodaDatabase*, PyObject*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods for Python type "SodaDatabase"
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoMethods[] = {
-    { "createCollection", (PyCFunction) cxoSodaDatabase_createCollection,
-            METH_VARARGS | METH_KEYWORDS },
-    { "createDocument", (PyCFunction) cxoSodaDatabase_createDocument,
-            METH_VARARGS | METH_KEYWORDS },
-    { "getCollectionNames", (PyCFunction) cxoSodaDatabase_getCollectionNames,
-            METH_VARARGS | METH_KEYWORDS },
-    { "openCollection", (PyCFunction) cxoSodaDatabase_openCollection, METH_O },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeSodaDatabase = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.SodaDatabase",
-    .tp_basicsize = sizeof(cxoSodaDatabase),
-    .tp_dealloc = (destructor) cxoSodaDatabase_free,
-    .tp_repr = (reprfunc) cxoSodaDatabase_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoMethods
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoSodaDatabase_new()
 //   Create a new SODA database object.
 //-----------------------------------------------------------------------------
@@ -344,3 +301,32 @@ static PyObject *cxoSodaDatabase_openCollection(cxoSodaDatabase *db,
 
     return (PyObject*) coll;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods for Python type
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "createCollection", (PyCFunction) cxoSodaDatabase_createCollection,
+            METH_VARARGS | METH_KEYWORDS },
+    { "createDocument", (PyCFunction) cxoSodaDatabase_createDocument,
+            METH_VARARGS | METH_KEYWORDS },
+    { "getCollectionNames", (PyCFunction) cxoSodaDatabase_getCollectionNames,
+            METH_VARARGS | METH_KEYWORDS },
+    { "openCollection", (PyCFunction) cxoSodaDatabase_openCollection, METH_O },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeSodaDatabase = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.SodaDatabase",
+    .tp_basicsize = sizeof(cxoSodaDatabase),
+    .tp_dealloc = (destructor) cxoSodaDatabase_free,
+    .tp_repr = (reprfunc) cxoSodaDatabase_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoMethods
+};

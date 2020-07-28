@@ -15,54 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// forward declarations
-//-----------------------------------------------------------------------------
-static void cxoError_free(cxoError *error);
-static PyObject *cxoError_str(cxoError *error);
-static PyObject *cxoError_new(PyTypeObject *type, PyObject *args,
-        PyObject *keywordArgs);
-static PyObject *cxoError_reduce(cxoError*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoErrorMethods[] = {
-    { "__reduce__", (PyCFunction) cxoError_reduce, METH_NOARGS },
-    { NULL, NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoErrorMembers[] = {
-    { "code", T_LONG, offsetof(cxoError, code), READONLY },
-    { "offset", T_UINT, offsetof(cxoError, offset), READONLY },
-    { "message", T_OBJECT, offsetof(cxoError, message), READONLY },
-    { "context", T_OBJECT, offsetof(cxoError, context), READONLY },
-    { "isrecoverable", T_BOOL, offsetof(cxoError, isRecoverable), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of Python type
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeError = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle._Error",
-    .tp_basicsize = sizeof(cxoError),
-    .tp_dealloc = (destructor) cxoError_free,
-    .tp_str = (reprfunc) cxoError_str,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoErrorMethods,
-    .tp_members = cxoErrorMembers,
-    .tp_new = cxoError_new
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoError_free()
 //   Deallocate the error.
 //-----------------------------------------------------------------------------
@@ -293,3 +245,41 @@ static PyObject *cxoError_str(cxoError *error)
     Py_INCREF(error->message);
     return error->message;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoErrorMethods[] = {
+    { "__reduce__", (PyCFunction) cxoError_reduce, METH_NOARGS },
+    { NULL, NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoErrorMembers[] = {
+    { "code", T_LONG, offsetof(cxoError, code), READONLY },
+    { "offset", T_UINT, offsetof(cxoError, offset), READONLY },
+    { "message", T_OBJECT, offsetof(cxoError, message), READONLY },
+    { "context", T_OBJECT, offsetof(cxoError, context), READONLY },
+    { "isrecoverable", T_BOOL, offsetof(cxoError, isRecoverable), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeError = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle._Error",
+    .tp_basicsize = sizeof(cxoError),
+    .tp_dealloc = (destructor) cxoError_free,
+    .tp_str = (reprfunc) cxoError_str,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoErrorMethods,
+    .tp_members = cxoErrorMembers,
+    .tp_new = cxoError_new
+};

@@ -15,134 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of subscription functions
-//-----------------------------------------------------------------------------
-static void cxoSubscr_free(cxoSubscr*);
-static PyObject *cxoSubscr_repr(cxoSubscr*);
-static PyObject *cxoSubscr_registerQuery(cxoSubscr*, PyObject*);
-static void cxoMessage_free(cxoMessage*);
-static void cxoMessageTable_free(cxoMessageTable*);
-static void cxoMessageRow_free(cxoMessageRow*);
-static void cxoMessageQuery_free(cxoMessageQuery*);
-
-//-----------------------------------------------------------------------------
-// declaration of members for Python types
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoSubscrTypeMembers[] = {
-    { "callback", T_OBJECT, offsetof(cxoSubscr, callback), READONLY },
-    { "connection", T_OBJECT, offsetof(cxoSubscr, connection),
-            READONLY },
-    { "namespace", T_UINT, offsetof(cxoSubscr, namespace), READONLY },
-    { "name", T_OBJECT, offsetof(cxoSubscr, name), READONLY },
-    { "protocol", T_UINT, offsetof(cxoSubscr, protocol), READONLY },
-    { "ipAddress", T_OBJECT, offsetof(cxoSubscr, ipAddress), READONLY },
-    { "port", T_UINT, offsetof(cxoSubscr, port), READONLY },
-    { "timeout", T_UINT, offsetof(cxoSubscr, timeout), READONLY },
-    { "operations", T_UINT, offsetof(cxoSubscr, operations), READONLY },
-    { "qos", T_UINT, offsetof(cxoSubscr, qos), READONLY },
-    { "id", T_ULONG, offsetof(cxoSubscr, id), READONLY },
-    { NULL }
-};
-
-static PyMemberDef cxoMessageTypeMembers[] = {
-    { "subscription", T_OBJECT, offsetof(cxoMessage, subscription),
-            READONLY },
-    { "type", T_INT, offsetof(cxoMessage, type), READONLY },
-    { "dbname", T_OBJECT, offsetof(cxoMessage, dbname), READONLY },
-    { "txid", T_OBJECT, offsetof(cxoMessage, txId), READONLY },
-    { "tables", T_OBJECT, offsetof(cxoMessage, tables), READONLY },
-    { "queries", T_OBJECT, offsetof(cxoMessage, queries), READONLY },
-    { "queueName", T_OBJECT, offsetof(cxoMessage, queueName), READONLY },
-    { "consumerName", T_OBJECT, offsetof(cxoMessage, consumerName), READONLY },
-    { "registered", T_BOOL, offsetof(cxoMessage, registered), READONLY },
-    { NULL }
-};
-
-static PyMemberDef cxoMessageTableTypeMembers[] = {
-    { "name", T_OBJECT, offsetof(cxoMessageTable, name), READONLY },
-    { "rows", T_OBJECT, offsetof(cxoMessageTable, rows), READONLY },
-    { "operation", T_INT, offsetof(cxoMessageTable, operation), READONLY },
-    { NULL }
-};
-
-static PyMemberDef cxoMessageRowTypeMembers[] = {
-    { "rowid", T_OBJECT, offsetof(cxoMessageRow, rowid), READONLY },
-    { "operation", T_INT, offsetof(cxoMessageRow, operation), READONLY },
-    { NULL }
-};
-
-static PyMemberDef cxoMessageQueryTypeMembers[] = {
-    { "id", T_INT, offsetof(cxoMessageQuery, id), READONLY },
-    { "operation", T_INT, offsetof(cxoMessageQuery, operation), READONLY },
-    { "tables", T_OBJECT, offsetof(cxoMessageQuery, tables), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods for Python types
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoSubscrTypeMethods[] = {
-    { "registerquery", (PyCFunction) cxoSubscr_registerQuery,
-            METH_VARARGS },
-    { NULL, NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeSubscr = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.Subscription",
-    .tp_basicsize = sizeof(cxoSubscr),
-    .tp_dealloc = (destructor) cxoSubscr_free,
-    .tp_repr = (reprfunc) cxoSubscr_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoSubscrTypeMethods,
-    .tp_members = cxoSubscrTypeMembers
-};
-
-PyTypeObject cxoPyTypeMessage = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.Message",
-    .tp_basicsize = sizeof(cxoMessage),
-    .tp_dealloc = (destructor) cxoMessage_free,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoMessageTypeMembers
-};
-
-PyTypeObject cxoPyTypeMessageTable = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.MessageTable",
-    .tp_basicsize = sizeof(cxoMessageTable),
-    .tp_dealloc = (destructor) cxoMessageTable_free,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoMessageTableTypeMembers
-};
-
-
-PyTypeObject cxoPyTypeMessageRow = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.MessageRow",
-    .tp_basicsize = sizeof(cxoMessageRow),
-    .tp_dealloc = (destructor) cxoMessageRow_free,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoMessageRowTypeMembers
-};
-
-
-PyTypeObject cxoPyTypeMessageQuery = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.MessageQuery",
-    .tp_basicsize = sizeof(cxoMessageQuery),
-    .tp_dealloc = (destructor) cxoMessageQuery_free,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoMessageQueryTypeMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoMessageRow_initialize()
 //   Initialize a new message row with the information from the descriptor.
 //-----------------------------------------------------------------------------
@@ -532,3 +404,120 @@ static void cxoMessageTable_free(cxoMessageTable *table)
     Py_CLEAR(table->rows);
     Py_TYPE(table)->tp_free((PyObject*) table);
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of members for Python types
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoSubscrTypeMembers[] = {
+    { "callback", T_OBJECT, offsetof(cxoSubscr, callback), READONLY },
+    { "connection", T_OBJECT, offsetof(cxoSubscr, connection),
+            READONLY },
+    { "namespace", T_UINT, offsetof(cxoSubscr, namespace), READONLY },
+    { "name", T_OBJECT, offsetof(cxoSubscr, name), READONLY },
+    { "protocol", T_UINT, offsetof(cxoSubscr, protocol), READONLY },
+    { "ipAddress", T_OBJECT, offsetof(cxoSubscr, ipAddress), READONLY },
+    { "port", T_UINT, offsetof(cxoSubscr, port), READONLY },
+    { "timeout", T_UINT, offsetof(cxoSubscr, timeout), READONLY },
+    { "operations", T_UINT, offsetof(cxoSubscr, operations), READONLY },
+    { "qos", T_UINT, offsetof(cxoSubscr, qos), READONLY },
+    { "id", T_ULONG, offsetof(cxoSubscr, id), READONLY },
+    { NULL }
+};
+
+static PyMemberDef cxoMessageTypeMembers[] = {
+    { "subscription", T_OBJECT, offsetof(cxoMessage, subscription),
+            READONLY },
+    { "type", T_INT, offsetof(cxoMessage, type), READONLY },
+    { "dbname", T_OBJECT, offsetof(cxoMessage, dbname), READONLY },
+    { "txid", T_OBJECT, offsetof(cxoMessage, txId), READONLY },
+    { "tables", T_OBJECT, offsetof(cxoMessage, tables), READONLY },
+    { "queries", T_OBJECT, offsetof(cxoMessage, queries), READONLY },
+    { "queueName", T_OBJECT, offsetof(cxoMessage, queueName), READONLY },
+    { "consumerName", T_OBJECT, offsetof(cxoMessage, consumerName), READONLY },
+    { "registered", T_BOOL, offsetof(cxoMessage, registered), READONLY },
+    { NULL }
+};
+
+static PyMemberDef cxoMessageTableTypeMembers[] = {
+    { "name", T_OBJECT, offsetof(cxoMessageTable, name), READONLY },
+    { "rows", T_OBJECT, offsetof(cxoMessageTable, rows), READONLY },
+    { "operation", T_INT, offsetof(cxoMessageTable, operation), READONLY },
+    { NULL }
+};
+
+static PyMemberDef cxoMessageRowTypeMembers[] = {
+    { "rowid", T_OBJECT, offsetof(cxoMessageRow, rowid), READONLY },
+    { "operation", T_INT, offsetof(cxoMessageRow, operation), READONLY },
+    { NULL }
+};
+
+static PyMemberDef cxoMessageQueryTypeMembers[] = {
+    { "id", T_INT, offsetof(cxoMessageQuery, id), READONLY },
+    { "operation", T_INT, offsetof(cxoMessageQuery, operation), READONLY },
+    { "tables", T_OBJECT, offsetof(cxoMessageQuery, tables), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods for Python types
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoSubscrTypeMethods[] = {
+    { "registerquery", (PyCFunction) cxoSubscr_registerQuery,
+            METH_VARARGS },
+    { NULL, NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declarations
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeSubscr = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.Subscription",
+    .tp_basicsize = sizeof(cxoSubscr),
+    .tp_dealloc = (destructor) cxoSubscr_free,
+    .tp_repr = (reprfunc) cxoSubscr_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoSubscrTypeMethods,
+    .tp_members = cxoSubscrTypeMembers
+};
+
+PyTypeObject cxoPyTypeMessage = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.Message",
+    .tp_basicsize = sizeof(cxoMessage),
+    .tp_dealloc = (destructor) cxoMessage_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMessageTypeMembers
+};
+
+PyTypeObject cxoPyTypeMessageTable = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.MessageTable",
+    .tp_basicsize = sizeof(cxoMessageTable),
+    .tp_dealloc = (destructor) cxoMessageTable_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMessageTableTypeMembers
+};
+
+
+PyTypeObject cxoPyTypeMessageRow = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.MessageRow",
+    .tp_basicsize = sizeof(cxoMessageRow),
+    .tp_dealloc = (destructor) cxoMessageRow_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMessageRowTypeMembers
+};
+
+
+PyTypeObject cxoPyTypeMessageQuery = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.MessageQuery",
+    .tp_basicsize = sizeof(cxoMessageQuery),
+    .tp_dealloc = (destructor) cxoMessageQuery_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMessageQueryTypeMembers
+};

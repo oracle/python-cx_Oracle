@@ -11,67 +11,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoSodaOperation_free(cxoSodaOperation*);
-static PyObject *cxoSodaOperation_repr(cxoSodaOperation*);
-static PyObject *cxoSodaOperation_filter(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_key(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_keys(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_limit(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_skip(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_version(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_count(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_getCursor(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_getDocuments(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_getOne(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_remove(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_replaceOne(cxoSodaOperation*, PyObject*);
-static PyObject *cxoSodaOperation_replaceOneAndGet(cxoSodaOperation*,
-        PyObject*);
-static PyObject *cxoSodaOperation_fetchArraySize(cxoSodaOperation*, PyObject*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods for Python type "SodaOperation"
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoMethods[] = {
-    { "filter", (PyCFunction) cxoSodaOperation_filter, METH_O },
-    { "key", (PyCFunction) cxoSodaOperation_key, METH_O },
-    { "keys", (PyCFunction) cxoSodaOperation_keys, METH_O },
-    { "limit", (PyCFunction) cxoSodaOperation_limit, METH_O },
-    { "skip", (PyCFunction) cxoSodaOperation_skip, METH_O },
-    { "version", (PyCFunction) cxoSodaOperation_version, METH_O },
-    { "count", (PyCFunction) cxoSodaOperation_count, METH_NOARGS },
-    { "getCursor", (PyCFunction) cxoSodaOperation_getCursor, METH_NOARGS },
-    { "getDocuments", (PyCFunction) cxoSodaOperation_getDocuments,
-            METH_NOARGS },
-    { "getOne", (PyCFunction) cxoSodaOperation_getOne, METH_NOARGS },
-    { "remove", (PyCFunction) cxoSodaOperation_remove, METH_NOARGS },
-    { "replaceOne", (PyCFunction) cxoSodaOperation_replaceOne, METH_O },
-    { "replaceOneAndGet", (PyCFunction) cxoSodaOperation_replaceOneAndGet,
-            METH_O },
-    { "fetchArraySize", (PyCFunction) cxoSodaOperation_fetchArraySize,
-            METH_O },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeSodaOperation = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.SodaOperation",
-    .tp_basicsize = sizeof(cxoSodaOperation),
-    .tp_dealloc = (destructor) cxoSodaOperation_free,
-    .tp_repr = (reprfunc) cxoSodaOperation_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoMethods
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoSodaOperation_clearKeys()
 //   Clear the keys set on the operation object, if applicable.
 //-----------------------------------------------------------------------------
@@ -542,3 +481,42 @@ static PyObject *cxoSodaOperation_fetchArraySize(cxoSodaOperation *op,
     Py_INCREF(op);
     return (PyObject*) op;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods for Python type
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "filter", (PyCFunction) cxoSodaOperation_filter, METH_O },
+    { "key", (PyCFunction) cxoSodaOperation_key, METH_O },
+    { "keys", (PyCFunction) cxoSodaOperation_keys, METH_O },
+    { "limit", (PyCFunction) cxoSodaOperation_limit, METH_O },
+    { "skip", (PyCFunction) cxoSodaOperation_skip, METH_O },
+    { "version", (PyCFunction) cxoSodaOperation_version, METH_O },
+    { "count", (PyCFunction) cxoSodaOperation_count, METH_NOARGS },
+    { "getCursor", (PyCFunction) cxoSodaOperation_getCursor, METH_NOARGS },
+    { "getDocuments", (PyCFunction) cxoSodaOperation_getDocuments,
+            METH_NOARGS },
+    { "getOne", (PyCFunction) cxoSodaOperation_getOne, METH_NOARGS },
+    { "remove", (PyCFunction) cxoSodaOperation_remove, METH_NOARGS },
+    { "replaceOne", (PyCFunction) cxoSodaOperation_replaceOne, METH_O },
+    { "replaceOneAndGet", (PyCFunction) cxoSodaOperation_replaceOneAndGet,
+            METH_O },
+    { "fetchArraySize", (PyCFunction) cxoSodaOperation_fetchArraySize,
+            METH_O },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeSodaOperation = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.SodaOperation",
+    .tp_basicsize = sizeof(cxoSodaOperation),
+    .tp_dealloc = (destructor) cxoSodaOperation_free,
+    .tp_repr = (reprfunc) cxoSodaOperation_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoMethods
+};

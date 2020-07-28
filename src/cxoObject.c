@@ -15,79 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// functions for the Python type "Object"
-//-----------------------------------------------------------------------------
-static void cxoObject_free(cxoObject*);
-static PyObject *cxoObject_getAttr(cxoObject*, PyObject*);
-static PyObject *cxoObject_repr(cxoObject*);
-static int cxoObject_setAttr(cxoObject*, PyObject*, PyObject*);
-static PyObject *cxoObject_append(cxoObject*, PyObject*);
-static PyObject *cxoObject_asDict(cxoObject*, PyObject*);
-static PyObject *cxoObject_asList(cxoObject*, PyObject*);
-static PyObject *cxoObject_copy(cxoObject*, PyObject*);
-static PyObject *cxoObject_delete(cxoObject*, PyObject*);
-static PyObject *cxoObject_exists(cxoObject*, PyObject*);
-static PyObject *cxoObject_extend(cxoObject*, PyObject*);
-static PyObject *cxoObject_getElement(cxoObject*, PyObject*);
-static PyObject *cxoObject_getFirstIndex(cxoObject*, PyObject*);
-static PyObject *cxoObject_getLastIndex(cxoObject*, PyObject*);
-static PyObject *cxoObject_getNextIndex(cxoObject*, PyObject*);
-static PyObject *cxoObject_getPrevIndex(cxoObject*, PyObject*);
-static PyObject *cxoObject_getSize(cxoObject*, PyObject*);
-static PyObject *cxoObject_setElement(cxoObject*, PyObject*);
-static PyObject *cxoObject_trim(cxoObject*, PyObject*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods for Python type "Object"
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoObjectMethods[] = {
-    { "append", (PyCFunction) cxoObject_append, METH_O },
-    { "asdict", (PyCFunction) cxoObject_asDict, METH_NOARGS },
-    { "aslist", (PyCFunction) cxoObject_asList, METH_NOARGS },
-    { "copy", (PyCFunction) cxoObject_copy, METH_NOARGS },
-    { "delete", (PyCFunction) cxoObject_delete, METH_VARARGS },
-    { "exists", (PyCFunction) cxoObject_exists, METH_VARARGS },
-    { "extend", (PyCFunction) cxoObject_extend, METH_O },
-    { "first", (PyCFunction) cxoObject_getFirstIndex, METH_NOARGS },
-    { "getelement", (PyCFunction) cxoObject_getElement, METH_VARARGS },
-    { "last", (PyCFunction) cxoObject_getLastIndex, METH_NOARGS },
-    { "next", (PyCFunction) cxoObject_getNextIndex, METH_VARARGS },
-    { "prev", (PyCFunction) cxoObject_getPrevIndex, METH_VARARGS },
-    { "setelement", (PyCFunction) cxoObject_setElement, METH_VARARGS },
-    { "size", (PyCFunction) cxoObject_getSize, METH_NOARGS },
-    { "trim", (PyCFunction) cxoObject_trim, METH_VARARGS },
-    { NULL, NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Declaration of members for Python type "Object".
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoObjectMembers[] = {
-    { "type", T_OBJECT, offsetof(cxoObject, objectType), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declaration
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeObject = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.Object",
-    .tp_basicsize = sizeof(cxoObject),
-    .tp_dealloc = (destructor) cxoObject_free,
-    .tp_repr = (reprfunc) cxoObject_repr,
-    .tp_getattro = (getattrofunc) cxoObject_getAttr,
-    .tp_setattro = (setattrofunc) cxoObject_setAttr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoObjectMethods,
-    .tp_members = cxoObjectMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoObject_new()
 //   Create a new object.
 //-----------------------------------------------------------------------------
@@ -683,3 +610,52 @@ static PyObject *cxoObject_trim(cxoObject *obj, PyObject *args)
         return cxoError_raiseAndReturnNull();
     Py_RETURN_NONE;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods for Python type
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoObjectMethods[] = {
+    { "append", (PyCFunction) cxoObject_append, METH_O },
+    { "asdict", (PyCFunction) cxoObject_asDict, METH_NOARGS },
+    { "aslist", (PyCFunction) cxoObject_asList, METH_NOARGS },
+    { "copy", (PyCFunction) cxoObject_copy, METH_NOARGS },
+    { "delete", (PyCFunction) cxoObject_delete, METH_VARARGS },
+    { "exists", (PyCFunction) cxoObject_exists, METH_VARARGS },
+    { "extend", (PyCFunction) cxoObject_extend, METH_O },
+    { "first", (PyCFunction) cxoObject_getFirstIndex, METH_NOARGS },
+    { "getelement", (PyCFunction) cxoObject_getElement, METH_VARARGS },
+    { "last", (PyCFunction) cxoObject_getLastIndex, METH_NOARGS },
+    { "next", (PyCFunction) cxoObject_getNextIndex, METH_VARARGS },
+    { "prev", (PyCFunction) cxoObject_getPrevIndex, METH_VARARGS },
+    { "setelement", (PyCFunction) cxoObject_setElement, METH_VARARGS },
+    { "size", (PyCFunction) cxoObject_getSize, METH_NOARGS },
+    { "trim", (PyCFunction) cxoObject_trim, METH_VARARGS },
+    { NULL, NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Declaration of members for Python type
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoObjectMembers[] = {
+    { "type", T_OBJECT, offsetof(cxoObject, objectType), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declaration
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeObject = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.Object",
+    .tp_basicsize = sizeof(cxoObject),
+    .tp_dealloc = (destructor) cxoObject_free,
+    .tp_repr = (reprfunc) cxoObject_repr,
+    .tp_getattro = (getattrofunc) cxoObject_getAttr,
+    .tp_setattro = (setattrofunc) cxoObject_setAttr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoObjectMethods,
+    .tp_members = cxoObjectMembers
+};

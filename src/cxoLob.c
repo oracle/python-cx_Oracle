@@ -15,69 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of external LOB functions.
-//-----------------------------------------------------------------------------
-static void cxoLob_free(cxoLob*);
-static PyObject *cxoLob_str(cxoLob*);
-static PyObject *cxoLob_size(cxoLob*, PyObject*);
-static PyObject *cxoLob_open(cxoLob*, PyObject*);
-static PyObject *cxoLob_close(cxoLob*, PyObject*);
-static PyObject *cxoLob_read(cxoLob*, PyObject*, PyObject*);
-static PyObject *cxoLob_write(cxoLob*, PyObject*, PyObject*);
-static PyObject *cxoLob_trim(cxoLob*, PyObject*, PyObject*);
-static PyObject *cxoLob_getChunkSize(cxoLob*, PyObject*);
-static PyObject *cxoLob_isOpen(cxoLob*, PyObject*);
-static PyObject *cxoLob_getFileName(cxoLob*, PyObject*);
-static PyObject *cxoLob_setFileName(cxoLob*, PyObject*);
-static PyObject *cxoLob_fileExists(cxoLob*, PyObject*);
-static PyObject *cxoLob_reduce(cxoLob*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoLobMethods[] = {
-    { "size", (PyCFunction) cxoLob_size, METH_NOARGS },
-    { "open", (PyCFunction) cxoLob_open, METH_NOARGS },
-    { "close", (PyCFunction) cxoLob_close, METH_NOARGS },
-    { "read", (PyCFunction) cxoLob_read, METH_VARARGS | METH_KEYWORDS },
-    { "write", (PyCFunction) cxoLob_write, METH_VARARGS | METH_KEYWORDS },
-    { "trim", (PyCFunction) cxoLob_trim, METH_VARARGS | METH_KEYWORDS },
-    { "getchunksize", (PyCFunction) cxoLob_getChunkSize, METH_NOARGS },
-    { "isopen", (PyCFunction) cxoLob_isOpen, METH_NOARGS },
-    { "getfilename", (PyCFunction) cxoLob_getFileName, METH_NOARGS },
-    { "setfilename", (PyCFunction) cxoLob_setFileName, METH_VARARGS },
-    { "fileexists", (PyCFunction) cxoLob_fileExists, METH_NOARGS },
-    { "__reduce__", (PyCFunction) cxoLob_reduce, METH_NOARGS },
-    { NULL, NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoMembers[] = {
-    { "type", T_OBJECT, offsetof(cxoLob, dbType), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declaration
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeLob = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.LOB",
-    .tp_basicsize = sizeof(cxoLob),
-    .tp_dealloc = (destructor) cxoLob_free,
-    .tp_str = (reprfunc) cxoLob_str,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoLobMethods,
-    .tp_members = cxoMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoLob_new()
 //   Create a new LOB.
 //-----------------------------------------------------------------------------
@@ -461,3 +398,47 @@ static PyObject *cxoLob_fileExists(cxoLob *lob, PyObject *args)
         Py_RETURN_TRUE;
     Py_RETURN_FALSE;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoLobMethods[] = {
+    { "size", (PyCFunction) cxoLob_size, METH_NOARGS },
+    { "open", (PyCFunction) cxoLob_open, METH_NOARGS },
+    { "close", (PyCFunction) cxoLob_close, METH_NOARGS },
+    { "read", (PyCFunction) cxoLob_read, METH_VARARGS | METH_KEYWORDS },
+    { "write", (PyCFunction) cxoLob_write, METH_VARARGS | METH_KEYWORDS },
+    { "trim", (PyCFunction) cxoLob_trim, METH_VARARGS | METH_KEYWORDS },
+    { "getchunksize", (PyCFunction) cxoLob_getChunkSize, METH_NOARGS },
+    { "isopen", (PyCFunction) cxoLob_isOpen, METH_NOARGS },
+    { "getfilename", (PyCFunction) cxoLob_getFileName, METH_NOARGS },
+    { "setfilename", (PyCFunction) cxoLob_setFileName, METH_VARARGS },
+    { "fileexists", (PyCFunction) cxoLob_fileExists, METH_NOARGS },
+    { "__reduce__", (PyCFunction) cxoLob_reduce, METH_NOARGS },
+    { NULL, NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "type", T_OBJECT, offsetof(cxoLob, dbType), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declaration
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeLob = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.LOB",
+    .tp_basicsize = sizeof(cxoLob),
+    .tp_dealloc = (destructor) cxoLob_free,
+    .tp_str = (reprfunc) cxoLob_str,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoLobMethods,
+    .tp_members = cxoMembers
+};

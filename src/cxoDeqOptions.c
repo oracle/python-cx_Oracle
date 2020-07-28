@@ -15,71 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of methods used for dequeue options
-//-----------------------------------------------------------------------------
-static void cxoDeqOptions_free(cxoDeqOptions*);
-static PyObject *cxoDeqOptions_getCondition(cxoDeqOptions*, void*);
-static PyObject *cxoDeqOptions_getConsumerName(cxoDeqOptions*, void*);
-static PyObject *cxoDeqOptions_getCorrelation(cxoDeqOptions*, void*);
-static PyObject *cxoDeqOptions_getMode(cxoDeqOptions*, void*);
-static PyObject *cxoDeqOptions_getMsgId(cxoDeqOptions*, void*);
-static PyObject *cxoDeqOptions_getNavigation(cxoDeqOptions*, void*);
-static PyObject *cxoDeqOptions_getTransformation(cxoDeqOptions*, void*);
-static PyObject *cxoDeqOptions_getVisibility(cxoDeqOptions*, void*);
-static PyObject *cxoDeqOptions_getWait(cxoDeqOptions*, void*);
-static int cxoDeqOptions_setCondition(cxoDeqOptions*, PyObject*, void*);
-static int cxoDeqOptions_setConsumerName(cxoDeqOptions*, PyObject*, void*);
-static int cxoDeqOptions_setCorrelation(cxoDeqOptions*, PyObject*, void*);
-static int cxoDeqOptions_setDeliveryMode(cxoDeqOptions*, PyObject*, void*);
-static int cxoDeqOptions_setMode(cxoDeqOptions*, PyObject*, void*);
-static int cxoDeqOptions_setMsgId(cxoDeqOptions*, PyObject*, void*);
-static int cxoDeqOptions_setNavigation(cxoDeqOptions*, PyObject*, void*);
-static int cxoDeqOptions_setTransformation(cxoDeqOptions*, PyObject*, void*);
-static int cxoDeqOptions_setVisibility(cxoDeqOptions*, PyObject*, void*);
-static int cxoDeqOptions_setWait(cxoDeqOptions*, PyObject*, void*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members for Python type "DeqOptions"
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoDeqOptionsCalcMembers[] = {
-    { "condition", (getter) cxoDeqOptions_getCondition,
-            (setter) cxoDeqOptions_setCondition, 0, 0 },
-    { "consumername", (getter) cxoDeqOptions_getConsumerName,
-            (setter) cxoDeqOptions_setConsumerName, 0, 0 },
-    { "correlation", (getter) cxoDeqOptions_getCorrelation,
-            (setter) cxoDeqOptions_setCorrelation, 0, 0 },
-    { "deliverymode", 0, (setter) cxoDeqOptions_setDeliveryMode, 0, 0 },
-    { "mode", (getter) cxoDeqOptions_getMode, (setter) cxoDeqOptions_setMode,
-            0, 0 },
-    { "msgid", (getter) cxoDeqOptions_getMsgId,
-            (setter) cxoDeqOptions_setMsgId, 0, 0 },
-    { "navigation", (getter) cxoDeqOptions_getNavigation,
-            (setter) cxoDeqOptions_setNavigation, 0, 0 },
-    { "transformation", (getter) cxoDeqOptions_getTransformation,
-            (setter) cxoDeqOptions_setTransformation, 0, 0 },
-    { "visibility", (getter) cxoDeqOptions_getVisibility,
-            (setter) cxoDeqOptions_setVisibility, 0, 0 },
-    { "wait", (getter) cxoDeqOptions_getWait, (setter) cxoDeqOptions_setWait,
-            0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeDeqOptions = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.DeqOptions",
-    .tp_basicsize = sizeof(cxoDeqOptions),
-    .tp_dealloc = (destructor) cxoDeqOptions_free,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_getset = cxoDeqOptionsCalcMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoDeqOptions_new()
 //   Create a new dequeue options object.
 //-----------------------------------------------------------------------------
@@ -436,3 +371,43 @@ static int cxoDeqOptions_setWait(cxoDeqOptions *options, PyObject *valueObj,
         return cxoError_raiseAndReturnInt();
     return 0;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members for Python type
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoDeqOptionsCalcMembers[] = {
+    { "condition", (getter) cxoDeqOptions_getCondition,
+            (setter) cxoDeqOptions_setCondition, 0, 0 },
+    { "consumername", (getter) cxoDeqOptions_getConsumerName,
+            (setter) cxoDeqOptions_setConsumerName, 0, 0 },
+    { "correlation", (getter) cxoDeqOptions_getCorrelation,
+            (setter) cxoDeqOptions_setCorrelation, 0, 0 },
+    { "deliverymode", 0, (setter) cxoDeqOptions_setDeliveryMode, 0, 0 },
+    { "mode", (getter) cxoDeqOptions_getMode, (setter) cxoDeqOptions_setMode,
+            0, 0 },
+    { "msgid", (getter) cxoDeqOptions_getMsgId,
+            (setter) cxoDeqOptions_setMsgId, 0, 0 },
+    { "navigation", (getter) cxoDeqOptions_getNavigation,
+            (setter) cxoDeqOptions_setNavigation, 0, 0 },
+    { "transformation", (getter) cxoDeqOptions_getTransformation,
+            (setter) cxoDeqOptions_setTransformation, 0, 0 },
+    { "visibility", (getter) cxoDeqOptions_getVisibility,
+            (setter) cxoDeqOptions_setVisibility, 0, 0 },
+    { "wait", (getter) cxoDeqOptions_getWait, (setter) cxoDeqOptions_setWait,
+            0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeDeqOptions = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.DeqOptions",
+    .tp_basicsize = sizeof(cxoDeqOptions),
+    .tp_dealloc = (destructor) cxoDeqOptions_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_getset = cxoDeqOptionsCalcMembers
+};

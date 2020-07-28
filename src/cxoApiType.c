@@ -11,36 +11,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoApiType_free(cxoApiType*);
-static PyObject *cxoApiType_repr(cxoApiType*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoMembers[] = {
-    { "name", T_STRING, offsetof(cxoApiType, name), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declaration
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeApiType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.ApiType",
-    .tp_basicsize = sizeof(cxoApiType),
-    .tp_dealloc = (destructor) cxoApiType_free,
-    .tp_repr = (reprfunc) cxoApiType_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoApiType_free()
 //   Free the API type object.
 //-----------------------------------------------------------------------------
@@ -74,3 +44,26 @@ static PyObject *cxoApiType_repr(cxoApiType *apiType)
     Py_DECREF(apiTypeName);
     return result;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "name", T_STRING, offsetof(cxoApiType, name), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declaration
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeApiType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.ApiType",
+    .tp_basicsize = sizeof(cxoApiType),
+    .tp_dealloc = (destructor) cxoApiType_free,
+    .tp_repr = (reprfunc) cxoApiType_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMembers
+};

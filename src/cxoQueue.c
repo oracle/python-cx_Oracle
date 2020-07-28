@@ -11,57 +11,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoQueue_free(cxoQueue*);
-static PyObject *cxoQueue_repr(cxoQueue*);
-static PyObject *cxoQueue_deqMany(cxoQueue*, PyObject*);
-static PyObject *cxoQueue_deqOne(cxoQueue*, PyObject*);
-static PyObject *cxoQueue_enqMany(cxoQueue*, PyObject*);
-static PyObject *cxoQueue_enqOne(cxoQueue*, PyObject*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoMethods[] = {
-    { "deqMany", (PyCFunction) cxoQueue_deqMany, METH_VARARGS },
-    { "deqOne", (PyCFunction) cxoQueue_deqOne, METH_NOARGS },
-    { "enqMany", (PyCFunction) cxoQueue_enqMany, METH_VARARGS },
-    { "enqOne", (PyCFunction) cxoQueue_enqOne, METH_VARARGS },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoMembers[] = {
-    { "connection", T_OBJECT, offsetof(cxoQueue, conn), READONLY },
-    { "deqOptions", T_OBJECT, offsetof(cxoQueue, deqOptions), READONLY },
-    { "enqOptions", T_OBJECT, offsetof(cxoQueue, enqOptions), READONLY },
-    { "name", T_OBJECT, offsetof(cxoQueue, name), READONLY },
-    { "payloadType", T_OBJECT, offsetof(cxoQueue, payloadType), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeQueue = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.Queue",
-    .tp_basicsize = sizeof(cxoQueue),
-    .tp_dealloc = (destructor) cxoQueue_free,
-    .tp_repr = (reprfunc) cxoQueue_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoMethods,
-    .tp_members = cxoMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoQueue_new()
 //   Create a new queue (advanced queuing).
 //-----------------------------------------------------------------------------
@@ -400,3 +349,43 @@ static PyObject *cxoQueue_enqOne(cxoQueue *queue, PyObject *args)
 
     Py_RETURN_NONE;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "deqMany", (PyCFunction) cxoQueue_deqMany, METH_VARARGS },
+    { "deqOne", (PyCFunction) cxoQueue_deqOne, METH_NOARGS },
+    { "enqMany", (PyCFunction) cxoQueue_enqMany, METH_VARARGS },
+    { "enqOne", (PyCFunction) cxoQueue_enqOne, METH_VARARGS },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "connection", T_OBJECT, offsetof(cxoQueue, conn), READONLY },
+    { "deqOptions", T_OBJECT, offsetof(cxoQueue, deqOptions), READONLY },
+    { "enqOptions", T_OBJECT, offsetof(cxoQueue, enqOptions), READONLY },
+    { "name", T_OBJECT, offsetof(cxoQueue, name), READONLY },
+    { "payloadType", T_OBJECT, offsetof(cxoQueue, payloadType), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declarations
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeQueue = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.Queue",
+    .tp_basicsize = sizeof(cxoQueue),
+    .tp_dealloc = (destructor) cxoQueue_free,
+    .tp_repr = (reprfunc) cxoQueue_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoMethods,
+    .tp_members = cxoMembers
+};

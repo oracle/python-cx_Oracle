@@ -10,47 +10,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoObjectAttr_free(cxoObjectAttr*);
-static PyObject *cxoObjectAttr_repr(cxoObjectAttr*);
-static PyObject *cxoObjectAttr_getType(cxoObjectAttr*, void*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoMembers[] = {
-    { "name", T_OBJECT, offsetof(cxoObjectAttr, name), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoCalcMembers[] = {
-    { "type", (getter) cxoObjectAttr_getType, 0, 0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declaration
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeObjectAttr = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.ObjectAttribute",
-    .tp_basicsize = sizeof(cxoObjectAttr),
-    .tp_dealloc = (destructor) cxoObjectAttr_free,
-    .tp_repr = (reprfunc) cxoObjectAttr_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoMembers,
-    .tp_getset = cxoCalcMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoObjectAttr_initialize()
 //   Initialize the new object attribute.
 //-----------------------------------------------------------------------------
@@ -157,3 +116,36 @@ static PyObject *cxoObjectAttr_repr(cxoObjectAttr *attr)
     Py_DECREF(name);
     return result;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "name", T_OBJECT, offsetof(cxoObjectAttr, name), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "type", (getter) cxoObjectAttr_getType, 0, 0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declaration
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeObjectAttr = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.ObjectAttribute",
+    .tp_basicsize = sizeof(cxoObjectAttr),
+    .tp_dealloc = (destructor) cxoObjectAttr_free,
+    .tp_repr = (reprfunc) cxoObjectAttr_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers
+};

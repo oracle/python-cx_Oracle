@@ -15,72 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// forward declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoVar_free(cxoVar*);
-static PyObject *cxoVar_repr(cxoVar*);
-static PyObject *cxoVar_externalCopy(cxoVar*, PyObject*);
-static PyObject *cxoVar_externalSetValue(cxoVar*, PyObject*);
-static PyObject *cxoVar_externalGetValue(cxoVar*, PyObject*, PyObject*);
-static PyObject *cxoVar_externalGetActualElements(cxoVar*, void*);
-static PyObject *cxoVar_externalGetValues(cxoVar*, void*);
-static PyObject *cxoVar_getType(cxoVar*, void*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoMembers[] = {
-    { "bufferSize", T_INT, offsetof(cxoVar, bufferSize), READONLY },
-    { "inconverter", T_OBJECT, offsetof(cxoVar, inConverter), 0 },
-    { "numElements", T_INT, offsetof(cxoVar, allocatedElements),
-            READONLY },
-    { "outconverter", T_OBJECT, offsetof(cxoVar, outConverter), 0 },
-    { "size", T_INT, offsetof(cxoVar, size), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoCalcMembers[] = {
-    { "actualElements", (getter) cxoVar_externalGetActualElements, 0, 0, 0 },
-    { "type", (getter) cxoVar_getType, 0, 0, 0 },
-    { "values", (getter) cxoVar_externalGetValues, 0, 0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoVarMethods[] = {
-    { "copy", (PyCFunction) cxoVar_externalCopy, METH_VARARGS },
-    { "setvalue", (PyCFunction) cxoVar_externalSetValue, METH_VARARGS },
-    { "getvalue", (PyCFunction) cxoVar_externalGetValue,
-              METH_VARARGS  | METH_KEYWORDS },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of Python type
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeVar = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.Var",
-    .tp_basicsize = sizeof(cxoVar),
-    .tp_dealloc = (destructor) cxoVar_free,
-    .tp_repr = (reprfunc) cxoVar_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoVarMethods,
-    .tp_members = cxoMembers,
-    .tp_getset = cxoCalcMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoVar_new()
 //   Allocate a new variable.
 //-----------------------------------------------------------------------------
@@ -778,3 +712,56 @@ static PyObject *cxoVar_repr(cxoVar *var)
     Py_DECREF(typeName);
     return result;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "bufferSize", T_INT, offsetof(cxoVar, bufferSize), READONLY },
+    { "inconverter", T_OBJECT, offsetof(cxoVar, inConverter), 0 },
+    { "numElements", T_INT, offsetof(cxoVar, allocatedElements),
+            READONLY },
+    { "outconverter", T_OBJECT, offsetof(cxoVar, outConverter), 0 },
+    { "size", T_INT, offsetof(cxoVar, size), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "actualElements", (getter) cxoVar_externalGetActualElements, 0, 0, 0 },
+    { "type", (getter) cxoVar_getType, 0, 0, 0 },
+    { "values", (getter) cxoVar_externalGetValues, 0, 0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoVarMethods[] = {
+    { "copy", (PyCFunction) cxoVar_externalCopy, METH_VARARGS },
+    { "setvalue", (PyCFunction) cxoVar_externalSetValue, METH_VARARGS },
+    { "getvalue", (PyCFunction) cxoVar_externalGetValue,
+              METH_VARARGS  | METH_KEYWORDS },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeVar = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.Var",
+    .tp_basicsize = sizeof(cxoVar),
+    .tp_dealloc = (destructor) cxoVar_free,
+    .tp_repr = (reprfunc) cxoVar_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoVarMethods,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers
+};

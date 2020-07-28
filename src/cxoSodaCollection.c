@@ -10,89 +10,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoSodaCollection_free(cxoSodaCollection*);
-static PyObject *cxoSodaCollection_repr(cxoSodaCollection*);
-static PyObject *cxoSodaCollection_createIndex(cxoSodaCollection*, PyObject*);
-static PyObject *cxoSodaCollection_drop(cxoSodaCollection*, PyObject*);
-static PyObject *cxoSodaCollection_dropIndex(cxoSodaCollection*, PyObject*,
-        PyObject*);
-static PyObject *cxoSodaCollection_find(cxoSodaCollection*, PyObject*);
-static PyObject *cxoSodaCollection_getDataGuide(cxoSodaCollection*, PyObject*);
-static PyObject *cxoSodaCollection_insertMany(cxoSodaCollection*, PyObject*);
-static PyObject *cxoSodaCollection_insertManyAndGet(cxoSodaCollection*,
-        PyObject*);
-static PyObject *cxoSodaCollection_insertManyHelper(cxoSodaCollection *coll,
-        PyObject *docs, Py_ssize_t numDocs, dpiSodaDoc **handles,
-        dpiSodaDoc **returnHandles);
-static PyObject *cxoSodaCollection_insertOne(cxoSodaCollection*, PyObject*);
-static PyObject *cxoSodaCollection_insertOneAndGet(cxoSodaCollection*,
-        PyObject*);
-static PyObject *cxoSodaCollection_getMetadata(cxoSodaCollection*, PyObject*);
-static PyObject *cxoSodaCollection_save(cxoSodaCollection*, PyObject*);
-static PyObject *cxoSodaCollection_saveAndGet(cxoSodaCollection*, PyObject*);
-static PyObject *cxoSodaCollection_truncate(cxoSodaCollection*, PyObject*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoMethods[] = {
-    { "createIndex", (PyCFunction) cxoSodaCollection_createIndex, METH_O },
-    { "drop", (PyCFunction) cxoSodaCollection_drop, METH_NOARGS },
-    { "dropIndex", (PyCFunction) cxoSodaCollection_dropIndex,
-            METH_VARARGS | METH_KEYWORDS },
-    { "find", (PyCFunction) cxoSodaCollection_find, METH_NOARGS },
-    { "getDataGuide", (PyCFunction) cxoSodaCollection_getDataGuide,
-            METH_NOARGS },
-    { "insertOne", (PyCFunction) cxoSodaCollection_insertOne, METH_O },
-    { "insertOneAndGet", (PyCFunction) cxoSodaCollection_insertOneAndGet,
-            METH_O },
-    { "insertMany", (PyCFunction) cxoSodaCollection_insertMany, METH_O },
-    { "insertManyAndGet", (PyCFunction) cxoSodaCollection_insertManyAndGet,
-            METH_O },
-    { "save", (PyCFunction) cxoSodaCollection_save, METH_O },
-    { "saveAndGet", (PyCFunction) cxoSodaCollection_saveAndGet, METH_O },
-    { "truncate", (PyCFunction) cxoSodaCollection_truncate, METH_NOARGS },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoMembers[] = {
-    { "name", T_OBJECT, offsetof(cxoSodaCollection, name), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoCalcMembers[] = {
-    { "metadata", (getter) cxoSodaCollection_getMetadata, 0, 0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeSodaCollection = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.SodaCollection",
-    .tp_basicsize = sizeof(cxoSodaCollection),
-    .tp_dealloc = (destructor) cxoSodaCollection_free,
-    .tp_repr = (reprfunc) cxoSodaCollection_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoMethods,
-    .tp_members = cxoMembers,
-    .tp_getset = cxoCalcMembers
-};
-
-//-----------------------------------------------------------------------------
 // cxoSodaCollection_initialize()
 //   Initialize a new collection with its attributes.
 //-----------------------------------------------------------------------------
@@ -306,70 +223,6 @@ static PyObject *cxoSodaCollection_getDataGuide(cxoSodaCollection *coll,
 
 
 //-----------------------------------------------------------------------------
-// cxoSodaCollection_insertMany()
-//   Inserts multilple document into the collection at one time.
-//-----------------------------------------------------------------------------
-static PyObject *cxoSodaCollection_insertMany(cxoSodaCollection *coll,
-        PyObject *arg)
-{
-    dpiSodaDoc **handles;
-    Py_ssize_t numDocs;
-    PyObject *result;
-
-    if (!PyList_Check(arg)) {
-        PyErr_SetString(PyExc_TypeError, "expecting list");
-        return NULL;
-    }
-    numDocs = PyList_GET_SIZE(arg);
-    handles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
-    if (!handles) {
-        PyErr_NoMemory();
-        return NULL;
-    }
-    result = cxoSodaCollection_insertManyHelper(coll, arg, numDocs, handles,
-            NULL);
-    PyMem_Free(handles);
-    return result;
-}
-
-
-//-----------------------------------------------------------------------------
-// cxoSodaCollection_insertManyAndGet()
-//   Inserts multiple documents into the collection at one time and return a
-// list of documents containing all but the content itself.
-//-----------------------------------------------------------------------------
-static PyObject *cxoSodaCollection_insertManyAndGet(cxoSodaCollection *coll,
-        PyObject *arg)
-{
-    dpiSodaDoc **handles, **returnHandles;
-    Py_ssize_t numDocs;
-    PyObject *result;
-
-    if (!PyList_Check(arg)) {
-        PyErr_SetString(PyExc_TypeError, "expecting list");
-        return NULL;
-    }
-    numDocs = PyList_GET_SIZE(arg);
-    handles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
-    if (!handles) {
-        PyErr_NoMemory();
-        return NULL;
-    }
-    returnHandles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
-    if (!returnHandles) {
-        PyErr_NoMemory();
-        PyMem_Free(handles);
-        return NULL;
-    }
-    result = cxoSodaCollection_insertManyHelper(coll, arg, numDocs, handles,
-            returnHandles);
-    PyMem_Free(handles);
-    PyMem_Free(returnHandles);
-    return result;
-}
-
-
-//-----------------------------------------------------------------------------
 // cxoSodaCollection_insertManyHelper()
 //   Helper method to perform bulk insert of SODA documents into a collection.
 //-----------------------------------------------------------------------------
@@ -431,6 +284,70 @@ static PyObject *cxoSodaCollection_insertManyHelper(cxoSodaCollection *coll,
         PyList_SET_ITEM(returnDocs, i, (PyObject*) doc);
     }
     return returnDocs;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSodaCollection_insertMany()
+//   Inserts multilple document into the collection at one time.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaCollection_insertMany(cxoSodaCollection *coll,
+        PyObject *arg)
+{
+    dpiSodaDoc **handles;
+    Py_ssize_t numDocs;
+    PyObject *result;
+
+    if (!PyList_Check(arg)) {
+        PyErr_SetString(PyExc_TypeError, "expecting list");
+        return NULL;
+    }
+    numDocs = PyList_GET_SIZE(arg);
+    handles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
+    if (!handles) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    result = cxoSodaCollection_insertManyHelper(coll, arg, numDocs, handles,
+            NULL);
+    PyMem_Free(handles);
+    return result;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSodaCollection_insertManyAndGet()
+//   Inserts multiple documents into the collection at one time and return a
+// list of documents containing all but the content itself.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaCollection_insertManyAndGet(cxoSodaCollection *coll,
+        PyObject *arg)
+{
+    dpiSodaDoc **handles, **returnHandles;
+    Py_ssize_t numDocs;
+    PyObject *result;
+
+    if (!PyList_Check(arg)) {
+        PyErr_SetString(PyExc_TypeError, "expecting list");
+        return NULL;
+    }
+    numDocs = PyList_GET_SIZE(arg);
+    handles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
+    if (!handles) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    returnHandles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
+    if (!returnHandles) {
+        PyErr_NoMemory();
+        PyMem_Free(handles);
+        return NULL;
+    }
+    result = cxoSodaCollection_insertManyHelper(coll, arg, numDocs, handles,
+            returnHandles);
+    PyMem_Free(handles);
+    PyMem_Free(returnHandles);
+    return result;
 }
 
 
@@ -584,3 +501,61 @@ static PyObject *cxoSodaCollection_truncate(cxoSodaCollection *coll,
         return cxoError_raiseAndReturnNull();
     Py_RETURN_NONE;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "createIndex", (PyCFunction) cxoSodaCollection_createIndex, METH_O },
+    { "drop", (PyCFunction) cxoSodaCollection_drop, METH_NOARGS },
+    { "dropIndex", (PyCFunction) cxoSodaCollection_dropIndex,
+            METH_VARARGS | METH_KEYWORDS },
+    { "find", (PyCFunction) cxoSodaCollection_find, METH_NOARGS },
+    { "getDataGuide", (PyCFunction) cxoSodaCollection_getDataGuide,
+            METH_NOARGS },
+    { "insertOne", (PyCFunction) cxoSodaCollection_insertOne, METH_O },
+    { "insertOneAndGet", (PyCFunction) cxoSodaCollection_insertOneAndGet,
+            METH_O },
+    { "insertMany", (PyCFunction) cxoSodaCollection_insertMany, METH_O },
+    { "insertManyAndGet", (PyCFunction) cxoSodaCollection_insertManyAndGet,
+            METH_O },
+    { "save", (PyCFunction) cxoSodaCollection_save, METH_O },
+    { "saveAndGet", (PyCFunction) cxoSodaCollection_saveAndGet, METH_O },
+    { "truncate", (PyCFunction) cxoSodaCollection_truncate, METH_NOARGS },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "name", T_OBJECT, offsetof(cxoSodaCollection, name), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "metadata", (getter) cxoSodaCollection_getMetadata, 0, 0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declarations
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeSodaCollection = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.SodaCollection",
+    .tp_basicsize = sizeof(cxoSodaCollection),
+    .tp_dealloc = (destructor) cxoSodaCollection_free,
+    .tp_repr = (reprfunc) cxoSodaCollection_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoMethods,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers
+};

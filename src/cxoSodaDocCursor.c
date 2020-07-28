@@ -12,41 +12,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoSodaDocCursor_free(cxoSodaDocCursor*);
-static PyObject *cxoSodaDocCursor_repr(cxoSodaDocCursor*);
-static PyObject *cxoSodaDocCursor_getIter(cxoSodaDocCursor*);
-static PyObject *cxoSodaDocCursor_getNext(cxoSodaDocCursor*);
-static PyObject *cxoSodaDocCursor_close(cxoSodaDocCursor*, PyObject*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoMethods[] = {
-    { "close", (PyCFunction) cxoSodaDocCursor_close, METH_NOARGS },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeSodaDocCursor = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.SodaDocCursor",
-    .tp_basicsize = sizeof(cxoSodaDocCursor),
-    .tp_dealloc = (destructor) cxoSodaDocCursor_free,
-    .tp_repr = (reprfunc) cxoSodaDocCursor_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_iter = (getiterfunc) cxoSodaDocCursor_getIter,
-    .tp_iternext = (iternextfunc) cxoSodaDocCursor_getNext,
-    .tp_methods = cxoMethods
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoSodaDocCursor_new()
 //   Create a new SODA document cursor.
 //-----------------------------------------------------------------------------
@@ -149,3 +114,28 @@ static PyObject *cxoSodaDocCursor_getNext(cxoSodaDocCursor *cursor)
         return NULL;
     return (PyObject*) doc;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "close", (PyCFunction) cxoSodaDocCursor_close, METH_NOARGS },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declarations
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeSodaDocCursor = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.SodaDocCursor",
+    .tp_basicsize = sizeof(cxoSodaDocCursor),
+    .tp_dealloc = (destructor) cxoSodaDocCursor_free,
+    .tp_repr = (reprfunc) cxoSodaDocCursor_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_iter = (getiterfunc) cxoSodaDocCursor_getIter,
+    .tp_iternext = (iternextfunc) cxoSodaDocCursor_getNext,
+    .tp_methods = cxoMethods
+};

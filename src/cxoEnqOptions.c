@@ -15,43 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of methods used for enqueue options
-//-----------------------------------------------------------------------------
-static void cxoEnqOptions_free(cxoEnqOptions*);
-static PyObject *cxoEnqOptions_getTransformation(cxoEnqOptions*, void*);
-static PyObject *cxoEnqOptions_getVisibility(cxoEnqOptions*, void*);
-static int cxoEnqOptions_setDeliveryMode(cxoEnqOptions*, PyObject*, void*);
-static int cxoEnqOptions_setTransformation(cxoEnqOptions*, PyObject*, void*);
-static int cxoEnqOptions_setVisibility(cxoEnqOptions*, PyObject*, void*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members for Python type "EnqOptions"
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoEnqOptionsCalcMembers[] = {
-    { "deliverymode", 0, (setter) cxoEnqOptions_setDeliveryMode, 0, 0 },
-    { "transformation", (getter) cxoEnqOptions_getTransformation,
-            (setter) cxoEnqOptions_setTransformation, 0, 0 },
-    { "visibility", (getter) cxoEnqOptions_getVisibility,
-            (setter) cxoEnqOptions_setVisibility, 0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeEnqOptions = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.EnqOptions",
-    .tp_basicsize = sizeof(cxoEnqOptions),
-    .tp_dealloc = (destructor) cxoEnqOptions_free,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_getset = cxoEnqOptionsCalcMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoEnqOptions_new()
 //   Create a new enqueue options object.
 //-----------------------------------------------------------------------------
@@ -184,3 +147,29 @@ static int cxoEnqOptions_setVisibility(cxoEnqOptions *self,
         return cxoError_raiseAndReturnInt();
     return 0;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members for Python type
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoEnqOptionsCalcMembers[] = {
+    { "deliverymode", 0, (setter) cxoEnqOptions_setDeliveryMode, 0, 0 },
+    { "transformation", (getter) cxoEnqOptions_getTransformation,
+            (setter) cxoEnqOptions_setTransformation, 0, 0 },
+    { "visibility", (getter) cxoEnqOptions_getVisibility,
+            (setter) cxoEnqOptions_setVisibility, 0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeEnqOptions = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.EnqOptions",
+    .tp_basicsize = sizeof(cxoEnqOptions),
+    .tp_dealloc = (destructor) cxoEnqOptions_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_getset = cxoEnqOptionsCalcMembers
+};

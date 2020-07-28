@@ -9,60 +9,9 @@
 
 #include "cxoModule.h"
 
-//-----------------------------------------------------------------------------
-// Declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoSodaDoc_free(cxoSodaDoc*);
-static PyObject *cxoSodaDoc_repr(cxoSodaDoc*);
-static PyObject *cxoSodaDoc_getCreatedOn(cxoSodaDoc*, void*);
-static PyObject *cxoSodaDoc_getKey(cxoSodaDoc*, void*);
-static PyObject *cxoSodaDoc_getLastModified(cxoSodaDoc*, void*);
-static PyObject *cxoSodaDoc_getMediaType(cxoSodaDoc*, void*);
-static PyObject *cxoSodaDoc_getVersion(cxoSodaDoc*, void*);
-static PyObject *cxoSodaDoc_getContent(cxoSodaDoc*, PyObject*);
-static PyObject *cxoSodaDoc_getContentAsBytes(cxoSodaDoc*, PyObject*);
-static PyObject *cxoSodaDoc_getContentAsString(cxoSodaDoc*, PyObject*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoMethods[] = {
-    { "getContent", (PyCFunction) cxoSodaDoc_getContent, METH_NOARGS },
-    { "getContentAsBytes", (PyCFunction) cxoSodaDoc_getContentAsBytes,
-            METH_NOARGS },
-    { "getContentAsString", (PyCFunction) cxoSodaDoc_getContentAsString,
-            METH_NOARGS },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoCalcMembers[] = {
-    { "createdOn", (getter) cxoSodaDoc_getCreatedOn, 0, 0, 0 },
-    { "key", (getter) cxoSodaDoc_getKey, 0, 0, 0 },
-    { "lastModified", (getter) cxoSodaDoc_getLastModified, 0, 0, 0 },
-    { "mediaType", (getter) cxoSodaDoc_getMediaType, 0, 0, 0 },
-    { "version", (getter) cxoSodaDoc_getVersion, 0, 0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeSodaDoc = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.SodaDoc",
-    .tp_basicsize = sizeof(cxoSodaDoc),
-    .tp_dealloc = (destructor) cxoSodaDoc_free,
-    .tp_repr = (reprfunc) cxoSodaDoc_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoMethods,
-    .tp_getset = cxoCalcMembers
-};
+// forward declarations
+static PyObject *cxoSodaDoc_getContentAsString(cxoSodaDoc *doc,
+        PyObject *args);
 
 
 //-----------------------------------------------------------------------------
@@ -273,3 +222,44 @@ static PyObject *cxoSodaDoc_getContentAsString(cxoSodaDoc *doc, PyObject *args)
         return PyUnicode_Decode(content, contentLength, encoding, NULL);
     Py_RETURN_NONE;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "getContent", (PyCFunction) cxoSodaDoc_getContent, METH_NOARGS },
+    { "getContentAsBytes", (PyCFunction) cxoSodaDoc_getContentAsBytes,
+            METH_NOARGS },
+    { "getContentAsString", (PyCFunction) cxoSodaDoc_getContentAsString,
+            METH_NOARGS },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "createdOn", (getter) cxoSodaDoc_getCreatedOn, 0, 0, 0 },
+    { "key", (getter) cxoSodaDoc_getKey, 0, 0, 0 },
+    { "lastModified", (getter) cxoSodaDoc_getLastModified, 0, 0, 0 },
+    { "mediaType", (getter) cxoSodaDoc_getMediaType, 0, 0, 0 },
+    { "version", (getter) cxoSodaDoc_getVersion, 0, 0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeSodaDoc = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.SodaDoc",
+    .tp_basicsize = sizeof(cxoSodaDoc),
+    .tp_dealloc = (destructor) cxoSodaDoc_free,
+    .tp_repr = (reprfunc) cxoSodaDoc_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoMethods,
+    .tp_getset = cxoCalcMembers
+};

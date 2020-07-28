@@ -15,75 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// forward declarations
-//-----------------------------------------------------------------------------
-static void cxoMsgProps_free(cxoMsgProps*);
-static PyObject *cxoMsgProps_getNumAttempts(cxoMsgProps*, void*);
-static PyObject *cxoMsgProps_getCorrelation(cxoMsgProps*, void*);
-static PyObject *cxoMsgProps_getDelay(cxoMsgProps*, void*);
-static PyObject *cxoMsgProps_getDeliveryMode(cxoMsgProps*, void*);
-static PyObject *cxoMsgProps_getEnqTime(cxoMsgProps*, void*);
-static PyObject *cxoMsgProps_getExceptionQ(cxoMsgProps*, void*);
-static PyObject *cxoMsgProps_getExpiration(cxoMsgProps*, void*);
-static PyObject *cxoMsgProps_getOriginalMsgId(cxoMsgProps*, void*);
-static PyObject *cxoMsgProps_getPriority(cxoMsgProps*, void*);
-static PyObject *cxoMsgProps_getState(cxoMsgProps*, void*);
-static int cxoMsgProps_setCorrelation(cxoMsgProps*, PyObject*, void*);
-static int cxoMsgProps_setDelay(cxoMsgProps*, PyObject*, void*);
-static int cxoMsgProps_setExceptionQ(cxoMsgProps*, PyObject*, void*);
-static int cxoMsgProps_setExpiration(cxoMsgProps*, PyObject*, void*);
-static int cxoMsgProps_setOriginalMsgId(cxoMsgProps*, PyObject*, void*);
-static int cxoMsgProps_setPriority(cxoMsgProps*, PyObject*, void*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoMembers[] = {
-    { "payload", T_OBJECT, offsetof(cxoMsgProps, payload), 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoCalcMembers[] = {
-    { "attempts", (getter) cxoMsgProps_getNumAttempts, 0, 0, 0 },
-    { "correlation", (getter) cxoMsgProps_getCorrelation,
-            (setter) cxoMsgProps_setCorrelation, 0, 0 },
-    { "delay", (getter) cxoMsgProps_getDelay, (setter) cxoMsgProps_setDelay, 0,
-            0 },
-    { "deliverymode", (getter) cxoMsgProps_getDeliveryMode, 0, 0, 0 },
-    { "enqtime", (getter) cxoMsgProps_getEnqTime, 0, 0, 0 },
-    { "exceptionq", (getter) cxoMsgProps_getExceptionQ,
-            (setter) cxoMsgProps_setExceptionQ, 0, 0 },
-    { "expiration", (getter) cxoMsgProps_getExpiration,
-            (setter) cxoMsgProps_setExpiration, 0, 0 },
-    { "msgid", (getter) cxoMsgProps_getOriginalMsgId,
-            (setter) cxoMsgProps_setOriginalMsgId, 0, 0 },
-    { "priority", (getter) cxoMsgProps_getPriority,
-            (setter) cxoMsgProps_setPriority, 0, 0 },
-    { "state", (getter) cxoMsgProps_getState, 0, 0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeMsgProps = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.MessageProperties",
-    .tp_basicsize = sizeof(cxoMsgProps),
-    .tp_dealloc = (destructor) cxoMsgProps_free,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoMembers,
-    .tp_getset = cxoCalcMembers
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoMsgProps_new()
 //   Create a new message properties object.
 //-----------------------------------------------------------------------------
@@ -382,3 +313,50 @@ static int cxoMsgProps_setPriority(cxoMsgProps *props, PyObject *valueObj,
 {
     return cxoMsgProps_setAttrInt32(props, valueObj, dpiMsgProps_setPriority);
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "payload", T_OBJECT, offsetof(cxoMsgProps, payload), 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "attempts", (getter) cxoMsgProps_getNumAttempts, 0, 0, 0 },
+    { "correlation", (getter) cxoMsgProps_getCorrelation,
+            (setter) cxoMsgProps_setCorrelation, 0, 0 },
+    { "delay", (getter) cxoMsgProps_getDelay, (setter) cxoMsgProps_setDelay, 0,
+            0 },
+    { "deliverymode", (getter) cxoMsgProps_getDeliveryMode, 0, 0, 0 },
+    { "enqtime", (getter) cxoMsgProps_getEnqTime, 0, 0, 0 },
+    { "exceptionq", (getter) cxoMsgProps_getExceptionQ,
+            (setter) cxoMsgProps_setExceptionQ, 0, 0 },
+    { "expiration", (getter) cxoMsgProps_getExpiration,
+            (setter) cxoMsgProps_setExpiration, 0, 0 },
+    { "msgid", (getter) cxoMsgProps_getOriginalMsgId,
+            (setter) cxoMsgProps_setOriginalMsgId, 0, 0 },
+    { "priority", (getter) cxoMsgProps_getPriority,
+            (setter) cxoMsgProps_setPriority, 0, 0 },
+    { "state", (getter) cxoMsgProps_getState, 0, 0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declarations
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeMsgProps = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.MessageProperties",
+    .tp_basicsize = sizeof(cxoMsgProps),
+    .tp_dealloc = (destructor) cxoMsgProps_free,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers
+};

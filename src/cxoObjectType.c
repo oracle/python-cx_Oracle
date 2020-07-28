@@ -15,66 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// Declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoObjectType_free(cxoObjectType*);
-static PyObject *cxoObjectType_repr(cxoObjectType*);
-static PyObject *cxoObjectType_newObject(cxoObjectType*, PyObject*, PyObject*);
-static PyObject *cxoObjectType_richCompare(cxoObjectType*, PyObject*, int);
-static PyObject *cxoObjectType_getElementType(cxoObjectType*, void*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoMethods[] = {
-    { "newobject", (PyCFunction) cxoObjectType_newObject,
-            METH_VARARGS | METH_KEYWORDS },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoMembers[] = {
-    { "schema", T_OBJECT, offsetof(cxoObjectType, schema), READONLY },
-    { "name", T_OBJECT, offsetof(cxoObjectType, name), READONLY },
-    { "attributes", T_OBJECT, offsetof(cxoObjectType, attributes), READONLY },
-    { "iscollection", T_BOOL, offsetof(cxoObjectType, isCollection),
-            READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoCalcMembers[] = {
-    { "element_type", (getter) cxoObjectType_getElementType, 0, 0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declarations
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeObjectType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.ObjectType",
-    .tp_basicsize = sizeof(cxoObjectType),
-    .tp_dealloc = (destructor) cxoObjectType_free,
-    .tp_repr = (reprfunc) cxoObjectType_repr,
-    .tp_call = (ternaryfunc) cxoObjectType_newObject,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = cxoMethods,
-    .tp_members = cxoMembers,
-    .tp_getset = cxoCalcMembers,
-    .tp_richcompare = (richcmpfunc) cxoObjectType_richCompare
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoObjectType_initialize()
 //   Initialize the object type with the information that is required.
 //-----------------------------------------------------------------------------
@@ -358,3 +298,53 @@ static PyObject *cxoObjectType_newObject(cxoObjectType *objType,
 
     return (PyObject*) obj;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "newobject", (PyCFunction) cxoObjectType_newObject,
+            METH_VARARGS | METH_KEYWORDS },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "schema", T_OBJECT, offsetof(cxoObjectType, schema), READONLY },
+    { "name", T_OBJECT, offsetof(cxoObjectType, name), READONLY },
+    { "attributes", T_OBJECT, offsetof(cxoObjectType, attributes), READONLY },
+    { "iscollection", T_BOOL, offsetof(cxoObjectType, isCollection),
+            READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "element_type", (getter) cxoObjectType_getElementType, 0, 0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declarations
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeObjectType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.ObjectType",
+    .tp_basicsize = sizeof(cxoObjectType),
+    .tp_dealloc = (destructor) cxoObjectType_free,
+    .tp_repr = (reprfunc) cxoObjectType_repr,
+    .tp_call = (ternaryfunc) cxoObjectType_newObject,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = cxoMethods,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers,
+    .tp_richcompare = (richcmpfunc) cxoObjectType_richCompare
+};

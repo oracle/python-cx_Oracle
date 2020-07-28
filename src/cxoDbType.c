@@ -10,40 +10,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// declaration of functions
-//-----------------------------------------------------------------------------
-static void cxoDbType_free(cxoDbType*);
-static PyObject *cxoDbType_repr(cxoDbType*);
-static PyObject *cxoDbType_richCompare(cxoDbType*, PyObject*, int);
-static Py_hash_t cxoDbType_hash(cxoDbType*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of members
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoMembers[] = {
-    { "name", T_STRING, offsetof(cxoDbType, name), READONLY },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// Python type declaration
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeDbType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.DbType",
-    .tp_basicsize = sizeof(cxoDbType),
-    .tp_dealloc = (destructor) cxoDbType_free,
-    .tp_repr = (reprfunc) cxoDbType_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoMembers,
-    .tp_richcompare = (richcmpfunc) cxoDbType_richCompare,
-    .tp_hash = (hashfunc) cxoDbType_hash
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoDbType_free()
 //   Free the database type object.
 //-----------------------------------------------------------------------------
@@ -273,3 +239,28 @@ cxoDbType *cxoDbType_fromTransformNum(cxoTransformNum transformNum)
     cxoError_raiseFromString(cxoNotSupportedErrorException, message);
     return NULL;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of members
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "name", T_STRING, offsetof(cxoDbType, name), READONLY },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// Python type declaration
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeDbType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.DbType",
+    .tp_basicsize = sizeof(cxoDbType),
+    .tp_dealloc = (destructor) cxoDbType_free,
+    .tp_repr = (reprfunc) cxoDbType_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_members = cxoMembers,
+    .tp_richcompare = (richcmpfunc) cxoDbType_richCompare,
+    .tp_hash = (hashfunc) cxoDbType_hash
+};

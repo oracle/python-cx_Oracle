@@ -15,139 +15,6 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
-// functions for the Python type "Cursor"
-//-----------------------------------------------------------------------------
-static void cxoCursor_free(cxoCursor*);
-static PyObject *cxoCursor_getIter(cxoCursor*);
-static PyObject *cxoCursor_getNext(cxoCursor*);
-static PyObject *cxoCursor_close(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_callFunc(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_callProc(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_execute(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_executeMany(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_executeManyPrepared(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_fetchOne(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_fetchMany(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_fetchAll(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_fetchRaw(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_parse(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_prepare(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_scroll(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_setInputSizes(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_setOutputSize(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_var(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_arrayVar(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_bindNames(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_getDescription(cxoCursor*, void*);
-static PyObject *cxoCursor_getLastRowid(cxoCursor*, void*);
-static PyObject *cxoCursor_getPrefetchRows(cxoCursor*, void*);
-static PyObject *cxoCursor_new(PyTypeObject*, PyObject*, PyObject*);
-static int cxoCursor_init(cxoCursor*, PyObject*, PyObject*);
-static PyObject *cxoCursor_repr(cxoCursor*);
-static PyObject* cxoCursor_getBatchErrors(cxoCursor*);
-static PyObject *cxoCursor_getArrayDMLRowCounts(cxoCursor*);
-static PyObject *cxoCursor_getImplicitResults(cxoCursor*);
-static PyObject *cxoCursor_contextManagerEnter(cxoCursor*, PyObject*);
-static PyObject *cxoCursor_contextManagerExit(cxoCursor*, PyObject*);
-static int cxoCursor_performDefine(cxoCursor*, uint32_t);
-static int cxoCursor_setPrefetchRows(cxoCursor*, PyObject*, void*);
-
-
-//-----------------------------------------------------------------------------
-// declaration of methods for Python type
-//-----------------------------------------------------------------------------
-static PyMethodDef cxoCursorMethods[] = {
-    { "execute", (PyCFunction) cxoCursor_execute,
-            METH_VARARGS | METH_KEYWORDS },
-    { "fetchall", (PyCFunction) cxoCursor_fetchAll, METH_NOARGS },
-    { "fetchone", (PyCFunction) cxoCursor_fetchOne, METH_NOARGS },
-    { "fetchmany", (PyCFunction) cxoCursor_fetchMany,
-              METH_VARARGS | METH_KEYWORDS },
-    { "fetchraw", (PyCFunction) cxoCursor_fetchRaw,
-              METH_VARARGS | METH_KEYWORDS },
-    { "prepare", (PyCFunction) cxoCursor_prepare, METH_VARARGS },
-    { "parse", (PyCFunction) cxoCursor_parse, METH_O },
-    { "setinputsizes", (PyCFunction) cxoCursor_setInputSizes,
-              METH_VARARGS | METH_KEYWORDS },
-    { "executemany", (PyCFunction) cxoCursor_executeMany,
-              METH_VARARGS | METH_KEYWORDS },
-    { "callproc", (PyCFunction) cxoCursor_callProc,
-              METH_VARARGS  | METH_KEYWORDS },
-    { "callfunc", (PyCFunction) cxoCursor_callFunc,
-              METH_VARARGS  | METH_KEYWORDS },
-    { "executemanyprepared", (PyCFunction) cxoCursor_executeManyPrepared,
-              METH_VARARGS },
-    { "setoutputsize", (PyCFunction) cxoCursor_setOutputSize, METH_VARARGS },
-    { "scroll", (PyCFunction) cxoCursor_scroll, METH_VARARGS | METH_KEYWORDS },
-    { "var", (PyCFunction) cxoCursor_var, METH_VARARGS | METH_KEYWORDS },
-    { "arrayvar", (PyCFunction) cxoCursor_arrayVar, METH_VARARGS },
-    { "bindnames", (PyCFunction) cxoCursor_bindNames, METH_NOARGS },
-    { "close", (PyCFunction) cxoCursor_close, METH_NOARGS },
-    { "getbatcherrors", (PyCFunction) cxoCursor_getBatchErrors, METH_NOARGS },
-    { "getarraydmlrowcounts", (PyCFunction) cxoCursor_getArrayDMLRowCounts,
-              METH_NOARGS },
-    { "getimplicitresults", (PyCFunction) cxoCursor_getImplicitResults,
-              METH_NOARGS },
-    { "__enter__", (PyCFunction) cxoCursor_contextManagerEnter, METH_NOARGS },
-    { "__exit__", (PyCFunction) cxoCursor_contextManagerExit, METH_VARARGS },
-    { NULL, NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of members for Python type
-//-----------------------------------------------------------------------------
-static PyMemberDef cxoCursorMembers[] = {
-    { "arraysize", T_UINT, offsetof(cxoCursor, arraySize), 0 },
-    { "bindarraysize", T_UINT, offsetof(cxoCursor, bindArraySize), 0 },
-    { "rowcount", T_ULONGLONG, offsetof(cxoCursor, rowCount), READONLY },
-    { "statement", T_OBJECT, offsetof(cxoCursor, statement), READONLY },
-    { "connection", T_OBJECT_EX, offsetof(cxoCursor, connection), READONLY },
-    { "rowfactory", T_OBJECT, offsetof(cxoCursor, rowFactory), 0 },
-    { "bindvars", T_OBJECT, offsetof(cxoCursor, bindVariables), READONLY },
-    { "fetchvars", T_OBJECT, offsetof(cxoCursor, fetchVariables), READONLY },
-    { "inputtypehandler", T_OBJECT, offsetof(cxoCursor, inputTypeHandler),
-            0 },
-    { "outputtypehandler", T_OBJECT, offsetof(cxoCursor, outputTypeHandler),
-            0 },
-    { "scrollable", T_BOOL, offsetof(cxoCursor, isScrollable), 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of calculated members for Python type
-//-----------------------------------------------------------------------------
-static PyGetSetDef cxoCursorCalcMembers[] = {
-    { "description", (getter) cxoCursor_getDescription, 0, 0, 0 },
-    { "lastrowid", (getter) cxoCursor_getLastRowid, 0, 0, 0 },
-    { "prefetchrows", (getter) cxoCursor_getPrefetchRows,
-            (setter) cxoCursor_setPrefetchRows, 0, 0 },
-    { NULL }
-};
-
-
-//-----------------------------------------------------------------------------
-// declaration of Python type "Cursor"
-//-----------------------------------------------------------------------------
-PyTypeObject cxoPyTypeCursor = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "cx_Oracle.Cursor",
-    .tp_basicsize = sizeof(cxoCursor),
-    .tp_dealloc = (destructor) cxoCursor_free,
-    .tp_repr = (reprfunc) cxoCursor_repr,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_iter = (getiterfunc) cxoCursor_getIter,
-    .tp_iternext = (iternextfunc) cxoCursor_getNext,
-    .tp_methods = cxoCursorMethods,
-    .tp_members = cxoCursorMembers,
-    .tp_getset = cxoCursorCalcMembers,
-    .tp_init = (initproc) cxoCursor_init,
-    .tp_new = cxoCursor_new
-};
-
-
-//-----------------------------------------------------------------------------
 // cxoCursor_new()
 //   Create a new cursor object.
 //-----------------------------------------------------------------------------
@@ -251,41 +118,6 @@ static int cxoCursor_isOpen(cxoCursor *cursor)
         return -1;
     }
     return cxoConnection_isConnected(cursor->connection);
-}
-
-
-//-----------------------------------------------------------------------------
-// cxoCursor_verifyFetch()
-//   Verify that fetching may happen from this cursor.
-//-----------------------------------------------------------------------------
-static int cxoCursor_verifyFetch(cxoCursor *cursor)
-{
-    uint32_t numQueryColumns;
-
-    // make sure the cursor is open
-    if (cxoCursor_isOpen(cursor) < 0)
-        return -1;
-
-    // fixup REF cursor, if applicable
-    if (cursor->fixupRefCursor) {
-        cursor->fetchArraySize = cursor->arraySize;
-        if (dpiStmt_setFetchArraySize(cursor->handle,
-                cursor->fetchArraySize) < 0)
-            return cxoError_raiseAndReturnInt();
-        if (dpiStmt_getNumQueryColumns(cursor->handle, &numQueryColumns) < 0)
-            return cxoError_raiseAndReturnInt();
-        if (cxoCursor_performDefine(cursor, numQueryColumns) < 0)
-            return cxoError_raiseAndReturnInt();
-        cursor->fixupRefCursor = 0;
-    }
-
-    // make sure the cursor is for a query
-    if (!cursor->fetchVariables) {
-        cxoError_raiseFromString(cxoInterfaceErrorException, "not a query");
-        return -1;
-    }
-
-    return 0;
 }
 
 
@@ -447,6 +279,41 @@ static int cxoCursor_performDefine(cxoCursor *cursor, uint32_t numQueryColumns)
         if (dpiStmt_define(cursor->handle, pos, var->handle) < 0)
             return cxoError_raiseAndReturnInt();
 
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoCursor_verifyFetch()
+//   Verify that fetching may happen from this cursor.
+//-----------------------------------------------------------------------------
+static int cxoCursor_verifyFetch(cxoCursor *cursor)
+{
+    uint32_t numQueryColumns;
+
+    // make sure the cursor is open
+    if (cxoCursor_isOpen(cursor) < 0)
+        return -1;
+
+    // fixup REF cursor, if applicable
+    if (cursor->fixupRefCursor) {
+        cursor->fetchArraySize = cursor->arraySize;
+        if (dpiStmt_setFetchArraySize(cursor->handle,
+                cursor->fetchArraySize) < 0)
+            return cxoError_raiseAndReturnInt();
+        if (dpiStmt_getNumQueryColumns(cursor->handle, &numQueryColumns) < 0)
+            return cxoError_raiseAndReturnInt();
+        if (cxoCursor_performDefine(cursor, numQueryColumns) < 0)
+            return cxoError_raiseAndReturnInt();
+        cursor->fixupRefCursor = 0;
+    }
+
+    // make sure the cursor is for a query
+    if (!cursor->fetchVariables) {
+        cxoError_raiseFromString(cxoInterfaceErrorException, "not a query");
+        return -1;
     }
 
     return 0;
@@ -2239,3 +2106,97 @@ static int cxoCursor_setPrefetchRows(cxoCursor* cursor, PyObject *value,
         return cxoError_raiseAndReturnInt();
     return 0;
 }
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods for Python type
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "execute", (PyCFunction) cxoCursor_execute,
+            METH_VARARGS | METH_KEYWORDS },
+    { "fetchall", (PyCFunction) cxoCursor_fetchAll, METH_NOARGS },
+    { "fetchone", (PyCFunction) cxoCursor_fetchOne, METH_NOARGS },
+    { "fetchmany", (PyCFunction) cxoCursor_fetchMany,
+              METH_VARARGS | METH_KEYWORDS },
+    { "fetchraw", (PyCFunction) cxoCursor_fetchRaw,
+              METH_VARARGS | METH_KEYWORDS },
+    { "prepare", (PyCFunction) cxoCursor_prepare, METH_VARARGS },
+    { "parse", (PyCFunction) cxoCursor_parse, METH_O },
+    { "setinputsizes", (PyCFunction) cxoCursor_setInputSizes,
+              METH_VARARGS | METH_KEYWORDS },
+    { "executemany", (PyCFunction) cxoCursor_executeMany,
+              METH_VARARGS | METH_KEYWORDS },
+    { "callproc", (PyCFunction) cxoCursor_callProc,
+              METH_VARARGS  | METH_KEYWORDS },
+    { "callfunc", (PyCFunction) cxoCursor_callFunc,
+              METH_VARARGS  | METH_KEYWORDS },
+    { "executemanyprepared", (PyCFunction) cxoCursor_executeManyPrepared,
+              METH_VARARGS },
+    { "setoutputsize", (PyCFunction) cxoCursor_setOutputSize, METH_VARARGS },
+    { "scroll", (PyCFunction) cxoCursor_scroll, METH_VARARGS | METH_KEYWORDS },
+    { "var", (PyCFunction) cxoCursor_var, METH_VARARGS | METH_KEYWORDS },
+    { "arrayvar", (PyCFunction) cxoCursor_arrayVar, METH_VARARGS },
+    { "bindnames", (PyCFunction) cxoCursor_bindNames, METH_NOARGS },
+    { "close", (PyCFunction) cxoCursor_close, METH_NOARGS },
+    { "getbatcherrors", (PyCFunction) cxoCursor_getBatchErrors, METH_NOARGS },
+    { "getarraydmlrowcounts", (PyCFunction) cxoCursor_getArrayDMLRowCounts,
+              METH_NOARGS },
+    { "getimplicitresults", (PyCFunction) cxoCursor_getImplicitResults,
+              METH_NOARGS },
+    { "__enter__", (PyCFunction) cxoCursor_contextManagerEnter, METH_NOARGS },
+    { "__exit__", (PyCFunction) cxoCursor_contextManagerExit, METH_VARARGS },
+    { NULL, NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of members for Python type
+//-----------------------------------------------------------------------------
+static PyMemberDef cxoMembers[] = {
+    { "arraysize", T_UINT, offsetof(cxoCursor, arraySize), 0 },
+    { "bindarraysize", T_UINT, offsetof(cxoCursor, bindArraySize), 0 },
+    { "rowcount", T_ULONGLONG, offsetof(cxoCursor, rowCount), READONLY },
+    { "statement", T_OBJECT, offsetof(cxoCursor, statement), READONLY },
+    { "connection", T_OBJECT_EX, offsetof(cxoCursor, connection), READONLY },
+    { "rowfactory", T_OBJECT, offsetof(cxoCursor, rowFactory), 0 },
+    { "bindvars", T_OBJECT, offsetof(cxoCursor, bindVariables), READONLY },
+    { "fetchvars", T_OBJECT, offsetof(cxoCursor, fetchVariables), READONLY },
+    { "inputtypehandler", T_OBJECT, offsetof(cxoCursor, inputTypeHandler),
+            0 },
+    { "outputtypehandler", T_OBJECT, offsetof(cxoCursor, outputTypeHandler),
+            0 },
+    { "scrollable", T_BOOL, offsetof(cxoCursor, isScrollable), 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of calculated members for Python type
+//-----------------------------------------------------------------------------
+static PyGetSetDef cxoCalcMembers[] = {
+    { "description", (getter) cxoCursor_getDescription, 0, 0, 0 },
+    { "lastrowid", (getter) cxoCursor_getLastRowid, 0, 0, 0 },
+    { "prefetchrows", (getter) cxoCursor_getPrefetchRows,
+            (setter) cxoCursor_setPrefetchRows, 0, 0 },
+    { NULL }
+};
+
+
+//-----------------------------------------------------------------------------
+// declaration of Python type
+//-----------------------------------------------------------------------------
+PyTypeObject cxoPyTypeCursor = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "cx_Oracle.Cursor",
+    .tp_basicsize = sizeof(cxoCursor),
+    .tp_dealloc = (destructor) cxoCursor_free,
+    .tp_repr = (reprfunc) cxoCursor_repr,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_iter = (getiterfunc) cxoCursor_getIter,
+    .tp_iternext = (iternextfunc) cxoCursor_getNext,
+    .tp_methods = cxoMethods,
+    .tp_members = cxoMembers,
+    .tp_getset = cxoCalcMembers,
+    .tp_init = (initproc) cxoCursor_init,
+    .tp_new = cxoCursor_new
+};
