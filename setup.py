@@ -123,6 +123,7 @@ setup(
         author = "Anthony Tuininga",
         author_email = "anthony.tuininga@gmail.com",
         url = "https://oracle.github.io/python-cx_Oracle",
+        python_requires = ">=3.5",
         ext_modules = [extension],
         keywords = "Oracle",
         license = "BSD License",
