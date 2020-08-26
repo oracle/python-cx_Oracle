@@ -179,7 +179,7 @@ static int cxoModule_setException(PyObject *module, PyObject **exception,
 static PyObject* cxoModule_makeDSN(PyObject* self, PyObject* args,
         PyObject* keywordArgs)
 {
-    static unsigned int numConnectDataArgs = 5;
+    static const unsigned int numConnectDataArgs = 5;
     static char *keywordList[] = { "host", "port", "sid", "service_name",
             "region", "sharding_key", "super_sharding_key", NULL };
     PyObject *result, *connectData, *hostObj, *portObj;
