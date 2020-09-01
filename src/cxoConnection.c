@@ -1853,8 +1853,9 @@ static PyObject *cxoConnection_unsubscribe(cxoConnection *conn, PyObject* args,
 
 
 //-----------------------------------------------------------------------------
-// cxoConnection_commit()
-//   Commit the transaction on the connection.
+// cxoConnection_getSodaDatabase()
+//   Create and return a new SODA database object associated with the
+// connection.
 //-----------------------------------------------------------------------------
 static PyObject *cxoConnection_getSodaDatabase(cxoConnection *conn,
         PyObject *args)

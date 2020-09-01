@@ -22,14 +22,14 @@ There are two ways to connect to Oracle Database using cx_Oracle:
 
 *  **Pooled connections**
 
-   Connection pooling is important for performance when applications
-   frequently connect and disconnect from the database.  Oracle high
-   availability features in the pool implementation mean that small
-   pools can also be useful for applications that want a few
-   connections available for infrequent use.  Pools are created with
-   :meth:`cx_Oracle.SessionPool()` and then
-   :meth:`SessionPool.acquire()` can be called to obtain a connection
-   from a pool.
+   :ref:`Connection pooling <connpool>` is important for performance when
+   applications frequently connect and disconnect from the database.  Pools
+   support Oracle's :ref:`high availability <highavailability>` features and are
+   recommended for applications that must be reliable.  Small pools can also be
+   useful for applications that want a few connections available for infrequent
+   use.  Pools are created with :meth:`cx_Oracle.SessionPool()` at application
+   initialization time, and then :meth:`SessionPool.acquire()` can be called to
+   obtain a connection from a pool.
 
 Many connection behaviors can be controlled by cx_Oracle options.  Other
 settings can be configured in :ref:`optnetfiles` or in :ref:`optclientfiles`.
@@ -57,8 +57,7 @@ Connections should be released when they are no longer needed by calling
 :meth:`Connection.close()`.  Alternatively, you may prefer to let connections
 be automatically cleaned up when references to them go out of scope.  This lets
 cx_Oracle close dependent resources in the correct order. One other approach is
-the use of a "with" block, which ensures that a connection is closed once the
-block is completed. For example:
+the use of a "with" block, for example:
 
 .. code-block:: python
 
@@ -72,6 +71,9 @@ block is completed. For example:
 This code ensures that, once the block is completed, the connection is closed
 and resources have been reclaimed by the database. In addition, any attempt to
 use the variable ``connection`` outside of the block will simply fail.
+
+Prompt closing of connections is important when using connection pools so
+connections are available for reuse by other pool users.
 
 .. _connstr:
 
@@ -248,25 +250,38 @@ Connection Pooling
 ==================
 
 cx_Oracle's connection pooling lets applications create and maintain a pool of
-connections to the database.  The internal implementation uses Oracle's
-`session pool technology <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__.
-In general, each connection in a cx_Oracle connection pool corresponds to one
-Oracle session.
+connections to the database.  Connection pooling is important for performance
+when applications frequently connect and disconnect from the database.  The pool
+implementation uses Oracle's `session pool technology
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__ which supports Oracle's
+:ref:`high availability <highavailability>` features and is recommended for
+applications that must be reliable.  This also means that small pools can be
+useful for applications that want a few connections available for infrequent
+use.
 
 A connection pool is created by calling :meth:`~cx_Oracle.SessionPool()`.  This
-is generally called during application initialization.  Connections can then be
-obtained from a pool by calling :meth:`~SessionPool.acquire()`.  The initial
-pool size and the maximum pool size are provided at the time of pool creation.
-When the pool needs to grow, new connections are created automatically.  The
-pool can shrink back to the minimum size when connections are no longer in use.
+is generally called during application initialization.  The initial pool size
+and the maximum pool size are provided at the time of pool creation.  When the
+pool needs to grow, new connections are created automatically.  The pool can
+shrink back to the minimum size when connections are no longer in use.  For
+pools created with :ref:`external authentication <extauth>`, with
+:ref:`homogeneous <connpooltypes>` set to False, or when using :ref:`drcp`, then
+the number of connections initially created is zero even if a larger value is
+specified for ``min``.  Also in these cases the pool increment is always 1,
+regardless of the value of ``increment``.
+
+After a pool has been created, connections can be obtained from it by calling
+:meth:`~SessionPool.acquire()`.  These connections can be used in the same way
+that standalone connections are used.
 
 Connections acquired from the pool should be released back to the pool using
 :meth:`SessionPool.release()` or :meth:`Connection.close()` when they are no
 longer required.  Otherwise, they will be released back to the pool
 automatically when all of the variables referencing the connection go out of
-scope.  The session pool can be completely closed using
-:meth:`SessionPool.close()`.
+scope.  This make connections available for other users of the pool.
+
+The session pool can be completely closed using :meth:`SessionPool.close()`.
 
 The example below shows how to connect to Oracle Database using a
 connection pool:
@@ -291,6 +306,17 @@ connection pool:
     # Close the pool
     pool.close()
 
+Other :meth:`cx_Oracle.SessionPool()` options can be used at pool creation.  For
+example the ``getmode`` value can be set so that any ``aquire()`` call will wait
+for a connection to become available if all are currently in use, for example:
+
+.. code-block:: python
+
+    # Create the session pool
+    pool = cx_Oracle.SessionPool("hr", userpwd, "dbhost.example.com/orclpdb1",
+                  min=2, max=5, increment=1, getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT, encoding="UTF-8")
+
+
 Applications that are using connections concurrently in multiple threads should
 set the ``threaded`` parameter to *True* when creating a connection pool:
 
@@ -299,6 +325,7 @@ set the ``threaded`` parameter to *True* when creating a connection pool:
     # Create the session pool
     pool = cx_Oracle.SessionPool("hr", userpwd, "dbhost.example.com/orclpdb1",
                   min=2, max=5, increment=1, threaded=True, encoding="UTF-8")
+
 
 See `ConnectionPool.py
 <https://github.com/oracle/python-cx_Oracle/tree/master/samples/ConnectionPool.py>`__
@@ -314,32 +341,48 @@ will also do a full :ref:`round-trip <roundtrips>` ping to the database when it
 is about to return a connection that was unused in the pool for 60 seconds.  If
 the ping fails, the connection will be discarded and another one obtained before
 :meth:`~SessionPool.acquire()` returns to the application.  Because this full
-ping is time based, it won't catch every failure.  Also since network timeouts
-and session kills may occur after :meth:`~SessionPool.acquire()` and before
-:meth:`Cursor.execute()`, applications need to check for errors after each
-:meth:`~Cursor.execute()` and make application-specific decisions about retrying
-work if there was a connection failure.  Note both the lightweight and full ping
-connection checks can mask configuration issues, for example firewalls killing
-connections, so monitor the connection rate in AWR for an unexpected value.  You
-can explicitly initiate a full ping to check connection liveness with
-:meth:`Connection.ping()` but overuse will impact performance and scalability.
+ping is time based, it won't catch every failure.  Also network timeouts and
+session kills may occur after :meth:`~SessionPool.acquire()` and before
+:meth:`Cursor.execute()`.  To handle these cases, applications need to check
+for errors after each :meth:`~Cursor.execute()` and make application-specific
+decisions about retrying work if there was a connection failure.  Oracle's
+:ref:`Application Continuity <highavailability>` can do this automatically in
+some cases.  Note both the lightweight and full ping connection checks can mask
+performance-impacting configuration issues, for example firewalls killing
+connections, so monitor the connection rate in `AWR
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
+for an unexpected value.  You can explicitly initiate a full ping to check
+connection liveness with :meth:`Connection.ping()` but overuse will impact
+performance and scalability.
+
+Connection Pool Sizing
+----------------------
 
 The Oracle Real-World Performance Group's recommendation is to use fixed size
-connection pools.  The values of min and max should be the same (and the
-increment equal to zero).  The :ref:`firewall <hanetwork>`, `resource manager
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-2BEF5482-CF97-4A85-BD90-9195E41E74EF>`__
-or user profile `IDLE_TIME
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-ABC7AE4D-64A8-4EA9-857D-BEF7300B64C3>`__
-should not expire idle sessions.  This avoids connection storms which can
-decrease throughput.  See `Guideline for Preventing Connection Storms: Use
-Static Pools
+connection pools.  The values of ``min`` and ``max`` should be the same (and the
+``increment`` equal to zero).  This avoids connection storms which can decrease
+throughput.  See `Guideline for Preventing Connection Storms: Use Static Pools
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7DFBA826-7CC0-4D16-B19C-31D168069B54>`__,
-which contains details about sizing of pools.
+which contains more details about sizing of pools.  Having a fixed size will
+guarantee that the database can handle the upper pool size.  For example, if a
+pool needs to grow but the database resources are limited, then
+:meth:`SessionPool.acquire()` may return errors such as ORA-28547.  With a fixed
+pool size, this class of error will occur when the pool is created, allowing you
+to change the size before users access the application.  With a dynamically
+growing pool, the error may occur much later after the pool has been in use for
+some time.
 
 The Real-World Performance Group also recommends keeping pool sizes small, as
 they may perform better than larger pools. The pool attributes should be
 adjusted to handle the desired workload within the bounds of available resources
 in cx_Oracle and the database.
+
+Make sure the :ref:`firewall <hanetwork>`, `resource manager
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-2BEF5482-CF97-4A85-BD90-9195E41E74EF>`__
+or user profile `IDLE_TIME
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-ABC7AE4D-64A8-4EA9-857D-BEF7300B64C3>`__
+do not expire idle sessions, since this will require connections be recreated,
+which will impact performance and scalability.
 
 .. _sessioncallback:
 

@@ -119,7 +119,7 @@ Oracle Application Continuity and Transparent Application Continuity are Oracle
 Database technologies that record application interaction with the database and,
 in the event of a database instance outage, attempt to replay the interaction on
 a surviving database instance.  If successful, users will be unaware of any
-database issue.
+database issue.  AC and TAC are best suited for OLTP applications.
 
 When AC or TAC are configured on the database service, they are transparently
 available to cx_Oracle applications.

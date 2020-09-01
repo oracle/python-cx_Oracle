@@ -12,6 +12,7 @@ Version 8.0.1 (TBD)
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-0-2-TBD>`__. This includes the fix for
     (`issue 459 <https://github.com/oracle/python-cx_Oracle/issues/459>`__).
+#)  Documentation improvements.
 
 
 Version 8.0 (June 2020)
