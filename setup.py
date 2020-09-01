@@ -14,7 +14,8 @@ import sys
 
 # check minimum supported Python version
 if sys.version_info[:2] < (3, 5):
-    raise Exception("Python 3.5 or higher is required.")
+    raise Exception("Python 3.5 or higher is required. " +
+            "For python 2, use 'pip install cx_Oracle==7.3'")
 
 # if setuptools is detected, use it to add support for eggs
 try:
@@ -122,6 +123,7 @@ setup(
         author = "Anthony Tuininga",
         author_email = "anthony.tuininga@gmail.com",
         url = "https://oracle.github.io/python-cx_Oracle",
+        python_requires = ">=3.5",
         ext_modules = [extension],
         keywords = "Oracle",
         license = "BSD License",

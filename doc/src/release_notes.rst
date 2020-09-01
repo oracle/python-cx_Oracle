@@ -12,6 +12,9 @@ Version 8.0.1 (TBD)
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-0-2-TBD>`__. This includes the fix for
     (`issue 459 <https://github.com/oracle/python-cx_Oracle/issues/459>`__).
+#)  Added metadata (and an exception) specifying that Python 3.5 and higher is
+    required in order to allow pip (and the exception message) to direct those
+    using Python 2 to use version 7.3 instead.
 #)  Documentation improvements.
 
 
