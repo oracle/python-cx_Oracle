@@ -21,6 +21,21 @@ Version 8.1 (TBD)
 #)  Improved documentation.
 
 
+Version 8.0.1 (August 2020)
+---------------------------
+
+#)  Updated embedded ODPI-C to `version 4.0.2
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-4-0-2-august-31-2020>`__. This includes the fix for binding and
+    fetching numbers with 39 or 40 decimal digits
+    (`issue 459 <https://github.com/oracle/python-cx_Oracle/issues/459>`__).
+#)  Added build metadata specifying that Python 3.5 and higher is required in
+    order to avoid downloading and failing to install with Python 2. The
+    exception message when running ``setup.py`` directly was updated to inform
+    those using Python 2 to use version 7.3 instead.
+#)  Documentation improvements.
+
+
 Version 8.0 (June 2020)
 -----------------------
 
