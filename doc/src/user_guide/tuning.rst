@@ -91,61 +91,8 @@ already buffered in the Oracle Client libraries.  Reducing round-trips helps
 performance and scalability.  An overhead of prefetching is the need for an
 additional data copy from Oracle Client's prefetch buffers.
 
-To tune queries that return an unknown number of rows, estimate the number of
-rows returned and start with an appropriate :attr:`Cursor.arraysize` value.  The
-default is 100.  Then set :attr:`Cursor.prefetchrows` to the ``arraysize``
-value.  Do not make the sizes unnecessarily large.  Keep ``arraysize`` as big,
-or bigger than, ``prefetchrows``.  Adjust the values as needed for performance,
-memory and round-trip usage. An example is:
-
-.. code-block:: python
-
-    cur = connection.cursor()
-
-    cur.prefetchrows = 1000
-    cur.arraysize = 1000
-
-    for row in cur.execute("SELECT * FROM very_big_table"):
-        print(row)
-
-For a large quantity of rows or very "wide" rows on fast networks you may prefer
-to leave ``prefetchrows`` at its default value of 2.  The documentation in
-:ref:`roundtrips` shows how to measure round-trips.
-
-If you are fetching a fixed number of rows, start your tuning by setting
-``arraysize`` to the number of expected rows, and set ``prefetchrows`` to one
-greater than this value.  (Adding one removes the need for a round-trip to check
-for end-of-fetch).  For example, if you are querying 20 rows, perhaps to
-:ref:`display a page <rowlimit>` of data, set ``prefetchrows`` to 21 and
-``arraysize`` to 20:
-
-.. code-block:: python
-
-    cur = connection.cursor()
-
-    cur.prefetchrows = 21
-    cur.arraysize = 20
-
-    for row in cur.execute("""
-        SELECT last_name
-           FROM employees
-           ORDER BY last_name
-           OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY"""):
-        print(row)
-
-This will return all rows for the query in one round-trip.
-
-If you know that a query returns just one row then set :attr:`Cursor.arraysize`
-to 1 to minimize memory usage.  The default prefetch value of 2 allows minimal
-round-trips for single-row queries:
-
-.. code-block:: python
-
-    cur = connection.cursor()
-    cur.arraysize = 1
-    cur.execute("select * from MyTable where id = 1"):
-    row = cur.fetchone()
-    print(row)
+Choosing values for ``arraysize`` and ``prefetchrows``
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 The best :attr:`Cursor.arraysize` and :attr:`Cursor.prefetchrows` values can be
 found by experimenting with your application under the expected load of normal
@@ -153,31 +100,65 @@ application use.  This is because the cost of the extra memory copy from the
 prefetch buffers when fetching a large quantity of rows or very "wide" rows may
 outweigh the cost of a round-trip for a single cx_Oracle user on a fast network.
 However under production application load, the reduction of round-trips may help
-performance and overall system scalability.
+performance and overall system scalability. The documentation in
+:ref:`round-trips <roundtrips>` shows how to measure round-trips.
 
-Prefetching can also be enabled in an external :ref:`oraaccess.xml
-<optclientfiles>` file, which may be useful for tuning an application when
-modifying its code is not feasible.  Setting the size in ``oraaccess.xml`` will
-affect the whole application, so it should not be the first tuning choice.
+Here are some suggestions for the starting point to begin your tuning:
 
-One place where increasing ``arraysize`` is particularly useful is in copying
-data from one database to another:
+* To tune queries that return an unknown number of rows, estimate the number of
+  rows returned and start with an appropriate :attr:`Cursor.arraysize` value.
+  The default is 100.  Then set :attr:`Cursor.prefetchrows` to the ``arraysize``
+  value.  Do not make the sizes unnecessarily large.  For example:
 
-.. code-block:: python
+  .. code-block:: python
 
-    # setup cursors
-    sourceCursor = sourceConnection.cursor()
-    sourceCursor.arraysize = 1000
-    targetCursor = targetConnection.cursor()
+      cur = connection.cursor()
 
-    # perform fetch and bulk insertion
-    sourceCursor.execute("select * from MyTable")
-    while True:
-        rows = sourceCursor.fetchmany()
-        if not rows:
-            break
-        targetCursor.executemany("insert into MyTable values (:1, :2)", rows)
-        targetConnection.commit()
+      cur.prefetchrows = 1000
+      cur.arraysize = 1000
+
+      for row in cur.execute("SELECT * FROM very_big_table"):
+          print(row)
+
+  Adjust the values as needed for performance, memory and round-trip usage. For
+  a large quantity of rows or very "wide" rows on fast networks you may prefer
+  to leave ``prefetchrows`` at its default value of 2. Keep ``arraysize`` as
+  big, or bigger than, ``prefetchrows``.
+
+* If you are fetching a fixed number of rows, start your tuning by setting
+  ``arraysize`` to the number of expected rows, and set ``prefetchrows`` to one
+  greater than this value.  (Adding one removes the need for a round-trip to check
+  for end-of-fetch).  For example, if you are querying 20 rows, perhaps to
+  :ref:`display a page <rowlimit>` of data, set ``prefetchrows`` to 21 and
+  ``arraysize`` to 20:
+
+  .. code-block:: python
+
+      cur = connection.cursor()
+
+      cur.prefetchrows = 21
+      cur.arraysize = 20
+
+      for row in cur.execute("""
+          SELECT last_name
+             FROM employees
+             ORDER BY last_name
+             OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY"""):
+          print(row)
+
+  This will return all rows for the query in one round-trip.
+
+* If you know that a query returns just one row then set :attr:`Cursor.arraysize`
+  to 1 to minimize memory usage.  The default prefetch value of 2 allows minimal
+  round-trips for single-row queries:
+
+  .. code-block:: python
+
+      cur = connection.cursor()
+      cur.arraysize = 1
+      cur.execute("select * from MyTable where id = 1"):
+      row = cur.fetchone()
+      print(row)
 
 In cx_Oracle, the ``arraysize`` and ``prefetchrows`` values are only examined
 when a statement is executed the first time.  To change the values, create a new
@@ -206,6 +187,30 @@ to 0:
   intermittent intervals.  By default, several rows needs to be emitted by the
   function before cx_Oracle can return them to the application.  Setting
   ``prefetchrows`` to 0 helps give a consistent flow of data to the application.
+
+Prefetching can also be enabled in an external :ref:`oraaccess.xml
+<optclientfiles>` file, which may be useful for tuning an application when
+modifying its code is not feasible.  Setting the size in ``oraaccess.xml`` will
+affect the whole application, so it should not be the first tuning choice.
+
+One place where increasing ``arraysize`` is particularly useful is in copying
+data from one database to another:
+
+.. code-block:: python
+
+    # setup cursors
+    sourceCursor = sourceConnection.cursor()
+    sourceCursor.arraysize = 1000
+    targetCursor = targetConnection.cursor()
+
+    # perform fetch and bulk insertion
+    sourceCursor.execute("select * from MyTable")
+    while True:
+        rows = sourceCursor.fetchmany()
+        if not rows:
+            break
+        targetCursor.executemany("insert into MyTable values (:1, :2)", rows)
+        targetConnection.commit()
 
 .. _roundtrips:
 
@@ -305,8 +310,8 @@ cache.
 
 .. _clientresultcache:
 
-Client Result Cache
-===================
+Client Result Caching
+=====================
 
 cx_Oracle applications can use Oracle Database's `Client Result Cache
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-35CB2592-7588-4C2D-9075-6F639F25425E>`__.
@@ -332,7 +337,7 @@ restarting the database, for example:
     SQL> STARTUP FORCE
 
 CRC can alternatively be configured in an :ref:`oraaccess.xml <optclientfiles>`
-or :ref:`sqlnet.ora <optnetfiles>` file on the Node.js host, see `Client
+or :ref:`sqlnet.ora <optnetfiles>` file on the Python host, see `Client
 Configuration Parameters
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E63D75A1-FCAA-4A54-A3D2-B068442CE766>`__.
 
