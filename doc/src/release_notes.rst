@@ -11,6 +11,9 @@ Version 8.1 (TBD)
 #)  Updated embedded ODPI-C to `version 4.1.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-1-0-tbd>`__.
+#)  Added internal methods for getting/setting OCI attributes that are
+    otherwise not supported by cx_Oracle. These methods should only be used as
+    directed by Oracle.
 #)  Minor code improvement supplied by Alex Henrie
     (`PR 472 <https://github.com/oracle/python-cx_Oracle/pull/472>`__).
 #)  Improved documentation.

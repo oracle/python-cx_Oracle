@@ -153,7 +153,7 @@ extern cxoFuture *cxoFutureObj;
 
 
 //-----------------------------------------------------------------------------
-// Transforms
+// Enumerations
 //-----------------------------------------------------------------------------
 typedef enum {
     CXO_TRANSFORM_NONE = 0,
@@ -186,6 +186,15 @@ typedef enum {
     CXO_TRANSFORM_TIMESTAMP_TZ,
     CXO_TRANSFORM_UNSUPPORTED
 } cxoTransformNum;
+
+typedef enum {
+    CXO_OCI_ATTR_TYPE_STRING = 1,
+    CXO_OCI_ATTR_TYPE_BOOLEAN = 2,
+    CXO_OCI_ATTR_TYPE_UINT8 = 8,
+    CXO_OCI_ATTR_TYPE_UINT16 = 16,
+    CXO_OCI_ATTR_TYPE_UINT32 = 32,
+    CXO_OCI_ATTR_TYPE_UINT64 = 64
+} cxoOciAttrType;
 
 
 //-----------------------------------------------------------------------------
@@ -542,6 +551,11 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         cxoConnection *connection, cxoObjectType *objType,
         dpiDataBuffer *dbValue, const char *encodingErrors);
 
+PyObject *cxoUtils_convertOciAttrToPythonValue(unsigned attrType,
+        dpiDataBuffer *value, uint32_t valueLength, const char *encoding);
+int cxoUtils_convertPythonValueToOciAttr(PyObject *value, unsigned attrType,
+        cxoBuffer *buffer, dpiDataBuffer *ociBuffer, void **ociValue,
+        uint32_t *ociValueLength, const char *encoding);
 PyObject *cxoUtils_formatString(const char *format, PyObject *args);
 const char *cxoUtils_getAdjustedEncoding(const char *encoding);
 int cxoUtils_getBooleanValue(PyObject *obj, int defaultValue, int *value);

@@ -10,6 +10,122 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
+// cxoUtils_convertOciAttrToPythonValue()
+//   Convert the OCI attribute value to an equivalent Python value using the
+// specified type.
+//-----------------------------------------------------------------------------
+PyObject *cxoUtils_convertOciAttrToPythonValue(unsigned attrType,
+        dpiDataBuffer *value, uint32_t valueLength, const char *encoding)
+{
+    switch (attrType) {
+        case CXO_OCI_ATTR_TYPE_STRING:
+            if (!value->asString) {
+                Py_RETURN_NONE;
+            }
+            return PyUnicode_Decode(value->asString, valueLength, encoding,
+                    NULL);
+        case CXO_OCI_ATTR_TYPE_BOOLEAN:
+            if (value->asBoolean) {
+                Py_RETURN_TRUE;
+            }
+            Py_RETURN_FALSE;
+        case CXO_OCI_ATTR_TYPE_UINT8:
+            return PyLong_FromUnsignedLong(value->asUint8);
+        case CXO_OCI_ATTR_TYPE_UINT16:
+            return PyLong_FromUnsignedLong(value->asUint16);
+        case CXO_OCI_ATTR_TYPE_UINT32:
+            return PyLong_FromUnsignedLong(value->asUint32);
+        case CXO_OCI_ATTR_TYPE_UINT64:
+            return PyLong_FromUnsignedLongLong(value->asUint64);
+    }
+
+    return cxoError_raiseFromString(cxoProgrammingErrorException,
+            "invalid attribute type specified");
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoUtils_convertPythonValueToOciAttr()
+//   Convert the Python value to an equivalent OCI attribute value using the
+// specified type.
+//-----------------------------------------------------------------------------
+int cxoUtils_convertPythonValueToOciAttr(PyObject *value, unsigned attrType,
+        cxoBuffer *buffer, dpiDataBuffer *ociBuffer, void **ociValue,
+        uint32_t *ociValueLength, const char *encoding)
+{
+    unsigned long tempValue;
+
+    switch (attrType) {
+        case CXO_OCI_ATTR_TYPE_STRING:
+            if (cxoBuffer_fromObject(buffer, value, encoding) < 0)
+                return -1;
+            *ociValue = (void*) buffer->ptr;
+            *ociValueLength = (uint32_t) buffer->size;
+            break;
+        case CXO_OCI_ATTR_TYPE_BOOLEAN:
+            ociBuffer->asBoolean = PyObject_IsTrue(value);
+            if (PyErr_Occurred())
+                return -1;
+            *ociValue = &ociBuffer->asBoolean;
+            *ociValueLength = sizeof(ociBuffer->asBoolean);
+            break;
+        case CXO_OCI_ATTR_TYPE_UINT8:
+            tempValue = PyLong_AsUnsignedLong(value);
+            if (PyErr_Occurred())
+                return -1;
+            if (tempValue > UINT8_MAX) {
+                PyErr_SetString(PyExc_OverflowError,
+                        "Python int too large to convert to uint8_t");
+                return -1;
+            }
+            ociBuffer->asUint8 = (uint8_t) tempValue;
+            *ociValue = &ociBuffer->asUint8;
+            *ociValueLength = sizeof(ociBuffer->asUint8);
+            break;
+        case CXO_OCI_ATTR_TYPE_UINT16:
+            tempValue = PyLong_AsUnsignedLong(value);
+            if (PyErr_Occurred())
+                return -1;
+            if (tempValue > UINT16_MAX) {
+                PyErr_SetString(PyExc_OverflowError,
+                        "Python int too large to convert to uint16_t");
+                return -1;
+            }
+            ociBuffer->asUint16 = (uint16_t) tempValue;
+            *ociValue = &ociBuffer->asUint16;
+            *ociValueLength = sizeof(ociBuffer->asUint16);
+            break;
+        case CXO_OCI_ATTR_TYPE_UINT32:
+            tempValue = PyLong_AsUnsignedLong(value);
+            if (PyErr_Occurred())
+                return -1;
+            if (tempValue > UINT32_MAX) {
+                PyErr_SetString(PyExc_OverflowError,
+                        "Python int too large to convert to uint32_t");
+                return -1;
+            }
+            ociBuffer->asUint32 = (uint32_t) tempValue;
+            *ociValue = &ociBuffer->asUint32;
+            *ociValueLength = sizeof(ociBuffer->asUint32);
+            break;
+        case CXO_OCI_ATTR_TYPE_UINT64:
+            ociBuffer->asUint64 = (uint64_t) PyLong_AsUnsignedLongLong(value);
+            if (PyErr_Occurred())
+                return -1;
+            *ociValue = &ociBuffer->asUint64;
+            *ociValueLength = sizeof(ociBuffer->asUint64);
+            break;
+        default:
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "invalid attribute type specified");
+            return -1;
+    }
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoUtils_formatString()
 //   Return a Python string formatted using the given format string and
 // arguments. The arguments have a reference taken from them after they have

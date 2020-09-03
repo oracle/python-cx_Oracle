@@ -495,6 +495,35 @@ static PyObject *cxoCursor_getLastRowid(cxoCursor *cursor, void *unused)
 
 
 //-----------------------------------------------------------------------------
+// cxoCursor_getOciAttr()
+//   Return the value of the OCI attribute. This is intended to be used for
+// testing attributes which are not currently exposed directly and should only
+// be used for that purpose.
+//-----------------------------------------------------------------------------
+static PyObject *cxoCursor_getOciAttr(cxoCursor *cursor, PyObject *args,
+        PyObject *keywordArgs)
+{
+    static char *keywordList[] = { "attr_num", "attr_type", NULL };
+    unsigned attrNum, attrType;
+    uint32_t valueLength;
+    dpiDataBuffer value;
+
+    // validate parameters
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "II", keywordList,
+            &attrNum, &attrType))
+        return NULL;
+    if (cxoCursor_isOpen(cursor) < 0)
+        return NULL;
+
+    // get value and convert it to the appropriate Python value
+    if (dpiStmt_getOciAttr(cursor->handle, attrNum, &value, &valueLength) < 0)
+        return cxoError_raiseAndReturnNull();
+    return cxoUtils_convertOciAttrToPythonValue(attrType, &value, valueLength,
+            cursor->connection->encodingInfo.encoding);
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoCursor_getPrefetchRows()
 //   Return an integer providing the number of rows that are prefetched by the
 // Oracle Client library.
@@ -1702,6 +1731,45 @@ static PyObject *cxoCursor_setInputSizes(cxoCursor *cursor, PyObject *args,
 
 
 //-----------------------------------------------------------------------------
+// cxoCursor_setOciAttr()
+//   Set the value of the OCI attribute to the specified value. This is
+// intended to be used for testing attributes which are not currently exposed
+// directly and should only be used for that purpose.
+//-----------------------------------------------------------------------------
+static PyObject *cxoCursor_setOciAttr(cxoCursor *cursor, PyObject *args,
+        PyObject *keywordArgs)
+{
+    static char *keywordList[] = { "attr_num", "attr_type", "value", NULL };
+    unsigned attrNum, attrType;
+    uint32_t ociValueLength;
+    dpiDataBuffer ociBuffer;
+    cxoBuffer buffer;
+    PyObject *value;
+    void *ociValue;
+
+    // validate parameters
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "IIO", keywordList,
+            &attrNum, &attrType, &value))
+        return NULL;
+    if (cxoCursor_isOpen(cursor) < 0)
+        return NULL;
+
+    // convert value to OCI requirement and then set it
+    cxoBuffer_init(&buffer);
+    if (cxoUtils_convertPythonValueToOciAttr(value, attrType, &buffer,
+            &ociBuffer, &ociValue, &ociValueLength,
+            cursor->connection->encodingInfo.encoding) < 0)
+        return NULL;
+    if (dpiStmt_setOciAttr(cursor->handle, attrNum, ociValue,
+            ociValueLength) < 0)
+        return cxoError_raiseAndReturnNull();
+    cxoBuffer_clear(&buffer);
+
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoCursor_setOutputSize()
 //   Does nothing as ODPI-C handles long columns dynamically without the need
 // to specify a maximum length.
@@ -2145,6 +2213,10 @@ static PyMethodDef cxoMethods[] = {
               METH_NOARGS },
     { "__enter__", (PyCFunction) cxoCursor_contextManagerEnter, METH_NOARGS },
     { "__exit__", (PyCFunction) cxoCursor_contextManagerExit, METH_VARARGS },
+    { "_get_oci_attr", (PyCFunction) cxoCursor_getOciAttr,
+            METH_VARARGS | METH_KEYWORDS },
+    { "_set_oci_attr", (PyCFunction) cxoCursor_setOciAttr,
+            METH_VARARGS | METH_KEYWORDS },
     { NULL, NULL }
 };
 

@@ -1675,6 +1675,37 @@ static PyObject *cxoConnection_getSodaDatabase(cxoConnection *conn,
 
 
 //-----------------------------------------------------------------------------
+// cxoConnection_getOciAttr()
+//   Return the value of the OCI attribute. This is intended to be used for
+// testing attributes which are not currently exposed directly and should only
+// be used for that purpose.
+//-----------------------------------------------------------------------------
+static PyObject *cxoConnection_getOciAttr(cxoConnection *conn, PyObject *args,
+        PyObject *keywordArgs)
+{
+    static char *keywordList[] = { "handle_type", "attr_num", "attr_type",
+            NULL };
+    unsigned handleType, attrNum, attrType;
+    uint32_t valueLength;
+    dpiDataBuffer value;
+
+    // validate parameters
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "III", keywordList,
+            &handleType, &attrNum, &attrType))
+        return NULL;
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
+
+    // get value and convert it to the appropriate Python value
+    if (dpiConn_getOciAttr(conn->handle, handleType, attrNum, &value,
+            &valueLength) < 0)
+        return cxoError_raiseAndReturnNull();
+    return cxoUtils_convertOciAttrToPythonValue(attrType, &value, valueLength,
+            conn->encodingInfo.encoding);
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoConnection_getCurrentSchema()
 //   Return the current schema associated with the connection.
 //-----------------------------------------------------------------------------
@@ -1819,6 +1850,46 @@ static int cxoConnection_setModule(cxoConnection* conn, PyObject *value,
 
 
 //-----------------------------------------------------------------------------
+// cxoConnection_setOciAttr()
+//   Set the value of the OCI attribute to the specified value. This is
+// intended to be used for testing attributes which are not currently exposed
+// directly and should only be used for that purpose.
+//-----------------------------------------------------------------------------
+static PyObject *cxoConnection_setOciAttr(cxoConnection *conn, PyObject *args,
+        PyObject *keywordArgs)
+{
+    static char *keywordList[] = { "handle_type", "attr_num", "attr_type",
+            "value", NULL };
+    unsigned handleType, attrNum, attrType;
+    uint32_t ociValueLength;
+    dpiDataBuffer ociBuffer;
+    cxoBuffer buffer;
+    PyObject *value;
+    void *ociValue;
+
+    // validate parameters
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "IIIO", keywordList,
+            &handleType, &attrNum, &attrType, &value))
+        return NULL;
+    if (cxoConnection_isConnected(conn) < 0)
+        return NULL;
+
+    // convert value to OCI requirement and then set it
+    cxoBuffer_init(&buffer);
+    if (cxoUtils_convertPythonValueToOciAttr(value, attrType, &buffer,
+            &ociBuffer, &ociValue, &ociValueLength,
+            conn->encodingInfo.encoding) < 0)
+        return NULL;
+    if (dpiConn_setOciAttr(conn->handle, handleType, attrNum, ociValue,
+            ociValueLength) < 0)
+        return cxoError_raiseAndReturnNull();
+    cxoBuffer_clear(&buffer);
+
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
 // declaration of methods for the Python type
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoMethods[] = {
@@ -1861,6 +1932,10 @@ static PyMethodDef cxoMethods[] = {
     { "createlob", (PyCFunction) cxoConnection_createLob, METH_O },
     { "getSodaDatabase", (PyCFunction) cxoConnection_getSodaDatabase,
             METH_NOARGS },
+    { "_get_oci_attr", (PyCFunction) cxoConnection_getOciAttr,
+            METH_VARARGS | METH_KEYWORDS },
+    { "_set_oci_attr", (PyCFunction) cxoConnection_setOciAttr,
+            METH_VARARGS | METH_KEYWORDS },
     { NULL }
 };
 
