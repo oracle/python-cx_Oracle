@@ -9,9 +9,8 @@ Overview
 
 To use cx_Oracle 8 with Python and Oracle Database you need:
 
-- Python 3.5 and higher.  Older versions of cx_Oracle may work with older
-  versions of Python, for example see :ref:`Installing cx_Oracle in Python 2
-  <python2>`
+- Python 3.5 and higher. Older versions of cx_Oracle may work with older
+  versions of Python.
 
 - Oracle Client libraries. These can be from the free `Oracle Instant
   Client
@@ -40,8 +39,8 @@ Quick Start cx_Oracle Installation
 - Install `Python <https://www.python.org/downloads>`__ 3, if not already
   available.  On macOS you must always install your own Python.
 
-  Python 3.5 and higher are supported by cx_Oracle 8.  For Python 2, see
-  :ref:`Installing cx_Oracle in Python 2 <python2>`.
+  Python 3.5 and higher are supported by cx_Oracle 8.  If you use Python 2,
+  then the older cx_Oracle 7.3 will install.
 
 - Install cx_Oracle from `PyPI
   <https://pypi.org/project/cx-Oracle/>`__ with:
@@ -794,11 +793,12 @@ If you are upgrading from cx_Oracle 5 note these installation changes:
 Installing cx_Oracle in Python 2
 ================================
 
-To install cx_Oracle in Python 2, use a command like::
+cx_Oracle 7.3 was the last version with support for Python 2.
+
+If you install cx_Oracle in Python 2 using the commands provided above, then
+cx_Oracle 7.3 will be installed.  This is equivalent to using a command like::
 
     python -m pip install cx_Oracle==7.3 --upgrade --user
-
-cx_Oracle 7.3 was the last version with support for Python 2.
 
 For other installation options such as installing through a proxy, see
 instructions above.  Make sure the Oracle Client libraries are in the system
