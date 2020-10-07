@@ -178,7 +178,7 @@ Module Interface
     connections. For example, it is in the ``CLIENT_DRIVER`` column of
     ``V$SESSION_CONNECT_INFO``. The standard is to set this value to
     ``"<name> : version>"``, where <name> is the name of the driver and
-    <version> is its version. Theere should be a single space character before
+    <version> is its version. There should be a single space character before
     and after the colon. If this value is not specified, then the default
     value of "cx_Oracle : <version>" is used.
 
