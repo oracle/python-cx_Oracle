@@ -7,7 +7,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing cursor variables."""
+"""
+1300 - Module for testing cursor variables
+"""
 
 import TestEnv
 
@@ -16,8 +18,8 @@ import sys
 
 class TestCase(TestEnv.BaseTestCase):
 
-    def testBindCursor(self):
-        "test binding in a cursor"
+    def test_1300_BindCursor(self):
+        "1300 - test binding in a cursor"
         cursor = self.connection.cursor()
         self.assertEqual(cursor.description, None)
         self.cursor.execute("""
@@ -30,8 +32,8 @@ class TestCase(TestEnv.BaseTestCase):
                         TestEnv.GetCharSetRatio(), None, None, 1) ])
         self.assertEqual(cursor.fetchall(), [('X',)])
 
-    def testBindCursorInPackage(self):
-        "test binding in a cursor from a package"
+    def test_1301_BindCursorInPackage(self):
+        "1301 - test binding in a cursor from a package"
         cursor = self.connection.cursor()
         self.assertEqual(cursor.description, None)
         self.cursor.callproc("pkg_TestRefCursors.TestOutCursor", (2, cursor))
@@ -42,8 +44,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(cursor.fetchall(),
                 [ (1, 'String 1'), (2, 'String 2') ])
 
-    def testBindSelf(self):
-        "test that binding the cursor itself is not supported"
+    def test_1302_BindSelf(self):
+        "1302 - test that binding the cursor itself is not supported"
         cursor = self.connection.cursor()
         sql = """
                 begin
@@ -53,8 +55,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, cursor.execute, sql,
                 pcursor = cursor)
 
-    def testExecuteAfterClose(self):
-        "test executing a statement returning a ref cursor after closing it"
+    def test_1303_ExecuteAfterClose(self):
+        "1303 - test returning a ref cursor after closing it"
         outCursor = self.connection.cursor()
         sql = """
                 begin
@@ -71,8 +73,8 @@ class TestCase(TestEnv.BaseTestCase):
         rows2 = outCursor.fetchall()
         self.assertEqual(rows, rows2)
 
-    def testFetchCursor(self):
-        "test fetching a cursor"
+    def test_1304_FetchCursor(self):
+        "1304 - test fetching a cursor"
         self.cursor.execute("""
                 select
                   IntCol,

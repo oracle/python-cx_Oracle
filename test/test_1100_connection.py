@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -7,7 +7,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing connections."""
+"""
+1100 - Module for testing connections
+"""
 
 import TestEnv
 
@@ -22,7 +24,7 @@ class TestCase(TestEnv.BaseTestCase):
         """Connect to the database, perform a query and drop the connection."""
         connection = TestEnv.GetConnection(threaded=True)
         cursor = connection.cursor()
-        cursor.execute(u"select count(*) from TestNumbers")
+        cursor.execute("select count(*) from TestNumbers")
         count, = cursor.fetchone()
         self.assertEqual(count, 10)
 
@@ -47,13 +49,13 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(connection.dsn, TestEnv.GetConnectString(),
                 "dsn differs")
 
-    def testAllArgs(self):
-        "connection to database with user, password, TNS separate"
+    def test_1100_AllArgs(self):
+        "1100 - connection to database with user, password, TNS separate"
         connection = TestEnv.GetConnection()
         self.verifyArgs(connection)
 
-    def testAppContext(self):
-        "test use of application context"
+    def test_1101_AppContext(self):
+        "1101 - test use of application context"
         namespace = "CLIENTCONTEXT"
         appContextEntries = [
             ( namespace, "ATTR1", "VALUE1" ),
@@ -68,14 +70,14 @@ class TestCase(TestEnv.BaseTestCase):
             actualValue, = cursor.fetchone()
             self.assertEqual(actualValue, value)
 
-    def testAppContextNegative(self):
-        "test invalid use of application context"
+    def test_1102_AppContextNegative(self):
+        "1102 - test invalid use of application context"
         self.assertRaises(TypeError, cx_Oracle.connect, TestEnv.GetMainUser(),
                 TestEnv.GetMainPassword(), TestEnv.GetConnectString(),
                 appcontext=[('userenv', 'action')])
 
-    def testAttributes(self):
-        "test connection end-to-end tracing attributes"
+    def test_1103_Attributes(self):
+        "1103 - test connection end-to-end tracing attributes"
         connection = TestEnv.GetConnection()
         if TestEnv.GetClientVersion() >= (12, 1) \
                 and not self.isOnOracleCloud(connection):
@@ -94,8 +96,8 @@ class TestCase(TestEnv.BaseTestCase):
                 "cx_OracleTest_CID",
                 "select sys_context('userenv', 'client_identifier') from dual")
 
-    def testAutoCommit(self):
-        "test use of autocommit"
+    def test_1104_AutoCommit(self):
+        "1104 - test use of autocommit"
         connection = TestEnv.GetConnection()
         cursor = connection.cursor()
         otherConnection = TestEnv.GetConnection()
@@ -111,24 +113,24 @@ class TestCase(TestEnv.BaseTestCase):
         rows = otherCursor.fetchall()
         self.assertEqual(rows, [(1,), (2,)])
 
-    def testBadConnectString(self):
-        "connection to database with bad connect string"
+    def test_1105_BadConnectString(self):
+        "1105 - connection to database with bad connect string"
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 TestEnv.GetMainUser())
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
-                TestEnv.GetMainUser() + u"@" + TestEnv.GetConnectString())
+                TestEnv.GetMainUser() + "@" + TestEnv.GetConnectString())
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 TestEnv.GetMainUser() + "@" + \
                 TestEnv.GetConnectString() + "/" + TestEnv.GetMainPassword())
 
-    def testBadPassword(self):
-        "connection to database with bad password"
+    def test_1106_BadPassword(self):
+        "1106 - connection to database with bad password"
         self.assertRaises(cx_Oracle.DatabaseError, cx_Oracle.connect,
                 TestEnv.GetMainUser(), TestEnv.GetMainPassword() + "X",
                 TestEnv.GetConnectString())
 
-    def testChangePassword(self):
-        "test changing password"
+    def test_1107_ChangePassword(self):
+        "1107 - test changing password"
         connection = TestEnv.GetConnection()
         if self.isOnOracleCloud(connection):
             self.skipTest("passwords on Oracle Cloud are strictly controlled")
@@ -140,8 +142,8 @@ class TestCase(TestEnv.BaseTestCase):
                 TestEnv.GetConnectString())
         connection.changepassword(newPassword, TestEnv.GetMainPassword())
 
-    def testChangePasswordNegative(self):
-        "test changing password to an invalid value"
+    def test_1108_ChangePasswordNegative(self):
+        "1108 - test changing password to an invalid value"
         connection = TestEnv.GetConnection()
         if self.isOnOracleCloud(connection):
             self.skipTest("passwords on Oracle Cloud are strictly controlled")
@@ -149,8 +151,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, connection.changepassword,
                 TestEnv.GetMainPassword(), newPassword)
 
-    def testParsePassword(self):
-        "test connecting with password containing / and @ symbols"
+    def test_1109_ParsePassword(self):
+        "1109 - test connecting with password containing / and @ symbols"
         connection = TestEnv.GetConnection()
         if self.isOnOracleCloud(connection):
             self.skipTest("passwords on Oracle Cloud are strictly controlled")
@@ -167,8 +169,8 @@ class TestCase(TestEnv.BaseTestCase):
         finally:
             connection.changepassword(newPassword, TestEnv.GetMainPassword())
 
-    def testEncodings(self):
-        "connection with only encoding or nencoding specified should work"
+    def test_1110_Encodings(self):
+        "1110 - connection with only encoding/nencoding specified should work"
         connection = cx_Oracle.connect(TestEnv.GetMainUser(),
                 TestEnv.GetMainPassword(), TestEnv.GetConnectString())
         encoding = connection.encoding
@@ -185,11 +187,12 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(connection.encoding, encoding)
         self.assertEqual(connection.nencoding, altEncoding)
 
-    def testDifferentEncodings(self):
+    def test_1111_DifferentEncodings(self):
+        "1111 - different encodings can be specified for encoding/nencoding"
         connection = cx_Oracle.connect(TestEnv.GetMainUser(),
                 TestEnv.GetMainPassword(), TestEnv.GetConnectString(),
                 encoding="UTF-8", nencoding="UTF-16")
-        value = u"\u03b4\u4e2a"
+        value = "\u03b4\u4e2a"
         cursor = connection.cursor()
         ncharVar = cursor.var(cx_Oracle.DB_TYPE_NVARCHAR, 100)
         ncharVar.setvalue(0, value)
@@ -197,14 +200,14 @@ class TestCase(TestEnv.BaseTestCase):
         result, = cursor.fetchone()
         self.assertEqual(result, value)
 
-    def testExceptionOnClose(self):
-        "confirm an exception is raised after closing a connection"
+    def test_1112_ExceptionOnClose(self):
+        "1112 - confirm an exception is raised after closing a connection"
         connection = TestEnv.GetConnection()
         connection.close()
         self.assertRaises(cx_Oracle.InterfaceError, connection.rollback)
 
-    def testConnectWithHandle(self):
-        "test creating a connection using a handle"
+    def test_1113_ConnectWithHandle(self):
+        "1113 - test creating a connection using a handle"
         connection = TestEnv.GetConnection()
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
@@ -224,31 +227,28 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, cursor.execute,
                 "select count(*) from TestTempTable")
 
-    def testMakeDSN(self):
-        "test making a data source name from host, port and sid"
-        formatString = u"(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)" + \
+    def test_1114_MakeDSN(self):
+        "1114 - test making a data source name from host, port and sid"
+        formatString = "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)" + \
                 "(HOST=%s)(PORT=%d))(CONNECT_DATA=(SID=%s)))"
         args = ("hostname", 1521, "TEST")
         result = cx_Oracle.makedsn(*args)
         self.assertEqual(result, formatString % args)
-        args = (u"hostname", 1521, u"TEST")
-        result = cx_Oracle.makedsn(*args)
-        self.assertEqual(result, formatString % args)
 
-    def testSingleArg(self):
-        "connection to database with user, password, DSN together"
+    def test_1115_SingleArg(self):
+        "1115 - connection to database with user, password, DSN together"
         connection = cx_Oracle.connect("%s/%s@%s" % \
                 (TestEnv.GetMainUser(), TestEnv.GetMainPassword(),
                  TestEnv.GetConnectString()))
         self.verifyArgs(connection)
 
-    def testVersion(self):
-        "connection version is a string"
+    def test_1116_Version(self):
+        "1116 - connection version is a string"
         connection = TestEnv.GetConnection()
         self.assertTrue(isinstance(connection.version, str))
 
-    def testRollbackOnClose(self):
-        "connection rolls back before close"
+    def test_1117_RollbackOnClose(self):
+        "1117 - connection rolls back before close"
         connection = TestEnv.GetConnection()
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
@@ -261,8 +261,8 @@ class TestCase(TestEnv.BaseTestCase):
         count, = cursor.fetchone()
         self.assertEqual(count, 0)
 
-    def testRollbackOnDel(self):
-        "connection rolls back before destruction"
+    def test_1118_RollbackOnDel(self):
+        "1118 - connection rolls back before destruction"
         connection = TestEnv.GetConnection()
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
@@ -275,8 +275,8 @@ class TestCase(TestEnv.BaseTestCase):
         count, = cursor.fetchone()
         self.assertEqual(count, 0)
 
-    def testThreading(self):
-        "connection to database with multiple threads"
+    def test_1119_Threading(self):
+        "1119 - connection to database with multiple threads"
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__ConnectAndDrop)
@@ -285,15 +285,15 @@ class TestCase(TestEnv.BaseTestCase):
         for thread in threads:
             thread.join()
 
-    def testStringFormat(self):
-        "test string format of connection"
+    def test_1120_StringFormat(self):
+        "1120 - test string format of connection"
         connection = TestEnv.GetConnection()
         expectedValue = "<cx_Oracle.Connection to %s@%s>" % \
                 (TestEnv.GetMainUser(), TestEnv.GetConnectString())
         self.assertEqual(str(connection), expectedValue)
 
-    def testCtxMgrClose(self):
-        "test context manager - close"
+    def test_1121_CtxMgrClose(self):
+        "1121 - test context manager - close"
         connection = TestEnv.GetConnection()
         with connection:
             cursor = connection.cursor()
@@ -308,8 +308,8 @@ class TestCase(TestEnv.BaseTestCase):
         count, = cursor.fetchone()
         self.assertEqual(count, 1)
 
-    def testConnectionAttributes(self):
-        "test connection attribute values"
+    def test_1122_ConnectionAttributes(self):
+        "1122 - test connection attribute values"
         connection = cx_Oracle.connect(TestEnv.GetMainUser(),
                 TestEnv.GetMainPassword(), TestEnv.GetConnectString(),
                 encoding="ASCII")
@@ -333,8 +333,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(TypeError, connection.stmtcachesize, 20.5)
         self.assertRaises(TypeError, connection.stmtcachesize, "value")
 
-    def testClosedConnectionAttributes(self):
-        "test closed connection attribute values"
+    def test_1123_ClosedConnectionAttributes(self):
+        "1123 - test closed connection attribute values"
         connection = TestEnv.GetConnection()
         connection.close()
         attrNames = ["current_schema", "edition", "external_name",
@@ -345,13 +345,13 @@ class TestCase(TestEnv.BaseTestCase):
             self.assertRaises(cx_Oracle.InterfaceError, getattr, connection,
                     name)
 
-    def testPing(self):
-        "test connection ping"
+    def test_1124_Ping(self):
+        "1124 - test connection ping"
         connection = TestEnv.GetConnection()
         connection.ping()
 
-    def testTransactionBegin(self):
-        "test begin, prepare, cancel transaction"
+    def test_1125_TransactionBegin(self):
+        "1125 - test begin, prepare, cancel transaction"
         connection = TestEnv.GetConnection()
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
@@ -370,4 +370,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

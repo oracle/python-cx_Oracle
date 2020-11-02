@@ -1,14 +1,19 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing Simple Oracle Document Access (SODA) Database"""
+"""
+3300 - Module for testing Simple Oracle Document Access (SODA) Database
+"""
 
 import TestEnv
 
 import cx_Oracle
 import json
+import unittest
 
+@unittest.skipIf(TestEnv.SkipSodaTests(),
+                 "unsupported client/server combination")
 class TestCase(TestEnv.BaseTestCase):
 
     def __dropExistingCollections(self, sodaDatabase):
@@ -25,9 +30,9 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(doc.key, key)
         self.assertEqual(doc.mediaType, mediaType)
 
-    def testCreateDocumentWithJson(self):
-        "test creating documents with JSON data"
-        sodaDatabase = self.getSodaDatabase()
+    def test_3300_CreateDocumentWithJson(self):
+        "3300 - test creating documents with JSON data"
+        sodaDatabase = self.connection.getSodaDatabase()
         val = {"testKey1" : "testValue1", "testKey2" : "testValue2" }
         strVal = json.dumps(val)
         bytesVal = strVal.encode("UTF-8")
@@ -40,9 +45,9 @@ class TestCase(TestEnv.BaseTestCase):
         doc = sodaDatabase.createDocument(bytesVal, key, mediaType)
         self.__verifyDocument(doc, bytesVal, strVal, val, key, mediaType)
 
-    def testCreateDocumentWithRaw(self):
-        "test creating documents with raw data"
-        sodaDatabase = self.getSodaDatabase()
+    def test_3301_CreateDocumentWithRaw(self):
+        "3301 - test creating documents with raw data"
+        sodaDatabase = self.connection.getSodaDatabase()
         val = b"<html/>"
         key = "MyRawKey"
         mediaType = "text/html"
@@ -53,9 +58,9 @@ class TestCase(TestEnv.BaseTestCase):
         doc = sodaDatabase.createDocument(val, key, mediaType)
         self.__verifyDocument(doc, val, key=key, mediaType=mediaType)
 
-    def testGetCollectionNames(self):
-        "test getting collection names from the database"
-        sodaDatabase = self.getSodaDatabase()
+    def test_3302_GetCollectionNames(self):
+        "3302 - test getting collection names from the database"
+        sodaDatabase = self.connection.getSodaDatabase()
         self.__dropExistingCollections(sodaDatabase)
         self.assertEqual(sodaDatabase.getCollectionNames(), [])
         names = ["zCol", "dCol", "sCol", "aCol", "gCol"]
@@ -72,9 +77,9 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(sodaDatabase.getCollectionNames("z"),
                 sortedNames[-1:])
 
-    def testOpenCollection(self):
-        "test opening a collection"
-        sodaDatabase = self.getSodaDatabase()
+    def test_3303_OpenCollection(self):
+        "3303 - test opening a collection"
+        sodaDatabase = self.connection.getSodaDatabase()
         self.__dropExistingCollections(sodaDatabase)
         coll = sodaDatabase.openCollection("CollectionThatDoesNotExist")
         self.assertEqual(coll, None)
@@ -83,19 +88,19 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(coll.name, createdColl.name)
         coll.drop()
 
-    def testRepr(self):
-        "test SodaDatabase representation"
+    def test_3304_Repr(self):
+        "3304 - test SodaDatabase representation"
         con1 = self.connection
         con2 = TestEnv.GetConnection()
-        sodaDatabase1 = self.getSodaDatabase()
+        sodaDatabase1 = self.connection.getSodaDatabase()
         sodaDatabase2 = con1.getSodaDatabase()
         sodaDatabase3 = con2.getSodaDatabase()
         self.assertEqual(str(sodaDatabase1), str(sodaDatabase2))
         self.assertEqual(str(sodaDatabase2), str(sodaDatabase3))
 
-    def testNegative(self):
-        "test negative cases for SODA database methods"
-        sodaDatabase = self.getSodaDatabase()
+    def test_3305_Negative(self):
+        "3305 - test negative cases for SODA database methods"
+        sodaDatabase = self.connection.getSodaDatabase()
         self.assertRaises(TypeError, sodaDatabase.createCollection)
         self.assertRaises(TypeError, sodaDatabase.createCollection, 1)
         self.assertRaises(cx_Oracle.DatabaseError,

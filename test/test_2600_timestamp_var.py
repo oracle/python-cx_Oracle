@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -7,7 +7,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing timestamp variables."""
+"""
+2600 - Module for testing timestamp variables
+"""
 
 import TestEnv
 
@@ -43,8 +45,8 @@ class TestCase(TestEnv.BaseTestCase):
             self.rawData.append(tuple)
             self.dataByKey[i] = tuple
 
-    def testBindTimestamp(self):
-        "test binding in a timestamp"
+    def test_2600_BindTimestamp(self):
+        "2600 - test binding in a timestamp"
         self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 select * from TestTimestamps
@@ -52,8 +54,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = cx_Oracle.Timestamp(2002, 12, 14, 0, 0, 10, 250000))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
-    def testBindNull(self):
-        "test binding in a null"
+    def test_2601_BindNull(self):
+        "2601 - test binding in a null"
         self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 select * from TestTimestamps
@@ -61,8 +63,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = None)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def testBindOutSetInputSizes(self):
-        "test binding out with set input sizes defined"
+    def test_2602_BindOutSetInputSizes(self):
+        "2602 - test binding out with set input sizes defined"
         vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 begin
@@ -71,8 +73,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(vars["value"].getvalue(),
                cx_Oracle.Timestamp(2002, 12, 9))
 
-    def testBindInOutSetInputSizes(self):
-        "test binding in/out with set input sizes defined"
+    def test_2603_BindInOutSetInputSizes(self):
+        "2603 - test binding in/out with set input sizes defined"
         vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 begin
@@ -82,8 +84,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(vars["value"].getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 17, 16, 0, 0))
 
-    def testBindOutVar(self):
-        "test binding out with cursor.var() method"
+    def test_2604_BindOutVar(self):
+        "2604 - test binding out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.DB_TYPE_TIMESTAMP)
         self.cursor.execute("""
                 begin
@@ -94,8 +96,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(var.getvalue(),
                cx_Oracle.Timestamp(2002, 12, 31, 12, 31, 0))
 
-    def testBindInOutVarDirectSet(self):
-        "test binding in/out with cursor.var() method"
+    def test_2605_BindInOutVarDirectSet(self):
+        "2605 - test binding in/out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.DB_TYPE_TIMESTAMP)
         var.setvalue(0, cx_Oracle.Timestamp(2002, 12, 9, 6, 0, 0))
         self.cursor.execute("""
@@ -106,8 +108,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(var.getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 14, 12, 0, 0))
 
-    def testCursorDescription(self):
-        "test cursor description is accurate"
+    def test_2606_CursorDescription(self):
+        "2606 - test cursor description is accurate"
         self.cursor.execute("select * from TestTimestamps")
         self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
@@ -116,14 +118,14 @@ class TestCase(TestEnv.BaseTestCase):
                   ('NULLABLECOL', cx_Oracle.DB_TYPE_TIMESTAMP, 23, None, 0, 6,
                       1) ])
 
-    def testFetchAll(self):
-        "test that fetching all of the data returns the correct results"
+    def test_2607_FetchAll(self):
+        "2607 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestTimestamps order by IntCol")
         self.assertEqual(self.cursor.fetchall(), self.rawData)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def testFetchMany(self):
-        "test that fetching data in chunks returns the correct results"
+    def test_2608_FetchMany(self):
+        "2608 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestTimestamps order by IntCol")
         self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
         self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
@@ -131,8 +133,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def testFetchOne(self):
-        "test that fetching a single row returns the correct results"
+    def test_2609_FetchOne(self):
+        "2609 - test that fetching a single row returns the correct results"
         self.cursor.execute("""
                 select *
                 from TestTimestamps
@@ -144,4 +146,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

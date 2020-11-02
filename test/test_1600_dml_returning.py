@@ -1,8 +1,10 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing DML returning clauses."""
+"""
+1600 - Module for testing DML returning clauses
+"""
 
 import TestEnv
 
@@ -10,8 +12,8 @@ import cx_Oracle
 
 class TestCase(TestEnv.BaseTestCase):
 
-    def testInsert(self):
-        "test insert statement (single row) with DML returning"
+    def test_1600_Insert(self):
+        "1600 - test insert (single row) with DML returning"
         self.cursor.execute("truncate table TestTempTable")
         intVal = 5
         strVal = "A test string"
@@ -28,8 +30,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(intVar.values, [[intVal]])
         self.assertEqual(strVar.values, [[strVal]])
 
-    def testInsertMany(self):
-        "test insert statement (multiple rows) with DML returning"
+    def test_1601_InsertMany(self):
+        "1601 - test insert (multiple rows) with DML returning"
         self.cursor.execute("truncate table TestTempTable")
         intValues = [5, 8, 17, 24, 6]
         strValues = ["Test 5", "Test 8", "Test 17", "Test 24", "Test 6"]
@@ -44,8 +46,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(intVar.values, [[v] for v in intValues])
         self.assertEqual(strVar.values, [[v] for v in strValues])
 
-    def testInsertWithSmallSize(self):
-        "test insert statement with DML returning into too small a variable"
+    def test_1602_InsertWithSmallSize(self):
+        "1602 - test insert with DML returning into too small a variable"
         self.cursor.execute("truncate table TestTempTable")
         intVal = 6
         strVal = "A different test string"
@@ -59,8 +61,8 @@ class TestCase(TestEnv.BaseTestCase):
                 returning IntCol, StringCol into :intVar, :strVar""",
                 parameters)
 
-    def testUpdateSingleRow(self):
-        "test update single row statement with DML returning"
+    def test_1603_UpdateSingleRow(self):
+        "1603 - test update single row with DML returning"
         intVal = 7
         strVal = "The updated value of the string"
         self.cursor.execute("truncate table TestTempTable")
@@ -82,8 +84,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(intVar.values, [[intVal]])
         self.assertEqual(strVar.values, [[strVal]])
 
-    def testUpdateNoRows(self):
-        "test update no rows statement with DML returning"
+    def test_1604_UpdateNoRows(self):
+        "1604 - test update no rows with DML returning"
         intVal = 8
         strVal = "The updated value of the string"
         self.cursor.execute("truncate table TestTempTable")
@@ -107,8 +109,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(intVar.getvalue(), [])
         self.assertEqual(strVar.getvalue(), [])
 
-    def testUpdateMultipleRows(self):
-        "test update multiple rows statement with DML returning"
+    def test_1605_UpdateMultipleRows(self):
+        "1605 - test update multiple rows with DML returning"
         self.cursor.execute("truncate table TestTempTable")
         for i in (8, 9, 10):
             self.cursor.execute("""
@@ -132,8 +134,8 @@ class TestCase(TestEnv.BaseTestCase):
                 "The final value of string 10"
         ]])
 
-    def testUpdateMultipleRowsExecuteMany(self):
-        "test update multiple rows with DML returning (executeMany)"
+    def test_1606_UpdateMultipleRowsExecuteMany(self):
+        "1606 - test update multiple rows with DML returning (executeMany)"
         data = [(i, "The initial value of string %d" % i) \
                 for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
@@ -168,8 +170,8 @@ class TestCase(TestEnv.BaseTestCase):
                   "Updated value of string 10" ]
         ])
 
-    def testInsertAndReturnObject(self):
-        "test inserting an object with DML returning"
+    def test_1607_InsertAndReturnObject(self):
+        "1607 - test inserting an object with DML returning"
         typeObj = self.connection.gettype("UDT_OBJECT")
         stringValue = "The string that will be verified"
         obj = typeObj.newobject()
@@ -185,8 +187,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(result.STRINGVALUE, stringValue)
         self.connection.rollback()
 
-    def testInsertAndReturnRowid(self):
-        "test inserting a row and returning a rowid"
+    def test_1608_InsertAndReturnRowid(self):
+        "1608 - test inserting a row and returning a rowid"
         self.cursor.execute("truncate table TestTempTable")
         var = self.cursor.var(cx_Oracle.ROWID)
         self.cursor.execute("""
@@ -201,8 +203,8 @@ class TestCase(TestEnv.BaseTestCase):
                 (rowid,))
         self.assertEqual(self.cursor.fetchall(), [(278, 'String 278')])
 
-    def testInsertWithRefCursor(self):
-        "test inserting with a REF cursor and returning a rowid"
+    def test_1609_InsertWithRefCursor(self):
+        "1609 - test inserting with a REF cursor and returning a rowid"
         self.cursor.execute("truncate table TestTempTable")
         var = self.cursor.var(cx_Oracle.ROWID)
         inCursor = self.connection.cursor()
@@ -224,8 +226,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.fetchall(),
                 [(187, 'String 7 (Modified)')])
 
-    def testDeleteReturningDecreasingRowsReturned(self):
-        "test delete returning multiple times with decreasing number of rows"
+    def test_1610_DeleteReturningDecreasingRowsReturned(self):
+        "1610 - test delete returning decreasing number of rows"
         data = [(i, "Test String %d" % i) for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
         self.cursor.executemany("""
@@ -242,8 +244,8 @@ class TestCase(TestEnv.BaseTestCase):
             results.append(intVar.getvalue())
         self.assertEqual(results, [ [1, 2, 3, 4], [5, 6, 7], [8, 9] ])
 
-    def testDeleteReturningNoRowsAfterManyRows(self):
-        "test delete returning no rows after initially returning many rows"
+    def test_1611_DeleteReturningNoRowsAfterManyRows(self):
+        "1611 - test delete returning no rows after returning many rows"
         data = [(i, "Test String %d" % i) for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
         self.cursor.executemany("""
@@ -260,4 +262,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

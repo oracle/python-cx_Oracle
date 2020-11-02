@@ -7,7 +7,7 @@ of exclusions.  See the
 [homepage](https://oracle.github.io/python-cx_Oracle/index.html) for a
 feature list.
 
-cx_Oracle 8 has been tested with Python versions 3.5 through 3.8. You can use
+cx_Oracle 8 has been tested with Python versions 3.6 through 3.9. You can use
 cx_Oracle with Oracle 11.2, 12c, 18c and 19c client libraries. Oracle's
 standard client-server version interoperability allows connection to both older
 and newer databases. For example Oracle 19c client libraries can connect to

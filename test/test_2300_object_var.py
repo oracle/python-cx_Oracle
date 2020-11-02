@@ -7,7 +7,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing object variables."""
+"""
+2300 - Module for testing object variables
+"""
 
 import TestEnv
 
@@ -48,16 +50,16 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(objectValue, expectedObjectValue)
         self.assertEqual(arrayValue, expectedArrayValue)
 
-    def testBindNullIn(self):
-        "test binding a null value (IN)"
+    def test_2300_BindNullIn(self):
+        "2300 - test binding a null value (IN)"
         var = self.cursor.var(cx_Oracle.DB_TYPE_OBJECT,
                 typename = "UDT_OBJECT")
         result = self.cursor.callfunc("pkg_TestBindObject.GetStringRep", str,
                 (var,))
         self.assertEqual(result, "null")
 
-    def testBindObjectIn(self):
-        "test binding an object (IN)"
+    def test_2301_BindObjectIn(self):
+        "2301 - test binding an object (IN)"
         typeObj = self.connection.gettype("UDT_OBJECT")
         obj = typeObj.newobject()
         obj.NUMBERVALUE = 13
@@ -91,8 +93,8 @@ class TestCase(TestEnv.BaseTestCase):
                 "udt_Object(null, 'Test With Dates', null, null, null, " \
                 "udt_SubObject(18.25, 'Sub String'), null)")
 
-    def testCopyObject(self):
-        "test copying an object"
+    def test_2302_CopyObject(self):
+        "2302 - test copying an object"
         typeObj = self.connection.gettype("UDT_OBJECT")
         obj = typeObj()
         obj.NUMBERVALUE = 5124
@@ -105,15 +107,15 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(obj.DATEVALUE, copiedObj.DATEVALUE)
         self.assertEqual(obj.TIMESTAMPVALUE, copiedObj.TIMESTAMPVALUE)
 
-    def testEmptyCollectionAsList(self):
-        "test getting an empty collection as a list"
+    def test_2303_EmptyCollectionAsList(self):
+        "2303 - test getting an empty collection as a list"
         typeName = "UDT_ARRAY"
         typeObj = self.connection.gettype(typeName)
         obj = typeObj.newobject()
         self.assertEqual(obj.aslist(), [])
 
-    def testFetchData(self):
-        "test fetching objects"
+    def test_2304_FetchData(self):
+        "2304 - test fetching objects"
         self.cursor.execute("alter session set time_zone = 'UTC'")
         self.cursor.execute("""
                 select
@@ -151,8 +153,8 @@ class TestCase(TestEnv.BaseTestCase):
                 [(10, 'element #1'), (20, 'element #2'),
                  (30, 'element #3'), (40, 'element #4')]), None)
 
-    def testGetObjectType(self):
-        "test getting object type"
+    def test_2305_GetObjectType(self):
+        "2305 - test getting object type"
         typeObj = self.connection.gettype("UDT_OBJECT")
         self.assertEqual(typeObj.iscollection, False)
         self.assertEqual(typeObj.schema, self.connection.username.upper())
@@ -186,8 +188,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(subObjectArrayType.iscollection, True)
         self.assertEqual(subObjectArrayType.attributes, [])
 
-    def testObjectType(self):
-        "test object type data"
+    def test_2306_ObjectType(self):
+        "2306 - test object type data"
         self.cursor.execute("""
                 select ObjectCol
                 from TestObjects
@@ -196,11 +198,11 @@ class TestCase(TestEnv.BaseTestCase):
         objValue, = self.cursor.fetchone()
         self.assertEqual(objValue.type.schema,
                 self.connection.username.upper())
-        self.assertEqual(objValue.type.name, u"UDT_OBJECT")
+        self.assertEqual(objValue.type.name, "UDT_OBJECT")
         self.assertEqual(objValue.type.attributes[0].name, "NUMBERVALUE")
 
-    def testRoundTripObject(self):
-        "test inserting and then querying object with all data types"
+    def test_2307_RoundTripObject(self):
+        "2307 - test inserting and then querying object with all data types"
         self.cursor.execute("alter session set time_zone = 'UTC'")
         self.cursor.execute("truncate table TestClobs")
         self.cursor.execute("truncate table TestNClobs")
@@ -218,7 +220,7 @@ class TestCase(TestEnv.BaseTestCase):
         nclob, = self.cursor.fetchone()
         self.cursor.execute("select BLOBCol from TestBlobs")
         blob, = self.cursor.fetchone()
-        typeObj = self.connection.gettype(u"UDT_OBJECT")
+        typeObj = self.connection.gettype("UDT_OBJECT")
         obj = typeObj.newobject()
         obj.NUMBERVALUE = 5
         obj.STRINGVALUE = "A string"
@@ -279,13 +281,13 @@ class TestCase(TestEnv.BaseTestCase):
                 (23, 'Substring value'), None), None)
         self.connection.rollback()
 
-    def testInvalidTypeObject(self):
-        "test trying to find an object type that does not exist"
+    def test_2308_InvalidTypeObject(self):
+        "2308 - test trying to find an object type that does not exist"
         self.assertRaises(cx_Oracle.DatabaseError, self.connection.gettype,
                 "A TYPE THAT DOES NOT EXIST")
 
-    def testAppendingWrongObjectType(self):
-        "test appending an object of the wrong type to a collection"
+    def test_2309_AppendingWrongObjectType(self):
+        "2309 - test appending an object of the wrong type to a collection"
         collectionObjType = self.connection.gettype("UDT_OBJECTARRAY")
         collectionObj = collectionObjType.newobject()
         arrayObjType = self.connection.gettype("UDT_ARRAY")
@@ -293,8 +295,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, collectionObj.append,
                 arrayObj)
 
-    def testReferencingSubObj(self):
-        "test that referencing a sub object affects the parent object"
+    def test_2310_ReferencingSubObj(self):
+        "2310 - test that referencing a sub object affects the parent object"
         objType = self.connection.gettype("UDT_OBJECT")
         subObjType = self.connection.gettype("UDT_SUBOBJECT")
         obj = objType.newobject()
@@ -304,8 +306,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(obj.SUBOBJECTVALUE.SUBNUMBERVALUE, 5)
         self.assertEqual(obj.SUBOBJECTVALUE.SUBSTRINGVALUE, "Substring")
 
-    def testAccessSubObjectParentObjectDestroyed(self):
-        "test that accessing sub object after parent object destroyed works"
+    def test_2311_AccessSubObjectParentObjectDestroyed(self):
+        "2311 - test accessing sub object after parent object destroyed"
         objType = self.connection.gettype("UDT_OBJECT")
         subObjType = self.connection.gettype("UDT_SUBOBJECT")
         arrayType = self.connection.gettype("UDT_OBJECTARRAY")
@@ -322,8 +324,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.__GetObjectAsTuple(subObjArray),
                 [(2, "AB"), (3, "CDE")])
 
-    def testSettingAttrWrongObjectType(self):
-        "test assigning an object of the wrong type to an object attribute"
+    def test_2312_SettingAttrWrongObjectType(self):
+        "2312 - test assigning an object of wrong type to an object attribute"
         objType = self.connection.gettype("UDT_OBJECT")
         obj = objType.newobject()
         wrongObjType = self.connection.gettype("UDT_OBJECTARRAY")
@@ -331,16 +333,16 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, setattr, obj,
                 "SUBOBJECTVALUE", wrongObj)
 
-    def testSettingVarWrongObjectType(self):
-        "test setting value of object variable to wrong object type"
+    def test_2313_SettingVarWrongObjectType(self):
+        "2313 - test setting value of object variable to wrong object type"
         wrongObjType = self.connection.gettype("UDT_OBJECTARRAY")
         wrongObj = wrongObjType.newobject()
         var = self.cursor.var(cx_Oracle.DB_TYPE_OBJECT,
                 typename = "UDT_OBJECT")
         self.assertRaises(cx_Oracle.DatabaseError, var.setvalue, 0, wrongObj)
 
-    def testStringFormat(self):
-        "test object string format"
+    def test_2314_StringFormat(self):
+        "2314 - test object string format"
         objType = self.connection.gettype("UDT_OBJECT")
         user = TestEnv.GetMainUser()
         self.assertEqual(str(objType),
@@ -348,8 +350,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(str(objType.attributes[0]),
                 "<cx_Oracle.ObjectAttribute NUMBERVALUE>")
 
-    def testTrimCollectionList(self):
-        "test Trim number of elements from collection"
+    def test_2315_TrimCollectionList(self):
+        "2315 - test Trim number of elements from collection"
         subObjType = self.connection.gettype("UDT_SUBOBJECT")
         arrayType = self.connection.gettype("UDT_OBJECTARRAY")
         data = [(1, "AB"), (2, "CDE"), (3, "FGH"), (4, "IJK")]
@@ -371,4 +373,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

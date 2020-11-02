@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -7,7 +7,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing long and long raw variables."""
+"""
+2000 - Module for testing long and long raw variables
+"""
 
 import TestEnv
 
@@ -57,12 +59,12 @@ class TestCase(TestEnv.BaseTestCase):
             self.assertEqual(len(fetchedValue), integerValue * 25000)
             self.assertEqual(fetchedValue, actualValue)
 
-    def testLongs(self):
-        "test binding and fetching long data"
+    def test_2000_Longs(self):
+        "2000 - test binding and fetching long data"
         self.__PerformTest("Long", cx_Oracle.DB_TYPE_LONG)
 
-    def testLongWithExecuteMany(self):
-        "test binding long data with executemany()"
+    def test_2001_LongWithExecuteMany(self):
+        "2001 - test binding long data with executemany()"
         data = []
         self.cursor.execute("truncate table TestLongs")
         for i in range(5):
@@ -75,32 +77,31 @@ class TestCase(TestEnv.BaseTestCase):
         fetchedData = self.cursor.fetchall()
         self.assertEqual(fetchedData, data)
 
-    def testLongRaws(self):
-        "test binding and fetching long raw data"
+    def test_2002_LongRaws(self):
+        "2002 - test binding and fetching long raw data"
         self.__PerformTest("LongRaw", cx_Oracle.DB_TYPE_LONG_RAW)
 
-    def testLongCursorDescription(self):
-        "test cursor description is accurate for longs"
+    def test_2003_LongCursorDescription(self):
+        "2003 - test cursor description is accurate for longs"
         self.cursor.execute("select * from TestLongs")
         self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
                   ('LONGCOL', cx_Oracle.DB_TYPE_LONG, None, None, None, None,
                         0) ])
 
-    def testLongRawCursorDescription(self):
-        "test cursor description is accurate for long raws"
+    def test_2004_LongRawCursorDescription(self):
+        "2004 - test cursor description is accurate for long raws"
         self.cursor.execute("select * from TestLongRaws")
         self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
                   ('LONGRAWCOL', cx_Oracle.DB_TYPE_LONG_RAW, None, None, None,
                         None, 0) ])
 
-    def testArraySizeTooLarge(self):
-        "test array size too large generates an exception"
+    def test_2005_ArraySizeTooLarge(self):
+        "2005 - test array size too large generates an exception"
         self.cursor.arraysize = 268435456
         self.assertRaises(cx_Oracle.DatabaseError, self.cursor.execute,
                 "select * from TestLongRaws")
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

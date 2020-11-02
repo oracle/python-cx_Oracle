@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -7,17 +7,22 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing features introduced in 12.1"""
+"""
+3200 - Module for testing features introduced in 12.1
+"""
 
 import TestEnv
 
 import cx_Oracle
 import datetime
+import unittest
 
+@unittest.skipUnless(TestEnv.GetClientVersion() >= (12, 1),
+                     "unsupported client")
 class TestCase(TestEnv.BaseTestCase):
 
-    def testArrayDMLRowCountsOff(self):
-        "test executing with arraydmlrowcounts mode disabled"
+    def test_3200_ArrayDMLRowCountsOff(self):
+        "3200 - test executing with arraydmlrowcounts mode disabled"
         self.cursor.execute("truncate table TestArrayDML")
         rows = [ (1, "First"),
                  (2, "Second") ]
@@ -31,8 +36,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError,
                 self.cursor.getarraydmlrowcounts)
 
-    def testArrayDMLRowCountsOn(self):
-        "test executing with arraydmlrowcounts mode enabled"
+    def test_3201_ArrayDMLRowCountsOn(self):
+        "3201 - test executing with arraydmlrowcounts mode enabled"
         self.cursor.execute("truncate table TestArrayDML")
         rows = [ ( 1, "First", 100),
                  ( 2, "Second", 200),
@@ -48,8 +53,8 @@ class TestCase(TestEnv.BaseTestCase):
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
-    def testBindPLSQLBooleanCollectionIn(self):
-        "test binding a boolean collection (in)"
+    def test_3202_BindPLSQLBooleanCollectionIn(self):
+        "3202 - test binding a boolean collection (in)"
         typeObj = self.connection.gettype("PKG_TESTBOOLEANS.UDT_BOOLEANLIST")
         obj = typeObj.newobject()
         obj.setelement(1, True)
@@ -58,15 +63,15 @@ class TestCase(TestEnv.BaseTestCase):
                 (obj,))
         self.assertEqual(result, 5)
 
-    def testBindPLSQLBooleanCollectionOut(self):
-        "test binding a boolean collection (out)"
+    def test_3203_BindPLSQLBooleanCollectionOut(self):
+        "3203 - test binding a boolean collection (out)"
         typeObj = self.connection.gettype("PKG_TESTBOOLEANS.UDT_BOOLEANLIST")
         obj = typeObj.newobject()
         self.cursor.callproc("pkg_TestBooleans.TestOutArrays", (6, obj))
         self.assertEqual(obj.aslist(), [True, False, True, False, True, False])
 
-    def testBindPLSQLDateCollectionIn(self):
-        "test binding a PL/SQL date collection (in)"
+    def test_3204_BindPLSQLDateCollectionIn(self):
+        "3204 - test binding a PL/SQL date collection (in)"
         typeObj = self.connection.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
         obj = typeObj.newobject()
         obj.setelement(1, datetime.datetime(2016, 2, 5))
@@ -76,8 +81,8 @@ class TestCase(TestEnv.BaseTestCase):
                 cx_Oracle.NUMBER, (2, datetime.datetime(2016, 2, 1), obj))
         self.assertEqual(result, 24.75)
 
-    def testBindPLSQLDateCollectionInOut(self):
-        "test binding a PL/SQL date collection (in/out)"
+    def test_3205_BindPLSQLDateCollectionInOut(self):
+        "3205 - test binding a PL/SQL date collection (in/out)"
         typeObj = self.connection.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
         obj = typeObj.newobject()
         obj.setelement(1, datetime.datetime(2016, 1, 1))
@@ -91,8 +96,8 @@ class TestCase(TestEnv.BaseTestCase):
                  datetime.datetime(2016, 1, 20),
                  datetime.datetime(2016, 1, 26)])
 
-    def testBindPLSQLDateCollectionOut(self):
-        "test binding a PL/SQL date collection (out)"
+    def test_3206_BindPLSQLDateCollectionOut(self):
+        "3206 - test binding a PL/SQL date collection (out)"
         typeObj = self.connection.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
         obj = typeObj.newobject()
         self.cursor.callproc("pkg_TestDateArrays.TestOutArrays", (3, obj))
@@ -101,8 +106,8 @@ class TestCase(TestEnv.BaseTestCase):
                  datetime.datetime(2002, 12, 14, 9, 36),
                  datetime.datetime(2002, 12, 15, 14, 24)])
 
-    def testBindPLSQLNumberCollectionIn(self):
-        "test binding a PL/SQL number collection (in)"
+    def test_3207_BindPLSQLNumberCollectionIn(self):
+        "3207 - test binding a PL/SQL number collection (in)"
         typeObj = self.connection.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
         obj = typeObj.newobject()
         obj.setelement(1, 10)
@@ -111,8 +116,8 @@ class TestCase(TestEnv.BaseTestCase):
                 (5, obj))
         self.assertEqual(result, 155)
 
-    def testBindPLSQLNumberCollectionInOut(self):
-        "test binding a PL/SQL number collection (in/out)"
+    def test_3208_BindPLSQLNumberCollectionInOut(self):
+        "3208 - test binding a PL/SQL number collection (in/out)"
         typeObj = self.connection.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
         obj = typeObj.newobject()
         obj.setelement(1, 5)
@@ -120,15 +125,15 @@ class TestCase(TestEnv.BaseTestCase):
         self.cursor.callproc("pkg_TestNumberArrays.TestInOutArrays", (4, obj))
         self.assertEqual(obj.aslist(), [50, 80, 30, 20])
 
-    def testBindPLSQLNumberCollectionOut(self):
-        "test binding a PL/SQL number collection (out)"
+    def test_3209_BindPLSQLNumberCollectionOut(self):
+        "3209 - test binding a PL/SQL number collection (out)"
         typeObj = self.connection.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
         obj = typeObj.newobject()
         self.cursor.callproc("pkg_TestNumberArrays.TestOutArrays", (3, obj))
         self.assertEqual(obj.aslist(), [100, 200, 300])
 
-    def testBindPLSQLRecordArray(self):
-        "test binding an array of PL/SQL records (in)"
+    def test_3210_BindPLSQLRecordArray(self):
+        "3210 - test binding an array of PL/SQL records (in)"
         recType = self.connection.gettype("PKG_TESTRECORDS.UDT_RECORD")
         arrayType = self.connection.gettype("PKG_TESTRECORDS.UDT_RECORDARRAY")
         arrayObj = arrayType.newobject()
@@ -158,8 +163,8 @@ class TestCase(TestEnv.BaseTestCase):
                 "to_timestamp('2017-01-03 00:00:00', " \
                 "'YYYY-MM-DD HH24:MI:SS'), false, 10, 4)")
 
-    def testBindPLSQLRecordIn(self):
-        "test binding a PL/SQL record (in)"
+    def test_3211_BindPLSQLRecordIn(self):
+        "3211 - test binding a PL/SQL record (in)"
         typeObj = self.connection.gettype("PKG_TESTRECORDS.UDT_RECORD")
         obj = typeObj.newobject()
         obj.NUMBERVALUE = 18
@@ -177,8 +182,8 @@ class TestCase(TestEnv.BaseTestCase):
                 "to_timestamp('2016-02-12 14:25:36', " \
                 "'YYYY-MM-DD HH24:MI:SS'), false, 21, 5)")
 
-    def testBindPLSQLRecordOut(self):
-        "test binding a PL/SQL record (out)"
+    def test_3212_BindPLSQLRecordOut(self):
+        "3212 - test binding a PL/SQL record (out)"
         typeObj = self.connection.gettype("PKG_TESTRECORDS.UDT_RECORD")
         obj = typeObj.newobject()
         obj.NUMBERVALUE = 5
@@ -198,8 +203,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(obj.PLSINTEGERVALUE, 45)
         self.assertEqual(obj.BINARYINTEGERVALUE, 10)
 
-    def testBindPLSQLStringCollectionIn(self):
-        "test binding a PL/SQL string collection (in)"
+    def test_3213_BindPLSQLStringCollectionIn(self):
+        "3213 - test binding a PL/SQL string collection (in)"
         typeObj = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
         obj = typeObj.newobject()
         obj.setelement(1, "First element")
@@ -209,8 +214,8 @@ class TestCase(TestEnv.BaseTestCase):
                 (5, obj))
         self.assertEqual(result, 45)
 
-    def testBindPLSQLStringCollectionInOut(self):
-        "test binding a PL/SQL string collection (in/out)"
+    def test_3214_BindPLSQLStringCollectionInOut(self):
+        "3214 - test binding a PL/SQL string collection (in/out)"
         typeObj = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
         obj = typeObj.newobject()
         obj.setelement(1, "The first element")
@@ -222,8 +227,8 @@ class TestCase(TestEnv.BaseTestCase):
                  'Converted element # 2 originally had length 18',
                  'Converted element # 3 originally had length 27'])
 
-    def testBindPLSQLStringCollectionOut(self):
-        "test binding a PL/SQL string collection (out)"
+    def test_3215_BindPLSQLStringCollectionOut(self):
+        "3215 - test binding a PL/SQL string collection (out)"
         typeObj = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
         obj = typeObj.newobject()
         self.cursor.callproc("pkg_TestStringArrays.TestOutArrays", (4, obj))
@@ -233,8 +238,8 @@ class TestCase(TestEnv.BaseTestCase):
                  'Test out element # 3',
                  'Test out element # 4'])
 
-    def testBindPLSQLStringCollectionOutWithHoles(self):
-        "test binding a PL/SQL string collection (out with holes)"
+    def test_3216_BindPLSQLStringCollectionOutWithHoles(self):
+        "3216 - test binding a PL/SQL string collection (out with holes)"
         typeObj = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
         obj = typeObj.newobject()
         self.cursor.callproc("pkg_TestStringArrays.TestIndexBy", (obj,))
@@ -261,8 +266,8 @@ class TestCase(TestEnv.BaseTestCase):
                 { -1048576 : 'First element',
                   8388608: 'Fourth element' })
 
-    def testExceptionInIteration(self):
-        "test executing with arraydmlrowcounts with exception"
+    def test_3217_ExceptionInIteration(self):
+        "3217 - test executing with arraydmlrowcounts with exception"
         self.cursor.execute("truncate table TestArrayDML")
         rows = [ (1, "First"),
                  (2, "Second"),
@@ -273,8 +278,8 @@ class TestCase(TestEnv.BaseTestCase):
                 sql, rows, arraydmlrowcounts = True)
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1])
 
-    def testExecutingDelete(self):
-        "test executing delete statement with arraydmlrowcount mode"
+    def test_3218_ExecutingDelete(self):
+        "3218 - test executing delete statement with arraydmlrowcount mode"
         self.cursor.execute("truncate table TestArrayDML")
         rows = [ (1, "First", 100),
                  (2, "Second", 200),
@@ -293,8 +298,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 3, 2])
         self.assertEqual(self.cursor.rowcount, 6)
 
-    def testExecutingUpdate(self):
-        "test executing update statement with arraydmlrowcount mode"
+    def test_3219_ExecutingUpdate(self):
+        "3219 - test executing update statement with arraydmlrowcount mode"
         self.cursor.execute("truncate table TestArrayDML")
         rows = [ (1, "First",100),
                  (2, "Second",200),
@@ -316,8 +321,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1, 3, 2])
         self.assertEqual(self.cursor.rowcount, 7)
 
-    def testImplicitResults(self):
-        "test getimplicitresults() returns the correct data"
+    def test_3220_ImplicitResults(self):
+        "3220 - test getimplicitresults() returns the correct data"
         self.cursor.execute("""
                 declare
                     c1 sys_refcursor;
@@ -344,13 +349,13 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual([n for n, in results[0]], [3.75, 5, 6.25])
         self.assertEqual([n for n, in results[1]], [8.75, 10, 11.25, 12.5])
 
-    def testImplicitResultsNoStatement(self):
-        "test getimplicitresults() without executing a statement"
+    def test_3221_ImplicitResultsNoStatement(self):
+        "3221 - test getimplicitresults() without executing a statement"
         self.assertRaises(cx_Oracle.InterfaceError,
                 self.cursor.getimplicitresults)
 
-    def testInsertWithBatchError(self):
-        "test executing insert with multiple distinct batch errors"
+    def test_3222_InsertWithBatchError(self):
+        "3222 - test executing insert with multiple distinct batch errors"
         self.cursor.execute("truncate table TestArrayDML")
         rows = [ (1, "First", 100),
                  (2, "Second", 200),
@@ -373,8 +378,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(actualErrors, expectedErrors)
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1, 0, 1, 0])
 
-    def testBatchErrorFalse(self):
-        "test batcherrors mode set to False"
+    def test_3223_BatchErrorFalse(self):
+        "3223 - test batcherrors mode set to False"
         self.cursor.execute("truncate table TestArrayDML")
         rows = [ (1, "First", 100),
                  (2, "Second", 200),
@@ -384,8 +389,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.IntegrityError,
                 self.cursor.executemany, sql, rows, batcherrors = False)
 
-    def testUpdatewithBatchError(self):
-        "test executing in succession with batch error"
+    def test_3224_UpdatewithBatchError(self):
+        "3224 - test executing in succession with batch error"
         self.cursor.execute("truncate table TestArrayDML")
         rows = [ (1, "First", 100),
                  (2, "Second", 200),
@@ -427,4 +432,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

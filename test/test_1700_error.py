@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -7,7 +7,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing error objects."""
+"""
+1700 - Module for testing error objects
+"""
 
 import TestEnv
 
@@ -16,15 +18,15 @@ import pickle
 
 class TestCase(TestEnv.BaseTestCase):
 
-    def testParseError(self):
-        "test parse error returns offset correctly"
+    def test_1700_ParseError(self):
+        "1700 - test parse error returns offset correctly"
         with self.assertRaises(cx_Oracle.Error) as cm:
             self.cursor.execute("begin t_Missing := 5; end;")
         errorObj, = cm.exception.args
         self.assertEqual(errorObj.offset, 6)
 
-    def testPickleError(self):
-        "test picking/unpickling an error object"
+    def test_1701_PickleError(self):
+        "1701 - test picking/unpickling an error object"
         with self.assertRaises(cx_Oracle.Error) as cm:
             self.cursor.execute("""
                     begin

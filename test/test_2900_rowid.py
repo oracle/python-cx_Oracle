@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing Rowids"""
+"""
+2900 - Module for testing Rowids
+"""
 
 import TestEnv
 
@@ -21,16 +22,16 @@ class TestCase(TestEnv.BaseTestCase):
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0][0], intVal)
 
-    def testSelectRowidsRegular(self):
-        "test selecting all rowids from a regular table"
+    def test_2900_SelectRowidsRegular(self):
+        "2900 - test selecting all rowids from a regular table"
         self.__TestSelectRowids("TestNumbers")
 
-    def testSelectRowidsIndexOrganised(self):
-        "test selecting all rowids from an index organised table"
+    def test_2901_SelectRowidsIndexOrganised(self):
+        "2901 - test selecting all rowids from an index organised table"
         self.__TestSelectRowids("TestUniversalRowids")
 
-    def testInsertInvalidRowid(self):
-        "test inserting an invalid rowid"
+    def test_2902_InsertInvalidRowid(self):
+        "2902 - test inserting an invalid rowid"
         self.assertRaises(cx_Oracle.DatabaseError, self.cursor.execute,
                 "insert into TestRowids (IntCol, RowidCol) values (1, :rid)",
                 rid = 12345)
@@ -38,8 +39,8 @@ class TestCase(TestEnv.BaseTestCase):
                 "insert into TestRowids (IntCol, RowidCol) values (1, :rid)",
                 rid = "523lkhlf")
 
-    def testInsertRowids(self):
-        "test inserting rowids and verify they are inserted correctly"
+    def test_2903_InsertRowids(self):
+        "2903 - test inserting rowids and verify they are inserted correctly"
         self.cursor.execute("select IntCol, rowid from TestNumbers")
         rows = self.cursor.fetchall()
         self.cursor.execute("truncate table TestRowids")
@@ -59,4 +60,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

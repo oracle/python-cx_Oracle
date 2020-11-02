@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -146,6 +146,14 @@ def RunSqlScript(conn, scriptName, **kwargs):
         print("    %s/%s %s" % (lineNum, position, text))
 
 def RunTestCases():
+    print("Running tests for cx_Oracle version", cx_Oracle.version,
+            "built at", cx_Oracle.buildtime)
+    print("File:", cx_Oracle.__file__)
+    print("Client Version:",
+            ".".join(str(i) for i in cx_Oracle.clientversion()))
+    with GetConnection() as connection:
+        print("Server Version:", connection.version)
+        print()
     unittest.main(testRunner=unittest.TextTestRunner(verbosity=2))
 
 def GetConnection(**kwargs):
@@ -161,7 +169,32 @@ def GetPool(user=None, password=None, **kwargs):
             encoding="UTF-8", nencoding="UTF-8", **kwargs)
 
 def GetClientVersion():
-    return cx_Oracle.clientversion()
+    name = "CLIENT_VERSION"
+    value = PARAMETERS.get(name)
+    if value is None:
+        value = cx_Oracle.clientversion()[:2]
+        PARAMETERS[name] = value
+    return value
+
+def GetServerVersion():
+    name = "SERVER_VERSION"
+    value = PARAMETERS.get(name)
+    if value is None:
+        conn = GetConnection()
+        value = tuple(int(s) for s in conn.version.split("."))[:2]
+        PARAMETERS[name] = value
+    return value
+
+def SkipSodaTests():
+    client = GetClientVersion()
+    if client < (18, 3):
+        return True
+    server = GetServerVersion()
+    if server < (18, 0):
+        return True
+    if server > (20, 1) and client < (20, 1):
+        return True
+    return False
 
 class RoundTripInfo:
 
@@ -225,3 +258,9 @@ class BaseTestCase(unittest.TestCase):
         del self.cursor
         del self.connection
 
+
+def load_tests(loader, standard_tests, pattern):
+    return loader.discover(os.path.dirname(__file__))
+
+if __name__ == "__main__":
+    RunTestCases()

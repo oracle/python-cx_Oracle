@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -7,7 +7,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing cursor objects."""
+"""
+1200 - Module for testing cursors
+"""
 
 import TestEnv
 
@@ -17,8 +19,8 @@ import sys
 
 class TestCase(TestEnv.BaseTestCase):
 
-    def testCreateScrollableCursor(self):
-        """test creating a scrollable cursor"""
+    def test_1200_CreateScrollableCursor(self):
+        "1200 - test creating a scrollable cursor"
         cursor = self.connection.cursor()
         self.assertEqual(cursor.scrollable, False)
         cursor = self.connection.cursor(True)
@@ -28,18 +30,18 @@ class TestCase(TestEnv.BaseTestCase):
         cursor.scrollable = False
         self.assertEqual(cursor.scrollable, False)
 
-    def testExecuteNoArgs(self):
-        """test executing a statement without any arguments"""
+    def test_1201_ExecuteNoArgs(self):
+        "1201 - test executing a statement without any arguments"
         result = self.cursor.execute("begin null; end;")
         self.assertEqual(result, None)
 
-    def testExecuteNoStatementWithArgs(self):
-        """test executing a None statement with bind variables"""
+    def test_1202_ExecuteNoStatementWithArgs(self):
+        "1202 - test executing a None statement with bind variables"
         self.assertRaises(cx_Oracle.ProgrammingError, self.cursor.execute,
                 None, x = 5)
 
-    def testExecuteEmptyKeywordArgs(self):
-        """test executing a statement with args and empty keyword args"""
+    def test_1203_ExecuteEmptyKeywordArgs(self):
+        "1203 - test executing a statement with args and empty keyword args"
         simpleVar = self.cursor.var(cx_Oracle.NUMBER)
         args = [simpleVar]
         kwArgs = {}
@@ -47,47 +49,43 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(result, None)
         self.assertEqual(simpleVar.getvalue(), 25)
 
-    def testExecuteKeywordArgs(self):
-        """test executing a statement with keyword arguments"""
+    def test_1204_ExecuteKeywordArgs(self):
+        "1204 - test executing a statement with keyword arguments"
         simpleVar = self.cursor.var(cx_Oracle.NUMBER)
         result = self.cursor.execute("begin :value := 5; end;",
                 value = simpleVar)
         self.assertEqual(result, None)
         self.assertEqual(simpleVar.getvalue(), 5)
 
-    def testExecuteDictionaryArg(self):
-        """test executing a statement with a dictionary argument"""
+    def test_1205_ExecuteDictionaryArg(self):
+        "1205 - test executing a statement with a dictionary argument"
         simpleVar = self.cursor.var(cx_Oracle.NUMBER)
         dictArg = { "value" : simpleVar }
         result = self.cursor.execute("begin :value := 10; end;", dictArg)
         self.assertEqual(result, None)
         self.assertEqual(simpleVar.getvalue(), 10)
-        dictArg = { u"value" : simpleVar }
-        result = self.cursor.execute("begin :value := 25; end;", dictArg)
-        self.assertEqual(result, None)
-        self.assertEqual(simpleVar.getvalue(), 25)
 
-    def testExecuteMultipleMethod(self):
-        """test executing a statement with both a dict arg and keyword args"""
+    def test_1206_ExecuteMultipleMethod(self):
+        "1206 - test executing a statement with both a dict and keyword args"
         simpleVar = self.cursor.var(cx_Oracle.NUMBER)
         dictArg = { "value" : simpleVar }
         self.assertRaises(cx_Oracle.InterfaceError, self.cursor.execute,
                 "begin :value := 15; end;", dictArg, value = simpleVar)
 
-    def testExecuteAndModifyArraySize(self):
-        """test executing a statement and then changing the array size"""
+    def test_1207_ExecuteAndModifyArraySize(self):
+        "1207 - test executing a statement and then changing the array size"
         self.cursor.execute("select IntCol from TestNumbers")
         self.cursor.arraysize = 20
         self.assertEqual(len(self.cursor.fetchall()), 10)
 
-    def testCallProc(self):
-        """test executing a stored procedure"""
+    def test_1208_CallProc(self):
+        "1208 - test executing a stored procedure"
         var = self.cursor.var(cx_Oracle.NUMBER)
         results = self.cursor.callproc("proc_Test", ("hi", 5, var))
         self.assertEqual(results, ["hi", 10, 2.0])
 
-    def testCallProcAllKeywords(self):
-        "test executing a stored procedure with args in keywordParameters"
+    def test_1209_CallProcAllKeywords(self):
+        "1209 - test executing a stored procedure with keyword args"
         kwargs = dict(a_InOutValue=self.cursor.var(cx_Oracle.NUMBER),
                 a_InValue="hi", a_OutValue=self.cursor.var(cx_Oracle.NUMBER))
         kwargs['a_InOutValue'].setvalue(0, 5)
@@ -96,38 +94,38 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(kwargs['a_InOutValue'].getvalue(), 10)
         self.assertEqual(kwargs['a_OutValue'].getvalue(), 2.0)
 
-    def testCallProcOnlyLastKeyword(self):
-        "test executing a stored procedure with last arg in keywordParameters"
+    def test_1210_CallProcOnlyLastKeyword(self):
+        "1210 - test executing a stored procedure with last arg as keyword arg"
         kwargs = dict(a_OutValue = self.cursor.var(cx_Oracle.NUMBER))
         results = self.cursor.callproc("proc_Test", ("hi", 5), kwargs)
         self.assertEqual(results, ["hi", 10])
         self.assertEqual(kwargs['a_OutValue'].getvalue(), 2.0)
 
-    def testCallProcRepeatedKeywordParameters(self):
-        "test executing a stored procedure, repeated arg in keywordParameters"
+    def test_1211_CallProcRepeatedKeywordParameters(self):
+        "1211 - test executing a stored procedure, repeated keyword arg"
         kwargs = dict(a_InValue="hi",
                 a_OutValue=self.cursor.var(cx_Oracle.NUMBER))
         self.assertRaises(cx_Oracle.DatabaseError, self.cursor.callproc,
                 "proc_Test", parameters=("hi", 5), keywordParameters=kwargs)
 
-    def testCallProcNoArgs(self):
-        """test executing a stored procedure without any arguments"""
-        results = self.cursor.callproc(u"proc_TestNoArgs")
+    def test_1212_CallProcNoArgs(self):
+        "1212 - test executing a stored procedure without any arguments"
+        results = self.cursor.callproc("proc_TestNoArgs")
         self.assertEqual(results, [])
 
-    def testCallFunc(self):
-        """test executing a stored function"""
-        results = self.cursor.callfunc(u"func_Test", cx_Oracle.NUMBER,
-                (u"hi", 5))
+    def test_1213_CallFunc(self):
+        "1213 - test executing a stored function"
+        results = self.cursor.callfunc("func_Test", cx_Oracle.NUMBER,
+                ("hi", 5))
         self.assertEqual(results, 7)
 
-    def testCallFuncNoArgs(self):
-        """test executing a stored function without any arguments"""
+    def test_1214_CallFuncNoArgs(self):
+        "1214 - test executing a stored function without any arguments"
         results = self.cursor.callfunc("func_TestNoArgs", cx_Oracle.NUMBER)
         self.assertEqual(results, 712)
 
-    def testCallFuncNegative(self):
-        """test executing a stored function with wrong parameters"""
+    def test_1215_CallFuncNegative(self):
+        "1215 - test executing a stored function with wrong parameters"
         funcName = "func_Test"
         self.assertRaises(TypeError, self.cursor.callfunc, cx_Oracle.NUMBER,
                 funcName, ("hi", 5))
@@ -142,10 +140,10 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(TypeError, self.cursor.callfunc, funcName,
                 cx_Oracle.NUMBER, 5)
 
-    def testExecuteManyByName(self):
-        """test executing a statement multiple times (named args)"""
+    def test_1216_ExecuteManyByName(self):
+        "1216 - test executing a statement multiple times (named args)"
         self.cursor.execute("truncate table TestTempTable")
-        rows = [ { u"value" : n } for n in range(250) ]
+        rows = [ { "value" : n } for n in range(250) ]
         self.cursor.arraysize = 100
         statement = "insert into TestTempTable (IntCol) values (:value)"
         self.cursor.executemany(statement, rows)
@@ -154,8 +152,8 @@ class TestCase(TestEnv.BaseTestCase):
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
-    def testExecuteManyByPosition(self):
-        """test executing a statement multiple times (positional args)"""
+    def test_1217_ExecuteManyByPosition(self):
+        "1217 - test executing a statement multiple times (positional args)"
         self.cursor.execute("truncate table TestTempTable")
         rows = [ [n] for n in range(230) ]
         self.cursor.arraysize = 100
@@ -166,8 +164,8 @@ class TestCase(TestEnv.BaseTestCase):
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
-    def testExecuteManyWithPrepare(self):
-        """test executing a statement multiple times (with prepare)"""
+    def test_1218_ExecuteManyWithPrepare(self):
+        "1218 - test executing a statement multiple times (with prepare)"
         self.cursor.execute("truncate table TestTempTable")
         rows = [ [n] for n in range(225) ]
         self.cursor.arraysize = 100
@@ -179,8 +177,8 @@ class TestCase(TestEnv.BaseTestCase):
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
-    def testExecuteManyWithRebind(self):
-        """test executing a statement multiple times (with rebind)"""
+    def test_1219_ExecuteManyWithRebind(self):
+        "1219 - test executing a statement multiple times (with rebind)"
         self.cursor.execute("truncate table TestTempTable")
         rows = [ [n] for n in range(235) ]
         self.cursor.arraysize = 100
@@ -192,22 +190,22 @@ class TestCase(TestEnv.BaseTestCase):
         count, = self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
-    def testExecuteManyWithInputSizesWrong(self):
-        "test executing a statement multiple times (with input sizes wrong)"
+    def test_1220_ExecuteManyWithInputSizesWrong(self):
+        "1220 - test executing multiple times (with input sizes wrong)"
         cursor = self.connection.cursor()
         cursor.setinputsizes(cx_Oracle.NUMBER)
         data = [[decimal.Decimal("25.8")], [decimal.Decimal("30.0")]]
         cursor.executemany("declare t number; begin t := :1; end;", data)
 
-    def testExecuteManyMultipleBatches(self):
-        "test executing a statement multiple times (with multiple batches)"
+    def test_1221_ExecuteManyMultipleBatches(self):
+        "1221 - test executing multiple times (with multiple batches)"
         self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
         self.cursor.executemany(sql, [(1, None), (2, None)])
         self.cursor.executemany(sql, [(3, None), (4, "Testing")])
 
-    def testExecuteManyNumeric(self):
-        "test executemany() with various numeric types"
+    def test_1222_ExecuteManyNumeric(self):
+        "1222 - test executemany() with various numeric types"
         self.cursor.execute("truncate table TestTempTable")
         data = [(1, 5), (2, 7.0), (3, 6.5), (4, 2 ** 65),
                 (5, decimal.Decimal("24.5"))]
@@ -219,8 +217,8 @@ class TestCase(TestEnv.BaseTestCase):
                 order by IntCol""")
         self.assertEqual(self.cursor.fetchall(), data)
 
-    def testExecuteManyWithResize(self):
-        """test executing a statement multiple times (with resize)"""
+    def test_1223_ExecuteManyWithResize(self):
+        "1223 - test executing a statement multiple times (with resize)"
         self.cursor.execute("truncate table TestTempTable")
         rows = [ ( 1, "First" ),
                  ( 2, "Second" ),
@@ -238,8 +236,8 @@ class TestCase(TestEnv.BaseTestCase):
         fetchedRows = self.cursor.fetchall()
         self.assertEqual(fetchedRows, rows)
 
-    def testExecuteManyWithExecption(self):
-        """test executing a statement multiple times (with exception)"""
+    def test_1224_ExecuteManyWithExecption(self):
+        "1224 - test executing a statement multiple times (with exception)"
         self.cursor.execute("truncate table TestTempTable")
         rows = [ { "value" : n } for n in (1, 2, 3, 2, 5) ]
         statement = "insert into TestTempTable (IntCol) values (:value)"
@@ -247,14 +245,14 @@ class TestCase(TestEnv.BaseTestCase):
                 statement, rows)
         self.assertEqual(self.cursor.rowcount, 3)
 
-    def testExecuteManyWithInvalidParameters(self):
-        "test calling executemany() with invalid parameters"
+    def test_1225_ExecuteManyWithInvalidParameters(self):
+        "1225 - test calling executemany() with invalid parameters"
         self.assertRaises(TypeError, self.cursor.executemany,
                 "insert into TestTempTable (IntCol, StringCol) values (:1, :2)",
                 "These are not valid parameters")
 
-    def testExecuteManyNoParameters(self):
-        "test calling executemany() without any bind parameters"
+    def test_1226_ExecuteManyNoParameters(self):
+        "1226 - test calling executemany() without any bind parameters"
         numRows = 5
         self.cursor.execute("truncate table TestTempTable")
         self.cursor.executemany("""
@@ -272,8 +270,8 @@ class TestCase(TestEnv.BaseTestCase):
         count, = self.cursor.fetchone()
         self.assertEqual(count, numRows)
 
-    def testExecuteManyBoundEarlier(self):
-        "test calling executemany() with binds performed earlier"
+    def test_1227_ExecuteManyBoundEarlier(self):
+        "1227 - test calling executemany() with binds performed earlier"
         numRows = 9
         self.cursor.execute("truncate table TestTempTable")
         var = self.cursor.var(int, arraysize = numRows)
@@ -295,8 +293,8 @@ class TestCase(TestEnv.BaseTestCase):
         expectedData = [1, 3, 6, 10, 15, 21, 28, 36, 45]
         self.assertEqual(var.values, expectedData)
 
-    def testPrepare(self):
-        """test preparing a statement and executing it multiple times"""
+    def test_1228_Prepare(self):
+        "1228 - test preparing a statement and executing it multiple times"
         self.assertEqual(self.cursor.statement, None)
         statement = "begin :value := :value + 5; end;"
         self.cursor.prepare(statement)
@@ -310,14 +308,14 @@ class TestCase(TestEnv.BaseTestCase):
         self.cursor.execute("begin :value2 := 3; end;", value2 = var)
         self.assertEqual(var.getvalue(), 3)
 
-    def testExceptionOnClose(self):
-        "confirm an exception is raised after closing a cursor"
+    def test_1229_ExceptionOnClose(self):
+        "1229 - confirm an exception is raised after closing a cursor"
         self.cursor.close()
         self.assertRaises(cx_Oracle.InterfaceError, self.cursor.execute,
                 "select 1 from dual")
 
-    def testIterators(self):
-        """test iterators"""
+    def test_1230_Iterators(self):
+        "1230 - test iterators"
         self.cursor.execute("""
                 select IntCol
                 from TestNumbers
@@ -328,8 +326,8 @@ class TestCase(TestEnv.BaseTestCase):
             rows.append(row[0])
         self.assertEqual(rows, [1, 2, 3])
 
-    def testIteratorsInterrupted(self):
-        """test iterators (with intermediate execute)"""
+    def test_1231_IteratorsInterrupted(self):
+        "1231 - test iterators (with intermediate execute)"
         self.cursor.execute("truncate table TestTempTable")
         self.cursor.execute("""
                 select IntCol
@@ -347,10 +345,10 @@ class TestCase(TestEnv.BaseTestCase):
         else:
             self.assertRaises(cx_Oracle.InterfaceError, testIter.next)
 
-    def testBindNames(self):
-        """test that bindnames() works correctly."""
+    def test_1232_BindNames(self):
+        "1232 - test that bindnames() works correctly."
         self.assertRaises(cx_Oracle.ProgrammingError, self.cursor.bindnames)
-        self.cursor.prepare(u"begin null; end;")
+        self.cursor.prepare("begin null; end;")
         self.assertEqual(self.cursor.bindnames(), [])
         self.cursor.prepare("begin :retval := :inval + 5; end;")
         self.assertEqual(self.cursor.bindnames(), ["RETVAL", "INVAL"])
@@ -363,22 +361,22 @@ class TestCase(TestEnv.BaseTestCase):
         self.cursor.prepare("select :a * :a + :b * :b from dual")
         self.assertEqual(self.cursor.bindnames(), ["A", "B"])
 
-    def testBadPrepare(self):
-        """test that subsequent executes succeed after bad prepare"""
+    def test_1233_BadPrepare(self):
+        "1233 - test that subsequent executes succeed after bad prepare"
         self.assertRaises(cx_Oracle.DatabaseError,
                 self.cursor.execute,
                 "begin raise_application_error(-20000, 'this); end;")
         self.cursor.execute("begin null; end;")
 
-    def testBadExecute(self):
-        """test that subsequent fetches fail after bad execute"""
+    def test_1234_BadExecute(self):
+        "1234 - test that subsequent fetches fail after bad execute"
         self.assertRaises(cx_Oracle.DatabaseError,
                 self.cursor.execute, "select y from dual")
         self.assertRaises(cx_Oracle.InterfaceError,
                 self.cursor.fetchall)
 
-    def testScrollAbsoluteExceptionAfter(self):
-        """test scrolling absolute yields an exception (after result set)"""
+    def test_1235_ScrollAbsoluteExceptionAfter(self):
+        "1235 - test scrolling absolute yields an exception (after result set)"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -388,8 +386,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, cursor.scroll, 12,
                 "absolute")
 
-    def testScrollAbsoluteInBuffer(self):
-        """test scrolling absolute (when in buffers)"""
+    def test_1236_ScrollAbsoluteInBuffer(self):
+        "1236 - test scrolling absolute (when in buffers)"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -404,8 +402,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(row[0], 1.25)
         self.assertEqual(cursor.rowcount, 1)
 
-    def testScrollAbsoluteNotInBuffer(self):
-        """test scrolling absolute (when not in buffers)"""
+    def test_1237_ScrollAbsoluteNotInBuffer(self):
+        "1237 - test scrolling absolute (when not in buffers)"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -417,8 +415,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(row[0], 7.5)
         self.assertEqual(cursor.rowcount, 6)
 
-    def testScrollFirstInBuffer(self):
-        """test scrolling to first row in result set (when in buffers)"""
+    def test_1238_ScrollFirstInBuffer(self):
+        "1238 - test scrolling to first row in result set (in buffers)"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -431,8 +429,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(row[0], 1.25)
         self.assertEqual(cursor.rowcount, 1)
 
-    def testScrollFirstNotInBuffer(self):
-        """test scrolling to first row in result set (when not in buffers)"""
+    def test_1239_ScrollFirstNotInBuffer(self):
+        "1239 - test scrolling to first row in result set (not in buffers)"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -446,8 +444,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(row[0], 1.25)
         self.assertEqual(cursor.rowcount, 1)
 
-    def testScrollLast(self):
-        """test scrolling to last row in result set"""
+    def test_1240_ScrollLast(self):
+        "1240 - test scrolling to last row in result set"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -459,8 +457,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(row[0], 12.5)
         self.assertEqual(cursor.rowcount, 10)
 
-    def testScrollRelativeExceptionAfter(self):
-        """test scrolling relative yields an exception (after result set)"""
+    def test_1241_ScrollRelativeExceptionAfter(self):
+        "1241 - test scrolling relative yields an exception (after result set)"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -469,8 +467,8 @@ class TestCase(TestEnv.BaseTestCase):
                 order by IntCol""")
         self.assertRaises(cx_Oracle.DatabaseError, cursor.scroll, 15)
 
-    def testScrollRelativeExceptionBefore(self):
-        """test scrolling relative yields an exception (before result set)"""
+    def test_1242_ScrollRelativeExceptionBefore(self):
+        "1242 - test scrolling relative yields exception (before result set)"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -479,8 +477,8 @@ class TestCase(TestEnv.BaseTestCase):
                 order by IntCol""")
         self.assertRaises(cx_Oracle.DatabaseError, cursor.scroll, -5)
 
-    def testScrollRelativeInBuffer(self):
-        """test scrolling relative (when in buffers)"""
+    def test_1243_ScrollRelativeInBuffer(self):
+        "1243 - test scrolling relative (when in buffers)"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -495,8 +493,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(row[0], 2.5)
         self.assertEqual(cursor.rowcount, 2)
 
-    def testScrollRelativeNotInBuffer(self):
-        """test scrolling relative (when not in buffers)"""
+    def test_1244_ScrollRelativeNotInBuffer(self):
+        "1244 - test scrolling relative (when not in buffers)"
         cursor = self.connection.cursor(scrollable = True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
@@ -512,8 +510,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(row[0], 3.75)
         self.assertEqual(cursor.rowcount, 3)
 
-    def testScrollNoRows(self):
-        """test scrolling when there are no rows"""
+    def test_1245_ScrollNoRows(self):
+        "1245 - test scrolling when there are no rows"
         self.cursor.execute("truncate table TestTempTable")
         cursor = self.connection.cursor(scrollable = True)
         cursor.execute("select * from TestTempTable")
@@ -524,8 +522,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(cx_Oracle.DatabaseError, cursor.scroll, 1,
                 mode = "absolute")
 
-    def testScrollDifferingArrayAndFetchSizes(self):
-        """test scrolling with differing array sizes and fetch array sizes"""
+    def test_1246_ScrollDifferingArrayAndFetchSizes(self):
+        "1246 - test scrolling with differing array and fetch array sizes"
         self.cursor.execute("truncate table TestTempTable")
         for i in range(30):
             self.cursor.execute("""
@@ -553,62 +551,62 @@ class TestCase(TestEnv.BaseTestCase):
                 self.assertEqual(cursor.rowcount,
                         15 + numRows + numRowsFetched + numRows - 6)
 
-    def testSetInputSizesNegative(self):
-        "test cursor.setinputsizes() with invalid parameters"
+    def test_1247_SetInputSizesNegative(self):
+        "1247 - test cursor.setinputsizes() with invalid parameters"
         val = decimal.Decimal(5)
         self.assertRaises(cx_Oracle.InterfaceError,
                 self.cursor.setinputsizes, val, x = val)
         self.assertRaises(TypeError, self.cursor.setinputsizes, val)
 
-    def testSetInputSizesNoParameters(self):
-        "test setting input sizes without any parameters"
+    def test_1248_SetInputSizesNoParameters(self):
+        "1248 - test setting input sizes without any parameters"
         self.cursor.setinputsizes()
         self.cursor.execute("select :val from dual", val = "Test Value")
         self.assertEqual(self.cursor.fetchall(), [("Test Value",)])
 
-    def testSetInputSizesEmptyDict(self):
-        "test setting input sizes with an empty dictionary"
+    def test_1249_SetInputSizesEmptyDict(self):
+        "1249 - test setting input sizes with an empty dictionary"
         emptyDict = {}
         self.cursor.prepare("select 236 from dual")
         self.cursor.setinputsizes(**emptyDict)
         self.cursor.execute(None, emptyDict)
         self.assertEqual(self.cursor.fetchall(), [(236,)])
 
-    def testSetInputSizesEmptyList(self):
-        "test setting input sizes with an empty list"
+    def test_1250_SetInputSizesEmptyList(self):
+        "1250 - test setting input sizes with an empty list"
         emptyList = {}
         self.cursor.prepare("select 239 from dual")
         self.cursor.setinputsizes(*emptyList)
         self.cursor.execute(None, emptyList)
         self.assertEqual(self.cursor.fetchall(), [(239,)])
 
-    def testSetInputSizesByPosition(self):
-        """test setting input sizes with positional args"""
+    def test_1251_SetInputSizesByPosition(self):
+        "1251 - test setting input sizes with positional args"
         var = self.cursor.var(cx_Oracle.STRING, 100)
         self.cursor.setinputsizes(None, 5, None, 10, None, cx_Oracle.NUMBER)
         self.cursor.execute("""
                 begin
                   :1 := :2 || to_char(:3) || :4 || to_char(:5) || to_char(:6);
                 end;""", [var, 'test_', 5, '_second_', 3, 7])
-        self.assertEqual(var.getvalue(), u"test_5_second_37")
+        self.assertEqual(var.getvalue(), "test_5_second_37")
 
-    def testStringFormat(self):
-        """test string format of cursor"""
+    def test_1252_StringFormat(self):
+        "1252 - test string format of cursor"
         formatString = "<cx_Oracle.Cursor on <cx_Oracle.Connection to %s@%s>>"
         expectedValue = formatString % \
                 (TestEnv.GetMainUser(), TestEnv.GetConnectString())
         self.assertEqual(str(self.cursor), expectedValue)
 
-    def testCursorFetchRaw(self):
-        """test cursor.fetchraw()"""
+    def test_1253_CursorFetchRaw(self):
+        "1253 - test cursor.fetchraw()"
         cursor = self.connection.cursor()
         cursor.arraysize = 25
         cursor.execute("select LongIntCol from TestNumbers order by IntCol")
         self.assertEqual(cursor.fetchraw(), 10)
         self.assertEqual(cursor.fetchvars[0].getvalue(), 38)
 
-    def testParse(self):
-        """test parsing statements"""
+    def test_1254_Parse(self):
+        "1254 - test parsing statements"
         sql = "select LongIntCol from TestNumbers where IntCol = :val"
         self.cursor.parse(sql)
         self.assertEqual(self.cursor.statement, sql)
@@ -616,20 +614,20 @@ class TestCase(TestEnv.BaseTestCase):
                 [ ('LONGINTCOL', cx_Oracle.DB_TYPE_NUMBER, 17, None, 16, 0,
                         0) ])
 
-    def testSetOutputSize(self):
-        "test cursor.setoutputsize() does not fail (but does nothing)"
+    def test_1255_SetOutputSize(self):
+        "1255 - test cursor.setoutputsize() does not fail (but does nothing)"
         self.cursor.setoutputsize(100, 2)
 
-    def testVarNegative(self):
-        "test cursor.var() with invalid parameters"
+    def test_1256_VarNegative(self):
+        "1256 - test cursor.var() with invalid parameters"
         self.assertRaises(TypeError, self.cursor.var, 5)
 
-    def testArrayVarNegative(self):
-        "test cursor.arrayvar() with invalid parameters"
+    def test_1257_ArrayVarNegative(self):
+        "1257 - test cursor.arrayvar() with invalid parameters"
         self.assertRaises(TypeError, self.cursor.arrayvar, 5, 1)
 
-    def testBooleanWithoutPlsql(self):
-        "test binding boolean data without the use of PL/SQL"
+    def test_1258_BooleanWithoutPlsql(self):
+        "1258 - test binding boolean data without the use of PL/SQL"
         self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
         self.cursor.execute(sql, (False, "Value should be 0"))
@@ -641,8 +639,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.fetchall(),
                 [ (0, "Value should be 0"), (1, "Value should be 1") ])
 
-    def testAsContextManager(self):
-        "test using a cursor as a context manager"
+    def test_1259_AsContextManager(self):
+        "1259 - test using a cursor as a context manager"
         with self.cursor as cursor:
             cursor.execute("truncate table TestTempTable")
             cursor.execute("select count(*) from TestTempTable")
@@ -650,8 +648,8 @@ class TestCase(TestEnv.BaseTestCase):
             self.assertEqual(count, 0)
         self.assertRaises(cx_Oracle.InterfaceError, self.cursor.close)
 
-    def testQueryRowCount(self):
-        "test that the rowcount attribute is reset to zero on query execute"
+    def test_1260_QueryRowCount(self):
+        "1260 - test that rowcount attribute is reset to zero on query execute"
         sql = "select * from dual where 1 = :s"
         self.cursor.execute(sql, [0])
         self.cursor.fetchone()
@@ -666,15 +664,15 @@ class TestCase(TestEnv.BaseTestCase):
         self.cursor.fetchone()
         self.assertEqual(self.cursor.rowcount, 0)
 
-    def testVarTypeNameNone(self):
-        "test that the typename attribute can be passed a value of None"
+    def test_1261_VarTypeNameNone(self):
+        "1261 - test that the typename attribute can be passed a value of None"
         valueToSet = 5
         var = self.cursor.var(int, typename=None)
         var.setvalue(0, valueToSet)
         self.assertEqual(var.getvalue(), valueToSet)
 
-    def testVarTypeWithObjectType(self):
-        "test that an object type can be used as type in cursor.var()"
+    def test_1262_VarTypeWithObjectType(self):
+        "1262 - test that an object type can be used as type in cursor.var()"
         objType = self.connection.gettype("UDT_OBJECT")
         var = self.cursor.var(objType)
         self.cursor.callproc("pkg_TestBindObject.BindObjectOut",
@@ -685,8 +683,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(result,
                 "udt_Object(28, 'Bind obj out', null, null, null, null, null)")
 
-    def testFetchXMLType(self):
-        "test that fetching an XMLType returns a string contains its contents"
+    def test_1263_FetchXMLType(self):
+        "1263 - test that fetching an XMLType returns a string"
         intVal = 5
         label = "IntCol"
         expectedResult = "<%s>%s</%s>" % (label, intVal, label)
@@ -698,8 +696,8 @@ class TestCase(TestEnv.BaseTestCase):
         result, = self.cursor.fetchone()
         self.assertEqual(result, expectedResult)
 
-    def testLastRowid(self):
-        "test last rowid"
+    def test_1264_LastRowid(self):
+        "1264 - test last rowid"
 
         # no statement executed: no rowid
         self.assertEqual(None, self.cursor.lastrowid)
@@ -750,8 +748,8 @@ class TestCase(TestEnv.BaseTestCase):
                 where rowid = :1""", [rowid])
         self.assertEqual("Row %s" % rows[-3], self.cursor.fetchone()[0])
 
-    def testPrefetchRows(self):
-        "test prefetch rows"
+    def test_1265_PrefetchRows(self):
+        "1265 - test prefetch rows"
         self.setUpRoundTripChecker()
 
         # perform simple query and verify only one round trip is needed

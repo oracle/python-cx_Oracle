@@ -1,4 +1,4 @@
-"""Distutils script for cx_Oracle.
+"""Setup script for cx_Oracle.
 
 Windows platforms:
     python setup.py build --compiler=mingw32 install
@@ -8,21 +8,18 @@ Unix platforms
 
 """
 
-import distutils.core
 import os
+import pkg_resources
+import setuptools
 import sys
 
 # check minimum supported Python version
-if sys.version_info[:2] < (3, 5):
-    raise Exception("Python 3.5 or higher is required. " +
+if sys.version_info[:2] < (3, 6):
+    raise Exception("Python 3.6 or higher is required. " +
             "For python 2, use 'pip install cx_Oracle==7.3'")
 
-# if setuptools is detected, use it to add support for eggs
-try:
-    from setuptools import setup, Extension
-except:
-    from distutils.core import setup
-    from distutils.extension import Extension
+# check minimum supported version of setuptools
+pkg_resources.require("setuptools>=40.6.0")
 
 # define build constants
 BUILD_VERSION = "8.1.0-dev"
@@ -39,42 +36,11 @@ elif sys.platform == "cygwin":
 elif sys.platform == "darwin":
     extraLinkArgs.append("-shared-libgcc")
 
-class test(distutils.core.Command):
-    description = "run the test suite for the extension"
-    user_options = []
-
-    def finalize_options(self):
-        pass
-
-    def initialize_options(self):
-        pass
-
-    def run(self):
-        self.run_command("build")
-        buildCommand = self.distribution.get_command_obj("build")
-        sys.path.insert(0, os.path.abspath("test"))
-        sys.path.insert(0, os.path.abspath(buildCommand.build_lib))
-        fileName = os.path.join("test", "test.py")
-        exec(open(fileName).read())
-
-# define classifiers for the package index
-classifiers = [
-        "Development Status :: 6 - Mature",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: BSD License",
-        "Natural Language :: English",
-        "Operating System :: OS Independent",
-        "Programming Language :: C",
-        "Programming Language :: Python :: 3 :: Only",
-        "Topic :: Database"
-]
-
 # define cx_Oracle sources
 sourceDir = "src"
 sources = [os.path.join(sourceDir, n) \
         for n in sorted(os.listdir(sourceDir)) if n.endswith(".c")]
 depends = ["src/cxoModule.h"]
-
 
 # define ODPI-C sources, libraries and include directories; if the environment
 # variables ODPIC_INC_DIR and ODPIC_LIB_DIR are both set, assume these
@@ -98,7 +64,7 @@ else:
     libraryDirs = []
 
 # setup the extension
-extension = Extension(
+extension = setuptools.Extension(
         name = "cx_Oracle",
         include_dirs = includeDirs,
         extra_compile_args = extraCompileArgs,
@@ -110,22 +76,7 @@ extension = Extension(
         library_dirs = libraryDirs)
 
 # perform the setup
-setup(
-        name = "cx_Oracle",
+setuptools.setup(
         version = BUILD_VERSION,
-        description = "Python interface to Oracle",
-        cmdclass = dict(test = test),
         data_files = [ ("cx_Oracle-doc", ["LICENSE.txt", "README.txt"]) ],
-        long_description = \
-            "Python interface to Oracle Database conforming to the Python DB "
-            "API 2.0 specification.\n"
-            "See http://www.python.org/topics/database/DatabaseAPI-2.0.html.",
-        author = "Anthony Tuininga",
-        author_email = "anthony.tuininga@gmail.com",
-        url = "https://oracle.github.io/python-cx_Oracle",
-        python_requires = ">=3.5",
-        ext_modules = [extension],
-        keywords = "Oracle",
-        license = "BSD License",
-        classifiers = classifiers)
-
+        ext_modules = [extension])

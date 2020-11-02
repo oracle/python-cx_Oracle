@@ -7,7 +7,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing interval variables."""
+"""
+1800 - Module for testing interval variables
+"""
 
 import TestEnv
 
@@ -32,8 +34,8 @@ class TestCase(TestEnv.BaseTestCase):
             self.rawData.append(tuple)
             self.dataByKey[i] = tuple
 
-    def testBindInterval(self):
-        "test binding in an interval"
+    def test_1800_BindInterval(self):
+        "1800 - test binding in an interval"
         self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 select * from TestIntervals
@@ -42,8 +44,8 @@ class TestCase(TestEnv.BaseTestCase):
                         seconds = 15))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
-    def testBindNull(self):
-        "test binding in a null"
+    def test_1801_BindNull(self):
+        "1801 - test binding in a null"
         self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 select * from TestIntervals
@@ -51,8 +53,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = None)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def testBindOutSetInputSizes(self):
-        "test binding out with set input sizes defined"
+    def test_1802_BindOutSetInputSizes(self):
+        "1802 - test binding out with set input sizes defined"
         vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 begin
@@ -62,8 +64,8 @@ class TestCase(TestEnv.BaseTestCase):
                 datetime.timedelta(days = 8, hours = 9, minutes = 24,
                         seconds = 18, microseconds = 123789))
 
-    def testBindInOutSetInputSizes(self):
-        "test binding in/out with set input sizes defined"
+    def test_1803_BindInOutSetInputSizes(self):
+        "1803 - test binding in/out with set input sizes defined"
         vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 begin
@@ -73,8 +75,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(vars["value"].getvalue(),
                 datetime.timedelta(days = 10, hours = 10, minutes = 45))
 
-    def testBindInOutFractionalSecond(self):
-        "test binding in/out with set input sizes defined"
+    def test_1804_BindInOutFractionalSecond(self):
+        "1804 - test binding in/out with set input sizes defined"
         vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 begin
@@ -85,8 +87,8 @@ class TestCase(TestEnv.BaseTestCase):
                 datetime.timedelta(days = 10, hours = 8, minutes = 30,
                                    seconds=12, microseconds=123789))
 
-    def testBindOutVar(self):
-        "test binding out with cursor.var() method"
+    def test_1805_BindOutVar(self):
+        "1805 - test binding out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.DB_TYPE_INTERVAL_DS)
         self.cursor.execute("""
                 begin
@@ -97,8 +99,8 @@ class TestCase(TestEnv.BaseTestCase):
                 datetime.timedelta(days = 15, hours = 18, minutes = 35,
                         seconds = 45, milliseconds = 586))
 
-    def testBindInOutVarDirectSet(self):
-        "test binding in/out with cursor.var() method"
+    def test_1806_BindInOutVarDirectSet(self):
+        "1806 - test binding in/out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.DB_TYPE_INTERVAL_DS)
         var.setvalue(0, datetime.timedelta(days = 1, minutes = 50))
         self.cursor.execute("""
@@ -109,8 +111,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(var.getvalue(),
                 datetime.timedelta(days = 9, hours = 6, minutes = 5))
 
-    def testCursorDescription(self):
-        "test cursor description is accurate"
+    def test_1807_CursorDescription(self):
+        "1807 - test cursor description is accurate"
         self.cursor.execute("select * from TestIntervals")
         self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
@@ -119,14 +121,14 @@ class TestCase(TestEnv.BaseTestCase):
                   ('NULLABLECOL', cx_Oracle.DB_TYPE_INTERVAL_DS, None, None, 2,
                         6, 1) ])
 
-    def testFetchAll(self):
-        "test that fetching all of the data returns the correct results"
+    def test_1808_FetchAll(self):
+        "1808 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestIntervals order by IntCol")
         self.assertEqual(self.cursor.fetchall(), self.rawData)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def testFetchMany(self):
-        "test that fetching data in chunks returns the correct results"
+    def test_1809_FetchMany(self):
+        "1809 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestIntervals order by IntCol")
         self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
         self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
@@ -134,8 +136,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def testFetchOne(self):
-        "test that fetching a single row returns the correct results"
+    def test_1810_FetchOne(self):
+        "1810 - test that fetching a single row returns the correct results"
         self.cursor.execute("""
                 select *
                 from TestIntervals
@@ -147,4 +149,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

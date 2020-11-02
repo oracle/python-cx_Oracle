@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -7,7 +7,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing date/time variables."""
+"""
+1400 - Module for testing date/time variables
+"""
 
 import TestEnv
 
@@ -35,31 +37,31 @@ class TestCase(TestEnv.BaseTestCase):
             self.rawData.append(tuple)
             self.dataByKey[i] = tuple
 
-    def testBindDate(self):
-        "test binding in a date"
+    def test_1400_BindDate(self):
+        "1400 - test binding in a date"
         self.cursor.execute("""
                 select * from TestDates
                 where DateCol = :value""",
                 value = cx_Oracle.Timestamp(2002, 12, 13, 9, 36, 0))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
-    def testBindDateTime(self):
-        "test binding in a datetime.datetime value"
+    def test_1401_BindDateTime(self):
+        "1401 - test binding in a datetime.datetime value"
         self.cursor.execute("""
                 select * from TestDates
                 where DateCol = :value""",
                 value = datetime.datetime(2002, 12, 13, 9, 36, 0))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
-    def testBindDateInDateTimeVar(self):
-        "test binding date in a datetime variable"
+    def test_1402_BindDateInDateTimeVar(self):
+        "1402 - test binding date in a datetime variable"
         var = self.cursor.var(cx_Oracle.DATETIME)
         dateVal = datetime.date.today()
         var.setvalue(0, dateVal)
         self.assertEqual(var.getvalue().date(), dateVal)
 
-    def testBindDateAfterString(self):
-        "test binding in a date after setting input sizes to a string"
+    def test_1403_BindDateAfterString(self):
+        "1403 - test binding in a date after setting input sizes to a string"
         self.cursor.setinputsizes(value = 15)
         self.cursor.execute("""
                 select * from TestDates
@@ -67,8 +69,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = cx_Oracle.Timestamp(2002, 12, 14, 12, 0, 0))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
-    def testBindNull(self):
-        "test binding in a null"
+    def test_1404_BindNull(self):
+        "1404 - test binding in a null"
         self.cursor.setinputsizes(value = cx_Oracle.DATETIME)
         self.cursor.execute("""
                 select * from TestDates
@@ -76,8 +78,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = None)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def testBindDateArrayDirect(self):
-        "test binding in a date array"
+    def test_1405_BindDateArrayDirect(self):
+        "1405 - test binding in a date array"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
         array = [r[1] for r in self.rawData]
         statement = """
@@ -98,8 +100,8 @@ class TestCase(TestEnv.BaseTestCase):
                 array = array)
         self.assertEqual(returnValue.getvalue(), 24.0)
 
-    def testBindDateArrayBySizes(self):
-        "test binding in a date array (with setinputsizes)"
+    def test_1406_BindDateArrayBySizes(self):
+        "1406 - test binding in a date array (with setinputsizes)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
         self.cursor.setinputsizes(array = [cx_Oracle.DATETIME, 10])
         array = [r[1] for r in self.rawData]
@@ -114,8 +116,8 @@ class TestCase(TestEnv.BaseTestCase):
                 array = array)
         self.assertEqual(returnValue.getvalue(), 26.5)
 
-    def testBindDateArrayByVar(self):
-        "test binding in a date array (with arrayvar)"
+    def test_1407_BindDateArrayByVar(self):
+        "1407 - test binding in a date array (with arrayvar)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
         array = self.cursor.arrayvar(cx_Oracle.DATETIME, 10, 20)
         array.setvalue(0, [r[1] for r in self.rawData])
@@ -130,8 +132,8 @@ class TestCase(TestEnv.BaseTestCase):
                 array = array)
         self.assertEqual(returnValue.getvalue(), 17.5)
 
-    def testBindInOutDateArrayByVar(self):
-        "test binding in/out a date array (with arrayvar)"
+    def test_1408_BindInOutDateArrayByVar(self):
+        "1408 - test binding in/out a date array (with arrayvar)"
         array = self.cursor.arrayvar(cx_Oracle.DATETIME, 10, 100)
         originalData = [r[1] for r in self.rawData]
         array.setvalue(0, originalData)
@@ -149,8 +151,8 @@ class TestCase(TestEnv.BaseTestCase):
                   cx_Oracle.Timestamp(2002, 12, 21, 12, 0, 0) ] + \
                 originalData[5:])
 
-    def testBindOutDateArrayByVar(self):
-        "test binding out a date array (with arrayvar)"
+    def test_1409_BindOutDateArrayByVar(self):
+        "1409 - test binding out a date array (with arrayvar)"
         array = self.cursor.arrayvar(cx_Oracle.DATETIME, 6, 100)
         self.cursor.execute("""
                 begin
@@ -166,8 +168,8 @@ class TestCase(TestEnv.BaseTestCase):
                   cx_Oracle.Timestamp(2002, 12, 18, 0, 0, 0),
                   cx_Oracle.Timestamp(2002, 12, 19, 4, 48, 0) ])
 
-    def testBindOutSetInputSizes(self):
-        "test binding out with set input sizes defined"
+    def test_1410_BindOutSetInputSizes(self):
+        "1410 - test binding out with set input sizes defined"
         vars = self.cursor.setinputsizes(value = cx_Oracle.DATETIME)
         self.cursor.execute("""
                 begin
@@ -176,8 +178,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(vars["value"].getvalue(),
                cx_Oracle.Timestamp(2002, 12, 9))
 
-    def testBindInOutSetInputSizes(self):
-        "test binding in/out with set input sizes defined"
+    def test_1411_BindInOutSetInputSizes(self):
+        "1411 - test binding in/out with set input sizes defined"
         vars = self.cursor.setinputsizes(value = cx_Oracle.DATETIME)
         self.cursor.execute("""
                 begin
@@ -187,8 +189,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(vars["value"].getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 17, 16, 0, 0))
 
-    def testBindOutVar(self):
-        "test binding out with cursor.var() method"
+    def test_1412_BindOutVar(self):
+        "1412 - test binding out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.DATETIME)
         self.cursor.execute("""
                 begin
@@ -199,8 +201,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(var.getvalue(),
                cx_Oracle.Timestamp(2002, 12, 31, 12, 31, 0))
 
-    def testBindInOutVarDirectSet(self):
-        "test binding in/out with cursor.var() method"
+    def test_1413_BindInOutVarDirectSet(self):
+        "1413 - test binding in/out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.DATETIME)
         var.setvalue(0, cx_Oracle.Timestamp(2002, 12, 9, 6, 0, 0))
         self.cursor.execute("""
@@ -211,8 +213,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(var.getvalue(),
                 cx_Oracle.Timestamp(2002, 12, 14, 12, 0, 0))
 
-    def testCursorDescription(self):
-        "test cursor description is accurate"
+    def test_1414_CursorDescription(self):
+        "1414 - test cursor description is accurate"
         self.cursor.execute("select * from TestDates")
         self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
@@ -220,14 +222,14 @@ class TestCase(TestEnv.BaseTestCase):
                   ('NULLABLECOL', cx_Oracle.DB_TYPE_DATE, 23, None, None, None,
                         1) ])
 
-    def testFetchAll(self):
-        "test that fetching all of the data returns the correct results"
+    def test_1415_FetchAll(self):
+        "1415 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestDates order by IntCol")
         self.assertEqual(self.cursor.fetchall(), self.rawData)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def testFetchMany(self):
-        "test that fetching data in chunks returns the correct results"
+    def test_1416_FetchMany(self):
+        "1416 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestDates order by IntCol")
         self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
         self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
@@ -235,8 +237,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def testFetchOne(self):
-        "test that fetching a single row returns the correct results"
+    def test_1417_FetchOne(self):
+        "1417 - test that fetching a single row returns the correct results"
         self.cursor.execute("""
                 select *
                 from TestDates
@@ -248,4 +250,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

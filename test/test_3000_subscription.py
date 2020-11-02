@@ -1,8 +1,10 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing subscriptions."""
+"""
+3000 - Module for testing subscriptions
+"""
 
 import TestEnv
 
@@ -36,8 +38,8 @@ class SubscriptionData(object):
 
 class TestCase(TestEnv.BaseTestCase):
 
-    def testSubscription(self):
-        "test Subscription for insert, update, delete and truncate"
+    def test_3000_Subscription(self):
+        "3000 - test Subscription for insert, update, delete and truncate"
 
         # skip if running on the Oracle Cloud, which does not support
         # subscriptions currently
@@ -111,4 +113,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

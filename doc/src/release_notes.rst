@@ -11,12 +11,18 @@ Version 8.1 (TBD)
 #)  Updated embedded ODPI-C to `version 4.1.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-1-0-tbd>`__.
+#)  Dropped support for Python 3.5. Added support for Python 3.9.
 #)  Added internal methods for getting/setting OCI attributes that are
     otherwise not supported by cx_Oracle. These methods should only be used as
     directed by Oracle.
 #)  Minor code improvement supplied by Alex Henrie
     (`PR 472 <https://github.com/oracle/python-cx_Oracle/pull/472>`__).
-#)  Improved documentation.
+#)  Builds are now done with setuptools and most metadata has moved from
+    `setup.py` to `setup.cfg` in order to take advantage of Python packaging
+    improvements.
+#)  Tests can now be run with tox in order to automate testing of the different
+    environments that are supported.
+#)  Improved documentation and test suite.
 
 
 Version 8.0.1 (August 2020)

@@ -1,8 +1,10 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing AQ objects."""
+"""
+2700 - Module for testing AQ
+"""
 
 import TestEnv
 
@@ -47,8 +49,8 @@ class TestCase(TestEnv.BaseTestCase):
         setattr(obj, attrName, value)
         self.assertEqual(getattr(obj, attrName), value)
 
-    def testDeqEmpty(self):
-        "test dequeuing an empty queue"
+    def test_2700_DeqEmpty(self):
+        "2700 - test dequeuing an empty queue"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -59,8 +61,8 @@ class TestCase(TestEnv.BaseTestCase):
                 book)
         self.assertTrue(messageId is None)
 
-    def testDeqEnq(self):
-        "test enqueuing and dequeuing multiple messages"
+    def test_2701_DeqEnq(self):
+        "2701 - test enqueuing and dequeuing multiple messages"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         options = self.connection.enqoptions()
@@ -81,8 +83,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.connection.commit()
         self.assertEqual(results, self.bookData)
 
-    def testDeqModeRemoveNoData(self):
-        "test dequeuing with DEQ_REMOVE_NODATA option"
+    def test_2702_DeqModeRemoveNoData(self):
+        "2702 - test dequeuing with DEQ_REMOVE_NODATA option"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -104,8 +106,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertTrue(messageId is not None)
         self.assertEqual(book.TITLE, "")
 
-    def testDeqOptions(self):
-        "test getting/setting dequeue options attributes"
+    def test_2703_DeqOptions(self):
+        "2703 - test getting/setting dequeue options attributes"
         options = self.connection.deqoptions()
         self.__verifyAttribute(options, "condition", "TEST_CONDITION")
         self.__verifyAttribute(options, "consumername", "TEST_CONSUMERNAME")
@@ -119,8 +121,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.__verifyAttribute(options, "wait", 1287)
         self.__verifyAttribute(options, "msgid", b'mID')
 
-    def testDeqWithWait(self):
-        "test waiting for dequeue"
+    def test_2704_DeqWithWait(self):
+        "2704 - test waiting for dequeue"
         self.__clearBooksQueue()
         results = []
         thread = threading.Thread(target = self.__deqInThread,
@@ -139,13 +141,13 @@ class TestCase(TestEnv.BaseTestCase):
         thread.join()
         self.assertEqual(results, [(title, authors, price)])
 
-    def testEnqOptions(self):
-        "test getting/setting enqueue options attributes"
+    def test_2705_EnqOptions(self):
+        "2705 - test getting/setting enqueue options attributes"
         options = self.connection.enqoptions()
         self.__verifyAttribute(options, "visibility", cx_Oracle.ENQ_IMMEDIATE)
 
-    def testErrorsForInvalidValues(self):
-        "test errors for invalid values for options"
+    def test_2706_ErrorsForInvalidValues(self):
+        "2706 - test errors for invalid values for options"
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
         options = self.connection.enqoptions()
@@ -156,8 +158,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertRaises(TypeError, self.connection.enq, self.bookQueueName,
                 options, props, book)
 
-    def testMsgProps(self):
-        "test getting/setting message properties attributes"
+    def test_2707_MsgProps(self):
+        "2707 - test getting/setting message properties attributes"
         props = self.connection.msgproperties()
         self.__verifyAttribute(props, "correlation", "TEST_CORRELATION")
         self.__verifyAttribute(props, "delay", 60)
@@ -169,8 +171,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(props.state, cx_Oracle.MSG_READY)
         self.assertEqual(props.deliverymode, 0)
 
-    def testVisibilityModeCommit(self):
-        "test enqueue visibility option - ENQ_ON_COMMIT"
+    def test_2708_VisibilityModeCommit(self):
+        "2708 - test enqueue visibility option - ENQ_ON_COMMIT"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -195,8 +197,8 @@ class TestCase(TestEnv.BaseTestCase):
                 book)
         self.assertTrue(messageId is not None)
 
-    def testVisibilityModeImmediate(self):
-        "test enqueue visibility option - ENQ_IMMEDIATE"
+    def test_2709_VisibilityModeImmediate(self):
+        "2709 - test enqueue visibility option - ENQ_IMMEDIATE"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -219,8 +221,8 @@ class TestCase(TestEnv.BaseTestCase):
         otherConnection.commit()
         self.assertEqual(results, self.bookData[0])
 
-    def testDeliveryModeSameBuffered(self):
-        "test enqueue/dequeue delivery modes identical - buffered"
+    def test_2710_DeliveryModeSameBuffered(self):
+        "2710 - test enqueue/dequeue delivery modes identical - buffered"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -245,8 +247,8 @@ class TestCase(TestEnv.BaseTestCase):
         otherConnection.commit()
         self.assertEqual(results, self.bookData[0])
 
-    def testDeliveryModeSamePersistent(self):
-        "test enqueue/dequeue delivery modes identical - persistent"
+    def test_2711_DeliveryModeSamePersistent(self):
+        "2711 - test enqueue/dequeue delivery modes identical - persistent"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -271,8 +273,8 @@ class TestCase(TestEnv.BaseTestCase):
         otherConnection.commit()
         self.assertEqual(results, self.bookData[0])
 
-    def testDeliveryModeSamePersistentBuffered(self):
-        "test enqueue/dequeue delivery modes identical - persistent/buffered"
+    def test_2712_DeliveryModeSamePersistentBuffered(self):
+        "2712 - test enqueue/dequeue delivery modes the same"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -297,8 +299,8 @@ class TestCase(TestEnv.BaseTestCase):
         otherConnection.commit()
         self.assertEqual(results, self.bookData[0])
 
-    def testDeliveryModeDifferent(self):
-        "test enqueue/dequeue delivery modes different"
+    def test_2713_DeliveryModeDifferent(self):
+        "2713 - test enqueue/dequeue delivery modes different"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -322,8 +324,8 @@ class TestCase(TestEnv.BaseTestCase):
                 book)
         self.assertTrue(messageId is None)
 
-    def testDequeueTransformation(self):
-        "test dequeue transformation"
+    def test_2714_DequeueTransformation(self):
+        "2714 - test dequeue transformation"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -347,8 +349,8 @@ class TestCase(TestEnv.BaseTestCase):
         otherPrice = book.PRICE
         self.assertEqual(otherPrice, expectedPrice)
 
-    def testEnqueueTransformation(self):
-        "test enqueue transformation"
+    def test_2715_EnqueueTransformation(self):
+        "2715 - test enqueue transformation"
         self.__clearBooksQueue()
         booksType = self.connection.gettype("UDT_BOOK")
         book = booksType.newobject()
@@ -374,4 +376,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -8,7 +8,9 @@
 # Canada. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing string variables."""
+"""
+2500 - Module for testing string variables
+"""
 
 import TestEnv
 
@@ -35,23 +37,23 @@ class TestCase(TestEnv.BaseTestCase):
             self.rawData.append(dataTuple)
             self.dataByKey[i] = dataTuple
 
-    def testArrayWithIncreasedSize(self):
-        "test creating an array var and then increasing the internal size"
+    def test_2500_ArrayWithIncreasedSize(self):
+        "2500 - test creating array var and then increasing the internal size"
         val = ["12345678901234567890"] * 3
         arrayVar = self.cursor.arrayvar(str, len(val), 4)
         arrayVar.setvalue(0, val)
         self.assertEqual(arrayVar.getvalue(), val)
 
-    def testBindString(self):
-        "test binding in a string"
+    def test_2501_BindString(self):
+        "2501 - test binding in a string"
         self.cursor.execute("""
                 select * from TestStrings
                 where StringCol = :value""",
                 value = "String 5")
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
 
-    def testBindDifferentVar(self):
-        "test binding a different variable on second execution"
+    def test_2502_BindDifferentVar(self):
+        "2502 - test binding a different variable on second execution"
         retval_1 = self.cursor.var(cx_Oracle.STRING, 30)
         retval_2 = self.cursor.var(cx_Oracle.STRING, 30)
         self.cursor.execute("begin :retval := 'Called'; end;",
@@ -61,13 +63,13 @@ class TestCase(TestEnv.BaseTestCase):
                 retval = retval_2)
         self.assertEqual(retval_2.getvalue(), "Called")
 
-    def testExceedsNumElements(self):
-        "test exceeding the number of elements returns IndexError"
+    def test_2503_ExceedsNumElements(self):
+        "2503 - test exceeding the number of elements returns IndexError"
         var = self.cursor.var(str)
         self.assertRaises(IndexError, var.getvalue, 1)
 
-    def testBindStringAfterNumber(self):
-        "test binding in a string after setting input sizes to a number"
+    def test_2504_BindStringAfterNumber(self):
+        "2504 - test binding in a string after setting input sizes to a number"
         self.cursor.setinputsizes(value = cx_Oracle.NUMBER)
         self.cursor.execute("""
                 select * from TestStrings
@@ -75,8 +77,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = "String 6")
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[6]])
 
-    def testBindStringArrayDirect(self):
-        "test binding in a string array"
+    def test_2505_BindStringArrayDirect(self):
+        "2505 - test binding in a string array"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
         array = [r[1] for r in self.rawData]
         statement = """
@@ -95,8 +97,8 @@ class TestCase(TestEnv.BaseTestCase):
                 array = array)
         self.assertEqual(returnValue.getvalue(), 163)
 
-    def testBindStringArrayBySizes(self):
-        "test binding in a string array (with setinputsizes)"
+    def test_2506_BindStringArrayBySizes(self):
+        "2506 - test binding in a string array (with setinputsizes)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
         self.cursor.setinputsizes(array = [cx_Oracle.STRING, 10])
         array = [r[1] for r in self.rawData]
@@ -110,8 +112,8 @@ class TestCase(TestEnv.BaseTestCase):
                 array = array)
         self.assertEqual(returnValue.getvalue(), 87)
 
-    def testBindStringArrayByVar(self):
-        "test binding in a string array (with arrayvar)"
+    def test_2507_BindStringArrayByVar(self):
+        "2507 - test binding in a string array (with arrayvar)"
         returnValue = self.cursor.var(cx_Oracle.NUMBER)
         array = self.cursor.arrayvar(cx_Oracle.STRING, 10, 20)
         array.setvalue(0, [r[1] for r in self.rawData])
@@ -125,8 +127,8 @@ class TestCase(TestEnv.BaseTestCase):
                 array = array)
         self.assertEqual(returnValue.getvalue(), 88)
 
-    def testBindInOutStringArrayByVar(self):
-        "test binding in/out a string array (with arrayvar)"
+    def test_2508_BindInOutStringArrayByVar(self):
+        "2508 - test binding in/out a string array (with arrayvar)"
         array = self.cursor.arrayvar(cx_Oracle.STRING, 10, 100)
         originalData = [r[1] for r in self.rawData]
         expectedData = ["Converted element # %d originally had length %d" % \
@@ -141,8 +143,8 @@ class TestCase(TestEnv.BaseTestCase):
                 array = array)
         self.assertEqual(array.getvalue(), expectedData)
 
-    def testBindOutStringArrayByVar(self):
-        "test binding out a string array (with arrayvar)"
+    def test_2509_BindOutStringArrayByVar(self):
+        "2509 - test binding out a string array (with arrayvar)"
         array = self.cursor.arrayvar(cx_Oracle.STRING, 6, 100)
         expectedData = ["Test out element # %d" % i for i in range(1, 7)]
         self.cursor.execute("""
@@ -153,8 +155,8 @@ class TestCase(TestEnv.BaseTestCase):
                 array = array)
         self.assertEqual(array.getvalue(), expectedData)
 
-    def testBindRaw(self):
-        "test binding in a raw"
+    def test_2510_BindRaw(self):
+        "2510 - test binding in a raw"
         self.cursor.setinputsizes(value = cx_Oracle.BINARY)
         self.cursor.execute("""
                 select * from TestStrings
@@ -162,8 +164,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = "Raw 4".encode("ascii"))
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[4]])
 
-    def testBindAndFetchRowid(self):
-        "test binding (and fetching) a rowid"
+    def test_2511_BindAndFetchRowid(self):
+        "2511 - test binding (and fetching) a rowid"
         self.cursor.execute("""
                 select rowid
                 from TestStrings
@@ -176,8 +178,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = rowid)
         self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
 
-    def testBindAndFetchUniversalRowids(self):
-        "test binding (and fetching) universal rowids"
+    def test_2512_BindAndFetchUniversalRowids(self):
+        "2512 - test binding (and fetching) universal rowids"
         self.cursor.execute("truncate table TestUniversalRowids")
         data = [
             (1, "ABC" * 75, datetime.datetime(2017, 4, 11)),
@@ -203,16 +205,16 @@ class TestCase(TestEnv.BaseTestCase):
             fetchedData.extend(self.cursor.fetchall())
         self.assertEqual(fetchedData, data)
 
-    def testBindNull(self):
-        "test binding in a null"
+    def test_2513_BindNull(self):
+        "2513 - test binding in a null"
         self.cursor.execute("""
                 select * from TestStrings
                 where StringCol = :value""",
                 value = None)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def testBindOutSetInputSizesByType(self):
-        "test binding out with set input sizes defined (by type)"
+    def test_2514_BindOutSetInputSizesByType(self):
+        "2514 - test binding out with set input sizes defined (by type)"
         vars = self.cursor.setinputsizes(value = cx_Oracle.STRING)
         self.cursor.execute("""
                 begin
@@ -220,8 +222,8 @@ class TestCase(TestEnv.BaseTestCase):
                 end;""")
         self.assertEqual(vars["value"].getvalue(), "TSI")
 
-    def testBindOutSetInputSizesByInteger(self):
-        "test binding out with set input sizes defined (by integer)"
+    def test_2515_BindOutSetInputSizesByInteger(self):
+        "2515 - test binding out with set input sizes defined (by integer)"
         vars = self.cursor.setinputsizes(value = 30)
         self.cursor.execute("""
                 begin
@@ -229,8 +231,8 @@ class TestCase(TestEnv.BaseTestCase):
                 end;""")
         self.assertEqual(vars["value"].getvalue(), "TSI (I)")
 
-    def testBindInOutSetInputSizesByType(self):
-        "test binding in/out with set input sizes defined (by type)"
+    def test_2516_BindInOutSetInputSizesByType(self):
+        "2516 - test binding in/out with set input sizes defined (by type)"
         vars = self.cursor.setinputsizes(value = cx_Oracle.STRING)
         self.cursor.execute("""
                 begin
@@ -239,8 +241,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = "InVal")
         self.assertEqual(vars["value"].getvalue(), "InVal TSI")
 
-    def testBindInOutSetInputSizesByInteger(self):
-        "test binding in/out with set input sizes defined (by integer)"
+    def test_2517_BindInOutSetInputSizesByInteger(self):
+        "2517 - test binding in/out with set input sizes defined (by integer)"
         vars = self.cursor.setinputsizes(value = 30)
         self.cursor.execute("""
                 begin
@@ -249,8 +251,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = "InVal")
         self.assertEqual(vars["value"].getvalue(), "InVal TSI (I)")
 
-    def testBindOutVar(self):
-        "test binding out with cursor.var() method"
+    def test_2518_BindOutVar(self):
+        "2518 - test binding out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.STRING)
         self.cursor.execute("""
                 begin
@@ -259,8 +261,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = var)
         self.assertEqual(var.getvalue(), "TSI (VAR)")
 
-    def testBindInOutVarDirectSet(self):
-        "test binding in/out with cursor.var() method"
+    def test_2519_BindInOutVarDirectSet(self):
+        "2519 - test binding in/out with cursor.var() method"
         var = self.cursor.var(cx_Oracle.STRING)
         var.setvalue(0, "InVal")
         self.cursor.execute("""
@@ -270,8 +272,8 @@ class TestCase(TestEnv.BaseTestCase):
                 value = var)
         self.assertEqual(var.getvalue(), "InVal TSI (VAR)")
 
-    def testBindLongString(self):
-        "test that binding a long string succeeds"
+    def test_2520_BindLongString(self):
+        "2520 - test that binding a long string succeeds"
         self.cursor.setinputsizes(bigString = cx_Oracle.DB_TYPE_LONG)
         self.cursor.execute("""
                 declare
@@ -281,8 +283,8 @@ class TestCase(TestEnv.BaseTestCase):
                 end;""",
                 bigString = "X" * 10000)
 
-    def testBindLongStringAfterSettingSize(self):
-        "test that setinputsizes() returns a long variable"
+    def test_2521_BindLongStringAfterSettingSize(self):
+        "2521 - test that setinputsizes() returns a long variable"
         var = self.cursor.setinputsizes(test = 90000)["test"]
         inString = "1234567890" * 9000
         var.setvalue(0, inString)
@@ -291,8 +293,8 @@ class TestCase(TestEnv.BaseTestCase):
                 "output does not match: in was %d, out was %d" % \
                 (len(inString), len(outString)))
 
-    def testCursorDescription(self):
-        "test cursor description is accurate"
+    def test_2522_CursorDescription(self):
+        "2522 - test cursor description is accurate"
         self.cursor.execute("select * from TestStrings")
         self.assertEqual(self.cursor.description,
                 [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
@@ -307,14 +309,14 @@ class TestCase(TestEnv.BaseTestCase):
                         50 * TestEnv.GetCharSetRatio(), None,
                     None, 1) ])
 
-    def testFetchAll(self):
-        "test that fetching all of the data returns the correct results"
+    def test_2523_FetchAll(self):
+        "2523 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestStrings order by IntCol")
         self.assertEqual(self.cursor.fetchall(), self.rawData)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def testFetchMany(self):
-        "test that fetching data in chunks returns the correct results"
+    def test_2524_FetchMany(self):
+        "2524 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestStrings order by IntCol")
         self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
         self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
@@ -322,8 +324,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def testFetchOne(self):
-        "test that fetching a single row returns the correct results"
+    def test_2525_FetchOne(self):
+        "2525 - test that fetching a single row returns the correct results"
         self.cursor.execute("""
                 select *
                 from TestStrings
@@ -333,8 +335,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.fetchone(), self.dataByKey[4])
         self.assertEqual(self.cursor.fetchone(), None)
 
-    def testSupplementalCharacters(self):
-        "test that binding and fetching supplemental charcters works correctly"
+    def test_2526_SupplementalCharacters(self):
+        "2526 - test binding and fetching supplemental charcters"
         self.cursor.execute("""
                 select value
                 from nls_database_parameters
@@ -356,8 +358,8 @@ class TestCase(TestEnv.BaseTestCase):
         value, = self.cursor.fetchone()
         self.assertEqual(value, supplementalChars)
 
-    def testBindTwiceWithLargeStringSecond(self):
-        "test binding twice with a larger string the second time"
+    def test_2527_BindTwiceWithLargeStringSecond(self):
+        "2527 - test binding twice with a larger string the second time"
         self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
         shortString = "short string"
@@ -372,8 +374,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.assertEqual(self.cursor.fetchall(),
                 [(1, shortString), (2, longString)])
 
-    def testIssue50(self):
-        "test issue 50 - avoid error ORA-24816"
+    def test_2528_Issue50(self):
+        "2528 - test issue 50 - avoid error ORA-24816"
         cursor = self.connection.cursor()
         try:
             cursor.execute("drop table issue_50 purge")
@@ -402,14 +404,14 @@ class TestCase(TestEnv.BaseTestCase):
                 [2, u'd5ff845a', u'94275767', u'bf161ff6', u'', u'', idVar])
         cursor.execute("drop table issue_50 purge")
 
-    def testSetRowidToString(self):
-        "test assigning a string to rowid"
+    def test_2529_SetRowidToString(self):
+        "2529 - test assigning a string to rowid"
         var = self.cursor.var(cx_Oracle.ROWID)
         self.assertRaises(cx_Oracle.NotSupportedError, var.setvalue, 0,
                 "ABDHRYTHFJGKDKKDH")
 
-    def testShortXMLAsString(self):
-        "test fetching XMLType object as a string"
+    def test_2530_ShortXMLAsString(self):
+        "2530 - test fetching XMLType object as a string"
         self.cursor.execute("""
                 select XMLElement("string", stringCol)
                 from TestStrings
@@ -418,8 +420,8 @@ class TestCase(TestEnv.BaseTestCase):
         expectedValue = "<string>String 1</string>"
         self.assertEqual(actualValue, expectedValue)
 
-    def testLongXMLAsString(self):
-        "test inserting and fetching an XMLType object (1K) as a string"
+    def test_2531_LongXMLAsString(self):
+        "2531 - test inserting and fetching an XMLType object (1K) as a string"
         chars = string.ascii_uppercase + string.ascii_lowercase
         randomString = ''.join(random.choice(chars) for _ in range(1024))
         intVal = 200
@@ -434,4 +436,3 @@ class TestCase(TestEnv.BaseTestCase):
 
 if __name__ == "__main__":
     TestEnv.RunTestCases()
-

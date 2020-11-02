@@ -1,8 +1,10 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
-"""Module for testing AQ Bulk enqueue/dequeue."""
+"""
+2800 - Module for testing AQ Bulk enqueue/dequeue
+"""
 
 import TestEnv
 
@@ -50,8 +52,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.connection.commit()
         return queue
 
-    def testEnqAndDeq(self):
-        "test bulk enqueue and dequeue"
+    def test_2800_EnqAndDeq(self):
+        "2800 - test bulk enqueue and dequeue"
         queue = self.__getAndClearRawQueue()
         messages = [self.connection.msgproperties(payload=d) \
                 for d in RAW_PAYLOAD_DATA]
@@ -61,15 +63,15 @@ class TestCase(TestEnv.BaseTestCase):
         self.connection.commit()
         self.assertEqual(data, RAW_PAYLOAD_DATA)
 
-    def testDequeueEmpty(self):
-        "test empty bulk dequeue"
+    def test_2801_DequeueEmpty(self):
+        "2801 - test empty bulk dequeue"
         queue = self.__getAndClearRawQueue()
         messages = queue.deqMany(5)
         self.connection.commit()
         self.assertEqual(messages, [])
 
-    def testDeqWithWait(self):
-        "test bulk dequeue with wait"
+    def test_2802_DeqWithWait(self):
+        "2802 - test bulk dequeue with wait"
         queue = self.__getAndClearRawQueue()
         results = []
         thread = threading.Thread(target=self.__deqInThread, args=(results,))
@@ -81,8 +83,8 @@ class TestCase(TestEnv.BaseTestCase):
         thread.join()
         self.assertEqual(results, RAW_PAYLOAD_DATA)
 
-    def testEnqAndDeqMultipleTimes(self):
-        "test enqueue and dequeue multiple times"
+    def test_2803_EnqAndDeqMultipleTimes(self):
+        "2803 - test enqueue and dequeue multiple times"
         queue = self.__getAndClearRawQueue()
         dataToEnqueue = RAW_PAYLOAD_DATA
         for num in (2, 6, 4):
@@ -99,8 +101,8 @@ class TestCase(TestEnv.BaseTestCase):
         self.connection.commit()
         self.assertEqual(allData, RAW_PAYLOAD_DATA)
 
-    def testEnqAndDeqVisibility(self):
-        "test visibility option for enqueue and dequeue"
+    def test_2804_EnqAndDeqVisibility(self):
+        "2804 - test visibility option for enqueue and dequeue"
         queue = self.__getAndClearRawQueue()
 
         # first test with ENQ_ON_COMMIT (commit required)
