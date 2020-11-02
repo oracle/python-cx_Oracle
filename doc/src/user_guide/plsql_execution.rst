@@ -130,6 +130,43 @@ An anonymous PL/SQL block can be called as shown:
 See :ref:`bind` for information on binding.
 
 
+Creating Stored Procedures and Packages
+---------------------------------------
+
+To create PL/SQL stored procedures and packages, use :meth:`Cursor.execute()`
+with a SQL CREATE command.
+
+Creation warning messages can be found from database views like USER_ERRORS.
+
+For example, creating a procedure with an error could be like:
+
+.. code-block:: python
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+                create or replace procedure badproc (a in number) as
+                begin
+                    WRONG WRONG WRONG
+                end;""")
+        cursor.execute("""
+                select line, position, text
+                from user_errors
+                where name = 'BADPROC' and type = 'PROCEDURE'
+                order by name, type, line, position""")
+        errors = cursor.fetchall()
+        if errors:
+            for info in errors:
+                print("Error at line {} position {}:\n{}".format(*info))
+        else:
+            print("Created successfully")
+
+The output would be::
+
+    PLS-00103: Encountered the symbol "WRONG" when expecting one of the following:
+
+       := . ( @ % ;
+
+
 Using DBMS_OUTPUT
 -----------------
 
