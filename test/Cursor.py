@@ -750,5 +750,48 @@ class TestCase(TestEnv.BaseTestCase):
                 where rowid = :1""", [rowid])
         self.assertEqual("Row %s" % rows[-3], self.cursor.fetchone()[0])
 
+    def testPrefetchRows(self):
+        "test prefetch rows"
+        self.setUpRoundTripChecker()
+
+        # perform simple query and verify only one round trip is needed
+        with self.connection.cursor() as cursor:
+            cursor.execute("select sysdate from dual").fetchall()
+            self.assertRoundTrips(1)
+
+        # set prefetchrows to 1 and verify that two round trips are now needed
+        with self.connection.cursor() as cursor:
+            cursor.prefetchrows = 1
+            cursor.execute("select sysdate from dual").fetchall()
+            self.assertRoundTrips(2)
+
+        # simple DDL only requires a single round trip
+        with self.connection.cursor() as cursor:
+            cursor.execute("truncate table TestTempTable")
+            self.assertRoundTrips(1)
+
+        # array execution only requires a single round trip
+        numRows = 590
+        with self.connection.cursor() as cursor:
+            sql = "insert into TestTempTable (IntCol) values (:1)"
+            data = [(n + 1,) for n in range(numRows)]
+            cursor.executemany(sql, data)
+            self.assertRoundTrips(1)
+
+        # setting prefetch and array size to 1 requires a round-trip for each
+        # row
+        with self.connection.cursor() as cursor:
+            cursor.prefetchrows = 1
+            cursor.arraysize = 1
+            cursor.execute("select IntCol from TestTempTable").fetchall()
+            self.assertRoundTrips(numRows + 1)
+
+        # setting prefetch and array size to 300 requires 2 round-trips
+        with self.connection.cursor() as cursor:
+            cursor.prefetchrows = 300
+            cursor.arraysize = 300
+            cursor.execute("select IntCol from TestTempTable").fetchall()
+            self.assertRoundTrips(2)
+
 if __name__ == "__main__":
     TestEnv.RunTestCases()

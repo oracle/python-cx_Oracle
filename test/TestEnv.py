@@ -163,7 +163,33 @@ def GetPool(user=None, password=None, **kwargs):
 def GetClientVersion():
     return cx_Oracle.clientversion()
 
+class RoundTripInfo:
+
+    def __init__(self, connection):
+        self.prevRoundTrips = 0
+        self.adminConn = cx_Oracle.connect(GetAdminConnectString())
+        with connection.cursor() as cursor:
+            cursor.execute("select sys_context('userenv', 'sid') from dual")
+            self.sid, = cursor.fetchone()
+        self.getRoundTrips()
+
+    def getRoundTrips(self):
+        with self.adminConn.cursor() as cursor:
+            cursor.execute("""
+                    select ss.value
+                    from v$sesstat ss, v$statname sn
+                    where ss.sid = :sid
+                      and ss.statistic# = sn.statistic#
+                      and sn.name like '%roundtrip%client%'""", sid=self.sid)
+            currentRoundTrips, = cursor.fetchone()
+            diffRoundTrips = currentRoundTrips - self.prevRoundTrips
+            self.prevRoundTrips = currentRoundTrips
+            return diffRoundTrips
+
 class BaseTestCase(unittest.TestCase):
+
+    def assertRoundTrips(self, n):
+        self.assertEqual(self.roundTripInfo.getRoundTrips(), n)
 
     def getSodaDatabase(self, minclient=(18, 3), minserver=(18, 0),
             message="not supported with this client/server combination"):
@@ -190,6 +216,9 @@ class BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.connection = GetConnection()
         self.cursor = self.connection.cursor()
+
+    def setUpRoundTripChecker(self):
+        self.roundTripInfo = RoundTripInfo(self.connection)
 
     def tearDown(self):
         self.connection.close()
