@@ -47,6 +47,25 @@ static PyObject *cxoApiType_repr(cxoApiType *apiType)
 
 
 //-----------------------------------------------------------------------------
+// cxoApiType_reduce()
+//   Method provided for pickling/unpickling of API types.
+//-----------------------------------------------------------------------------
+static PyObject *cxoApiType_reduce(cxoApiType *apiType)
+{
+    return PyUnicode_DecodeASCII(apiType->name, strlen(apiType->name), NULL);
+}
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "__reduce__", (PyCFunction) cxoApiType_reduce, METH_NOARGS },
+    { NULL, NULL }
+};
+
+
+//-----------------------------------------------------------------------------
 // declaration of members
 //-----------------------------------------------------------------------------
 static PyMemberDef cxoMembers[] = {
@@ -65,5 +84,6 @@ PyTypeObject cxoPyTypeApiType = {
     .tp_dealloc = (destructor) cxoApiType_free,
     .tp_repr = (reprfunc) cxoApiType_repr,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_members = cxoMembers
+    .tp_members = cxoMembers,
+    .tp_methods = cxoMethods
 };

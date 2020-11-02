@@ -20,6 +20,7 @@ Version 8.1 (TBD)
 #)  Builds are now done with setuptools and most metadata has moved from
     `setup.py` to `setup.cfg` in order to take advantage of Python packaging
     improvements.
+#)  The ability to pickle/unpickle Database and API types has been restored.
 #)  Tests can now be run with tox in order to automate testing of the different
     environments that are supported.
 #)  Improved documentation and test suite.

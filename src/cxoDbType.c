@@ -242,6 +242,25 @@ cxoDbType *cxoDbType_fromTransformNum(cxoTransformNum transformNum)
 
 
 //-----------------------------------------------------------------------------
+// cxoDBType_reduce()
+//   Method provided for pickling/unpickling of DB types.
+//-----------------------------------------------------------------------------
+static PyObject *cxoDBType_reduce(cxoDbType *dbType)
+{
+    return PyUnicode_DecodeASCII(dbType->name, strlen(dbType->name), NULL);
+}
+
+
+//-----------------------------------------------------------------------------
+// declaration of methods
+//-----------------------------------------------------------------------------
+static PyMethodDef cxoMethods[] = {
+    { "__reduce__", (PyCFunction) cxoDBType_reduce, METH_NOARGS },
+    { NULL, NULL}
+};
+
+
+//-----------------------------------------------------------------------------
 // declaration of members
 //-----------------------------------------------------------------------------
 static PyMemberDef cxoMembers[] = {
@@ -261,6 +280,7 @@ PyTypeObject cxoPyTypeDbType = {
     .tp_repr = (reprfunc) cxoDbType_repr,
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_members = cxoMembers,
+    .tp_methods = cxoMethods,
     .tp_richcompare = (richcmpfunc) cxoDbType_richCompare,
     .tp_hash = (hashfunc) cxoDbType_hash
 };
