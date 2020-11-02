@@ -6,90 +6,90 @@
 3400 - Module for testing Simple Oracle Document Access (SODA) Collections
 """
 
-import TestEnv
+import base
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import unittest
 
-@unittest.skipIf(TestEnv.SkipSodaTests(),
+@unittest.skipIf(base.skip_soda_tests(),
                  "unsupported client/server combination")
-class TestCase(TestEnv.BaseTestCase):
+class TestCase(base.BaseTestCase):
 
-    def __testSkip(self, coll, numToSkip, expectedContent):
-        filterSpec = {'$orderby': [{'path': 'name', 'order': 'desc'}]}
-        doc = coll.find().filter(filterSpec).skip(numToSkip).getOne()
+    def __test_skip(self, coll, num_to_skip, expected_content):
+        filter_spec = {'$orderby': [{'path': 'name', 'order': 'desc'}]}
+        doc = coll.find().filter(filter_spec).skip(num_to_skip).getOne()
         content = doc.getContent() if doc is not None else None
-        self.assertEqual(content, expectedContent)
+        self.assertEqual(content, expected_content)
 
-    def test_3400_InvalidJson(self):
+    def test_3400_invalid_json(self):
         "3400 - test inserting invalid JSON value into SODA collection"
-        invalidJson = "{testKey:testValue}"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoInvalidJSON")
-        doc = sodaDatabase.createDocument(invalidJson)
-        self.assertRaises(cx_Oracle.IntegrityError, coll.insertOne, doc)
+        invalid_json = "{testKey:testValue}"
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("InvalidJSON")
+        doc = soda_db.createDocument(invalid_json)
+        self.assertRaises(oracledb.DatabaseError, coll.insertOne, doc)
         coll.drop()
 
-    def test_3401_InsertDocuments(self):
+    def test_3401_insert_documents(self):
         "3401 - test inserting documents into a SODA collection"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoInsertDocs")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoInsertDocs")
         coll.find().remove()
-        valuesToInsert = [
-            { "name" : "George", "age" : 47 },
-            { "name" : "Susan", "age" : 39 },
-            { "name" : "John", "age" : 50 },
-            { "name" : "Jill", "age" : 54 }
+        values_to_insert = [
+            {"name": "George", "age": 47},
+            {"name": "Susan", "age": 39},
+            {"name": "John", "age": 50},
+            {"name": "Jill", "age": 54}
         ]
-        insertedKeys = []
-        for value in valuesToInsert:
+        inserted_keys = []
+        for value in values_to_insert:
             doc = coll.insertOneAndGet(value)
-            insertedKeys.append(doc.key)
+            inserted_keys.append(doc.key)
         self.connection.commit()
-        self.assertEqual(coll.find().count(), len(valuesToInsert))
-        for key, value in zip(insertedKeys, valuesToInsert):
+        self.assertEqual(coll.find().count(), len(values_to_insert))
+        for key, value in zip(inserted_keys, values_to_insert):
             doc = coll.find().key(key).getOne()
             self.assertEqual(doc.getContent(), value)
         coll.drop()
 
-    def test_3402_SkipDocuments(self):
+    def test_3402_skip_documents(self):
         "3402 - test skipping documents in a SODA collection"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoSkipDocs")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoSkipDocs")
         coll.find().remove()
-        valuesToInsert = [
-            { "name" : "Anna", "age" : 62 },
-            { "name" : "Mark", "age" : 37 },
-            { "name" : "Martha", "age" : 43 },
-            { "name" : "Matthew", "age" : 28 }
+        values_to_insert = [
+            {"name": "Anna", "age": 62},
+            {"name": "Mark", "age": 37},
+            {"name": "Martha", "age": 43},
+            {"name": "Matthew", "age": 28}
         ]
-        for value in valuesToInsert:
+        for value in values_to_insert:
             coll.insertOne(value)
         self.connection.commit()
-        self.__testSkip(coll, 0, valuesToInsert[3])
-        self.__testSkip(coll, 1, valuesToInsert[2])
-        self.__testSkip(coll, 3, valuesToInsert[0])
-        self.__testSkip(coll, 4, None)
-        self.__testSkip(coll, 125, None)
+        self.__test_skip(coll, 0, values_to_insert[3])
+        self.__test_skip(coll, 1, values_to_insert[2])
+        self.__test_skip(coll, 3, values_to_insert[0])
+        self.__test_skip(coll, 4, None)
+        self.__test_skip(coll, 125, None)
 
-    def test_3403_ReplaceDocument(self):
+    def test_3403_replace_document(self):
         "3403 - test replace documents in SODA collection"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoReplaceDoc")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoReplaceDoc")
         coll.find().remove()
         content = {'name': 'John', 'address': {'city': 'Sydney'}}
         doc = coll.insertOneAndGet(content)
-        newContent = {'name': 'John', 'address': {'city':'Melbourne'}}
-        coll.find().key(doc.key).replaceOne(newContent)
+        new_content = {'name': 'John', 'address': {'city':'Melbourne'}}
+        coll.find().key(doc.key).replaceOne(new_content)
         self.connection.commit()
         self.assertEqual(coll.find().key(doc.key).getOne().getContent(),
-                newContent)
+                         new_content)
         coll.drop()
 
-    def test_3404_SearchDocumentsWithContent(self):
+    def test_3404_search_documents_with_content(self):
         "3404 - test search documents with content using $like and $regex"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoSearchDocContent")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoSearchDocContent")
         coll.find().remove()
         data = [
             {'name': 'John', 'address': {'city': 'Bangalore'}},
@@ -102,7 +102,7 @@ class TestCase(TestEnv.BaseTestCase):
         for value in data:
             coll.insertOne(value)
         self.connection.commit()
-        filterSpecs = [
+        filter_specs = [
             ({'name': {'$like': 'And%'}}, 1),
             ({'name': {'$like': 'J%n'}}, 3),
             ({'name': {'$like': '%hn%'}}, 2),
@@ -118,15 +118,15 @@ class TestCase(TestEnv.BaseTestCase):
             ({'address.city': {'$regex': 'Hyderabad'}}, 1),
             ({'name': {'$regex': 'Js.*n'}}, 0)
         ]
-        for filterSpec, expectedCount in filterSpecs:
-            self.assertEqual(coll.find().filter(filterSpec).count(),
-                    expectedCount, filterSpec)
+        for filter_spec, expected_count in filter_specs:
+            self.assertEqual(coll.find().filter(filter_spec).count(),
+                             expected_count, filter_spec)
         coll.drop()
 
-    def test_3405_DocumentRemove(self):
+    def test_3405_document_remove(self):
         "3405 - test removing documents"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoRemoveDocs")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoRemoveDocs")
         coll.find().remove()
         data = [
             {'name': 'John', 'address': {'city': 'Bangalore'}},
@@ -150,9 +150,9 @@ class TestCase(TestEnv.BaseTestCase):
 
     def test_3406_CreateAndDropIndex(self):
         "3406 - test create and drop Index"
-        indexName = "cxoTestIndexes_ix_1"
-        indexSpec =  {
-            'name': indexName,
+        index_name = "cxoTestIndexes_ix_1"
+        index_spec =  {
+            'name': index_name,
             'fields': [
                 {
                     'path': 'address.city',
@@ -161,22 +161,22 @@ class TestCase(TestEnv.BaseTestCase):
                 }
             ]
         }
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoTestIndexes")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("TestIndexes")
         coll.find().remove()
         self.connection.commit()
-        coll.dropIndex(indexName)
-        coll.createIndex(indexSpec)
-        self.assertRaises(cx_Oracle.DatabaseError, coll.createIndex, indexSpec)
-        self.assertEqual(coll.dropIndex(indexName), True)
-        self.assertEqual(coll.dropIndex(indexName), False)
+        coll.dropIndex(index_name)
+        coll.createIndex(index_spec)
+        self.assertRaises(oracledb.DatabaseError, coll.createIndex, index_spec)
+        self.assertEqual(coll.dropIndex(index_name), True)
+        self.assertEqual(coll.dropIndex(index_name), False)
         coll.drop()
 
-    def test_3407_GetDocuments(self):
+    def test_3407_get_documents(self):
         "3407 - test getting documents from Collection"
         self.connection.autocommit = True
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoTestGetDocs")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoTestGetDocs")
         coll.find().remove()
         data = [
             {'name': 'John', 'address': {'city': 'Bangalore'}},
@@ -185,31 +185,31 @@ class TestCase(TestEnv.BaseTestCase):
             {'name': 'Jibin', 'address': {'city': 'Secunderabad'}},
             {'name': 'Andrew', 'address': {'city': 'Hyderabad'}}
         ]
-        insertedKeys = list(sorted(coll.insertOneAndGet(v).key for v in data))
-        fetchedKeys = list(sorted(d.key for d in coll.find().getDocuments()))
-        self.assertEqual(fetchedKeys, insertedKeys)
+        inserted_keys = list(sorted(coll.insertOneAndGet(v).key for v in data))
+        fetched_keys = list(sorted(d.key for d in coll.find().getDocuments()))
+        self.assertEqual(fetched_keys, inserted_keys)
         coll.drop()
 
-    def test_3408_Cursor(self):
+    def test_3408_cursor(self):
         "3408 - test fetching documents from a cursor"
         self.connection.autocommit = True
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoFindViaCursor")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoFindViaCursor")
         coll.find().remove()
         data = [
             {'name': 'John', 'address': {'city': 'Bangalore'}},
             {'name': 'Johnson', 'address': {'city': 'Banaras'}},
             {'name': 'Joseph', 'address': {'city': 'Mangalore'}},
         ]
-        insertedKeys = list(sorted(coll.insertOneAndGet(v).key for v in data))
-        fetchedKeys = list(sorted(d.key for d in coll.find().getCursor()))
-        self.assertEqual(fetchedKeys, insertedKeys)
+        inserted_keys = list(sorted(coll.insertOneAndGet(v).key for v in data))
+        fetched_keys = list(sorted(d.key for d in coll.find().getCursor()))
+        self.assertEqual(fetched_keys, inserted_keys)
         coll.drop()
 
-    def test_3409_MultipleDocumentRemove(self):
+    def test_3409_multiple_document_remove(self):
         "3409 - test removing multiple documents using multiple keys"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoRemoveMultipleDocs")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoRemoveMultipleDocs")
         coll.find().remove()
         data = [
             {'name': 'John', 'address': {'city': 'Bangalore'}},
@@ -221,40 +221,40 @@ class TestCase(TestEnv.BaseTestCase):
         ]
         docs = [coll.insertOneAndGet(v) for v in data]
         keys = [docs[i].key for i in (1, 3, 5)]
-        numRemoved = coll.find().keys(keys).remove()
-        self.assertEqual(numRemoved, len(keys))
+        num_removed = coll.find().keys(keys).remove()
+        self.assertEqual(num_removed, len(keys))
         self.assertEqual(coll.find().count(), len(data) - len(keys))
         self.connection.commit()
         coll.drop()
 
-    def test_3410_DocumentVersion(self):
+    def test_3410_document_version(self):
         "3410 - test using version to get documents and remove them"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoDocumentVersion")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoDocumentVersion")
         coll.find().remove()
         content = {'name': 'John', 'address': {'city': 'Bangalore'}}
-        insertedDoc = coll.insertOneAndGet(content)
-        key = insertedDoc.key
-        version = insertedDoc.version
+        inserted_doc = coll.insertOneAndGet(content)
+        key = inserted_doc.key
+        version = inserted_doc.version
         doc = coll.find().key(key).version(version).getOne()
         self.assertEqual(doc.getContent(), content)
-        newContent = {'name': 'James', 'address': {'city': 'Delhi'}}
-        replacedDoc = coll.find().key(key).replaceOneAndGet(newContent)
-        newVersion = replacedDoc.version
+        new_content = {'name': 'James', 'address': {'city': 'Delhi'}}
+        replacedDoc = coll.find().key(key).replaceOneAndGet(new_content)
+        new_version = replacedDoc.version
         doc = coll.find().key(key).version(version).getOne()
         self.assertEqual(doc, None)
-        doc = coll.find().key(key).version(newVersion).getOne()
-        self.assertEqual(doc.getContent(), newContent)
+        doc = coll.find().key(key).version(new_version).getOne()
+        self.assertEqual(doc.getContent(), new_content)
         self.assertEqual(coll.find().key(key).version(version).remove(), 0)
-        self.assertEqual(coll.find().key(key).version(newVersion).remove(), 1)
+        self.assertEqual(coll.find().key(key).version(new_version).remove(), 1)
         self.assertEqual(coll.find().count(), 0)
         self.connection.commit()
         coll.drop()
 
-    def test_3411_GetCursor(self):
+    def test_3411_get_cursor(self):
         "3411 - test keys with GetCursor"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoKeysWithGetCursor")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoKeysWithGetCursor")
         coll.find().remove()
         data = [
             {'name': 'John', 'address': {'city': 'Bangalore'}},
@@ -266,40 +266,39 @@ class TestCase(TestEnv.BaseTestCase):
         ]
         docs = [coll.insertOneAndGet(v) for v in data]
         keys = [docs[i].key for i in (2, 4, 5)]
-        fetchedKeys = [d.key for d in coll.find().keys(keys).getCursor()]
-        self.assertEqual(list(sorted(fetchedKeys)), list(sorted(keys)))
+        fetched_keys = [d.key for d in coll.find().keys(keys).getCursor()]
+        self.assertEqual(list(sorted(fetched_keys)), list(sorted(keys)))
         self.connection.commit()
         coll.drop()
 
-    def test_3412_CreatedOn(self):
+    def test_3412_created_on(self):
         "3412 - test createdOn attribute of Document"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoCreatedOn")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("CreatedOn")
         coll.find().remove()
         data = {'name': 'John', 'address': {'city': 'Bangalore'}}
         doc = coll.insertOneAndGet(data)
         self.assertEqual(doc.createdOn, doc.lastModified)
 
-    @unittest.skipIf(TestEnv.GetClientVersion() < (20, 1),
-                     "unsupported client")
-    def test_3413_SodaTruncate(self):
+    @unittest.skipIf(base.get_client_version() < (20, 1), "unsupported client")
+    def test_3413_soda_truncate(self):
         "3413 - test Soda truncate"
-        sodaDatabase = self.connection.getSodaDatabase()
-        coll = sodaDatabase.createCollection("cxoTruncateDocs")
+        soda_db = self.connection.getSodaDatabase()
+        coll = soda_db.createCollection("cxoTruncateDocs")
         coll.find().remove()
-        valuesToInsert = [
-            { "name" : "George", "age" : 47 },
-            { "name" : "Susan", "age" : 39 },
-            { "name" : "John", "age" : 50 },
-            { "name" : "Jill", "age" : 54 }
+        values_to_insert = [
+            {"name": "George", "age": 47},
+            {"name": "Susan", "age": 39},
+            {"name": "John", "age": 50},
+            {"name": "Jill", "age": 54}
         ]
-        for value in valuesToInsert:
+        for value in values_to_insert:
             coll.insertOne(value)
         self.connection.commit()
-        self.assertEqual(coll.find().count(), len(valuesToInsert))
+        self.assertEqual(coll.find().count(), len(values_to_insert))
         coll.truncate()
         self.assertEqual(coll.find().count(), 0)
         coll.drop()
 
 if __name__ == "__main__":
-    TestEnv.RunTestCases()
+    base.run_test_cases()

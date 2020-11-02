@@ -6,40 +6,40 @@
 1000 - Module for testing top-level module methods
 """
 
-import TestEnv
+import base
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import datetime
 import time
 
-class TestCase(TestEnv.BaseTestCase):
+class TestCase(base.BaseTestCase):
+    requires_connection = False
 
-    def test_1000_DateFromTicks(self):
+    def test_1000_date_from_ticks(self):
         "1000 - test DateFromTicks()"
         today = datetime.datetime.today()
         timestamp = time.mktime(today.timetuple())
-        date = cx_Oracle.DateFromTicks(timestamp)
+        date = oracledb.DateFromTicks(timestamp)
         self.assertEqual(date, today.date())
 
-    def test_1001_FutureObj(self):
+    def test_1001_future_obj(self):
         "1001 - test management of __future__ object"
-        self.assertEqual(cx_Oracle.__future__.dummy, None)
-        cx_Oracle.__future__.dummy = "Unimportant"
-        self.assertEqual(cx_Oracle.__future__.dummy, None)
+        self.assertEqual(oracledb.__future__.dummy, None)
+        oracledb.__future__.dummy = "Unimportant"
+        self.assertEqual(oracledb.__future__.dummy, None)
 
-    def test_1002_TimestampFromTicks(self):
+    def test_1002_timestamp_from_ticks(self):
         "1002 - test TimestampFromTicks()"
         timestamp = time.mktime(datetime.datetime.today().timetuple())
         today = datetime.datetime.fromtimestamp(timestamp)
-        date = cx_Oracle.TimestampFromTicks(timestamp)
+        date = oracledb.TimestampFromTicks(timestamp)
         self.assertEqual(date, today)
 
-    def test_1003_UnsupportedFunctions(self):
+    def test_1003_unsupported_functions(self):
         "1003 - test unsupported time functions"
-        self.assertRaises(cx_Oracle.NotSupportedError, cx_Oracle.Time,
-                12, 0, 0)
-        self.assertRaises(cx_Oracle.NotSupportedError, cx_Oracle.TimeFromTicks,
-                100)
+        self.assertRaises(oracledb.NotSupportedError, oracledb.Time, 12, 0, 0)
+        self.assertRaises(oracledb.NotSupportedError, oracledb.TimeFromTicks,
+                          100)
 
 if __name__ == "__main__":
-    TestEnv.RunTestCases()
+    base.run_test_cases()

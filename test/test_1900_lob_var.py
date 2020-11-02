@@ -11,14 +11,13 @@
 1900 - Module for testing LOB (CLOB and BLOB) variables
 """
 
-import TestEnv
+import base
 
-import cx_Oracle
-import sys
+import cx_Oracle as oracledb
 
-class TestCase(TestEnv.BaseTestCase):
+class TestCase(base.BaseTestCase):
 
-    def __GetTempLobs(self, sid):
+    def __get_temp_lobs(self, sid):
         cursor = self.connection.cursor()
         cursor.execute("""
                 select abstract_lobs
@@ -29,60 +28,60 @@ class TestCase(TestEnv.BaseTestCase):
             return 0
         return int(row[0])
 
-    def __PerformTest(self, lobType, inputType):
-        longString = ""
-        directType = getattr(cx_Oracle, lobType)
-        self.cursor.execute("truncate table Test%ss" % lobType)
+    def __perform_test(self, lob_type, input_type):
+        long_string = ""
+        db_type = getattr(oracledb, "DB_TYPE_" + lob_type)
+        self.cursor.execute("truncate table Test%ss" % lob_type)
         for i in range(0, 11):
             if i > 0:
                 char = chr(ord('A') + i - 1)
-                longString += char * 25000
-            elif inputType != directType:
+                long_string += char * 25000
+            elif input_type is not db_type:
                 continue
-            self.cursor.setinputsizes(longString = inputType)
-            if lobType == "BLOB" and sys.version_info[0] >= 3:
-                bindValue = longString.encode("ascii")
+            self.cursor.setinputsizes(long_string = input_type)
+            if lob_type == "BLOB":
+                bind_value = long_string.encode()
             else:
-                bindValue = longString
+                bind_value = long_string
             self.cursor.execute("""
                     insert into Test%ss (
                       IntCol,
                       %sCol
                     ) values (
-                      :integerValue,
-                      :longString
-                    )""" % (lobType, lobType),
-                    integerValue = i,
-                    longString = bindValue)
+                      :integer_value,
+                      :long_string
+                    )""" % (lob_type, lob_type),
+                    integer_value=i,
+                    long_string=bind_value)
         self.connection.commit()
         self.cursor.execute("""
                 select *
                 from Test%ss
-                order by IntCol""" % lobType)
-        self.__ValidateQuery(self.cursor, lobType)
+                order by IntCol""" % lob_type)
+        self.__validate_query(self.cursor, lob_type)
 
-    def __TestLobOperations(self, lobType):
-        self.cursor.execute("truncate table Test%ss" % lobType)
-        self.cursor.setinputsizes(longString = getattr(cx_Oracle, lobType))
-        longString = "X" * 75000
-        writeValue = "TEST"
-        if lobType == "BLOB" and sys.version_info[0] >= 3:
-            longString = longString.encode("ascii")
-            writeValue = writeValue.encode("ascii")
+    def __test_lob_operations(self, lob_type):
+        self.cursor.execute("truncate table Test%ss" % lob_type)
+        self.cursor.setinputsizes(long_string=getattr(oracledb, lob_type))
+        long_string = "X" * 75000
+        write_value = "TEST"
+        if lob_type == "BLOB":
+            long_string = long_string.encode("ascii")
+            write_value = write_value.encode("ascii")
         self.cursor.execute("""
                 insert into Test%ss (
                   IntCol,
                   %sCol
                 ) values (
-                  :integerValue,
-                  :longString
-                )""" % (lobType, lobType),
-                integerValue = 1,
-                longString = longString)
+                  :integer_value,
+                  :long_string
+                )""" % (lob_type, lob_type),
+                integer_value=1,
+                long_string=long_string)
         self.cursor.execute("""
                 select %sCol
                 from Test%ss
-                where IntCol = 1""" % (lobType, lobType))
+                where IntCol = 1""" % (lob_type, lob_type))
         lob, = self.cursor.fetchone()
         self.assertEqual(lob.isopen(), False)
         lob.open()
@@ -90,173 +89,178 @@ class TestCase(TestEnv.BaseTestCase):
         lob.close()
         self.assertEqual(lob.isopen(), False)
         self.assertEqual(lob.size(), 75000)
-        lob.write(writeValue, 75001)
-        self.assertEqual(lob.size(), 75000 + len(writeValue))
-        self.assertEqual(lob.read(), longString + writeValue)
-        lob.write(writeValue, 1)
-        self.assertEqual(lob.read(), writeValue + longString[4:] + writeValue)
+        lob.write(write_value, 75001)
+        self.assertEqual(lob.size(), 75000 + len(write_value))
+        self.assertEqual(lob.read(), long_string + write_value)
+        lob.write(write_value, 1)
+        self.assertEqual(lob.read(),
+                         write_value + long_string[4:] + write_value)
         lob.trim(25000)
         self.assertEqual(lob.size(), 25000)
         lob.trim()
         self.assertEqual(lob.size(), 0)
 
-    def __TestTemporaryLOB(self, lobType):
-        self.cursor.execute("truncate table Test%ss" % lobType)
+    def __test_temporary_lob(self, lob_type):
+        self.cursor.execute("truncate table Test%ss" % lob_type)
         value = "A test string value"
-        if lobType == "BLOB" and sys.version_info[0] >= 3:
+        if lob_type == "BLOB":
             value = value.encode("ascii")
-        lobTypeObj = getattr(cx_Oracle, lobType)
-        lob = self.connection.createlob(lobTypeObj)
+        db_type = getattr(oracledb, "DB_TYPE_" + lob_type)
+        lob = self.connection.createlob(db_type)
         lob.write(value)
         self.cursor.execute("""
                 insert into Test%ss (IntCol, %sCol)
-                values (:intVal, :lobVal)""" % (lobType, lobType),
-                intVal = 1,
-                lobVal = lob)
-        self.cursor.execute("select %sCol from Test%ss" % (lobType, lobType))
+                values (:int_val, :lob_val)""" % (lob_type, lob_type),
+                int_val=1,
+                lob_val=lob)
+        self.cursor.execute("select %sCol from Test%ss" % (lob_type, lob_type))
         lob, = self.cursor.fetchone()
         self.assertEqual(lob.read(), value)
 
-    def __ValidateQuery(self, rows, lobType):
-        longString = ""
-        dbType = getattr(cx_Oracle, "DB_TYPE_" + lobType)
+    def __validate_query(self, rows, lob_type):
+        long_string = ""
+        db_type = getattr(oracledb, "DB_TYPE_" + lob_type)
         for row in rows:
-            integerValue, lob = row
-            self.assertEqual(lob.type, dbType)
-            if integerValue == 0:
+            integer_value, lob = row
+            self.assertEqual(lob.type, db_type)
+            if integer_value == 0:
                 self.assertEqual(lob.size(), 0)
-                expectedValue = ""
-                if lobType == "BLOB" and sys.version_info[0] >= 3:
-                    expectedValue = expectedValue.encode("ascii")
-                self.assertEqual(lob.read(), expectedValue)
+                expected_value = ""
+                if lob_type == "BLOB":
+                    expected_value = expected_value.encode()
+                self.assertEqual(lob.read(), expected_value)
             else:
-                char = chr(ord('A') + integerValue - 1)
-                prevChar = chr(ord('A') + integerValue - 2)
-                longString += char * 25000
-                if lobType == "BLOB" and sys.version_info[0] >= 3:
-                    actualValue = longString.encode("ascii")
+                char = chr(ord('A') + integer_value - 1)
+                prev_char = chr(ord('A') + integer_value - 2)
+                long_string += char * 25000
+                if lob_type == "BLOB":
+                    actualValue = long_string.encode("ascii")
                     char = char.encode("ascii")
-                    prevChar = prevChar.encode("ascii")
+                    prev_char = prev_char.encode("ascii")
                 else:
-                    actualValue = longString
+                    actualValue = long_string
                 self.assertEqual(lob.size(), len(actualValue))
                 self.assertEqual(lob.read(), actualValue)
-                if lobType == "CLOB":
+                if lob_type == "CLOB":
                     self.assertEqual(str(lob), actualValue)
                 self.assertEqual(lob.read(len(actualValue)), char)
-            if integerValue > 1:
-                offset = (integerValue - 1) * 25000 - 4
-                string = prevChar * 5 + char * 5
+            if integer_value > 1:
+                offset = (integer_value - 1) * 25000 - 4
+                string = prev_char * 5 + char * 5
                 self.assertEqual(lob.read(offset, 10), string)
 
-    def test_1900_BindLobValue(self):
+    def test_1900_bind_lob_value(self):
         "1900 - test binding a LOB value directly"
         self.cursor.execute("truncate table TestCLOBs")
         self.cursor.execute("insert into TestCLOBs values (1, 'Short value')")
         self.cursor.execute("select ClobCol from TestCLOBs")
         lob, = self.cursor.fetchone()
         self.cursor.execute("insert into TestCLOBs values (2, :value)",
-                value = lob)
+                            value=lob)
 
-    def test_1901_BLOBCursorDescription(self):
+    def test_1901_blob_cursor_description(self):
         "1901 - test cursor description is accurate for BLOBs"
         self.cursor.execute("select * from TestBLOBs")
-        self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-                  ('BLOBCOL', cx_Oracle.DB_TYPE_BLOB, None, None, None, None,
-                        0) ])
+        expected_value = [
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+            ('BLOBCOL', oracledb.DB_TYPE_BLOB, None, None, None, None, 0)
+        ]
+        self.assertEqual(self.cursor.description, expected_value)
 
-    def test_1902_BLOBsDirect(self):
+    def test_1902_blob_direct(self):
         "1902 - test binding and fetching BLOB data (directly)"
-        self.__PerformTest("BLOB", cx_Oracle.DB_TYPE_BLOB)
+        self.__perform_test("BLOB", oracledb.DB_TYPE_BLOB)
 
-    def test_1903_BLOBsIndirect(self):
+    def test_1903_blob_indirect(self):
         "1903 - test binding and fetching BLOB data (indirectly)"
-        self.__PerformTest("BLOB", cx_Oracle.DB_TYPE_LONG_RAW)
+        self.__perform_test("BLOB", oracledb.DB_TYPE_LONG_RAW)
 
-    def test_1904_BLOBOperations(self):
+    def test_1904_blob_operations(self):
         "1904 - test operations on BLOBs"
-        self.__TestLobOperations("BLOB")
+        self.__test_lob_operations("BLOB")
 
-    def test_1905_CLOBCursorDescription(self):
+    def test_1905_clob_cursor_description(self):
         "1905 - test cursor description is accurate for CLOBs"
         self.cursor.execute("select * from TestCLOBs")
-        self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-                  ('CLOBCOL', cx_Oracle.DB_TYPE_CLOB, None, None, None, None,
-                        0) ])
+        expected_value = [
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+            ('CLOBCOL', oracledb.DB_TYPE_CLOB, None, None, None, None, 0)
+        ]
+        self.assertEqual(self.cursor.description, expected_value)
 
-    def test_1906_CLOBsDirect(self):
+    def test_1906_clob_direct(self):
         "1906 - test binding and fetching CLOB data (directly)"
-        self.__PerformTest("CLOB", cx_Oracle.DB_TYPE_CLOB)
+        self.__perform_test("CLOB", oracledb.DB_TYPE_CLOB)
 
-    def test_1907_CLOBsIndirect(self):
+    def test_1907_clob_indirect(self):
         "1907 - test binding and fetching CLOB data (indirectly)"
-        self.__PerformTest("CLOB", cx_Oracle.DB_TYPE_LONG)
+        self.__perform_test("CLOB", oracledb.DB_TYPE_LONG)
 
-    def test_1908_CLOBOperations(self):
+    def test_1908_clob_operations(self):
         "1908 - test operations on CLOBs"
-        self.__TestLobOperations("CLOB")
+        self.__test_lob_operations("CLOB")
 
-    def test_1909_CreateBlob(self):
+    def test_1909_create_temp_blob(self):
         "1909 - test creating a temporary BLOB"
-        self.__TestTemporaryLOB("BLOB")
+        self.__test_temporary_lob("BLOB")
 
-    def test_1910_CreateClob(self):
+    def test_1910_create_temp_clob(self):
         "1910 - test creating a temporary CLOB"
-        self.__TestTemporaryLOB("CLOB")
+        self.__test_temporary_lob("CLOB")
 
-    def test_1911_CreateNclob(self):
+    def test_1911_create_temp_nclob(self):
         "1911 - test creating a temporary NCLOB"
-        self.__TestTemporaryLOB("NCLOB")
+        self.__test_temporary_lob("NCLOB")
 
-    def test_1912_MultipleFetch(self):
+    def test_1912_multiple_fetch(self):
         "1912 - test retrieving data from a CLOB after multiple fetches"
         self.cursor.arraysize = 1
         self.cursor.execute("select * from TestCLOBS")
         rows = self.cursor.fetchall()
-        self.__ValidateQuery(rows, "CLOB")
+        self.__validate_query(rows, "CLOB")
 
-    def test_1913_NCLOBCursorDescription(self):
+    def test_1913_nclob_cursor_description(self):
         "1913 - test cursor description is accurate for NCLOBs"
         self.cursor.execute("select * from TestNCLOBs")
-        self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-                  ('NCLOBCOL', cx_Oracle.DB_TYPE_NCLOB, None, None, None, None,
-                      0) ])
+        expected_value = [
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+            ('NCLOBCOL', oracledb.DB_TYPE_NCLOB, None, None, None, None, 0)
+        ]
+        self.assertEqual(self.cursor.description, expected_value)
 
-    def test_1914_NCLOBsDirect(self):
+    def test_1914_nclob_direct(self):
         "1914 - test binding and fetching NCLOB data (directly)"
-        self.__PerformTest("NCLOB", cx_Oracle.DB_TYPE_NCLOB)
+        self.__perform_test("NCLOB", oracledb.DB_TYPE_NCLOB)
 
-    def test_1915_NCLOBDifferentEncodings(self):
+    def test_1915_nclob_different_encodings(self):
         "1915 - test binding and fetching NCLOB data (different encodings)"
-        connection = cx_Oracle.connect(TestEnv.GetMainUser(),
-                TestEnv.GetMainPassword(), TestEnv.GetConnectString(),
-                encoding = "UTF-8", nencoding = "UTF-16")
+        connection = oracledb.connect(base.get_main_user(),
+                                      base.get_main_password(),
+                                      base.get_connect_string(),
+                                      encoding="UTF-8", nencoding="UTF-16")
         value = "\u03b4\u4e2a"
         cursor = connection.cursor()
         cursor.execute("truncate table TestNCLOBs")
-        cursor.setinputsizes(val = cx_Oracle.DB_TYPE_NVARCHAR)
-        cursor.execute("insert into TestNCLOBs values (1, :val)", val = value)
+        cursor.setinputsizes(val=oracledb.DB_TYPE_NVARCHAR)
+        cursor.execute("insert into TestNCLOBs values (1, :val)", val=value)
         cursor.execute("select NCLOBCol from TestNCLOBs")
         nclob, = cursor.fetchone()
-        cursor.setinputsizes(val = cx_Oracle.DB_TYPE_NVARCHAR)
+        cursor.setinputsizes(val=oracledb.DB_TYPE_NVARCHAR)
         cursor.execute("update TestNCLOBs set NCLOBCol = :val",
-                val = nclob.read() + value)
+                       val=nclob.read() + value)
         cursor.execute("select NCLOBCol from TestNCLOBs")
         nclob, = cursor.fetchone()
         self.assertEqual(nclob.read(), value + value)
 
-    def test_1916_NCLOBsIndirect(self):
+    def test_1916_nclob_indirect(self):
         "1916 - test binding and fetching NCLOB data (indirectly)"
-        self.__PerformTest("NCLOB", cx_Oracle.DB_TYPE_LONG)
+        self.__perform_test("NCLOB", oracledb.DB_TYPE_LONG)
 
-    def test_1917_NCLOBOperations(self):
+    def test_1917_nclob_operations(self):
         "1917 - test operations on NCLOBs"
-        self.__TestLobOperations("NCLOB")
+        self.__test_lob_operations("NCLOB")
 
-    def test_1918_TemporaryLobs(self):
+    def test_1918_temporary_lobs(self):
         "1918 - test temporary LOBs"
         cursor = self.connection.cursor()
         cursor.arraysize = self.cursor.arraysize
@@ -264,8 +268,8 @@ class TestCase(TestEnv.BaseTestCase):
                 select sys_context('USERENV', 'SID')
                 from dual""")
         sid, = cursor.fetchone()
-        tempLobs = self.__GetTempLobs(sid)
-        self.assertEqual(tempLobs, 0)
+        temp_lobs = self.__get_temp_lobs(sid)
+        self.assertEqual(temp_lobs, 0)
         cursor.execute("""
                 select extract(xmlcol, '/').getclobval()
                 from TestXML""")
@@ -273,13 +277,13 @@ class TestCase(TestEnv.BaseTestCase):
             value = lob.read()
             del lob
         cursor.close()
-        tempLobs = self.__GetTempLobs(sid)
-        self.assertEqual(tempLobs, 0)
+        temp_lobs = self.__get_temp_lobs(sid)
+        self.assertEqual(temp_lobs, 0)
 
     def test_1919_AssignStringBeyondArraySize(self):
         "1919 - test assign string to NCLOB beyond array size"
-        nclobVar = self.cursor.var(cx_Oracle.DB_TYPE_NCLOB)
+        nclobVar = self.cursor.var(oracledb.DB_TYPE_NCLOB)
         self.assertRaises(IndexError, nclobVar.setvalue, 1, "test char")
 
 if __name__ == "__main__":
-    TestEnv.RunTestCases()
+    base.run_test_cases()

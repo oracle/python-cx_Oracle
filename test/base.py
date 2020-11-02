@@ -44,7 +44,8 @@
 # user for on premises databases is SYSTEM.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
+
 import getpass
 import os
 import sys
@@ -60,136 +61,137 @@ DEFAULT_CONNECT_STRING = "localhost/orclpdb1"
 # directly) and then stored so that a value is not requested more than once
 PARAMETERS = {}
 
-def GetValue(name, label, defaultValue=""):
+def get_value(name, label, default_value=""):
     value = PARAMETERS.get(name)
     if value is not None:
         return value
-    envName = "CX_ORACLE_TEST_" + name
-    value = os.environ.get(envName)
+    env_name = "CX_ORACLE_TEST_" + name
+    value = os.environ.get(env_name)
     if value is None:
-        if defaultValue:
-            label += " [%s]" % defaultValue
+        if default_value:
+            label += " [%s]" % default_value
         label += ": "
-        if defaultValue:
+        if default_value:
             value = input(label).strip()
         else:
             value = getpass.getpass(label)
         if not value:
-            value = defaultValue
+            value = default_value
     PARAMETERS[name] = value
     return value
 
-def GetMainUser():
-    return GetValue("MAIN_USER", "Main User Name", DEFAULT_MAIN_USER)
+def get_admin_connect_string():
+    admin_user = get_value("ADMIN_USER", "Administrative user", "admin")
+    admin_password = get_value("ADMIN_PASSWORD",
+                               "Password for %s" % admin_user)
+    return "%s/%s@%s" % (admin_user, admin_password, get_connect_string())
 
-def GetMainPassword():
-    return GetValue("MAIN_PASSWORD", "Password for %s" % GetMainUser())
-
-def GetProxyUser():
-    return GetValue("PROXY_USER", "Proxy User Name", DEFAULT_PROXY_USER)
-
-def GetProxyPassword():
-    return GetValue("PROXY_PASSWORD", "Password for %s" % GetProxyUser())
-
-def GetConnectString():
-    return GetValue("CONNECT_STRING", "Connect String", DEFAULT_CONNECT_STRING)
-
-def GetCharSetRatio():
+def get_charset_ratio():
     value = PARAMETERS.get("CS_RATIO")
     if value is None:
-        connection = GetConnection()
+        connection = get_connection()
         cursor = connection.cursor()
         cursor.execute("select 'X' from dual")
-        col, = cursor.description
-        value = col[3]
-        PARAMETERS["CS_RATIO"] = value
+        column_info, = cursor.description
+        value = PARAMETERS["CS_RATIO"] = column_info[3]
     return value
 
-def GetAdminConnectString():
-    adminUser = GetValue("ADMIN_USER", "Administrative user", "admin")
-    adminPassword = GetValue("ADMIN_PASSWORD", "Password for %s" % adminUser)
-    return "%s/%s@%s" % (adminUser, adminPassword, GetConnectString())
+def get_client_version():
+    name = "CLIENT_VERSION"
+    value = PARAMETERS.get(name)
+    if value is None:
+        value = oracledb.clientversion()[:2]
+        PARAMETERS[name] = value
+    return value
 
-def RunSqlScript(conn, scriptName, **kwargs):
-    statementParts = []
+def get_connection(**kwargs):
+    return oracledb.connect(dsn=get_connect_string(), user=get_main_user(),
+                            password=get_main_password(), **kwargs)
+
+def get_connect_string():
+    return get_value("CONNECT_STRING", "Connect String",
+                     DEFAULT_CONNECT_STRING)
+
+def get_main_password():
+    return get_value("MAIN_PASSWORD", "Password for %s" % get_main_user())
+
+def get_main_user():
+    return get_value("MAIN_USER", "Main User Name", DEFAULT_MAIN_USER)
+
+def get_pool(user=None, password=None, **kwargs):
+    if user is None:
+        user = get_main_user()
+    if password is None:
+        password = get_main_password()
+    return oracledb.SessionPool(user, password, get_connect_string(),
+                                **kwargs)
+
+def get_proxy_password():
+    return get_value("PROXY_PASSWORD", "Password for %s" % get_proxy_user())
+
+def get_proxy_user():
+    return get_value("PROXY_USER", "Proxy User Name", DEFAULT_PROXY_USER)
+
+def get_server_version():
+    name = "SERVER_VERSION"
+    value = PARAMETERS.get(name)
+    if value is None:
+        conn = get_connection()
+        value = tuple(int(s) for s in conn.version.split("."))[:2]
+        PARAMETERS[name] = value
+    return value
+
+def run_sql_script(conn, script_name, **kwargs):
+    statement_parts = []
     cursor = conn.cursor()
-    replaceValues = [("&" + k + ".", v) for k, v in kwargs.items()] + \
-            [("&" + k, v) for k, v in kwargs.items()]
-    scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-    fileName = os.path.join(scriptDir, "sql", scriptName + "Exec.sql")
-    for line in open(fileName):
+    replace_values = [("&" + k + ".", v) for k, v in kwargs.items()] + \
+                     [("&" + k, v) for k, v in kwargs.items()]
+    script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    file_name = os.path.join(script_dir, "sql", script_name + "Exec.sql")
+    for line in open(file_name):
         if line.strip() == "/":
-            statement = "".join(statementParts).strip()
+            statement = "".join(statement_parts).strip()
             if statement:
-                for searchValue, replaceValue in replaceValues:
-                    statement = statement.replace(searchValue, replaceValue)
+                for search_value, replace_value in replace_values:
+                    statement = statement.replace(search_value, replace_value)
                 try:
                     cursor.execute(statement)
                 except:
                     print("Failed to execute SQL:", statement)
                     raise
-            statementParts = []
+            statement_parts = []
         else:
-            statementParts.append(line)
+            statement_parts.append(line)
     cursor.execute("""
             select name, type, line, position, text
             from dba_errors
             where owner = upper(:owner)
             order by name, type, line, position""",
-            owner = GetMainUser())
-    prevName = prevObjType = None
-    for name, objType, lineNum, position, text in cursor:
-        if name != prevName or objType != prevObjType:
-            print("%s (%s)" % (name, objType))
-            prevName = name
-            prevObjType = objType
-        print("    %s/%s %s" % (lineNum, position, text))
+            owner = get_main_user())
+    prev_name = prev_obj_type = None
+    for name, obj_type, line_num, position, text in cursor:
+        if name != prev_name or obj_type != prev_obj_type:
+            print("%s (%s)" % (name, obj_type))
+            prev_name = name
+            prev_obj_type = obj_type
+        print("    %s/%s %s" % (line_num, position, text))
 
-def RunTestCases():
-    print("Running tests for cx_Oracle version", cx_Oracle.version,
-            "built at", cx_Oracle.buildtime)
-    print("File:", cx_Oracle.__file__)
+def run_test_cases():
+    print("Running tests for cx_Oracle version", oracledb.version,
+            "built at", oracledb.buildtime)
+    print("File:", oracledb.__file__)
     print("Client Version:",
-            ".".join(str(i) for i in cx_Oracle.clientversion()))
-    with GetConnection() as connection:
+            ".".join(str(i) for i in oracledb.clientversion()))
+    with get_connection() as connection:
         print("Server Version:", connection.version)
         print()
     unittest.main(testRunner=unittest.TextTestRunner(verbosity=2))
 
-def GetConnection(**kwargs):
-    return cx_Oracle.connect(GetMainUser(), GetMainPassword(),
-            GetConnectString(), encoding="UTF-8", nencoding="UTF-8", **kwargs)
-
-def GetPool(user=None, password=None, **kwargs):
-    if user is None:
-        user = GetMainUser()
-    if password is None:
-        password = GetMainPassword()
-    return cx_Oracle.SessionPool(user, password, GetConnectString(),
-            encoding="UTF-8", nencoding="UTF-8", **kwargs)
-
-def GetClientVersion():
-    name = "CLIENT_VERSION"
-    value = PARAMETERS.get(name)
-    if value is None:
-        value = cx_Oracle.clientversion()[:2]
-        PARAMETERS[name] = value
-    return value
-
-def GetServerVersion():
-    name = "SERVER_VERSION"
-    value = PARAMETERS.get(name)
-    if value is None:
-        conn = GetConnection()
-        value = tuple(int(s) for s in conn.version.split("."))[:2]
-        PARAMETERS[name] = value
-    return value
-
-def SkipSodaTests():
-    client = GetClientVersion()
+def skip_soda_tests():
+    client = get_client_version()
     if client < (18, 3):
         return True
-    server = GetServerVersion()
+    server = get_server_version()
     if server < (18, 0):
         return True
     if server > (20, 1) and client < (20, 1):
@@ -199,68 +201,65 @@ def SkipSodaTests():
 class RoundTripInfo:
 
     def __init__(self, connection):
-        self.prevRoundTrips = 0
-        self.adminConn = cx_Oracle.connect(GetAdminConnectString())
+        self.prev_round_trips = 0
+        self.admin_conn = oracledb.connect(get_admin_connect_string())
         with connection.cursor() as cursor:
             cursor.execute("select sys_context('userenv', 'sid') from dual")
             self.sid, = cursor.fetchone()
-        self.getRoundTrips()
+        self.get_round_trips()
 
-    def getRoundTrips(self):
-        with self.adminConn.cursor() as cursor:
+    def get_round_trips(self):
+        with self.admin_conn.cursor() as cursor:
             cursor.execute("""
                     select ss.value
                     from v$sesstat ss, v$statname sn
                     where ss.sid = :sid
                       and ss.statistic# = sn.statistic#
                       and sn.name like '%roundtrip%client%'""", sid=self.sid)
-            currentRoundTrips, = cursor.fetchone()
-            diffRoundTrips = currentRoundTrips - self.prevRoundTrips
-            self.prevRoundTrips = currentRoundTrips
-            return diffRoundTrips
+            current_round_trips, = cursor.fetchone()
+            diff_round_trips = current_round_trips - self.prev_round_trips
+            self.prev_round_trips = current_round_trips
+            return diff_round_trips
 
 class BaseTestCase(unittest.TestCase):
+    requires_connection = True
 
     def assertRoundTrips(self, n):
-        self.assertEqual(self.roundTripInfo.getRoundTrips(), n)
+        self.assertEqual(self.round_trip_info.get_round_trips(), n)
 
-    def getSodaDatabase(self, minclient=(18, 3), minserver=(18, 0),
-            message="not supported with this client/server combination"):
-        client = cx_Oracle.clientversion()[:2]
+    def get_soda_database(self, minclient=(18, 3), minserver=(18, 0),
+                          message="not supported with this client/server " \
+                                  "combination"):
+        client = get_client_version()
         if client < minclient:
             self.skipTest(message)
-        server = tuple(int(s) for s in self.connection.version.split("."))[:2]
+        server = get_server_version()
         if server < minserver:
             self.skipTest(message)
         if server > (20, 1) and client < (20, 1):
             self.skipTest(message)
         return self.connection.getSodaDatabase()
 
-    def isOnOracleCloud(self, connection=None):
+    def is_on_oracle_cloud(self, connection=None):
         if connection is None:
             connection = self.connection
         cursor = connection.cursor()
         cursor.execute("""
                 select sys_context('userenv', 'service_name')
                 from dual""")
-        serviceName, = cursor.fetchone()
-        return serviceName.endswith("oraclecloud.com")
+        service_name, = cursor.fetchone()
+        return service_name.endswith("oraclecloud.com")
 
     def setUp(self):
-        self.connection = GetConnection()
-        self.cursor = self.connection.cursor()
+        if self.requires_connection:
+            self.connection = get_connection()
+            self.cursor = self.connection.cursor()
 
-    def setUpRoundTripChecker(self):
-        self.roundTripInfo = RoundTripInfo(self.connection)
+    def setup_round_trip_checker(self):
+        self.round_trip_info = RoundTripInfo(self.connection)
 
     def tearDown(self):
-        self.connection.close()
-        del self.cursor
-        del self.connection
-
-
-def load_tests(loader, standard_tests, pattern):
-    return loader.discover(os.path.dirname(__file__))
-
-if __name__ == "__main__":
-    RunTestCases()
+        if self.requires_connection:
+            self.connection.close()
+            del self.cursor
+            del self.connection

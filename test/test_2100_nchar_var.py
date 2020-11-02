@@ -11,151 +11,146 @@
 2100 - Module for testing NCHAR variables
 """
 
-import TestEnv
+import base
 
-import cx_Oracle
+import cx_Oracle as oracledb
 
-class TestCase(TestEnv.BaseTestCase):
+class TestCase(base.BaseTestCase):
 
     def setUp(self):
-        TestEnv.BaseTestCase.setUp(self)
-        self.rawData = []
-        self.dataByKey = {}
+        super().setUp()
+        self.raw_data = []
+        self.data_by_key = {}
         for i in range(1, 11):
-            unicodeCol = "Unicode \u3042 %d" % i
-            fixedCharCol = ("Fixed Unicode %d" % i).ljust(40)
+            unicode_col = "Unicode \u3042 %d" % i
+            fixed_char_col = ("Fixed Unicode %d" % i).ljust(40)
             if i % 2:
-                nullableCol = "Nullable %d" % i
+                nullable_col = "Nullable %d" % i
             else:
-                nullableCol = None
-            dataTuple = (i, unicodeCol, fixedCharCol, nullableCol)
-            self.rawData.append(dataTuple)
-            self.dataByKey[i] = dataTuple
+                nullable_col = None
+            data_tuple = (i, unicode_col, fixed_char_col, nullable_col)
+            self.raw_data.append(data_tuple)
+            self.data_by_key[i] = data_tuple
 
-    def test_2100_UnicodeLength(self):
+    def test_2100_unicode_length(self):
         "2100 - test value length"
-        returnValue = self.cursor.var(int)
+        return_value = self.cursor.var(int)
         self.cursor.execute("""
                 begin
                   :retval := LENGTH(:value);
                 end;""",
-                value = "InVal \u3042",
-                retval = returnValue)
-        self.assertEqual(returnValue.getvalue(), 7)
+                value="InVal \u3042",
+                retval=return_value)
+        self.assertEqual(return_value.getvalue(), 7)
 
-    def test_2101_BindUnicode(self):
+    def test_2101_bind_unicode(self):
         "2101 - test binding in a unicode"
-        self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_NVARCHAR)
+        self.cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute("""
                 select * from TestUnicodes
                 where UnicodeCol = :value""",
-                value = "Unicode \u3042 5")
-        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
+                value="Unicode \u3042 5")
+        self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
 
-    def test_2102_BindDifferentVar(self):
+    def test_2102_bind_different_var(self):
         "2102 - test binding a different variable on second execution"
-        retval_1 = self.cursor.var(cx_Oracle.DB_TYPE_NVARCHAR, 30)
-        retval_2 = self.cursor.var(cx_Oracle.DB_TYPE_NVARCHAR, 30)
+        retval_1 = self.cursor.var(oracledb.DB_TYPE_NVARCHAR, 30)
+        retval_2 = self.cursor.var(oracledb.DB_TYPE_NVARCHAR, 30)
         self.cursor.execute(r"begin :retval := unistr('Called \3042'); end;",
-                retval = retval_1)
+                            retval=retval_1)
         self.assertEqual(retval_1.getvalue(), "Called \u3042")
-        self.cursor.execute("begin :retval := 'Called'; end;",
-                retval = retval_2)
+        self.cursor.execute("begin :retval := 'Called'; end;", retval=retval_2)
         self.assertEqual(retval_2.getvalue(), "Called")
 
-    def test_2103_BindUnicodeAfterNumber(self):
+    def test_2103_bind_unicode_after_number(self):
         "2103 - test binding in a string after setting input sizes to a number"
-        unicodeVal = self.cursor.var(cx_Oracle.DB_TYPE_NVARCHAR)
-        unicodeVal.setvalue(0, "Unicode \u3042 6")
-        self.cursor.setinputsizes(value = cx_Oracle.NUMBER)
+        unicode_val = self.cursor.var(oracledb.DB_TYPE_NVARCHAR)
+        unicode_val.setvalue(0, "Unicode \u3042 6")
+        self.cursor.setinputsizes(value=oracledb.NUMBER)
         self.cursor.execute("""
                 select * from TestUnicodes
                 where UnicodeCol = :value""",
-                value = unicodeVal)
-        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[6]])
+                value=unicode_val)
+        self.assertEqual(self.cursor.fetchall(), [self.data_by_key[6]])
 
-    def test_2104_BindUnicodeArrayDirect(self):
+    def test_2104_bind_unicode_array_direct(self):
         "2104 - test binding in a unicode array"
-        returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        array = [r[1] for r in self.rawData]
-        arrayVar = self.cursor.arrayvar(cx_Oracle.DB_TYPE_NVARCHAR, array)
+        return_value = self.cursor.var(oracledb.NUMBER)
+        array = [r[1] for r in self.raw_data]
+        array_var = self.cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, array)
         statement = """
                 begin
                   :retval := pkg_TestUnicodeArrays.TestInArrays(
-                      :integerValue, :array);
+                      :integer_value, :array);
                 end;"""
-        self.cursor.execute(statement,
-                retval = returnValue,
-                integerValue = 5,
-                array = arrayVar)
-        self.assertEqual(returnValue.getvalue(), 116)
-        array = [ "Unicode - \u3042 %d" % i for i in range(15) ]
-        arrayVar = self.cursor.arrayvar(cx_Oracle.DB_TYPE_NVARCHAR, array)
-        self.cursor.execute(statement,
-                integerValue = 8,
-                array = arrayVar)
-        self.assertEqual(returnValue.getvalue(), 208)
+        self.cursor.execute(statement, retval=return_value, integer_value=5,
+                            array=array_var)
+        self.assertEqual(return_value.getvalue(), 116)
+        array = ["Unicode - \u3042 %d" % i for i in range(15)]
+        array_var = self.cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, array)
+        self.cursor.execute(statement, integer_value=8, array=array_var)
+        self.assertEqual(return_value.getvalue(), 208)
 
-    def test_2105_BindUnicodeArrayBySizes(self):
+    def test_2105_bind_unicode_array_by_sizes(self):
         "2105 - test binding in a unicode array (with setinputsizes)"
-        returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        self.cursor.setinputsizes(array = [cx_Oracle.DB_TYPE_NVARCHAR, 10])
-        array = [r[1] for r in self.rawData]
+        return_value = self.cursor.var(oracledb.NUMBER)
+        self.cursor.setinputsizes(array = [oracledb.DB_TYPE_NVARCHAR, 10])
+        array = [r[1] for r in self.raw_data]
         self.cursor.execute("""
                 begin
-                  :retval := pkg_TestUnicodeArrays.TestInArrays(:integerValue,
+                  :retval := pkg_TestUnicodeArrays.TestInArrays(:integer_value,
                       :array);
                 end;""",
-                retval = returnValue,
-                integerValue = 6,
-                array = array)
-        self.assertEqual(returnValue.getvalue(), 117)
+                retval=return_value,
+                integer_value=6,
+                array=array)
+        self.assertEqual(return_value.getvalue(), 117)
 
-    def test_2106_BindUnicodeArrayByVar(self):
+    def test_2106_bind_unicode_array_by_var(self):
         "2106 - test binding in a unicode array (with arrayvar)"
-        returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        array = self.cursor.arrayvar(cx_Oracle.DB_TYPE_NVARCHAR, 10, 20)
-        array.setvalue(0, [r[1] for r in self.rawData])
+        return_value = self.cursor.var(oracledb.NUMBER)
+        array = self.cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, 10, 20)
+        array.setvalue(0, [r[1] for r in self.raw_data])
         self.cursor.execute("""
                 begin
-                  :retval := pkg_TestUnicodeArrays.TestInArrays(:integerValue,
+                  :retval := pkg_TestUnicodeArrays.TestInArrays(:integer_value,
                       :array);
                 end;""",
-                retval = returnValue,
-                integerValue = 7,
-                array = array)
-        self.assertEqual(returnValue.getvalue(), 118)
+                retval=return_value,
+                integer_value=7,
+                array=array)
+        self.assertEqual(return_value.getvalue(), 118)
 
-    def test_2107_BindInOutUnicodeArrayByVar(self):
+    def test_2107_bind_in_out_unicode_array_by_var(self):
         "2107 - test binding in/out a unicode array (with arrayvar)"
-        array = self.cursor.arrayvar(cx_Oracle.DB_TYPE_NVARCHAR, 10, 100)
-        originalData = [r[1] for r in self.rawData]
-        format = "Converted element \u3042 # %d originally had length %d"
-        expectedData = [format % (i, len(originalData[i - 1])) \
-                for i in range(1, 6)] + originalData[5:]
-        array.setvalue(0, originalData)
+        array = self.cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, 10, 100)
+        original_data = [r[1] for r in self.raw_data]
+        fmt = "Converted element \u3042 # %d originally had length %d"
+        expected_data = [fmt % (i, len(original_data[i - 1])) \
+                for i in range(1, 6)] + original_data[5:]
+        array.setvalue(0, original_data)
         self.cursor.execute("""
                 begin
                   pkg_TestUnicodeArrays.TestInOutArrays(:numElems, :array);
                 end;""",
                 numElems = 5,
                 array = array)
-        self.assertEqual(array.getvalue(), expectedData)
+        self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2108_BindOutUnicodeArrayByVar(self):
+    def test_2108_bind_out_unicode_array_by_var(self):
         "2108 - test binding out a unicode array (with arrayvar)"
-        array = self.cursor.arrayvar(cx_Oracle.DB_TYPE_NVARCHAR, 6, 100)
-        format = "Test out element \u3042 # %d"
-        expectedData = [format % i for i in range(1, 7)]
+        array = self.cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, 6, 100)
+        fmt = "Test out element \u3042 # %d"
+        expected_data = [fmt % i for i in range(1, 7)]
         self.cursor.execute("""
                 begin
                   pkg_TestUnicodeArrays.TestOutArrays(:numElems, :array);
                 end;""",
                 numElems = 6,
                 array = array)
-        self.assertEqual(array.getvalue(), expectedData)
+        self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2109_BindNull(self):
+    def test_2109_bind_null(self):
         "2109 - test binding in a null"
         self.cursor.execute("""
                 select * from TestUnicodes
@@ -163,39 +158,39 @@ class TestCase(TestEnv.BaseTestCase):
                 value = None)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2110_BindOutSetInputSizesByType(self):
+    def test_2110_bind_out_set_input_sizes_by_type(self):
         "2110 - test binding out with set input sizes defined (by type)"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_NVARCHAR)
+        bind_vars = self.cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute(r"""
                 begin
                   :value := unistr('TSI \3042');
                 end;""")
-        self.assertEqual(vars["value"].getvalue(), "TSI \u3042")
+        self.assertEqual(bind_vars["value"].getvalue(), "TSI \u3042")
 
-    def test_2111_BindInOutSetInputSizesByType(self):
+    def test_2111_bind_in_out_set_input_sizes_by_type(self):
         "2111 - test binding in/out with set input sizes defined (by type)"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.DB_TYPE_NVARCHAR)
+        bind_vars = self.cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute(r"""
                 begin
                   :value := :value || unistr(' TSI \3042');
                 end;""",
                 value = "InVal \u3041")
-        self.assertEqual(vars["value"].getvalue(),
+        self.assertEqual(bind_vars["value"].getvalue(),
                 "InVal \u3041 TSI \u3042")
 
-    def test_2112_BindOutVar(self):
+    def test_2112_bind_out_var(self):
         "2112 - test binding out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.DB_TYPE_NVARCHAR)
+        var = self.cursor.var(oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute(r"""
                 begin
                   :value := unistr('TSI (VAR) \3042');
                 end;""",
-                value = var)
+                value=var)
         self.assertEqual(var.getvalue(), "TSI (VAR) \u3042")
 
-    def test_2113_BindInOutVarDirectSet(self):
+    def test_2113_bind_in_out_var_direct_set(self):
         "2113 - test binding in/out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.DB_TYPE_NVARCHAR)
+        var = self.cursor.var(oracledb.DB_TYPE_NVARCHAR)
         var.setvalue(0, "InVal \u3041")
         self.cursor.execute(r"""
                 begin
@@ -204,43 +199,42 @@ class TestCase(TestEnv.BaseTestCase):
                 value = var)
         self.assertEqual(var.getvalue(), "InVal \u3041 TSI (VAR) \u3042")
 
-    def test_2114_CursorDescription(self):
+    def test_2114_cursor_description(self):
         "2114 - test cursor description is accurate"
         self.cursor.execute("select * from TestUnicodes")
-        self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-                  ('UNICODECOL', cx_Oracle.DB_TYPE_NVARCHAR, 20, 80, None,
-                        None, 0),
-                  ('FIXEDUNICODECOL', cx_Oracle.DB_TYPE_NCHAR, 40, 160, None,
-                        None, 0),
-                  ('NULLABLECOL', cx_Oracle.DB_TYPE_NVARCHAR, 50, 200, None,
-                        None, 1) ])
+        expected_value = [
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+            ('UNICODECOL', oracledb.DB_TYPE_NVARCHAR, 20, 80, None, None, 0),
+            ('FIXEDUNICODECOL', oracledb.DB_TYPE_NCHAR, 40, 160, None, None, 0),
+            ('NULLABLECOL', oracledb.DB_TYPE_NVARCHAR, 50, 200, None, None, 1)
+        ]
+        self.assertEqual(self.cursor.description, expected_value)
 
-    def test_2115_FetchAll(self):
+    def test_2115_fetchall(self):
         "2115 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestUnicodes order by IntCol")
-        self.assertEqual(self.cursor.fetchall(), self.rawData)
+        self.assertEqual(self.cursor.fetchall(), self.raw_data)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2116_FetchMany(self):
+    def test_2116_fetchmany(self):
         "2116 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestUnicodes order by IntCol")
-        self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
-        self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
-        self.assertEqual(self.cursor.fetchmany(4), self.rawData[5:9])
-        self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
+        self.assertEqual(self.cursor.fetchmany(3), self.raw_data[0:3])
+        self.assertEqual(self.cursor.fetchmany(2), self.raw_data[3:5])
+        self.assertEqual(self.cursor.fetchmany(4), self.raw_data[5:9])
+        self.assertEqual(self.cursor.fetchmany(3), self.raw_data[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def test_2117_FetchOne(self):
+    def test_2117_fetchone(self):
         "2117 - test that fetching a single row returns the correct results"
         self.cursor.execute("""
                 select *
                 from TestUnicodes
                 where IntCol in (3, 4)
                 order by IntCol""")
-        self.assertEqual(self.cursor.fetchone(), self.dataByKey[3])
-        self.assertEqual(self.cursor.fetchone(), self.dataByKey[4])
+        self.assertEqual(self.cursor.fetchone(), self.data_by_key[3])
+        self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
         self.assertEqual(self.cursor.fetchone(), None)
 
 if __name__ == "__main__":
-    TestEnv.RunTestCases()
+    base.run_test_cases()

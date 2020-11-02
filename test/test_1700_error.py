@@ -11,41 +11,40 @@
 1700 - Module for testing error objects
 """
 
-import TestEnv
+import base
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import pickle
 
-class TestCase(TestEnv.BaseTestCase):
+class TestCase(base.BaseTestCase):
 
-    def test_1700_ParseError(self):
+    def test_1700_parse_error(self):
         "1700 - test parse error returns offset correctly"
-        with self.assertRaises(cx_Oracle.Error) as cm:
+        with self.assertRaises(oracledb.Error) as cm:
             self.cursor.execute("begin t_Missing := 5; end;")
-        errorObj, = cm.exception.args
-        self.assertEqual(errorObj.offset, 6)
+        error_obj, = cm.exception.args
+        self.assertEqual(error_obj.offset, 6)
 
-    def test_1701_PickleError(self):
+    def test_1701_pickle_error(self):
         "1701 - test picking/unpickling an error object"
-        with self.assertRaises(cx_Oracle.Error) as cm:
+        with self.assertRaises(oracledb.Error) as cm:
             self.cursor.execute("""
                     begin
                         raise_application_error(-20101, 'Test!');
                     end;""")
-        errorObj, = cm.exception.args
-        self.assertEqual(type(errorObj), cx_Oracle._Error)
-        self.assertTrue("Test!" in errorObj.message)
-        self.assertEqual(errorObj.code, 20101)
-        self.assertEqual(errorObj.offset, 0)
-        self.assertTrue(isinstance(errorObj.isrecoverable, bool))
-        pickledData = pickle.dumps(errorObj)
-        newErrorObj = pickle.loads(pickledData)
-        self.assertEqual(type(newErrorObj), cx_Oracle._Error)
-        self.assertTrue(newErrorObj.message == errorObj.message)
-        self.assertTrue(newErrorObj.code == errorObj.code)
-        self.assertTrue(newErrorObj.offset == errorObj.offset)
-        self.assertTrue(newErrorObj.context == errorObj.context)
-        self.assertTrue(newErrorObj.isrecoverable == errorObj.isrecoverable)
+        error_obj, = cm.exception.args
+        self.assertEqual(type(error_obj), oracledb._Error)
+        self.assertTrue("Test!" in error_obj.message)
+        self.assertEqual(error_obj.code, 20101)
+        self.assertEqual(error_obj.offset, 0)
+        self.assertTrue(isinstance(error_obj.isrecoverable, bool))
+        new_error_obj = pickle.loads(pickle.dumps(error_obj))
+        self.assertEqual(type(new_error_obj), oracledb._Error)
+        self.assertTrue(new_error_obj.message == error_obj.message)
+        self.assertTrue(new_error_obj.code == error_obj.code)
+        self.assertTrue(new_error_obj.offset == error_obj.offset)
+        self.assertTrue(new_error_obj.context == error_obj.context)
+        self.assertTrue(new_error_obj.isrecoverable == error_obj.isrecoverable)
 
 if __name__ == "__main__":
-    TestEnv.RunTestCases()
+    base.run_test_cases()

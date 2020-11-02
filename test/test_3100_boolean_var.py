@@ -12,67 +12,67 @@
 """
 
 import unittest
-import TestEnv
+import base
 
-import cx_Oracle
+import cx_Oracle as oracledb
 
-@unittest.skipUnless(TestEnv.GetClientVersion() >= (12, 1),
+@unittest.skipUnless(base.get_client_version() >= (12, 1),
                      "unsupported client")
-class TestCase(TestEnv.BaseTestCase):
+class TestCase(base.BaseTestCase):
 
-    def __testBindValueAsBoolean(self, value):
-        expectedResult = str(bool(value)).upper()
+    def __test_bind_value_as_boolean(self, value):
+        expected_result = str(bool(value)).upper()
         var = self.cursor.var(bool)
         var.setvalue(0, value)
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (var,))
-        self.assertEqual(result, expectedResult)
+                                      (var,))
+        self.assertEqual(result, expected_result)
 
-    def test_3100_BindFalse(self):
+    def test_3100_bind_false(self):
         "3100 - test binding in a False value"
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (False,))
+                                      (False,))
         self.assertEqual(result, "FALSE")
 
-    def test_3101_BindFloatAsBoolean(self):
+    def test_3101_bind_float_as_boolean(self):
         "3101 - test binding in a float as a boolean"
-        self.__testBindValueAsBoolean(0.0)
-        self.__testBindValueAsBoolean(1.0)
+        self.__test_bind_value_as_boolean(0.0)
+        self.__test_bind_value_as_boolean(1.0)
 
-    def test_3102_BindIntegerAsBoolean(self):
+    def test_3102_bind_integer_as_boolean(self):
         "3102 - test binding in an integer as a boolean"
-        self.__testBindValueAsBoolean(0)
-        self.__testBindValueAsBoolean(1)
+        self.__test_bind_value_as_boolean(0)
+        self.__test_bind_value_as_boolean(1)
 
-    def test_3103_BindNull(self):
+    def test_3103_bind_null(self):
         "3103 - test binding in a null value"
         self.cursor.setinputsizes(None, bool)
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (None,))
+                                      (None,))
         self.assertEqual(result, "NULL")
 
-    def test_3104_BindOutFalse(self):
+    def test_3104_bind_out_false(self):
         "3104 - test binding out a boolean value (False)"
         result = self.cursor.callfunc("pkg_TestBooleans.IsLessThan10",
-                cx_Oracle.DB_TYPE_BOOLEAN, (15,))
+                                      oracledb.DB_TYPE_BOOLEAN, (15,))
         self.assertEqual(result, False)
 
-    def test_3105_BindOutTrue(self):
+    def test_3105_bind_out_true(self):
         "3105 - test binding out a boolean value (True)"
         result = self.cursor.callfunc("pkg_TestBooleans.IsLessThan10", bool,
-                (5,))
+                                      (5,))
         self.assertEqual(result, True)
 
-    def test_3106_BindStringAsBoolean(self):
+    def test_3106_bind_string_as_boolean(self):
         "3106 - test binding in a string as a boolean"
-        self.__testBindValueAsBoolean("")
-        self.__testBindValueAsBoolean("0")
+        self.__test_bind_value_as_boolean("")
+        self.__test_bind_value_as_boolean("0")
 
-    def test_3107_BindTrue(self):
+    def test_3107_bind_true(self):
         "3107 - test binding in a True value"
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                (True,))
+                                      (True,))
         self.assertEqual(result, "TRUE")
 
 if __name__ == "__main__":
-    TestEnv.RunTestCases()
+    base.run_test_cases()

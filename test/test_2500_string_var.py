@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
 # Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
@@ -12,159 +11,155 @@
 2500 - Module for testing string variables
 """
 
-import TestEnv
+import base
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import datetime
 import string
 import random
 
-class TestCase(TestEnv.BaseTestCase):
+class TestCase(base.BaseTestCase):
 
     def setUp(self):
-        TestEnv.BaseTestCase.setUp(self)
-        self.rawData = []
-        self.dataByKey = {}
+        super().setUp()
+        self.raw_data = []
+        self.data_by_key = {}
         for i in range(1, 11):
-            stringCol = "String %d" % i
-            fixedCharCol = ("Fixed Char %d" % i).ljust(40)
-            rawCol = ("Raw %d" % i).encode("ascii")
+            string_col = "String %d" % i
+            fixed_char_col = ("Fixed Char %d" % i).ljust(40)
+            raw_col = ("Raw %d" % i).encode("ascii")
             if i % 2:
-                nullableCol = "Nullable %d" % i
+                nullable_col = "Nullable %d" % i
             else:
-                nullableCol = None
-            dataTuple = (i, stringCol, rawCol, fixedCharCol, nullableCol)
-            self.rawData.append(dataTuple)
-            self.dataByKey[i] = dataTuple
+                nullable_col = None
+            data_tuple = (i, string_col, raw_col, fixed_char_col, nullable_col)
+            self.raw_data.append(data_tuple)
+            self.data_by_key[i] = data_tuple
 
-    def test_2500_ArrayWithIncreasedSize(self):
+    def test_2500_array_with_increased_size(self):
         "2500 - test creating array var and then increasing the internal size"
         val = ["12345678901234567890"] * 3
-        arrayVar = self.cursor.arrayvar(str, len(val), 4)
-        arrayVar.setvalue(0, val)
-        self.assertEqual(arrayVar.getvalue(), val)
+        var = self.cursor.arrayvar(str, len(val), 4)
+        var.setvalue(0, val)
+        self.assertEqual(var.getvalue(), val)
 
-    def test_2501_BindString(self):
+    def test_2501_bind_string(self):
         "2501 - test binding in a string"
         self.cursor.execute("""
                 select * from TestStrings
                 where StringCol = :value""",
-                value = "String 5")
-        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[5]])
+                value="String 5")
+        self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
 
-    def test_2502_BindDifferentVar(self):
+    def test_2502_bind_different_var(self):
         "2502 - test binding a different variable on second execution"
-        retval_1 = self.cursor.var(cx_Oracle.STRING, 30)
-        retval_2 = self.cursor.var(cx_Oracle.STRING, 30)
+        retval_1 = self.cursor.var(oracledb.STRING, 30)
+        retval_2 = self.cursor.var(oracledb.STRING, 30)
         self.cursor.execute("begin :retval := 'Called'; end;",
-                retval = retval_1)
+                            retval=retval_1)
         self.assertEqual(retval_1.getvalue(), "Called")
         self.cursor.execute("begin :retval := 'Called'; end;",
-                retval = retval_2)
+                            retval=retval_2)
         self.assertEqual(retval_2.getvalue(), "Called")
 
-    def test_2503_ExceedsNumElements(self):
+    def test_2503_exceeds_num_elements(self):
         "2503 - test exceeding the number of elements returns IndexError"
         var = self.cursor.var(str)
         self.assertRaises(IndexError, var.getvalue, 1)
 
-    def test_2504_BindStringAfterNumber(self):
+    def test_2504_bind_string_after_number(self):
         "2504 - test binding in a string after setting input sizes to a number"
-        self.cursor.setinputsizes(value = cx_Oracle.NUMBER)
+        self.cursor.setinputsizes(value = oracledb.NUMBER)
         self.cursor.execute("""
                 select * from TestStrings
                 where StringCol = :value""",
-                value = "String 6")
-        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[6]])
+                value="String 6")
+        self.assertEqual(self.cursor.fetchall(), [self.data_by_key[6]])
 
-    def test_2505_BindStringArrayDirect(self):
+    def test_2505_bind_string_array_direct(self):
         "2505 - test binding in a string array"
-        returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        array = [r[1] for r in self.rawData]
+        return_value = self.cursor.var(oracledb.NUMBER)
+        array = [r[1] for r in self.raw_data]
         statement = """
                 begin
-                  :returnValue := pkg_TestStringArrays.TestInArrays(
-                      :integerValue, :array);
+                  :return_value := pkg_TestStringArrays.TestInArrays(
+                      :integer_value, :array);
                 end;"""
-        self.cursor.execute(statement,
-                returnValue = returnValue,
-                integerValue = 5,
-                array = array)
-        self.assertEqual(returnValue.getvalue(), 86)
+        self.cursor.execute(statement, return_value=return_value,
+                            integer_value=5, array=array)
+        self.assertEqual(return_value.getvalue(), 86)
         array = [ "String - %d" % i for i in range(15) ]
-        self.cursor.execute(statement,
-                integerValue = 8,
-                array = array)
-        self.assertEqual(returnValue.getvalue(), 163)
+        self.cursor.execute(statement, integer_value=8, array=array)
+        self.assertEqual(return_value.getvalue(), 163)
 
-    def test_2506_BindStringArrayBySizes(self):
+    def test_2506_bind_string_array_by_sizes(self):
         "2506 - test binding in a string array (with setinputsizes)"
-        returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        self.cursor.setinputsizes(array = [cx_Oracle.STRING, 10])
-        array = [r[1] for r in self.rawData]
+        return_value = self.cursor.var(oracledb.NUMBER)
+        self.cursor.setinputsizes(array=[oracledb.STRING, 10])
+        array = [r[1] for r in self.raw_data]
         self.cursor.execute("""
                 begin
-                  :returnValue := pkg_TestStringArrays.TestInArrays(
-                      :integerValue, :array);
+                  :return_value := pkg_TestStringArrays.TestInArrays(
+                      :integer_value, :array);
                 end;""",
-                returnValue = returnValue,
-                integerValue = 6,
-                array = array)
-        self.assertEqual(returnValue.getvalue(), 87)
+                return_value=return_value,
+                integer_value=6,
+                array=array)
+        self.assertEqual(return_value.getvalue(), 87)
 
-    def test_2507_BindStringArrayByVar(self):
+    def test_2507_bind_string_array_by_var(self):
         "2507 - test binding in a string array (with arrayvar)"
-        returnValue = self.cursor.var(cx_Oracle.NUMBER)
-        array = self.cursor.arrayvar(cx_Oracle.STRING, 10, 20)
-        array.setvalue(0, [r[1] for r in self.rawData])
+        return_value = self.cursor.var(oracledb.NUMBER)
+        array = self.cursor.arrayvar(oracledb.STRING, 10, 20)
+        array.setvalue(0, [r[1] for r in self.raw_data])
         self.cursor.execute("""
                 begin
-                  :returnValue := pkg_TestStringArrays.TestInArrays(
-                      :integerValue, :array);
+                  :return_value := pkg_TestStringArrays.TestInArrays(
+                      :integer_value, :array);
                 end;""",
-                returnValue = returnValue,
-                integerValue = 7,
-                array = array)
-        self.assertEqual(returnValue.getvalue(), 88)
+                return_value=return_value,
+                integer_value=7,
+                array=array)
+        self.assertEqual(return_value.getvalue(), 88)
 
-    def test_2508_BindInOutStringArrayByVar(self):
+    def test_2508_bind_in_out_string_array_by_var(self):
         "2508 - test binding in/out a string array (with arrayvar)"
-        array = self.cursor.arrayvar(cx_Oracle.STRING, 10, 100)
-        originalData = [r[1] for r in self.rawData]
-        expectedData = ["Converted element # %d originally had length %d" % \
-                (i, len(originalData[i - 1])) for i in range(1, 6)] + \
-                originalData[5:]
-        array.setvalue(0, originalData)
+        array = self.cursor.arrayvar(oracledb.STRING, 10, 100)
+        original_data = [r[1] for r in self.raw_data]
+        expected_data = ["Converted element # %d originally had length %d" % \
+                         (i, len(original_data[i - 1])) \
+                         for i in range(1, 6)] + original_data[5:]
+        array.setvalue(0, original_data)
         self.cursor.execute("""
                 begin
-                  pkg_TestStringArrays.TestInOutArrays(:numElems, :array);
+                  pkg_TestStringArrays.TestInOutArrays(:num_elems, :array);
                 end;""",
-                numElems = 5,
-                array = array)
-        self.assertEqual(array.getvalue(), expectedData)
+                num_elems=5,
+                array=array)
+        self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2509_BindOutStringArrayByVar(self):
+    def test_2509_bind_out_string_array_by_var(self):
         "2509 - test binding out a string array (with arrayvar)"
-        array = self.cursor.arrayvar(cx_Oracle.STRING, 6, 100)
-        expectedData = ["Test out element # %d" % i for i in range(1, 7)]
+        array = self.cursor.arrayvar(oracledb.STRING, 6, 100)
+        expected_data = ["Test out element # %d" % i for i in range(1, 7)]
         self.cursor.execute("""
                 begin
-                  pkg_TestStringArrays.TestOutArrays(:numElems, :array);
+                  pkg_TestStringArrays.TestOutArrays(:num_elems, :array);
                 end;""",
-                numElems = 6,
-                array = array)
-        self.assertEqual(array.getvalue(), expectedData)
+                num_elems=6,
+                array=array)
+        self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2510_BindRaw(self):
+    def test_2510_bind_raw(self):
         "2510 - test binding in a raw"
-        self.cursor.setinputsizes(value = cx_Oracle.BINARY)
+        self.cursor.setinputsizes(value = oracledb.BINARY)
         self.cursor.execute("""
                 select * from TestStrings
                 where RawCol = :value""",
-                value = "Raw 4".encode("ascii"))
-        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[4]])
+                value="Raw 4".encode())
+        self.assertEqual(self.cursor.fetchall(), [self.data_by_key[4]])
 
-    def test_2511_BindAndFetchRowid(self):
+    def test_2511_bind_and_fetch_rowid(self):
         "2511 - test binding (and fetching) a rowid"
         self.cursor.execute("""
                 select rowid
@@ -175,10 +170,10 @@ class TestCase(TestEnv.BaseTestCase):
                 select *
                 from TestStrings
                 where rowid = :value""",
-                value = rowid)
-        self.assertEqual(self.cursor.fetchall(), [self.dataByKey[3]])
+                value=rowid)
+        self.assertEqual(self.cursor.fetchall(), [self.data_by_key[3]])
 
-    def test_2512_BindAndFetchUniversalRowids(self):
+    def test_2512_bind_and_fetch_universal_rowids(self):
         "2512 - test binding (and fetching) universal rowids"
         self.cursor.execute("truncate table TestUniversalRowids")
         data = [
@@ -195,147 +190,146 @@ class TestCase(TestEnv.BaseTestCase):
                 from TestUniversalRowIds
                 order by IntCol""")
         rowids = [r for r, in self.cursor]
-        fetchedData = []
+        fetched_data = []
         for rowid in rowids:
             self.cursor.execute("""
                     select *
                     from TestUniversalRowids
                     where rowid = :rid""",
-                    rid = rowid)
-            fetchedData.extend(self.cursor.fetchall())
-        self.assertEqual(fetchedData, data)
+                    rid=rowid)
+            fetched_data.extend(self.cursor.fetchall())
+        self.assertEqual(fetched_data, data)
 
-    def test_2513_BindNull(self):
+    def test_2513_bind_null(self):
         "2513 - test binding in a null"
         self.cursor.execute("""
                 select * from TestStrings
                 where StringCol = :value""",
-                value = None)
+                value=None)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2514_BindOutSetInputSizesByType(self):
+    def test_2514_bind_out_set_input_sizes_by_type(self):
         "2514 - test binding out with set input sizes defined (by type)"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.STRING)
+        bind_vars = self.cursor.setinputsizes(value=oracledb.STRING)
         self.cursor.execute("""
                 begin
                   :value := 'TSI';
                 end;""")
-        self.assertEqual(vars["value"].getvalue(), "TSI")
+        self.assertEqual(bind_vars["value"].getvalue(), "TSI")
 
-    def test_2515_BindOutSetInputSizesByInteger(self):
+    def test_2515_bind_out_set_input_sizes_by_integer(self):
         "2515 - test binding out with set input sizes defined (by integer)"
-        vars = self.cursor.setinputsizes(value = 30)
+        bind_vars = self.cursor.setinputsizes(value=30)
         self.cursor.execute("""
                 begin
                   :value := 'TSI (I)';
                 end;""")
-        self.assertEqual(vars["value"].getvalue(), "TSI (I)")
+        self.assertEqual(bind_vars["value"].getvalue(), "TSI (I)")
 
-    def test_2516_BindInOutSetInputSizesByType(self):
+    def test_2516_bind_in_out_set_input_sizes_by_type(self):
         "2516 - test binding in/out with set input sizes defined (by type)"
-        vars = self.cursor.setinputsizes(value = cx_Oracle.STRING)
+        bind_vars = self.cursor.setinputsizes(value=oracledb.STRING)
         self.cursor.execute("""
                 begin
                   :value := :value || ' TSI';
                 end;""",
-                value = "InVal")
-        self.assertEqual(vars["value"].getvalue(), "InVal TSI")
+                value="InVal")
+        self.assertEqual(bind_vars["value"].getvalue(), "InVal TSI")
 
-    def test_2517_BindInOutSetInputSizesByInteger(self):
+    def test_2517_bind_in_out_set_input_sizes_by_integer(self):
         "2517 - test binding in/out with set input sizes defined (by integer)"
-        vars = self.cursor.setinputsizes(value = 30)
+        bind_vars = self.cursor.setinputsizes(value=30)
         self.cursor.execute("""
                 begin
                   :value := :value || ' TSI (I)';
                 end;""",
-                value = "InVal")
-        self.assertEqual(vars["value"].getvalue(), "InVal TSI (I)")
+                value="InVal")
+        self.assertEqual(bind_vars["value"].getvalue(), "InVal TSI (I)")
 
-    def test_2518_BindOutVar(self):
+    def test_2518_bind_out_var(self):
         "2518 - test binding out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.STRING)
+        var = self.cursor.var(oracledb.STRING)
         self.cursor.execute("""
                 begin
                   :value := 'TSI (VAR)';
                 end;""",
-                value = var)
+                value=var)
         self.assertEqual(var.getvalue(), "TSI (VAR)")
 
-    def test_2519_BindInOutVarDirectSet(self):
+    def test_2519_bind_in_out_var_direct_set(self):
         "2519 - test binding in/out with cursor.var() method"
-        var = self.cursor.var(cx_Oracle.STRING)
+        var = self.cursor.var(oracledb.STRING)
         var.setvalue(0, "InVal")
         self.cursor.execute("""
                 begin
                   :value := :value || ' TSI (VAR)';
                 end;""",
-                value = var)
+                value=var)
         self.assertEqual(var.getvalue(), "InVal TSI (VAR)")
 
-    def test_2520_BindLongString(self):
+    def test_2520_bind_long_string(self):
         "2520 - test that binding a long string succeeds"
-        self.cursor.setinputsizes(bigString = cx_Oracle.DB_TYPE_LONG)
+        self.cursor.setinputsizes(big_string=oracledb.DB_TYPE_LONG)
         self.cursor.execute("""
                 declare
                   t_Temp varchar2(20000);
                 begin
-                  t_Temp := :bigString;
+                  t_Temp := :big_string;
                 end;""",
-                bigString = "X" * 10000)
+                big_string="X" * 10000)
 
-    def test_2521_BindLongStringAfterSettingSize(self):
+    def test_2521_bind_long_string_after_setting_size(self):
         "2521 - test that setinputsizes() returns a long variable"
-        var = self.cursor.setinputsizes(test = 90000)["test"]
-        inString = "1234567890" * 9000
-        var.setvalue(0, inString)
-        outString = var.getvalue()
-        self.assertEqual(inString, outString,
-                "output does not match: in was %d, out was %d" % \
-                (len(inString), len(outString)))
+        var = self.cursor.setinputsizes(test=90000)["test"]
+        in_string = "1234567890" * 9000
+        var.setvalue(0, in_string)
+        out_string = var.getvalue()
+        msg = f"output does not match: in was {len(in_string)}, " \
+              f"out was {len(out_string)}"
+        self.assertEqual(in_string, out_string, msg)
 
-    def test_2522_CursorDescription(self):
+    def test_2522_cursor_description(self):
         "2522 - test cursor description is accurate"
         self.cursor.execute("select * from TestStrings")
-        self.assertEqual(self.cursor.description,
-                [ ('INTCOL', cx_Oracle.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-                  ('STRINGCOL', cx_Oracle.DB_TYPE_VARCHAR, 20,
-                        20 * TestEnv.GetCharSetRatio(), None,
-                    None, 0),
-                  ('RAWCOL', cx_Oracle.DB_TYPE_RAW, 30, 30, None, None, 0),
-                  ('FIXEDCHARCOL', cx_Oracle.DB_TYPE_CHAR, 40,
-                        40 * TestEnv.GetCharSetRatio(),
-                    None, None, 0),
-                  ('NULLABLECOL', cx_Oracle.DB_TYPE_VARCHAR, 50,
-                        50 * TestEnv.GetCharSetRatio(), None,
-                    None, 1) ])
+        expected_value = [
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
+            ('STRINGCOL', oracledb.DB_TYPE_VARCHAR, 20,
+                    20 * base.get_charset_ratio(), None, None, 0),
+            ('RAWCOL', oracledb.DB_TYPE_RAW, 30, 30, None, None, 0),
+            ('FIXEDCHARCOL', oracledb.DB_TYPE_CHAR, 40,
+                    40 * base.get_charset_ratio(), None, None, 0),
+            ('NULLABLECOL', oracledb.DB_TYPE_VARCHAR, 50,
+                    50 * base.get_charset_ratio(), None, None, 1)
+        ]
+        self.assertEqual(self.cursor.description, expected_value)
 
-    def test_2523_FetchAll(self):
+    def test_2523_fetchall(self):
         "2523 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestStrings order by IntCol")
-        self.assertEqual(self.cursor.fetchall(), self.rawData)
+        self.assertEqual(self.cursor.fetchall(), self.raw_data)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2524_FetchMany(self):
+    def test_2524_fetchmany(self):
         "2524 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestStrings order by IntCol")
-        self.assertEqual(self.cursor.fetchmany(3), self.rawData[0:3])
-        self.assertEqual(self.cursor.fetchmany(2), self.rawData[3:5])
-        self.assertEqual(self.cursor.fetchmany(4), self.rawData[5:9])
-        self.assertEqual(self.cursor.fetchmany(3), self.rawData[9:])
+        self.assertEqual(self.cursor.fetchmany(3), self.raw_data[0:3])
+        self.assertEqual(self.cursor.fetchmany(2), self.raw_data[3:5])
+        self.assertEqual(self.cursor.fetchmany(4), self.raw_data[5:9])
+        self.assertEqual(self.cursor.fetchmany(3), self.raw_data[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def test_2525_FetchOne(self):
+    def test_2525_fetchone(self):
         "2525 - test that fetching a single row returns the correct results"
         self.cursor.execute("""
                 select *
                 from TestStrings
                 where IntCol in (3, 4)
                 order by IntCol""")
-        self.assertEqual(self.cursor.fetchone(), self.dataByKey[3])
-        self.assertEqual(self.cursor.fetchone(), self.dataByKey[4])
+        self.assertEqual(self.cursor.fetchone(), self.data_by_key[3])
+        self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
         self.assertEqual(self.cursor.fetchone(), None)
 
-    def test_2526_SupplementalCharacters(self):
+    def test_2526_supplemental_characters(self):
         "2526 - test binding and fetching supplemental charcters"
         self.cursor.execute("""
                 select value
@@ -344,7 +338,7 @@ class TestCase(TestEnv.BaseTestCase):
         charset, = self.cursor.fetchone()
         if charset != "AL32UTF8":
             self.skipTest("Database character set must be AL32UTF8")
-        supplementalChars = "𠜎 𠜱 𠝹 𠱓 𠱸 𠲖 𠳏 𠳕 𠴕 𠵼 𠵿 𠸎 𠸏 𠹷 𠺝 " \
+        supplemental_chars = "𠜎 𠜱 𠝹 𠱓 𠱸 𠲖 𠳏 𠳕 𠴕 𠵼 𠵿 𠸎 𠸏 𠹷 𠺝 " \
                 "𠺢 𠻗 𠻹 𠻺 𠼭 𠼮 𠽌 𠾴 𠾼 𠿪 𡁜 𡁯 𡁵 𡁶 𡁻 𡃁 𡃉 𡇙 𢃇 " \
                 "𢞵 𢫕 𢭃 𢯊 𢱑 𢱕 𢳂 𢴈 𢵌 𢵧 𢺳 𣲷 𤓓 𤶸 𤷪 𥄫 𦉘 𦟌 𦧲 " \
                 "𦧺 𧨾 𨅝 𨈇 𨋢 𨳊 𨳍 𨳒 𩶘"
@@ -352,34 +346,34 @@ class TestCase(TestEnv.BaseTestCase):
         self.cursor.execute("""
                 insert into TestTempTable (IntCol, StringCol)
                 values (:1, :2)""",
-                (1, supplementalChars))
+                (1, supplemental_chars))
         self.connection.commit()
         self.cursor.execute("select StringCol from TestTempTable")
         value, = self.cursor.fetchone()
-        self.assertEqual(value, supplementalChars)
+        self.assertEqual(value, supplemental_chars)
 
-    def test_2527_BindTwiceWithLargeStringSecond(self):
+    def test_2527_bind_twice_with_large_string_second(self):
         "2527 - test binding twice with a larger string the second time"
         self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
-        shortString = "short string"
-        longString = "long string " * 30
-        self.cursor.execute(sql, (1, shortString))
-        self.cursor.execute(sql, (2, longString))
+        short_string = "short string"
+        long_string = "long string " * 30
+        self.cursor.execute(sql, (1, short_string))
+        self.cursor.execute(sql, (2, long_string))
         self.connection.commit()
         self.cursor.execute("""
                 select IntCol, StringCol
                 from TestTempTable
                 order by IntCol""")
         self.assertEqual(self.cursor.fetchall(),
-                [(1, shortString), (2, longString)])
+                [(1, short_string), (2, long_string)])
 
-    def test_2528_Issue50(self):
+    def test_2528_issue_50(self):
         "2528 - test issue 50 - avoid error ORA-24816"
         cursor = self.connection.cursor()
         try:
             cursor.execute("drop table issue_50 purge")
-        except cx_Oracle.DatabaseError:
+        except oracledb.DatabaseError:
             pass
         cursor.execute("""
                 create table issue_50 (
@@ -390,49 +384,49 @@ class TestCase(TestEnv.BaseTestCase):
                     NClob1      nclob,
                     NClob2      nclob
                 )""")
-        idVar = cursor.var(cx_Oracle.NUMBER)
+        id_var = cursor.var(oracledb.NUMBER)
         cursor.execute("""
                 insert into issue_50 (Id, Str2, Str3, NClob1, NClob2, Str1)
                 values (:arg0, :arg1, :arg2, :arg3, :arg4, :arg5)
                 returning id into :arg6""",
-                [1, '555a4c78', 'f319ef0e', '23009914', '', '', idVar])
+                [1, '555a4c78', 'f319ef0e', '23009914', '', '', id_var])
         cursor = self.connection.cursor()
         cursor.execute("""
                 insert into issue_50 (Id, Str2, Str3, NClob1, NClob2, Str1)
                 values (:arg0, :arg1, :arg2, :arg3, :arg4, :arg5)
                 returning id into :arg6""",
-                [2, u'd5ff845a', u'94275767', u'bf161ff6', u'', u'', idVar])
+                [2, u'd5ff845a', u'94275767', u'bf161ff6', u'', u'', id_var])
         cursor.execute("drop table issue_50 purge")
 
-    def test_2529_SetRowidToString(self):
+    def test_2529_set_rowid_to_string(self):
         "2529 - test assigning a string to rowid"
-        var = self.cursor.var(cx_Oracle.ROWID)
-        self.assertRaises(cx_Oracle.NotSupportedError, var.setvalue, 0,
+        var = self.cursor.var(oracledb.ROWID)
+        self.assertRaises(oracledb.NotSupportedError, var.setvalue, 0,
                 "ABDHRYTHFJGKDKKDH")
 
-    def test_2530_ShortXMLAsString(self):
+    def test_2530_short_xml_as_string(self):
         "2530 - test fetching XMLType object as a string"
         self.cursor.execute("""
                 select XMLElement("string", stringCol)
                 from TestStrings
                 where intCol = 1""")
-        actualValue, = self.cursor.fetchone()
-        expectedValue = "<string>String 1</string>"
-        self.assertEqual(actualValue, expectedValue)
+        actual_value, = self.cursor.fetchone()
+        expected_value = "<string>String 1</string>"
+        self.assertEqual(actual_value, expected_value)
 
-    def test_2531_LongXMLAsString(self):
+    def test_2531_long_xml_as_string(self):
         "2531 - test inserting and fetching an XMLType object (1K) as a string"
         chars = string.ascii_uppercase + string.ascii_lowercase
-        randomString = ''.join(random.choice(chars) for _ in range(1024))
-        intVal = 200
-        xmlString = '<data>' + randomString + '</data>'
+        random_string = ''.join(random.choice(chars) for _ in range(1024))
+        int_val = 200
+        xml_string = '<data>' + random_string + '</data>'
         self.cursor.execute("""
                 insert into TestXML (IntCol, XMLCol)
-                values (:1, :2)""", (intVal, xmlString))
+                values (:1, :2)""", (int_val, xml_string))
         self.cursor.execute("select XMLCol from TestXML where intCol = :1",
-                (intVal,))
-        actualValue, = self.cursor.fetchone()
-        self.assertEqual(actualValue.strip(), xmlString)
+                (int_val,))
+        actual_value, = self.cursor.fetchone()
+        self.assertEqual(actual_value.strip(), xml_string)
 
 if __name__ == "__main__":
-    TestEnv.RunTestCases()
+    base.run_test_cases()
