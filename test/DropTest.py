@@ -9,15 +9,15 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import TestEnv
+import base
 
-def DropTests(conn):
+def drop_tests(conn):
     print("Dropping test schemas...")
-    TestEnv.RunSqlScript(conn, "DropTest",
-            main_user = TestEnv.GetMainUser(),
-            proxy_user = TestEnv.GetProxyUser())
+    base.run_sql_script(conn, "DropTest",
+                        main_user=base.get_main_user(),
+                        proxy_user=base.get_proxy_user())
 
 if __name__ == "__main__":
-    conn = cx_Oracle.connect(TestEnv.GetAdminConnectString())
-    DropTests(conn)
+    conn = cx_Oracle.connect(base.get_admin_connect_string())
+    drop_tests(conn)
     print("Done.")

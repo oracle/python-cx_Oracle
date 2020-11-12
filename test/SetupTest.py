@@ -11,21 +11,20 @@
 
 import cx_Oracle
 
-import TestEnv
+import base
 import DropTest
 
 # connect as administrative user (usually SYSTEM or ADMIN)
-conn = cx_Oracle.connect(TestEnv.GetAdminConnectString())
+conn = cx_Oracle.connect(base.get_admin_connect_string())
 
 # drop existing users and editions, if applicable
-DropTest.DropTests(conn)
+DropTest.drop_tests(conn)
 
 # create test schemas
 print("Creating test schemas...")
-TestEnv.RunSqlScript(conn, "SetupTest",
-        main_user = TestEnv.GetMainUser(),
-        main_password = TestEnv.GetMainPassword(),
-        proxy_user = TestEnv.GetProxyUser(),
-        proxy_password = TestEnv.GetProxyPassword())
+base.run_sql_script(conn, "SetupTest",
+                    main_user=base.get_main_user(),
+                    main_password=base.get_main_password(),
+                    proxy_user=base.get_proxy_user(),
+                    proxy_password=base.get_proxy_password())
 print("Done.")
-
