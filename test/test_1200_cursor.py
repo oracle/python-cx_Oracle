@@ -791,5 +791,62 @@ class TestCase(base.BaseTestCase):
             cursor.execute("select IntCol from TestTempTable").fetchall()
             self.assertRoundTrips(2)
 
+    def test_1266_refcursor_prefetchrows(self):
+        "1266 - test prefetch rows and arraysize using a refcursor"
+        self.setup_round_trip_checker()
+
+        # simple DDL only requires a single round trip
+        with self.connection.cursor() as cursor:
+            cursor.execute("truncate table TestTempTable")
+            self.assertRoundTrips(1)
+
+        # array execution only requires a single round trip
+        num_rows = 590
+        with self.connection.cursor() as cursor:
+            sql = "insert into TestTempTable (IntCol) values (:1)"
+            data = [(n + 1,) for n in range(num_rows)]
+            cursor.executemany(sql, data)
+            self.assertRoundTrips(1)
+
+        # create refcursor and execute stored procedure
+        with self.connection.cursor() as cursor:
+            refcursor = self.connection.cursor()
+            refcursor.prefetchrows = 300
+            refcursor.arraysize = 300
+            cursor.callproc("myrefcursorproc", [refcursor])
+            refcursor.fetchall()
+            self.assertRoundTrips(2)
+
+    def test_1267_existing_cursor_prefetchrows(self):
+        "1267 - test prefetch rows using existing cursor"
+        self.setup_round_trip_checker()
+
+        # Set prefetch rows on an existing cursor
+        num_rows = 590
+        with self.connection.cursor() as cursor:
+            cursor.execute("truncate table TestTempTable")
+            sql = "insert into TestTempTable (IntCol) values (:1)"
+            data = [(n + 1,) for n in range(num_rows)]
+            cursor.executemany(sql, data)
+            cursor.prefetchrows = 300
+            cursor.arraysize = 300
+            cursor.execute("select IntCol from TestTempTable").fetchall()
+            self.assertRoundTrips(4)
+
+    def test_1268_bind_names_with_single_line_comments(self):
+        "1268 - test bindnames() with single line comments"
+        self.cursor.prepare("""--begin :value2 := :a + :b + :c +:a +3; end;
+                            begin :value2 := :a + :c +3; end;
+                            """)
+        self.assertEqual(self.cursor.bindnames(), ["VALUE2", "A", "C"])
+
+    def test_1269_bind_names_with_multi_line_comments(self):
+        "1269 - test bindnames() with multi line comments"
+        self.cursor.prepare("""/*--select * from :a where :a = 1
+                            select * from table_names where :a = 1*/
+                            select * from :table_name where :value = 1
+                            """)
+        self.assertEqual(self.cursor.bindnames(), ["TABLE_NAME", "VALUE"])
+
 if __name__ == "__main__":
     base.run_test_cases()

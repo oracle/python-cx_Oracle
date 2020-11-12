@@ -382,6 +382,15 @@ begin
 end;
 /
 
+create procedure &main_user..myrefcursorproc2 (
+    a_RefCursor                         out sys_refcursor
+) as
+begin
+    open a_RefCursor for
+        select *
+        from TestTempTable;
+end;
+/
 
 --
 -- Create package for demoing PL/SQL collections and records.

@@ -443,6 +443,17 @@ begin
 end;
 /
 
+-- create procedure for testing refcursor
+create procedure &main_user..myrefcursorproc (
+    a_RefCursor                         out sys_refcursor
+) as
+begin
+    open a_RefCursor for
+        select *
+        from TestTempTable;
+end;
+/
+
 -- create functions for testing callfunc()
 create function &main_user..func_Test (
     a_String                            varchar2,

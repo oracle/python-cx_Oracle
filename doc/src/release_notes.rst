@@ -23,6 +23,7 @@ Version 8.1 (TBD)
 #)  The ability to pickle/unpickle Database and API types has been restored.
 #)  Tests can now be run with tox in order to automate testing of the different
     environments that are supported.
+#)  The value of prefetchrows for REF CURSOR variables is now honored.
 #)  Improved documentation and test suite.
 
 

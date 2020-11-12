@@ -462,6 +462,10 @@ static int cxoVar_setValueCursor(cxoVar *var, uint32_t pos, dpiData *data,
         cursor->handle = data->value.asStmt;
         dpiStmt_addRef(cursor->handle);
     }
+
+    if (dpiStmt_setPrefetchRows(cursor->handle, cursor->prefetchRows) < 0)
+        return cxoError_raiseAndReturnInt();
+
     cursor->fixupRefCursor = 1;
     return 0;
 }
