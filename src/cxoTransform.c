@@ -206,7 +206,7 @@ static Py_ssize_t cxoTransform_calculateSize(PyObject *value,
             return PyBytes_GET_SIZE(value);
         case CXO_TRANSFORM_NSTRING:
         case CXO_TRANSFORM_STRING:
-            return PyUnicode_GET_SIZE(value);
+            return PyUnicode_GET_LENGTH(value);
         default:
             break;
     }
