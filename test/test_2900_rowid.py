@@ -6,11 +6,11 @@
 2900 - Module for testing Rowids
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def __test_select_rowids(self, table_name):
         self.cursor.execute("select rowid, IntCol from %s""" % table_name)
@@ -58,4 +58,4 @@ class TestCase(base.BaseTestCase):
             self.assertEqual(rows[0][0], int_val)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

@@ -11,11 +11,11 @@
 1900 - Module for testing LOB (CLOB and BLOB) variables
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def __get_temp_lobs(self, sid):
         cursor = self.connection.cursor()
@@ -234,9 +234,9 @@ class TestCase(base.BaseTestCase):
 
     def test_1915_nclob_different_encodings(self):
         "1915 - test binding and fetching NCLOB data (different encodings)"
-        connection = oracledb.connect(base.get_main_user(),
-                                      base.get_main_password(),
-                                      base.get_connect_string(),
+        connection = oracledb.connect(test_env.get_main_user(),
+                                      test_env.get_main_password(),
+                                      test_env.get_connect_string(),
                                       encoding="UTF-8", nencoding="UTF-16")
         value = "\u03b4\u4e2a"
         cursor = connection.cursor()
@@ -286,4 +286,4 @@ class TestCase(base.BaseTestCase):
         self.assertRaises(IndexError, nclobVar.setvalue, 1, "test char")
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

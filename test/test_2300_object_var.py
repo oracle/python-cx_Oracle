@@ -11,13 +11,13 @@
 2300 - Module for testing object variables
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import datetime
 import decimal
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def __get_object_as_tuple(self, obj):
         if obj.type.iscollection:
@@ -435,7 +435,7 @@ class TestCase(base.BaseTestCase):
     def test_2314_string_format(self):
         "2314 - test object string format"
         obj_type = self.connection.gettype("UDT_OBJECT")
-        user = base.get_main_user()
+        user = test_env.get_main_user()
         self.assertEqual(str(obj_type),
                          "<cx_Oracle.ObjectType %s.UDT_OBJECT>" % user.upper())
         self.assertEqual(str(obj_type.attributes[0]),
@@ -463,4 +463,4 @@ class TestCase(base.BaseTestCase):
         self.assertEqual(self.__get_object_as_tuple(array_obj), [])
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

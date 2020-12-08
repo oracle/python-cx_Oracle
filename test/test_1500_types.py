@@ -8,12 +8,12 @@ including the synonyms retained for backwards compatibility. This module also
 tests for pickling/unpickling of database types and API types.
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import pickle
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
     requires_connection = False
 
     def __test_compare(self, db_type, api_type):
@@ -177,4 +177,4 @@ class TestCase(base.BaseTestCase):
         self.__test_pickle(oracledb.ROWID)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

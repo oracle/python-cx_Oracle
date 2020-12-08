@@ -6,13 +6,13 @@
 1000 - Module for testing top-level module methods
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import datetime
 import time
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
     requires_connection = False
 
     def test_1000_date_from_ticks(self):
@@ -42,4 +42,4 @@ class TestCase(base.BaseTestCase):
                           100)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

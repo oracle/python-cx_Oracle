@@ -11,11 +11,11 @@
 2000 - Module for testing long and long raw variables
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def __perform_test(self, typ):
         name_part = "Long" if typ is oracledb.DB_TYPE_LONG else "LongRaw"
@@ -102,4 +102,4 @@ class TestCase(base.BaseTestCase):
                           "select * from TestLongRaws")
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

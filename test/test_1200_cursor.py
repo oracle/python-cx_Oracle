@@ -11,11 +11,11 @@
 1200 - Module for testing cursors
 """
 
-import base
+import test_env
 import cx_Oracle as oracledb
 import decimal
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def test_1200_create_scrollable_cursor(self):
         "1200 - test creating a scrollable cursor"
@@ -594,7 +594,7 @@ class TestCase(base.BaseTestCase):
         "1252 - test string format of cursor"
         format_string = "<cx_Oracle.Cursor on <cx_Oracle.Connection to %s@%s>>"
         expected_value = format_string % \
-                (base.get_main_user(), base.get_connect_string())
+                (test_env.get_main_user(), test_env.get_connect_string())
         self.assertEqual(str(self.cursor), expected_value)
 
     def test_1253_cursor_fetch_raw(self):
@@ -934,4 +934,4 @@ class TestCase(base.BaseTestCase):
                           statement, value=var, value2=var, value3=var)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

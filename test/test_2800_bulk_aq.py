@@ -6,7 +6,7 @@
 2800 - Module for testing AQ Bulk enqueue/dequeue
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import decimal
@@ -28,10 +28,10 @@ RAW_PAYLOAD_DATA = [
     "The twelfth and final message"
 ]
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def __deq_in_thread(self, results):
-        connection = base.get_connection(threaded=True)
+        connection = test_env.get_connection(threaded=True)
         queue = connection.queue(RAW_QUEUE_NAME)
         queue.deqOptions.wait = 10
         queue.deqOptions.navigation = oracledb.DEQ_FIRST_MSG
@@ -110,7 +110,7 @@ class TestCase(base.BaseTestCase):
         props1 = self.connection.msgproperties(payload="A first message")
         props2 = self.connection.msgproperties(payload="A second message")
         queue.enqMany([props1, props2])
-        other_connection = base.get_connection()
+        other_connection = test_env.get_connection()
         other_queue = other_connection.queue(RAW_QUEUE_NAME)
         other_queue.deqOptions.wait = oracledb.DEQ_NO_WAIT
         other_queue.deqOptions.visibility = oracledb.DEQ_ON_COMMIT
@@ -132,4 +132,4 @@ class TestCase(base.BaseTestCase):
         self.assertEqual(len(messages), 0)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

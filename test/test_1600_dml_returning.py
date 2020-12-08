@@ -6,11 +6,11 @@
 1600 - Module for testing DML returning clauses
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def test_1600_insert(self):
         "1600 - test insert (single row) with DML returning"
@@ -270,4 +270,4 @@ class TestCase(base.BaseTestCase):
         self.assertEqual(int_var.getvalue(), [])
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

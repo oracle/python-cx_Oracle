@@ -7,16 +7,16 @@
 """
 
 import cx_Oracle as oracledb
-import base
+import test_env
 import datetime
 import decimal
 import unittest
 
-@unittest.skipUnless(base.get_client_version() >= (21, 0),
+@unittest.skipUnless(test_env.get_client_version() >= (21, 0),
                      "unsupported client")
-@unittest.skipUnless(base.get_server_version() >= (21, 0),
+@unittest.skipUnless(test_env.get_server_version() >= (21, 0),
                      "unsupported server")
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     json_data = [
         True,
@@ -167,4 +167,4 @@ class TestCase(base.BaseTestCase):
         self.__bind_scalar_as_json(data)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

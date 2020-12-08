@@ -6,13 +6,13 @@
 2700 - Module for testing AQ
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import decimal
 import threading
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
     book_type_name = "UDT_BOOK"
     book_queue_name = "TEST_BOOK_QUEUE"
     book_data = [
@@ -33,7 +33,7 @@ class TestCase(base.BaseTestCase):
             pass
 
     def __deq_in_thread(self, results):
-        connection = base.get_connection()
+        connection = test_env.get_connection()
         books_type = connection.gettype(self.book_type_name)
         book = books_type.newobject()
         options = connection.deqoptions()
@@ -179,7 +179,7 @@ class TestCase(base.BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq(self.book_queue_name, enq_options, props, book)
 
-        other_connection = base.get_connection()
+        other_connection = test_env.get_connection()
         deq_options = other_connection.deqoptions()
         deq_options.navigation = oracledb.DEQ_FIRST_MSG
         deq_options.wait = oracledb.DEQ_NO_WAIT
@@ -205,7 +205,7 @@ class TestCase(base.BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq(self.book_queue_name, enq_options, props, book)
 
-        other_connection = base.get_connection()
+        other_connection = test_env.get_connection()
         deq_options = other_connection.deqoptions()
         deq_options.navigation = oracledb.DEQ_FIRST_MSG
         deq_options.visibility = oracledb.DEQ_ON_COMMIT
@@ -230,7 +230,7 @@ class TestCase(base.BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq(self.book_queue_name, enq_options, props, book)
 
-        other_connection = base.get_connection()
+        other_connection = test_env.get_connection()
         deq_options = other_connection.deqoptions()
         deq_options.deliverymode = oracledb.MSG_BUFFERED
         deq_options.navigation = oracledb.DEQ_FIRST_MSG
@@ -256,7 +256,7 @@ class TestCase(base.BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq(self.book_queue_name, enq_options, props, book)
 
-        other_connection = base.get_connection()
+        other_connection = test_env.get_connection()
         deq_options = other_connection.deqoptions()
         deq_options.deliverymode = oracledb.MSG_PERSISTENT
         deq_options.navigation = oracledb.DEQ_FIRST_MSG
@@ -282,7 +282,7 @@ class TestCase(base.BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq(self.book_queue_name, enq_options, props, book)
 
-        other_connection = base.get_connection()
+        other_connection = test_env.get_connection()
         deq_options = other_connection.deqoptions()
         deq_options.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
         deq_options.navigation = oracledb.DEQ_FIRST_MSG
@@ -308,7 +308,7 @@ class TestCase(base.BaseTestCase):
         props = self.connection.msgproperties()
         self.connection.enq(self.book_queue_name, enq_options, props, book)
 
-        other_connection = base.get_connection()
+        other_connection = test_env.get_connection()
         deq_options = other_connection.deqoptions()
         deq_options.deliverymode = oracledb.MSG_PERSISTENT
         deq_options.navigation = oracledb.DEQ_FIRST_MSG
@@ -333,7 +333,7 @@ class TestCase(base.BaseTestCase):
         self.connection.enq(self.book_queue_name, enq_options, props, book)
         self.connection.commit()
 
-        other_connection = base.get_connection()
+        other_connection = test_env.get_connection()
         deq_options = other_connection.deqoptions()
         deq_options.navigation = oracledb.DEQ_FIRST_MSG
         deq_options.visibility = oracledb.DEQ_IMMEDIATE
@@ -359,7 +359,7 @@ class TestCase(base.BaseTestCase):
         self.connection.enq(self.book_queue_name, enq_options, props, book)
         self.connection.commit()
 
-        other_connection = base.get_connection()
+        other_connection = test_env.get_connection()
         deq_options = other_connection.deqoptions()
         deq_options.navigation = oracledb.DEQ_FIRST_MSG
         deq_options.visibility = oracledb.DEQ_IMMEDIATE
@@ -372,4 +372,4 @@ class TestCase(base.BaseTestCase):
         self.assertEqual(otherPrice, expectedPrice)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

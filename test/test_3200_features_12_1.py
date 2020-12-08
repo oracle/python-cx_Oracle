@@ -11,15 +11,15 @@
 3200 - Module for testing features introduced in 12.1
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import datetime
 import unittest
 
-@unittest.skipUnless(base.get_client_version() >= (12, 1),
+@unittest.skipUnless(test_env.get_client_version() >= (12, 1),
                      "unsupported client")
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def test_3200_array_dml_row_counts_off(self):
         "3200 - test executing with arraydmlrowcounts mode disabled"
@@ -400,7 +400,7 @@ class TestCase(base.BaseTestCase):
                 "values (:1, :2, :3)"
         self.cursor.executemany(sql, rows, batcherrors=True,
                                 arraydmlrowcounts=True)
-        user = base.get_main_user()
+        user = test_env.get_main_user()
         expected_errors = [
             ( 4, 1438, "ORA-01438: value larger than specified " \
                        "precision allowed for this column" ),
@@ -441,7 +441,7 @@ class TestCase(base.BaseTestCase):
         sql = "insert into TestArrayDML (IntCol, StringCol, IntCol2) " \
                 "values (:1, :2, :3)"
         self.cursor.executemany(sql, rows, batcherrors=True)
-        user = base.get_main_user()
+        user = test_env.get_main_user()
         expected_errors = [
             ( 6, 1, "ORA-00001: unique constraint " \
                     "(%s.TESTARRAYDML_PK) violated" % user.upper())
@@ -470,4 +470,4 @@ class TestCase(base.BaseTestCase):
         self.assertEqual(self.cursor.rowcount, 4)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

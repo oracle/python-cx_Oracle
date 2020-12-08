@@ -11,14 +11,14 @@
 2500 - Module for testing string variables
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import datetime
 import string
 import random
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -294,12 +294,12 @@ class TestCase(base.BaseTestCase):
         expected_value = [
             ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
             ('STRINGCOL', oracledb.DB_TYPE_VARCHAR, 20,
-                    20 * base.get_charset_ratio(), None, None, 0),
+                    20 * test_env.get_charset_ratio(), None, None, 0),
             ('RAWCOL', oracledb.DB_TYPE_RAW, 30, 30, None, None, 0),
             ('FIXEDCHARCOL', oracledb.DB_TYPE_CHAR, 40,
-                    40 * base.get_charset_ratio(), None, None, 0),
+                    40 * test_env.get_charset_ratio(), None, None, 0),
             ('NULLABLECOL', oracledb.DB_TYPE_VARCHAR, 50,
-                    50 * base.get_charset_ratio(), None, None, 1)
+                    50 * test_env.get_charset_ratio(), None, None, 1)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
@@ -429,4 +429,4 @@ class TestCase(base.BaseTestCase):
         self.assertEqual(actual_value.strip(), xml_string)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

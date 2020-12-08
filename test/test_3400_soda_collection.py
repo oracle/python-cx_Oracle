@@ -6,14 +6,14 @@
 3400 - Module for testing Simple Oracle Document Access (SODA) Collections
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import unittest
 
-@unittest.skipIf(base.skip_soda_tests(),
+@unittest.skipIf(test_env.skip_soda_tests(),
                  "unsupported client/server combination")
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def __test_skip(self, coll, num_to_skip, expected_content):
         filter_spec = {'$orderby': [{'path': 'name', 'order': 'desc'}]}
@@ -280,7 +280,8 @@ class TestCase(base.BaseTestCase):
         doc = coll.insertOneAndGet(data)
         self.assertEqual(doc.createdOn, doc.lastModified)
 
-    @unittest.skipIf(base.get_client_version() < (20, 1), "unsupported client")
+    @unittest.skipIf(test_env.get_client_version() < (20, 1),
+                     "unsupported client")
     def test_3413_soda_truncate(self):
         "3413 - test Soda truncate"
         soda_db = self.connection.getSodaDatabase()
@@ -301,4 +302,4 @@ class TestCase(base.BaseTestCase):
         coll.drop()
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

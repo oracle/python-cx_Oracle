@@ -11,11 +11,11 @@
 2100 - Module for testing NCHAR variables
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -237,4 +237,4 @@ class TestCase(base.BaseTestCase):
         self.assertEqual(self.cursor.fetchone(), None)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

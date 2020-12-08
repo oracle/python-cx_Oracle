@@ -11,12 +11,12 @@
 1300 - Module for testing cursor variables
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import sys
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def test_1300_bind_cursor(self):
         "1300 - test binding in a cursor"
@@ -29,7 +29,7 @@ class TestCase(base.BaseTestCase):
                 cursor=cursor)
         expected_value = [
             ('STRINGVALUE', oracledb.DB_TYPE_CHAR, 1,
-                    base.get_charset_ratio(), None, None, 1)
+                    test_env.get_charset_ratio(), None, None, 1)
         ]
         self.assertEqual(cursor.description, expected_value)
         self.assertEqual(cursor.fetchall(), [('X',)])
@@ -42,7 +42,7 @@ class TestCase(base.BaseTestCase):
         expected_value = [
             ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
             ('STRINGCOL', oracledb.DB_TYPE_VARCHAR, 20,
-                    20 * base.get_charset_ratio(), None, None, 0)
+                    20 * test_env.get_charset_ratio(), None, None, 0)
         ]
         self.assertEqual(cursor.description, expected_value)
         self.assertEqual(cursor.fetchall(), [(1, 'String 1'), (2, 'String 2')])
@@ -95,4 +95,4 @@ class TestCase(base.BaseTestCase):
             self.assertEqual(cursor.fetchall(), [(i + 1,)])
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

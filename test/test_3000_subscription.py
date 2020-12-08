@@ -6,7 +6,7 @@
 3000 - Module for testing subscriptions
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import threading
@@ -36,7 +36,7 @@ class SubscriptionData(object):
             self.condition.release()
 
 
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def test_3000_subscription(self):
         "3000 - test Subscription for insert, update, delete and truncate"
@@ -68,7 +68,7 @@ class TestCase(base.BaseTestCase):
 
         # set up subscription
         data = SubscriptionData(5)
-        connection = base.get_connection(threaded=True, events=True)
+        connection = test_env.get_connection(threaded=True, events=True)
         sub = connection.subscribe(callback=data.CallbackHandler,
                                    timeout=10, qos=oracledb.SUBSCR_QOS_ROWIDS)
         sub.registerquery("select * from TestTempTable")
@@ -115,8 +115,9 @@ class TestCase(base.BaseTestCase):
 
         # test string format of subscription object is as expected
         fmt = "<cx_Oracle.Subscription on <cx_Oracle.Connection to %s@%s>>"
-        expected = fmt % (base.get_main_user(), base.get_connect_string())
+        expected = fmt % \
+                (test_env.get_main_user(), test_env.get_connect_string())
         self.assertEqual(str(sub), expected)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()

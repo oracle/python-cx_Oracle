@@ -6,15 +6,15 @@
 3300 - Module for testing Simple Oracle Document Access (SODA) Database
 """
 
-import base
+import test_env
 
 import cx_Oracle as oracledb
 import json
 import unittest
 
-@unittest.skipIf(base.skip_soda_tests(),
+@unittest.skipIf(test_env.skip_soda_tests(),
                  "unsupported client/server combination")
-class TestCase(base.BaseTestCase):
+class TestCase(test_env.BaseTestCase):
 
     def __drop_existing_collections(self, soda_db):
         for name in soda_db.getCollectionNames():
@@ -89,7 +89,7 @@ class TestCase(base.BaseTestCase):
     def test_3304_repr(self):
         "3304 - test SodaDatabase representation"
         con1 = self.connection
-        con2 = base.get_connection()
+        con2 = test_env.get_connection()
         soda_db1 = self.connection.getSodaDatabase()
         soda_db2 = con1.getSodaDatabase()
         soda_db3 = con2.getSodaDatabase()
@@ -106,4 +106,4 @@ class TestCase(base.BaseTestCase):
         self.assertRaises(TypeError, soda_db.getCollectionNames, 1)
 
 if __name__ == "__main__":
-    base.run_test_cases()
+    test_env.run_test_cases()
