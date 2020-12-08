@@ -197,6 +197,9 @@ Python object that is returned by default. Python types can be changed with
     * - INTERVAL DAY TO SECOND
       - :attr:`cx_Oracle.DB_TYPE_INTERVAL_DS`
       - datetime.timedelta
+    * - JSON
+      - :attr:`cx_Oracle.DB_TYPE_JSON`
+      - dict, list or a scalar value [4]_
     * - LONG
       - :attr:`cx_Oracle.DB_TYPE_LONG`
       - str
@@ -249,6 +252,10 @@ Python object that is returned by default. Python types can be changed with
 .. [2] The timestamps returned are naive timestamps without any time zone
        information present.
 .. [3] These include all user-defined types such as VARRAY, NESTED TABLE, etc.
+
+.. [4] If the JSON is an object, then a dict is returned. If it is an array,
+       then a list is returned. If it is a scalar value, then that particular
+       scalar value is returned.
 
 
 .. _outputtypehandlers:

@@ -31,6 +31,13 @@ static cxoTransformNum cxoTransform_getNumFromPythonType(PyTypeObject *type);
 
 
 //-----------------------------------------------------------------------------
+// Forward declarations
+//-----------------------------------------------------------------------------
+static PyObject *cxoTransform_toPythonFromJson(cxoConnection *connection,
+        dpiJsonNode *node, const char *encodingErrors);
+
+
+//-----------------------------------------------------------------------------
 // Types
 //-----------------------------------------------------------------------------
 typedef struct {
@@ -186,6 +193,11 @@ static const cxoTransform cxoAllTransforms[] = {
         CXO_TRANSFORM_TIMESTAMP_TZ,
         DPI_ORACLE_TYPE_TIMESTAMP_TZ,
         DPI_NATIVE_TYPE_TIMESTAMP
+    },
+    {
+        CXO_TRANSFORM_JSON,
+        DPI_ORACLE_TYPE_JSON,
+        DPI_NATIVE_TYPE_JSON
     }
 };
 
@@ -233,6 +245,7 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
         dpiDataBuffer *dbValue, cxoBuffer *buffer, const char *encoding,
         const char *nencoding, cxoVar *var, uint32_t arrayPos)
 {
+    cxoJsonBuffer jsonBuffer;
     dpiIntervalDS *interval;
     PyDateTime_Delta *delta;
     int32_t deltaSeconds;
@@ -396,6 +409,17 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
             interval->fseconds =
                     PyDateTime_DELTA_GET_MICROSECONDS(delta) * 1000;
             return 0;
+        case CXO_TRANSFORM_JSON:
+            status = cxoJsonBuffer_fromObject(&jsonBuffer, pyValue);
+            if (status < 0) {
+                cxoJsonBuffer_free(&jsonBuffer);
+                return -1;
+            }
+            status = dpiJson_setValue(dbValue->asJson, &jsonBuffer.topNode);
+            cxoJsonBuffer_free(&jsonBuffer);
+            if (status < 0)
+                return cxoError_raiseAndReturnInt();
+            return 0;
         default:
             break;
     }
@@ -495,6 +519,8 @@ cxoTransformNum cxoTransform_getNumFromDataTypeInfo(dpiDataTypeInfo *info)
             return CXO_TRANSFORM_LONG_BINARY;
         case DPI_ORACLE_TYPE_BOOLEAN:
             return CXO_TRANSFORM_BOOLEAN;
+        case DPI_ORACLE_TYPE_JSON:
+            return CXO_TRANSFORM_JSON;
         default:
             break;
     }
@@ -772,6 +798,7 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
     PyObject *stringObj, *result;
     dpiIntervalDS *intervalDS;
     dpiTimestamp *timestamp;
+    dpiJsonNode *jsonNode;
     uint32_t rowidLength;
     cxoDbType *dbType;
     const char *rowid;
@@ -857,6 +884,12 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
                 return cxoError_raiseAndReturnNull();
             return PyUnicode_Decode(rowid, rowidLength,
                     connection->encodingInfo.encoding, NULL);
+        case CXO_TRANSFORM_JSON:
+            if (dpiJson_getValue(dbValue->asJson,
+                    DPI_JSON_OPT_NUMBER_AS_STRING, &jsonNode) < 0)
+                return cxoError_raiseAndReturnNull();
+            return cxoTransform_toPythonFromJson(connection, jsonNode,
+                    encodingErrors);
         case CXO_TRANSFORM_TIMEDELTA:
             intervalDS = &dbValue->asIntervalDS; 
             seconds = intervalDS->hours * 60 * 60 + intervalDS->minutes * 60 +
@@ -869,4 +902,85 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
 
     return cxoError_raiseFromString(cxoNotSupportedErrorException,
             "Database value cannot be converted to a Python value");
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoTransform_toPythonFromJson()
+//   Transforms a JSON node to its equivalent Python value.
+//-----------------------------------------------------------------------------
+static PyObject *cxoTransform_toPythonFromJson(cxoConnection *connection,
+        dpiJsonNode *node, const char *encodingErrors)
+{
+    PyObject *result, *temp, *name;
+    cxoTransformNum transformNum;
+    dpiJsonArray *array;
+    dpiJsonObject *obj;
+    uint32_t i;
+
+    // null is a special case
+    if (node->nativeTypeNum == DPI_NATIVE_TYPE_NULL)
+        Py_RETURN_NONE;
+
+    switch (node->oracleTypeNum) {
+        case DPI_ORACLE_TYPE_NUMBER:
+            transformNum = (node->nativeTypeNum == DPI_NATIVE_TYPE_DOUBLE) ?
+                    CXO_TRANSFORM_NATIVE_DOUBLE : CXO_TRANSFORM_DECIMAL;
+            break;
+        case DPI_ORACLE_TYPE_VARCHAR:
+            transformNum = CXO_TRANSFORM_STRING;
+            break;
+        case DPI_ORACLE_TYPE_RAW:
+            transformNum = CXO_TRANSFORM_BINARY;
+            break;
+        case DPI_ORACLE_TYPE_DATE:
+        case DPI_ORACLE_TYPE_TIMESTAMP:
+            transformNum = CXO_TRANSFORM_DATETIME;
+            break;
+        case DPI_ORACLE_TYPE_BOOLEAN:
+            transformNum = CXO_TRANSFORM_BOOLEAN;
+            break;
+        case DPI_ORACLE_TYPE_INTERVAL_DS:
+            transformNum = CXO_TRANSFORM_TIMEDELTA;
+            break;
+        case DPI_ORACLE_TYPE_JSON_OBJECT:
+            obj = &node->value->asJsonObject;
+            result = PyDict_New();
+            for (i = 0; i < obj->numFields; i++) {
+                name = PyUnicode_DecodeUTF8(obj->fieldNames[i],
+                        obj->fieldNameLengths[i], NULL);
+                if (!name)
+                    return NULL;
+                temp = cxoTransform_toPythonFromJson(connection,
+                        &obj->fields[i], encodingErrors);
+                if (!temp)
+                    return NULL;
+                if (PyDict_SetItem(result, name, temp) < 0) {
+                    Py_DECREF(name);
+                    Py_DECREF(temp);
+                    return NULL;
+                }
+                Py_DECREF(name);
+                Py_DECREF(temp);
+            }
+            return result;
+        case DPI_ORACLE_TYPE_JSON_ARRAY:
+            array = &node->value->asJsonArray;
+            result = PyList_New(array->numElements);
+            for (i = 0; i < array->numElements; i++) {
+                temp = cxoTransform_toPythonFromJson(connection,
+                        &array->elements[i], encodingErrors);
+                if (!temp) {
+                    Py_DECREF(result);
+                    return NULL;
+                }
+                PyList_SET_ITEM(result, i, temp);
+            }
+            return result;
+        default:
+            transformNum = CXO_TRANSFORM_UNSUPPORTED;
+    }
+
+    return cxoTransform_toPython(transformNum, connection, NULL,
+            node->value, encodingErrors);
 }

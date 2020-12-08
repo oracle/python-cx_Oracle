@@ -1176,6 +1176,14 @@ when binding data.
     by cx_Oracle.
 
 
+.. data:: DB_TYPE_JSON
+
+    Describes columns in a database that are of type JSON (with Oracle Database
+    21 or later).
+
+    .. versionadded:: 8.1
+
+
 .. data:: DB_TYPE_LONG
 
     Describes columns, attributes or array elements in a database that are of

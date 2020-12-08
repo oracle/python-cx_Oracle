@@ -230,6 +230,8 @@ cxoDbType *cxoDbType_fromTransformNum(cxoTransformNum transformNum)
             return cxoDbTypeTimestampLTZ;
         case CXO_TRANSFORM_TIMESTAMP_TZ:
             return cxoDbTypeTimestampTZ;
+        case CXO_TRANSFORM_JSON:
+            return cxoDbTypeJson;
         default:
             break;
     }

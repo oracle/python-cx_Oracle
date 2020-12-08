@@ -252,6 +252,25 @@ create table &main_user..PlsqlSessionCallbacks (
 )
 /
 
+declare
+    t_Version                           number;
+begin
+
+    select to_number(substr(version, 1, instr(version, '.') - 1))
+    into t_Version
+    from product_component_version
+    where product like 'Oracle Database%';
+
+    if t_Version >= 21 then
+        execute immediate 'create table &main_user..TestJson (' ||
+                          '    IntCol number(9) not null,' ||
+                          '    JsonCol json not null' ||
+                          ')';
+    end if;
+
+end;
+/
+
 -- create queue table and queues for testing advanced queuing
 begin
     dbms_aqadm.create_queue_table('&main_user..BOOK_QUEUE_TAB',

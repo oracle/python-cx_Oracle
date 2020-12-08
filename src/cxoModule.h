@@ -38,6 +38,7 @@ typedef struct cxoDeqOptions cxoDeqOptions;
 typedef struct cxoEnqOptions cxoEnqOptions;
 typedef struct cxoError cxoError;
 typedef struct cxoFuture cxoFuture;
+typedef struct cxoJsonBuffer cxoJsonBuffer;
 typedef struct cxoLob cxoLob;
 typedef struct cxoMessage cxoMessage;
 typedef struct cxoMessageQuery cxoMessageQuery;
@@ -119,6 +120,7 @@ extern cxoDbType *cxoDbTypeCursor;
 extern cxoDbType *cxoDbTypeDate;
 extern cxoDbType *cxoDbTypeIntervalDS;
 extern cxoDbType *cxoDbTypeIntervalYM;
+extern cxoDbType *cxoDbTypeJson;
 extern cxoDbType *cxoDbTypeLong;
 extern cxoDbType *cxoDbTypeLongRaw;
 extern cxoDbType *cxoDbTypeNchar;
@@ -184,6 +186,7 @@ typedef enum {
     CXO_TRANSFORM_TIMESTAMP,
     CXO_TRANSFORM_TIMESTAMP_LTZ,
     CXO_TRANSFORM_TIMESTAMP_TZ,
+    CXO_TRANSFORM_JSON,
     CXO_TRANSFORM_UNSUPPORTED
 } cxoTransformNum;
 
@@ -284,6 +287,14 @@ struct cxoEnqOptions {
 
 struct cxoFuture {
     PyObject_HEAD
+};
+
+struct cxoJsonBuffer {
+    dpiJsonNode topNode;
+    dpiDataBuffer topNodeBuffer;
+    uint32_t allocatedBuffers;
+    uint32_t numBuffers;
+    cxoBuffer *buffers;
 };
 
 struct cxoLob {
@@ -496,6 +507,9 @@ PyObject *cxoError_raiseAndReturnNull(void);
 int cxoError_raiseFromInfo(dpiErrorInfo *errorInfo);
 PyObject *cxoError_raiseFromString(PyObject *exceptionType,
         const char *message);
+
+void cxoJsonBuffer_free(cxoJsonBuffer *buf);
+int cxoJsonBuffer_fromObject(cxoJsonBuffer *buf, PyObject *obj);
 
 PyObject *cxoLob_new(cxoConnection *connection, cxoDbType *dbType,
         dpiLob *handle);

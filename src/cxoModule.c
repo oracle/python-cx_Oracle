@@ -76,6 +76,7 @@ cxoDbType *cxoDbTypeCursor = NULL;
 cxoDbType *cxoDbTypeDate = NULL;
 cxoDbType *cxoDbTypeIntervalDS = NULL;
 cxoDbType *cxoDbTypeIntervalYM = NULL;
+cxoDbType *cxoDbTypeJson = NULL;
 cxoDbType *cxoDbTypeLong = NULL;
 cxoDbType *cxoDbTypeLongRaw = NULL;
 cxoDbType *cxoDbTypeNchar = NULL;
@@ -495,6 +496,8 @@ static PyObject *cxoModule_initialize(void)
             CXO_TRANSFORM_TIMEDELTA, &cxoDbTypeIntervalDS)
     CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_INTERVAL_YM, "DB_TYPE_INTERVAL_YM",
             CXO_TRANSFORM_UNSUPPORTED, &cxoDbTypeIntervalYM)
+    CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_JSON, "DB_TYPE_JSON",
+            CXO_TRANSFORM_JSON, &cxoDbTypeJson)
     CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_LONG_VARCHAR, "DB_TYPE_LONG",
             CXO_TRANSFORM_LONG_STRING, &cxoDbTypeLong)
     CXO_ADD_DB_TYPE(DPI_ORACLE_TYPE_LONG_RAW, "DB_TYPE_LONG_RAW",
