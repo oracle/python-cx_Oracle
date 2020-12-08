@@ -487,8 +487,8 @@ To use cx_Oracle with Oracle Instant Client zip files:
 
 2. Unzip the package into a directory that is accessible to your
    application. For example unzip
-   ``instantclient-basic-windows.x64-19.8.0.0.0dbru.zip`` to
-   ``C:\oracle\instantclient_19_8``.
+   ``instantclient-basic-windows.x64-19.9.0.0.0dbru.zip`` to
+   ``C:\oracle\instantclient_19_9``.
 
 3. Oracle Instant Client libraries require a Visual Studio redistributable with
    a 64-bit or 32-bit architecture to match Instant Client's architecture.
@@ -511,7 +511,7 @@ Configure Oracle Instant Client
      .. code-block:: python
 
          import cx_Oracle
-         cx_Oracle.init_oracle_client(lib_dir=r"C:\oracle\instantclient_19_8")
+         cx_Oracle.init_oracle_client(lib_dir=r"C:\oracle\instantclient_19_9")
 
      Note a 'raw' string is used because backslashes occur in the path.
 
@@ -523,7 +523,7 @@ Configure Oracle Instant Client
      is executed, for example::
 
          REM mypy.bat
-         SET PATH=C:\oracle\instantclient_19_8;%PATH%
+         SET PATH=C:\oracle\instantclient_19_9;%PATH%
          python %*
 
      Invoke this batch file every time you want to run Python.
@@ -536,14 +536,14 @@ Configure Oracle Instant Client
    .. code-block:: python
 
        import cx_Oracle
-       cx_Oracle.init_oracle_client(lib_dir=r"C:\oracle\instantclient_19_8",
+       cx_Oracle.init_oracle_client(lib_dir=r"C:\oracle\instantclient_19_9",
                                     config_dir=r"C:\oracle\your_config_dir")
 
    Or set the environment variable ``TNS_ADMIN`` to that directory name.
 
    Alternatively, put the files in a ``network\admin`` subdirectory of
    Instant Client, for example in
-   ``C:\oracle\instantclient_19_8\network\admin``.  This is the default
+   ``C:\oracle\instantclient_19_9\network\admin``.  This is the default
    Oracle configuration directory for executables linked with this
    Instant Client.
 
@@ -837,28 +837,48 @@ If using cx_Oracle fails:
     - Do you get the error "``DPI-1047: Oracle Client library cannot be
       loaded``"?
 
-      - Check that Python, cx_Oracle and your Oracle Client libraries
-        are all 64-bit or all 32-bit.  The ``DPI-1047`` message will
-        tell you whether the 64-bit or 32-bit Oracle Client is needed
-        for your Python.
+      - On Windows and macOS, try using :meth:`~cx_Oracle.init_oracle_client()`.
+        See :ref:`usinginitoracleclient`.
+
+      - Check that Python and your Oracle Client libraries are both 64-bit, or
+        both 32-bit.  The ``DPI-1047`` message will tell you whether the 64-bit
+        or 32-bit Oracle Client is needed for your Python.
+
+      - Set the environment variable ``DPI_DEBUG_LEVEL`` to 64 and restart
+        cx_Oracle.  The trace messages will show how and where cx_Oracle is
+        looking for the Oracle Client libraries.
+
+        At a Windows command prompt, this could be done with::
+
+            set DPI_DEBUG_LEVEL=64
+
+        On Linux and macOS, you might use::
+
+              export DPI_DEBUG_LEVEL=64
+
       - On Windows, if you used :meth:`~cx_Oracle.init_oracle_client()` and have
         a full database installation, make sure this database is the `currently
         configured database
         <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-33D575DD-47FF-42B1-A82F-049D3F2A8791>`__.
+
       - On Windows, if you are not using
         :meth:`~cx_Oracle.init_oracle_client()`, then restart your command prompt
         and use ``set PATH`` to check the environment variable has the correct
         Oracle Client listed before any other Oracle directories.
+
       - On Windows, use the ``DIR`` command to verify that ``OCI.DLL`` exists in
         the directory passed to ``init_oracle_client()`` or set in ``PATH``.
+
       - On Windows, check that the correct `Windows Redistributables
         <https://oracle.github.io/odpi/doc/installation.html#windows>`__ have
         been installed.
+
       - On Linux, check the ``LD_LIBRARY_PATH`` environment variable contains
         the Oracle Client library directory. If you are using Oracle Instant
         Client, a preferred alternative is to ensure a file in the
         ``/etc/ld.so.conf.d`` directory contains the path to the Instant Client
         directory, and then run ``ldconfig``.
+
       - On macOS, make sure you are not using the bundled Python (use `Homebrew
         <https://brew.sh>`__ or `Python.org
         <https://www.python.org/downloads>`__ instead).  If you are not using

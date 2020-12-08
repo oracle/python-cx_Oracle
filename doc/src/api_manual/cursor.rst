@@ -26,11 +26,12 @@ Cursor Object
 .. attribute:: Cursor.arraysize
 
     This read-write attribute can be used to tune the number of rows internally
-    fetched and buffered by internal calls to the database.  The value can
-    drastically affect the performance of a query since it directly affects the
-    number of network round trips between Python and the database.  For methods
-    like :meth:`~Cursor.fetchone()` and :meth:`~Cursor.fetchall()` it does not
-    change how many rows are returned to the application. For
+    fetched and buffered by internal calls to the database when fetching rows
+    from SELECT statements and REF CURSORS.  The value can drastically affect
+    the performance of a query since it directly affects the number of network
+    round trips between Python and the database.  For methods like
+    :meth:`~Cursor.fetchone()` and :meth:`~Cursor.fetchall()` it does not change
+    how many rows are returned to the application. For
     :meth:`~Cursor.fetchmany()` it is the default number of rows to fetch.
 
     Due to the performance benefits, the default ``Cursor.arraysize`` is 100
@@ -445,9 +446,9 @@ Cursor Object
 .. attribute:: Cursor.prefetchrows
 
     This read-write attribute can be used to tune the number of rows that the
-    Oracle Client library fetches when a query is executed. This value can
-    reduce the number of round-trips to the database that are required to
-    fetch rows but at the cost of additional memory. Setting this value to 0
+    Oracle Client library fetches when a SELECT statement is executed. This
+    value can reduce the number of round-trips to the database that are required
+    to fetch rows but at the cost of additional memory. Setting this value to 0
     can be useful when the timing of fetches must be explicitly controlled.
 
     See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.

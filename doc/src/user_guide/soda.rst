@@ -18,10 +18,21 @@ SODA uses a SQL schema to store documents but you do not need to know SQL or
 how the documents are stored. However, access via SQL does allow use of
 advanced Oracle Database functionality such as analytics for reporting.
 
+Oracle SODA implementations are also available in `Node.js
+<https://oracle.github.io/node-oracledb/doc/api.html#sodaoverview>`__, `Java
+<https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/java/adsda/index.html>`__,
+`PL/SQL <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADSDP>`__,
+`Oracle Call Interface
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-23206C89-891E-43D7-827C-5C6367AD62FD>`__
+and via `REST
+<https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/rest/index.html>`__.
+
 For general information on SODA, see the `SODA home page
 <https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/index.html>`__
-and `Oracle Database Introduction to SODA
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADSDI>`__.
+and the Oracle Database `Introduction to Simple Oracle Document Access (SODA)
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADSDI>`__ manual.
+
+For specified requirements see the cx_Oracle :ref:`SODA requirements <sodarequirements>`.
 
 cx_Oracle uses the following objects for SODA:
 
@@ -62,8 +73,8 @@ cx_Oracle uses the following objects for SODA:
   then used by a terminal method to find, count, replace, or remove documents.
   This is an internal object that should not be directly accessed.
 
-SODA Example
-============
+SODA Examples
+=============
 
 Creating and adding documents to a collection can be done as follows:
 
@@ -106,3 +117,39 @@ You can also search for documents using query-by-example syntax:
 See the `samples directory
 <https://github.com/oracle/python-cx_Oracle/tree/master/samples>`__
 for runnable SODA examples.
+
+--------------------
+Committing SODA Work
+--------------------
+
+The general recommendation for SODA applications is to turn on
+:attr:`~Connection.autocommit` globally:
+
+.. code-block:: python
+
+    connection.autocommit = True
+
+If your SODA document write operations are mostly independent of each other,
+this removes the overhead of application transaction management and the need for
+explicit :meth:`Connection.commit()` calls.
+
+When deciding how to commit transactions, beware of transactional consistency
+and performance requirements.  If you are using individual SODA calls to insert
+or update a large number of documents with individual calls, you should turn
+:attr:`~Connection.autocommit` off and issue a single, explicit
+:meth:`~Connection.commit()` after all documents have been processed.  Also
+consider using :meth:`SodaCollection.insertMany()` or
+:meth:`SodaCollection.insertManyAndGet()` which have performance benefits.
+
+If you are not autocommitting, and one of the SODA operations in your
+transaction fails, then previous uncommitted operations will not be rolled back.
+Your application should explicitly roll back the transaction with
+:meth:`Connection.rollback()` to prevent any later commits from committing a
+partial transaction.
+
+Note:
+
+- SODA DDL operations do not commit an open transaction the way that SQL always does for DDL statements.
+- When :attr:`~Connection.autocommit` is ``True``, most SODA methods will issue a commit before successful return.
+- SODA provides optimistic locking, see :meth:`SodaOperation.version()`.
+- When mixing SODA and relational access, any commit or rollback on the connection will affect all work.

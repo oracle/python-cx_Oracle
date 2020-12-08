@@ -84,7 +84,7 @@ Connection Object
 
 .. method:: Connection.cancel()
 
-    Cancel a long-running transaction.
+    Break a long-running transaction.
 
     .. note::
 

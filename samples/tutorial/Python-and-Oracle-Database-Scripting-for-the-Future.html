@@ -46,7 +46,7 @@
           <li>3.2 Using fetchone()</li>
           <li>3.3 Using fetchmany()</li>
           <li>3.4 Scrollable cursors</li>
-          <li>3.5 Tuning with arraysize</li>
+          <li>3.5 Tuning with arraysize and prefetchrows</li>
         </ul>
       </li>
       <li><a href="#binding">4. Binding Data</a>
@@ -892,11 +892,15 @@ print(cur.fetchone())
 
   </li>
 
-  <li><h4>3.5 Tuning with arraysize</h4>
+  <li><h4>3.5 Tuning with arraysize and prefetchrows</h4>
 
-  <p>This section demonstrates a way to improve query performance by
-  increasing the number of rows returned in each batch from Oracle to
-  the Python program.</p>
+  <p>This section demonstrates a way to improve query performance by increasing
+  the number of rows returned in each batch from Oracle to the Python
+  program.</p>
+
+  <p>Row prefetching and array fetching are both internal buffering techniques
+  to reduce round-trips to the database. The difference is the code layer that
+  is doing the buffering, and when the buffering occurs.</p>
 
   <p>First, create a table with a large number of rows.
   Review <code>query_arraysize.sql</code>:</p>
@@ -919,7 +923,6 @@ commit;
 
     <pre><strong>sqlplus /nolog @query_arraysize.sql</strong></pre>
 
-
     <p>Review the code contained in <code>query_arraysize.py</code>:</p>
 
 <pre>
@@ -932,7 +935,8 @@ con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 start = time.time()
 
 cur = con.cursor()
-cur.arraysize = 10
+cur.prefetchrows = 100
+cur.arraysize = 100
 cur.execute("select * from bigtab")
 res = cur.fetchall()
 # print(res)  # uncomment to display the query results
@@ -941,15 +945,14 @@ elapsed = (time.time() - start)
 print(elapsed, "seconds")
 </pre>
 
-    <p>This uses the 'time' module to measure elapsed time of the
-    query. The arraysize is set to 10. This causes batches of 10
-    records at a time to be returned from the database to a cache in
-    Python. This reduces the number of &quot;roundtrips&quot; made to
-    the database, often reducing network load and reducing the number
-    of context switches on the database server. The
-    <code>fetchone()</code>, <code>fetchmany()</code> and
-    <code>fetchall()</code> methods will read from the cache before
-    requesting more data from the database.</p>
+    <p>This uses the 'time' module to measure elapsed time of the query. The
+    prefetchrows and arraysize values are 100.  This causes batches of 100
+    records at a time to be returned from the database to a cache in Python.
+    These values can be tuned to reduce the number of &quot;round-trips&quot;
+    made to the database, often reducing network load and reducing the number of
+    context switches on the database server. The <code>fetchone()</code>,
+    <code>fetchmany()</code> and <code>fetchall()</code> methods will read from
+    the cache before requesting more data from the database.</p>
 
     <p>In a terminal window, run:</p>
 
@@ -957,23 +960,27 @@ print(elapsed, "seconds")
 
     <p>Rerun a few times to see the average times.</p>
 
-    <p>Experiment with different arraysize values.  For example, edit
-    <code>query_arraysize.py</code> and change the arraysize to:</p>
+    <p>Experiment with different prefetchrows and arraysize values.  For
+    example, edit <code>query_arraysize.py</code> and change the arraysize
+    to:</p>
 
     <pre>cur.arraysize = <strong>2000</strong></pre>
 
     <p>Rerun the script to compare the performance of different
     arraysize settings.</p>
 
-    <p>In general, larger array sizes improve
-    performance.  Depending on how fast your system is, you may need
-    to use different arraysizes than those given here to see a
-    meaningful time difference.</p>
+    <p>In general, larger array sizes improve performance.  Depending on how
+    fast your system is, you may need to use different values than those
+    given here to see a meaningful time difference.</p>
 
-    <p>The default arraysize used by cx_Oracle is 100. There is a
-    time/space tradeoff for increasing the arraysize. Larger
-    arraysizes will require more memory in Python for buffering the
-    records.</p>
+    <p>There is a time/space tradeoff for increasing the values. Larger values
+    will require more memory in Python for buffering the records.</p>
+
+    <p>If you know the query returns a fixed number of rows, for example 20
+    rows, then set arraysize to 20 and prefetchrows to 21.  The addition of one
+    for prefetchrows prevents a round-trip to check for end-of-fetch.  The
+    statement execution and fetch will take a total of one round-trip.  This
+    minimizes load on the database.</p>
 
     <p>If you know a query only returns a few records,
     decrease the arraysize from the default to reduce memory
@@ -2426,12 +2433,12 @@ used to add a value to the list.</p>
 like:</p>
 
 <pre>
-if sal &gt; 900000:
-    print('Salary is way too big')
-elif sal &gt; 500000:
-    print('Salary is huge')
+if v == 2 or v == 4:
+    print('Even')
+elif v == 1 or v == 3:
+    print('Odd')
 else:
-    print('Salary might be OK')
+    print('Unknown number')
 </pre>
 
 <p>This also shows how the clauses are delimited with colons, and each

@@ -131,6 +131,8 @@ Linux, you might use::
     $ python myapp.py 2> log.txt
 
 
+.. _usinginitoracleclient:
+
 Using cx_Oracle.init_oracle_client() to set the Oracle Client directory
 -----------------------------------------------------------------------
 
@@ -138,22 +140,31 @@ Applications can call the function :meth:`cx_Oracle.init_oracle_client()` to
 specify the directory containing Oracle Instant Client libraries.  The Oracle
 Client Libraries are loaded when ``init_oracle_client()`` is called.  For
 example, if the Oracle Instant Client Libraries are in
-``C:\oracle\instantclient_19_6`` on Windows, then you can use:
+``C:\oracle\instantclient_19_9`` on Windows or
+``$HOME/Downloads/instantclient_19_8`` on macOS, then you can use:
 
 .. code-block:: python
 
     import cx_Oracle
     import sys
+    import os
 
     try:
-        cx_Oracle.init_oracle_client(lib_dir=r"C:\oracle\instantclient_19_6")
+        if sys.platform.startswith("darwin"):
+            lib_dir = os.path.join(os.environ.get("HOME"), "Downloads",
+                                   "instantclient_19_8")
+            cx_Oracle.init_oracle_client(lib_dir=lib_dir)
+        elif sys.platform.startswith("win32"):
+            cx_Oracle.init_oracle_client(lib_dir=r"C:\oracle\instantclient_19_9")
     except Exception as err:
         print("Whoops!")
         print(err);
         sys.exit(1);
 
-The :meth:`~cx_Oracle.init_oracle_client()` function should only be called
-once.
+Note the use of a 'raw' string ``r"..."`` on Windows so that backslashes are
+treated as directory separators.
+
+The :meth:`~cx_Oracle.init_oracle_client()` function can only be called once.
 
 If you set ``lib_dir`` on Linux and related platforms, you must still have
 configured the system library search path to include that directory before

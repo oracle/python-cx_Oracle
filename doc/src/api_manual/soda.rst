@@ -7,12 +7,27 @@ SODA
 `Oracle Database Simple Oracle Document Access (SODA)
 <https://docs.oracle.com/en/database/oracle/simple-oracle-document-access>`__
 allows documents to be inserted, queried, and retrieved from Oracle Database
-using a set of NoSQL-style cx_Oracle methods.
+using a set of NoSQL-style cx_Oracle methods. By default, documents are JSON
+strings. See the :ref:`user manual <sodausermanual>` for examples.
 
-See :ref:`user manual <sodausermanual>` for an example.
+.. _sodarequirements:
+
+-----------------
+SODA Requirements
+-----------------
+
+To use SODA, the role SODA_APP must be granted to the user.  To create
+collections, users need the CREATE TABLE privilege.  These can be granted by a
+DBA:
+
+.. code-block:: sql
+
+    SQL> grant soda_app, create table to myuser;
+
+Advanced users who are using Oracle sequences for keys will also need the CREATE
+SEQUENCE privilege.
 
 SODA requires Oracle Client 18.3 or higher and Oracle Database 18.1 and higher.
-The role SODA_APP must be granted to the user.
 
 .. note::
 
@@ -48,7 +63,8 @@ The role SODA_APP must be granted to the user.
       <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
       id=GUID-A2E90F08-BC9F-4688-A9D0-4A948DD3F7A9>`__ to 19 or lower.
 
-    Otherwise you may get errors such as "ORA-40659: Data type does not match
+    Otherwise you may get errors such as "ORA-40842: unsupported value JSON in
+    the metadata for the field sqlType" or "ORA-40659: Data type does not match
     the specification in the collection metadata".
 
 .. _sodadb:
