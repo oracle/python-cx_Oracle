@@ -214,6 +214,30 @@ data from one database to another:
 
 .. _roundtrips:
 
+Tuning REF CURSORS
+++++++++++++++++++
+
+In cx_Oracle, REF CURSORS can also be tuned by setting the values of ``arraysize``
+and ``prefetchrows``. The prefetchrows value must be set before calling the PL/SQL
+procedure as the REF CURSOR is executed on the server.
+
+For example:
+
+.. code-block:: python
+
+    # Set the arraysize and prefetch rows of the REF cursor
+    ref_cursor = connection.cursor()
+    ref_cursor.prefetchrows = 1000
+    ref_cursor.arraysize = 1000
+
+    # Perform the tuned fetch
+    sum_rows = 0
+    cursor.callproc("myrefcursorproc", [ref_cursor])
+    print("Sum of IntCol for", num_rows, "rows:")
+    for row in ref_cursor:
+        sum_rows += row[0]
+    print(sum_rows)
+
 Database Round-trips
 ====================
 

@@ -56,7 +56,7 @@ API Manual
     api_manual/lob.rst
     api_manual/object_type.rst
     api_manual/aq.rst
-    Soda Document Class <api_manual/soda.rst>
+    api_manual/soda.rst
 
 
 Indices and tables

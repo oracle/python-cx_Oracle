@@ -382,6 +382,6 @@ not specified, then the value "cx_Oracle : *version*" is used.
 
 The ``error_url`` string will be shown in the exception raised if
 ``init_oracle_client()`` cannot load the Oracle Client libraries.  This allows
-applications that use node-oracledb to refer users to application-specific
+applications that use cx_Oracle to refer users to application-specific
 installation instructions.  If this value is not specified, then the
 :ref:`installation` URL is used.

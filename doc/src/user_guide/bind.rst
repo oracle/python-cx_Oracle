@@ -278,6 +278,8 @@ return type of :meth:`Cursor.callfunc()`:
     for row in refCursor:
         print(row)
 
+See :ref:`tuning` for information on how to tune REF CURSORS.
+
 Binding PL/SQL Collections
 ==========================
 

@@ -9,13 +9,47 @@ SODA
 allows documents to be inserted, queried, and retrieved from Oracle Database
 using a set of NoSQL-style cx_Oracle methods.
 
-See :ref:`sodausermanual` for a cx_Oracle example.
+See :ref:`user manual <sodausermanual>` for an example.
 
 SODA requires Oracle Client 18.3 or higher and Oracle Database 18.1 and higher.
 The role SODA_APP must be granted to the user.
 
-See
-`this tracking issue <https://github.com/oracle/python-cx_Oracle/issues/309>`__ for known issues with SODA.
+.. note::
+
+    If you are using Oracle Database 21c (or later) and create new collections
+    you need to do one of the following:
+
+    - Use Oracle Client libraries 21c (or later).
+
+    - Or, explicitly use collection metadata when creating collections and set
+      the data storage type to BLOB, for example::
+
+        {
+            "keyColumn": {
+                "name":"ID"
+            },
+            "contentColumn": {
+                "name": "JSON_DOCUMENT",
+                "sqlType": "BLOB"
+            },
+            "versionColumn": {
+                "name": "VERSION",
+                "method": "UUID"
+            },
+            "lastModifiedColumn": {
+                "name": "LAST_MODIFIED"
+            },
+            "creationTimeColumn": {
+                "name": "CREATED_ON"
+            }
+        }
+
+    - Or, set the database initialization parameter `compatible
+      <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+      id=GUID-A2E90F08-BC9F-4688-A9D0-4A948DD3F7A9>`__ to 19 or lower.
+
+    Otherwise you may get errors such as "ORA-40659: Data type does not match
+    the specification in the collection metadata".
 
 .. _sodadb:
 
