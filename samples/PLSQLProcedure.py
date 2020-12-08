@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -10,12 +10,11 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 
 cursor = connection.cursor()
 myvar = cursor.var(int)
 cursor.callproc('myproc', (123, myvar))
 print(myvar.getvalue())
-

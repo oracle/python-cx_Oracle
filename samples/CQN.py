@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -18,7 +18,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 import time
 
 registered = True
@@ -47,7 +47,8 @@ def callback(message):
                     print("-" * 60)
             print("=" * 60)
 
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString(), events = True)
+connection = cx_Oracle.connect(sample_env.get_main_connect_string(),
+                               events=True)
 sub = connection.subscribe(callback = callback, timeout = 1800,
         qos = cx_Oracle.SUBSCR_QOS_QUERY | cx_Oracle.SUBSCR_QOS_ROWIDS)
 print("Subscription:", sub)
@@ -64,4 +65,3 @@ print("Registered query:", queryId)
 while registered:
     print("Waiting for notifications....")
     time.sleep(5)
-

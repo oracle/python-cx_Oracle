@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
 # sample subclassed connection which overrides the constructor (so no
 # parameters are required) and the cursor() method (so that the subclassed
@@ -19,9 +19,9 @@ import SampleEnv
 class Connection(cx_Oracle.Connection):
 
     def __init__(self):
-        connectString = SampleEnv.GetMainConnectString()
+        connect_string = sample_env.get_main_connect_string()
         print("CONNECT to database")
-        return super(Connection, self).__init__(connectString)
+        return super(Connection, self).__init__(connect_string)
 
     def cursor(self):
         return Cursor(self)
@@ -34,8 +34,8 @@ class Cursor(cx_Oracle.Cursor):
     def execute(self, statement, args):
         print("EXECUTE", statement)
         print("ARGS:")
-        for argIndex, arg in enumerate(args):
-            print("   ", argIndex + 1, "=>", repr(arg))
+        for arg_index, arg in enumerate(args):
+            print("   ", arg_index + 1, "=>", repr(arg))
         return super(Cursor, self).execute(statement, args)
 
     def fetchone(self):
@@ -51,4 +51,3 @@ cursor = connection.cursor()
 cursor.execute("select count(*) from ChildTable where ParentId = :1", (30,))
 count, = cursor.fetchone()
 print("COUNT:", int(count))
-

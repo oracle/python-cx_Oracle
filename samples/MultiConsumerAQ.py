@@ -17,7 +17,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
 QUEUE_NAME = "DEMO_RAW_QUEUE_MULTI"
 PAYLOAD_DATA = [
@@ -28,7 +28,7 @@ PAYLOAD_DATA = [
 ]
 
 # connect to database
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # create queue

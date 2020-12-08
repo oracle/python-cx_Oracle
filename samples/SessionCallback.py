@@ -21,7 +21,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
 # define a dictionary of NLS_DATE_FORMAT formats supported by this sample
 SUPPORTED_FORMATS = {
@@ -42,18 +42,18 @@ SUPPORTED_KEYS = {
 }
 
 # define session callback
-def InitSession(conn, requestedTag):
+def init_session(conn, requested_tag):
 
     # display the requested and actual tags
-    print("InitSession(): requested tag=%r, actual tag=%r" % \
-            (requestedTag, conn.tag))
+    print("init_session(): requested tag=%r, actual tag=%r" % \
+          (requested_tag, conn.tag))
 
     # tags are expected to be in the form "key1=value1;key2=value2"
     # in this example, they are used to set NLS parameters and the tag is
     # parsed to validate it
-    if requestedTag is not None:
+    if requested_tag is not None:
         stateParts = []
-        for directive in requestedTag.split(";"):
+        for directive in requested_tag.split(";"):
             parts = directive.split("=")
             if len(parts) != 2:
                 raise ValueError("Tag must contain key=value pairs")
@@ -74,13 +74,15 @@ def InitSession(conn, requestedTag):
     # assign the requested tag to the connection so that when the connection
     # is closed, it will automatically be retagged; note that if the requested
     # tag is None (no tag was requested) this has no effect
-    conn.tag = requestedTag
+    conn.tag = requested_tag
 
 
 # create pool with session callback defined
-pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
-        SampleEnv.GetMainPassword(), SampleEnv.GetConnectString(), min=2,
-        max=5, increment=1, threaded=True, sessionCallback=InitSession)
+pool = cx_Oracle.SessionPool(user=sample_env.get_main_user(),
+                             password=sample_env.get_main_password(),
+                             dsn=sample_env.get_connect_string(), min=2, max=5,
+                             increment=1, threaded=True,
+                             sessionCallback=init_session)
 
 # acquire session without specifying a tag; since the session returned is
 # newly created, the callback will be invoked but since there is no tag

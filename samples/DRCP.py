@@ -33,12 +33,11 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
-conn = cx_Oracle.connect(SampleEnv.GetDrcpConnectString(), cclass = "PYCLASS",
-        purity = cx_Oracle.ATTR_PURITY_SELF)
+conn = cx_Oracle.connect(sample_env.get_drcp_connect_string(),
+                         cclass="PYCLASS", purity=cx_Oracle.ATTR_PURITY_SELF)
 cursor = conn.cursor()
 print("Performing query using DRCP...")
 for row in cursor.execute("select * from TestNumbers order by IntCol"):
     print(row)
-

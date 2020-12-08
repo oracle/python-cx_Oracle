@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -13,9 +13,9 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 
 # the general recommendation for simple SODA usage is to enable autocommit
 connection.autocommit = True
@@ -30,7 +30,7 @@ collection = soda.createCollection("SodaBulkInsert")
 collection.find().remove()
 
 # define some documents that will be stored
-inDocs = [
+in_docs = [
     dict(name="Sam", age=8),
     dict(name="George", age=46),
     dict(name="Bill", age=35),
@@ -40,8 +40,8 @@ inDocs = [
 ]
 
 # perform bulk insert
-resultDocs = collection.insertManyAndGet(inDocs)
-for doc in resultDocs:
+result_docs = collection.insertManyAndGet(in_docs)
+for doc in result_docs:
     print("Inserted SODA document with key", doc.key)
 print()
 

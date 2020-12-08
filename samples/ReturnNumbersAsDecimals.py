@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -16,16 +16,15 @@
 
 import cx_Oracle
 import decimal
-import SampleEnv
+import sample_env
 
-def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
+def output_type_handler(cursor, name, defaultType, size, precision, scale):
     if defaultType == cx_Oracle.NUMBER:
         return cursor.var(decimal.Decimal, arraysize = cursor.arraysize)
 
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
-connection.outputtypehandler = OutputTypeHandler
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection.outputtypehandler = output_type_handler
 cursor = connection.cursor()
 cursor.execute("select * from TestNumbers")
 for row in cursor:
     print("Row:", row)
-

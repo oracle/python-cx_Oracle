@@ -26,7 +26,7 @@ Version 8.1 (TBD)
 #)  Tests can now be run with tox in order to automate testing of the different
     environments that are supported.
 #)  The value of prefetchrows for REF CURSOR variables is now honored.
-#)  Improved documentation and test suite.
+#)  Improved documentation, samples and test suite.
 
 
 Version 8.0.1 (August 2020)

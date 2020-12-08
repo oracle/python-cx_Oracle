@@ -9,16 +9,16 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
-def DropSamples(conn):
+def drop_samples(conn):
     print("Dropping sample schemas and edition...")
-    SampleEnv.RunSqlScript(conn, "DropSamples",
-            main_user = SampleEnv.GetMainUser(),
-            edition_user = SampleEnv.GetEditionUser(),
-            edition_name = SampleEnv.GetEditionName())
+    sample_env.run_sql_script(conn, "DropSamples",
+                              main_user=sample_env.get_main_user(),
+                              edition_user=sample_env.get_edition_user(),
+                              edition_name=sample_env.get_edition_name())
 
 if __name__ == "__main__":
-    conn = cx_Oracle.connect(SampleEnv.GetAdminConnectString())
-    DropSamples(conn)
+    conn = cx_Oracle.connect(sample_env.get_admin_connect_string())
+    drop_samples(conn)
     print("Done.")

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -16,7 +16,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
 QUEUE_NAME = "DEMO_RAW_QUEUE"
 PAYLOAD_DATA = [
@@ -27,7 +27,7 @@ PAYLOAD_DATA = [
 ]
 
 # connect to database
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # create queue

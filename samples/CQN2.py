@@ -17,7 +17,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 import time
 
 registered = True
@@ -34,11 +34,11 @@ def callback(message):
             if table.rows is None:
                 print("Too many row changes detected in table", table.name)
                 continue
-            numRowsDeleted = 0
+            num_rows_deleted = 0
             print(len(table.rows), "row changes detected in table", table.name)
             for row in table.rows:
                 if row.operation & cx_Oracle.OPCODE_DELETE:
-                    numRowsDeleted += 1
+                    num_rows_deleted += 1
                     continue
                 ops = []
                 if row.operation & cx_Oracle.OPCODE_INSERT:
@@ -51,21 +51,22 @@ def callback(message):
                         from TestTempTable
                         where rowid = :rid""",
                         rid=row.rowid)
-                intCol, = cursor.fetchone()
-                print("    Row with IntCol", intCol, "was", " and ".join(ops))
-            if numRowsDeleted > 0:
-                print("   ", numRowsDeleted, "rows deleted")
+                int_col, = cursor.fetchone()
+                print("    Row with IntCol", int_col, "was", " and ".join(ops))
+            if num_rows_deleted > 0:
+                print("   ", num_rows_deleted, "rows deleted")
             print("=" * 60)
 
-pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
-        SampleEnv.GetMainPassword(), SampleEnv.GetConnectString(), min=2,
-        max=5, increment=1, events=True, threaded=True)
+pool = cx_Oracle.SessionPool(user=sample_env.get_main_user(),
+                             password=sample_env.get_main_password(),
+                             dsn=sample_env.get_connect_string(), min=2,
+                             max=5, increment=1, events=True, threaded=True)
 with pool.acquire() as connection:
     sub = connection.subscribe(callback=callback, timeout=1800,
             qos=cx_Oracle.SUBSCR_QOS_QUERY | cx_Oracle.SUBSCR_QOS_ROWIDS)
     print("Subscription created with ID:", sub.id)
-    queryId = sub.registerquery("select * from TestTempTable")
-    print("Registered query with ID:", queryId)
+    query_id = sub.registerquery("select * from TestTempTable")
+    print("Registered query with ID:", query_id)
 
 while registered:
     print("Waiting for notifications....")

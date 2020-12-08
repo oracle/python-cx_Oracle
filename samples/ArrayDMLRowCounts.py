@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -14,36 +14,36 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # show the number of rows for each parent ID as a means of verifying the
 # output from the delete statement
-for parentId, count in cursor.execute("""
+for parent_id, count in cursor.execute("""
         select ParentId, count(*)
         from ChildTable
         group by ParentId
         order by ParentId"""):
-    print("Parent ID:", parentId, "has", int(count), "rows.")
+    print("Parent ID:", parent_id, "has", int(count), "rows.")
 print()
 
 # delete the following parent IDs only
-parentIdsToDelete = [20, 30, 50]
+parent_ids_to_delete = [20, 30, 50]
 
-print("Deleting Parent IDs:", parentIdsToDelete)
+print("Deleting Parent IDs:", parent_ids_to_delete)
 print()
 
 # enable array DML row counts for each iteration executed in executemany()
 cursor.executemany("""
         delete from ChildTable
         where ParentId = :1""",
-        [(i,) for i in parentIdsToDelete],
+        [(i,) for i in parent_ids_to_delete],
         arraydmlrowcounts = True)
 
 # display the number of rows deleted for each parent ID
-rowCounts = cursor.getarraydmlrowcounts()
-for parentId, count in zip(parentIdsToDelete, rowCounts):
-    print("Parent ID:", parentId, "deleted", count, "rows.")
+row_counts = cursor.getarraydmlrowcounts()
+for parent_id, count in zip(parent_ids_to_delete, row_counts):
+    print("Parent ID:", parent_id, "deleted", count, "rows.")
 

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -17,7 +17,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
 # define constants used throughout the script; adjust as desired
 APP_CTX_NAMESPACE = "CLIENTCONTEXT"
@@ -27,8 +27,8 @@ APP_CTX_ENTRIES = [
     ( APP_CTX_NAMESPACE, "ATTR3", "VALUE3" )
 ]
 
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString(),
-        appcontext = APP_CTX_ENTRIES)
+connection = cx_Oracle.connect(sample_env.get_main_connect_string(),
+                               appcontext=APP_CTX_ENTRIES)
 cursor = connection.cursor()
 for namespace, name, value in APP_CTX_ENTRIES:
     cursor.execute("select sys_context(:1, :2) from dual", (namespace, name))

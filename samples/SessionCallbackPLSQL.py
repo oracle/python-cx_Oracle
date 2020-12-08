@@ -23,13 +23,14 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
 # create pool with session callback defined
-pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
-        SampleEnv.GetMainPassword(), SampleEnv.GetConnectString(), min=2,
-        max=5, increment=1, threaded=True,
-        sessionCallback="pkg_SessionCallback.TheCallback")
+pool = cx_Oracle.SessionPool(user=sample_env.get_main_user(),
+                             password=sample_env.get_main_password(),
+                             dsn=sample_env.get_connect_string(), min=2, max=5,
+                             increment=1, threaded=True,
+                             sessionCallback="pkg_SessionCallback.TheCallback")
 
 # truncate table logging calls to PL/SQL session callback
 with pool.acquire() as conn:

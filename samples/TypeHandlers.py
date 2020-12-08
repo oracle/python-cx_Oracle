@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -19,46 +19,47 @@
 
 import cx_Oracle
 import datetime
-import SampleEnv
+import sample_env
 
-con = cx_Oracle.connect(SampleEnv.GetMainConnectString())
-objType = con.gettype("UDT_BUILDING")
+con = cx_Oracle.connect(sample_env.get_main_connect_string())
+obj_type = con.gettype("UDT_BUILDING")
 
 class Building(object):
 
-    def __init__(self, buildingId, description, numFloors, dateBuilt):
-        self.buildingId = buildingId
+    def __init__(self, building_id, description, num_floors, dateBuilt):
+        self.building_id = building_id
         self.description = description
-        self.numFloors = numFloors
+        self.num_floors = num_floors
         self.dateBuilt = dateBuilt
 
     def __repr__(self):
-        return "<Building %s: %s>" % (self.buildingId, self.description)
+        return "<Building %s: %s>" % (self.building_id, self.description)
 
 
-def BuildingInConverter(value):
-    obj = objType.newobject()
-    obj.BUILDINGID = value.buildingId
+def building_in_converter(value):
+    obj = obj_type.newobject()
+    obj.BUILDINGID = value.building_id
     obj.DESCRIPTION = value.description
-    obj.NUMFLOORS = value.numFloors
+    obj.NUMFLOORS = value.num_floors
     obj.DATEBUILT = value.dateBuilt
     return obj
 
 
-def BuildingOutConverter(obj):
+def building_out_converter(obj):
     return Building(int(obj.BUILDINGID), obj.DESCRIPTION, int(obj.NUMFLOORS),
             obj.DATEBUILT)
 
 
-def InputTypeHandler(cursor, value, numElements):
+def input_type_handler(cursor, value, numElements):
     if isinstance(value, Building):
         return cursor.var(cx_Oracle.OBJECT, arraysize = numElements,
-                inconverter = BuildingInConverter, typename = objType.name)
+                inconverter = building_in_converter, typename = obj_type.name)
 
-def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
-    if defaultType == cx_Oracle.OBJECT:
-        return cursor.var(cx_Oracle.OBJECT, arraysize = cursor.arraysize,
-                outconverter = BuildingOutConverter, typename = objType.name)
+def output_type_handler(cursor, name, default_type, size, precision, scale):
+    if default_type == cx_Oracle.OBJECT:
+        return cursor.var(cx_Oracle.OBJECT, arraysize=cursor.arraysize,
+                          outconverter=building_out_converter,
+                          typename=obj_type.name)
 
 buildings = [
     Building(1, "The First Building", 5, datetime.date(2007, 5, 18)),
@@ -67,11 +68,11 @@ buildings = [
 ]
 
 cur = con.cursor()
-cur.inputtypehandler = InputTypeHandler
+cur.inputtypehandler = input_type_handler
 for building in buildings:
     try:
         cur.execute("insert into TestBuildings values (:1, :2)",
-                (building.buildingId, building))
+                (building.building_id, building))
     except cx_Oracle.DatabaseError as e:
         error, = e.args
         print("CONTEXT:", error.context)
@@ -84,9 +85,8 @@ for row in cur.execute("select * from TestBuildings order by BuildingId"):
 print()
 
 cur = con.cursor()
-cur.outputtypehandler = OutputTypeHandler
+cur.outputtypehandler = output_type_handler
 print("WITH OUTPUT TYPE HANDLER:")
 for row in cur.execute("select * from TestBuildings order by BuildingId"):
     print(row)
 print()
-

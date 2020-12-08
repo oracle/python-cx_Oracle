@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 
 import collections
 import cx_Oracle
-import SampleEnv
+import sample_env
 
 class Connection(cx_Oracle.Connection):
 
@@ -22,9 +22,9 @@ class Connection(cx_Oracle.Connection):
 class Cursor(cx_Oracle.Cursor):
 
     def execute(self, statement, args = None):
-        prepareNeeded = (self.statement != statement)
+        prepare_needed = (self.statement != statement)
         result = super(Cursor, self).execute(statement, args or [])
-        if prepareNeeded:
+        if prepare_needed:
             description = self.description
             if description:
                 names = [d[0] for d in description]
@@ -33,7 +33,7 @@ class Cursor(cx_Oracle.Cursor):
 
 
 # create new subclassed connection and cursor
-connection = Connection(SampleEnv.GetMainConnectString())
+connection = Connection(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # the names are now available directly for each query executed
@@ -44,4 +44,3 @@ print()
 for row in cursor.execute("select ChildId, Description from ChildTable"):
     print(row.CHILDID, "->", row.DESCRIPTION)
 print()
-

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -17,7 +17,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 import decimal
 
 BOOK_TYPE_NAME = "UDT_BOOK"
@@ -30,12 +30,12 @@ BOOK_DATA = [
 ]
 
 # connect to database
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # create queue
-booksType = connection.gettype(BOOK_TYPE_NAME)
-queue = connection.queue(QUEUE_NAME, booksType)
+books_type = connection.gettype(BOOK_TYPE_NAME)
+queue = connection.queue(QUEUE_NAME, books_type)
 queue.deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
 queue.deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
 
@@ -47,7 +47,7 @@ while queue.deqOne():
 # enqueue a few messages
 print("Enqueuing messages...")
 for title, authors, price in BOOK_DATA:
-    book = booksType.newobject()
+    book = books_type.newobject()
     book.TITLE = title
     book.AUTHORS = authors
     book.PRICE = price

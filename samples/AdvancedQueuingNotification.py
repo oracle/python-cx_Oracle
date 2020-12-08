@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -13,7 +13,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 import threading
 import time
 
@@ -29,9 +29,11 @@ def ProcessMessages(message):
     print("Queue name:", message.queueName)
     print("Consumer name:", message.consumerName)
 
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString(), events = True)
+connection = cx_Oracle.connect(sample_env.get_main_connect_string(),
+                               events=True)
 sub = connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_AQ,
-        name="DEMO_BOOK_QUEUE", callback=ProcessMessages, timeout=300)
+                           name="DEMO_BOOK_QUEUE", callback=ProcessMessages,
+                           timeout=300)
 print("Subscription:", sub)
 print("--> Connection:", sub.connection)
 print("--> Callback:", sub.callback)

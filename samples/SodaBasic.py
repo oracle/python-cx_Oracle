@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -13,9 +13,9 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 
 # The general recommendation for simple SODA usage is to enable autocommit
 connection.autocommit = True
@@ -27,12 +27,17 @@ soda = connection.getSodaDatabase()
 # This will open an existing collection, if the name is already in use.
 collection = soda.createCollection("mycollection")
 
-indexSpec = { 'name': 'CITY_IDX',
-                  'fields': [ {
-                    'path': 'address.city',
-                    'datatype': 'string',
-                    'order': 'asc' } ] }
-collection.createIndex(indexSpec)
+index_spec = {
+    'name': 'CITY_IDX',
+    'fields': [
+        {
+            'path': 'address.city',
+            'datatype': 'string',
+            'order': 'asc'
+        }
+    ]
+}
+collection.createIndex(index_spec)
 
 # Insert a document.
 # A system generated key is created by default.
@@ -85,4 +90,3 @@ print('Collection has', c,  'documents')
 # Drop the collection
 if collection.drop():
     print('Collection was dropped')
-

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -34,16 +34,16 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 import sys
 
 # constants
 CONNECT_STRING = "localhost/orcl-tg"
 
 # create transaction and generate a recoverable error
-pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
-        SampleEnv.GetMainPassword(), CONNECT_STRING, min=1,
-        max=9, increment=2)
+pool = cx_Oracle.SessionPool(user=sample_env.get_main_user(),
+                             password=sample_env.get_main_password(),
+                             dsn=CONNECT_STRING, min=1, max=9, increment=2)
 connection = pool.acquire()
 cursor = connection.cursor()
 cursor.execute("""
@@ -53,7 +53,7 @@ cursor.execute("""
         insert into TestTempTable
         values (1, null)""")
 input("Please kill %s session now. Press ENTER when complete." % \
-        SampleEnv.GetMainUser())
+        sample_env.get_main_user())
 try:
     connection.commit() # this should fail
     sys.exit("Session was not killed. Terminating.")
@@ -69,8 +69,8 @@ pool.drop(connection)
 # check if previous transaction completed
 connection = pool.acquire()
 cursor = connection.cursor()
+args = (cx_Oracle.Binary(ltxid), cursor.var(bool), cursor.var(bool))
 _, committed, completed = cursor.callproc("dbms_app_cont.get_ltxid_outcome",
-        (cx_Oracle.Binary(ltxid), cursor.var(bool), cursor.var(bool)))
+                                          args)
 print("Failed transaction was committed:", committed)
 print("Failed call was completed:", completed)
-

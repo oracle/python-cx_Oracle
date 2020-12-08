@@ -12,22 +12,22 @@
 
 import cx_Oracle
 
-import SampleEnv
+import sample_env
 import DropSamples
 
 # connect as administrative user (usually SYSTEM or ADMIN)
-conn = cx_Oracle.connect(SampleEnv.GetAdminConnectString())
+conn = cx_Oracle.connect(sample_env.get_admin_connect_string())
 
 # drop existing users and editions, if applicable
-DropSamples.DropSamples(conn)
+DropSamples.drop_samples(conn)
 
 # create sample schema and edition
 print("Creating sample schemas and edition...")
-SampleEnv.RunSqlScript(conn, "SetupSamples",
-        main_user = SampleEnv.GetMainUser(),
-        main_password = SampleEnv.GetMainPassword(),
-        edition_user = SampleEnv.GetEditionUser(),
-        edition_password = SampleEnv.GetEditionPassword(),
-        edition_name = SampleEnv.GetEditionName())
+sample_env.run_sql_script(conn, "SetupSamples",
+                          main_user=sample_env.get_main_user(),
+                          main_password=sample_env.get_main_password(),
+                          edition_user=sample_env.get_edition_user(),
+                          edition_password=sample_env.get_edition_password(),
+                          edition_name=sample_env.get_edition_name())
 print("Done.")
 

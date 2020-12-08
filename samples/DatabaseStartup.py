@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -20,12 +20,11 @@ import cx_Oracle
 
 # the connection must be in PRELIM_AUTH mode
 connection = cx_Oracle.connect("/",
-        mode = cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
+                               mode=cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
 connection.startup()
 
 # the following statements must be issued in normal SYSDBA mode
-connection = cx_Oracle.connect("/", mode = cx_Oracle.SYSDBA)
+connection = cx_Oracle.connect("/", mode=cx_Oracle.SYSDBA)
 cursor = connection.cursor()
 cursor.execute("alter database mount")
 cursor.execute("alter database open")
-

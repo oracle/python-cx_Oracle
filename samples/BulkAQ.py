@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -17,7 +17,7 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
 QUEUE_NAME = "DEMO_RAW_QUEUE"
 PAYLOAD_DATA = [
@@ -36,7 +36,7 @@ PAYLOAD_DATA = [
 ]
 
 # connect to database
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # create queue
@@ -51,22 +51,22 @@ while queue.deqOne():
 
 # enqueue a few messages
 print("Enqueuing messages...")
-batchSize = 6
-dataToEnq = PAYLOAD_DATA
-while dataToEnq:
-    batchData = dataToEnq[:batchSize]
-    dataToEnq = dataToEnq[batchSize:]
-    messages = [connection.msgproperties(payload=d) for d in batchData]
-    for data in batchData:
+batch_size = 6
+data_to_enqueue = PAYLOAD_DATA
+while data_to_enqueue:
+    batch_data = data_to_enqueue[:batch_size]
+    data_to_enqueue = data_to_enqueue[batch_size:]
+    messages = [connection.msgproperties(payload=d) for d in batch_data]
+    for data in batch_data:
         print(data)
     queue.enqMany(messages)
 connection.commit()
 
 # dequeue the messages
 print("\nDequeuing messages...")
-batchSize = 8
+batch_size = 8
 while True:
-    messages = queue.deqMany(batchSize)
+    messages = queue.deqMany(batch_size)
     if not messages:
         break
     for props in messages:

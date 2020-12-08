@@ -21,17 +21,18 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 import threading
 
 # Create a Connection Pool
-pool = cx_Oracle.SessionPool(SampleEnv.GetMainUser(),
-        SampleEnv.GetMainPassword(), SampleEnv.GetConnectString(), min=2,
-        max=5, increment=1, threaded=True)
+pool = cx_Oracle.SessionPool(user=sample_env.get_main_user(),
+                             password=sample_env.get_main_password(),
+                             dsn=sample_env.get_connect_string(), min=2,
+                             max=5, increment=1, threaded=True)
 
 # dbms_session.sleep() replaces dbms_lock.sleep() from Oracle Database 18c
 with pool.acquire() as conn:
-    sleepProcName = "dbms_session.sleep" \
+    sleep_proc_name = "dbms_session.sleep" \
             if int(conn.version.split(".")[0]) >= 18 \
             else "dbms_lock.sleep"
 
@@ -62,7 +63,7 @@ def DoALock():
     with pool.acquire() as conn:
         cursor = conn.cursor()
         print("DoALock(): beginning execute...")
-        cursor.callproc(sleepProcName, (5,))
+        cursor.callproc(sleep_proc_name, (5,))
         print("DoALock(): done execute...")
 
 

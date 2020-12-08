@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -17,9 +17,9 @@
 #------------------------------------------------------------------------------
 
 import cx_Oracle
-import SampleEnv
+import sample_env
 
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # use PL/SQL block to return two cursors
@@ -42,9 +42,8 @@ cursor.execute("""
         end;""")
 
 # display results
-for ix, resultSet in enumerate(cursor.getimplicitresults()):
+for ix, result_set in enumerate(cursor.getimplicitresults()):
     print("Result Set #" + str(ix + 1))
-    for row in resultSet:
+    for row in result_set:
         print(row)
     print()
-

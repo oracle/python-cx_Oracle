@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -17,7 +17,7 @@
 
 import cx_Oracle
 import datetime
-import SampleEnv
+import sample_env
 
 DATA = [
     (1, "String #1", datetime.datetime(2017, 4, 4)),
@@ -26,7 +26,7 @@ DATA = [
 ]
 
 # truncate table so sample can be rerun
-connection = cx_Oracle.connect(SampleEnv.GetMainConnectString())
+connection = cx_Oracle.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 print("Truncating table...")
 cursor.execute("truncate table TestUniversalRowids")
@@ -50,8 +50,7 @@ for rowid in rowids:
             from TestUniversalRowids
             where rowid = :rid""",
             rid = rowid)
-    intCol, stringCol, dateCol = cursor.fetchone()
-    print("IntCol:", intCol)
-    print("StringCol:", stringCol)
+    int_col, string_col, dateCol = cursor.fetchone()
+    print("IntCol:", int_col)
+    print("StringCol:", string_col)
     print("DateCol:", dateCol)
-
