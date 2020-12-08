@@ -228,9 +228,6 @@ class TestCase(test_env.BaseTestCase):
         cursor.close()
         self.assertRaises(oracledb.DatabaseError, connection2.close)
         connection.close()
-        cursor = connection2.cursor()
-        self.assertRaises(oracledb.DatabaseError, cursor.execute,
-                "select count(*) from TestTempTable")
 
     def test_1114_make_dsn(self):
         "1114 - test making a data source name from host, port and sid"

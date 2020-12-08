@@ -68,7 +68,8 @@ Module Interface
 
     If the handle is specified, it must be of type OCISvcCtx\* and is only of
     use when embedding Python in an application (like PowerBuilder) which has
-    already made the connection.
+    already made the connection. The connection thus created should *never* be
+    used after the source handle has been closed or destroyed.
 
     The pool parameter is expected to be a
     :ref:`session pool object <sesspool>` and the use of this parameter is the
