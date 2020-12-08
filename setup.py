@@ -22,7 +22,7 @@ if sys.version_info[:2] < (3, 6):
 pkg_resources.require("setuptools>=40.6.0")
 
 # define build constants
-BUILD_VERSION = "8.1.0-dev"
+BUILD_VERSION = "8.1.0"
 
 # setup extra link and compile args
 extraLinkArgs = []

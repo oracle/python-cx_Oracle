@@ -5,12 +5,12 @@
 cx_Oracle Release Notes
 =======================
 
-Version 8.1 (TBD)
------------------
+Version 8.1 (December 2020)
+---------------------------
 
 #)  Updated embedded ODPI-C to `version 4.1.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
-    version-4-1-0-tbd>`__.
+    version-4-1-december-8-2020>`__.
 #)  Added support for new JSON data type available in Oracle Client and
     Database 21 and higher.
 #)  Dropped support for Python 3.5. Added support for Python 3.9.
