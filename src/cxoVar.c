@@ -501,7 +501,7 @@ static int cxoVar_setSingleValue(cxoVar *var, uint32_t arrayPos,
         value = convertedValue;
     }
 
-    // tranform value from Python to value expected by ODPI-C
+    // transform value from Python to value expected by ODPI-C
     data = &var->data[arrayPos];
     data->isNull = (value == Py_None);
     if (!data->isNull) {
