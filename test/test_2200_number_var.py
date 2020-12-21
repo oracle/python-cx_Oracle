@@ -406,5 +406,48 @@ class TestCase(test_env.BaseTestCase):
             fetched_value, = self.cursor.fetchone()
             self.assertEqual(value, fetched_value)
 
+    def test_2233_out_bind_binary_int(self):
+        "2233 - test binding native integer as an out bind"
+        statement = "begin :value := 2.9; end;"
+        simple_var = self.cursor.var(oracledb.DB_TYPE_BINARY_INTEGER)
+        self.cursor.execute(statement, [simple_var])
+        self.assertEqual(simple_var.getvalue(), 2)
+
+        statement = "begin :value := 1.5; end;"
+        simple_var = self.cursor.var(oracledb.DB_TYPE_BINARY_INTEGER)
+        self.cursor.execute(statement, [simple_var])
+        self.assertEqual(simple_var.getvalue(), 1)
+
+    def test_2234_in_bind_binary_int(self):
+        "2234 - test binding in a native integer"
+        statement = "begin :value := :value + 2.5; end;"
+        simple_var = self.cursor.var(oracledb.DB_TYPE_BINARY_INTEGER)
+        simple_var.setvalue(0, 0)
+        self.cursor.execute(statement, [simple_var])
+        self.assertEqual(simple_var.getvalue(), 2)
+
+        simple_var.setvalue(0, -5)
+        self.cursor.execute(statement, [simple_var])
+        self.assertEqual(simple_var.getvalue(), -2)
+
+    def test_2235_setting_decimal_value_binary_int(self):
+        "2235 - test setting decimal value for binary int"
+        statement = "begin :value := :value + 2.5; end;"
+        simple_var = self.cursor.var(oracledb.DB_TYPE_BINARY_INTEGER)
+        simple_var.setvalue(0, 2.5)
+        self.cursor.execute(statement, [simple_var])
+        self.assertEqual(simple_var.getvalue(), 4)
+
+    def test_2236_out_bind_binary_int_with_large_value(self):
+        "2236 - bind a large value to binary int"
+        statement = "begin :value := POWER(2, 31) - 1; end;"
+        simple_var = self.cursor.var(oracledb.DB_TYPE_BINARY_INTEGER)
+        self.cursor.execute(statement, [simple_var])
+        self.assertEqual(simple_var.getvalue(), 2**31 - 1)
+
+        statement = "begin :value := POWER(-2, 31) - 1; end;"
+        self.cursor.execute(statement, [simple_var])
+        self.assertEqual(simple_var.getvalue(), -2**31 - 1)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
