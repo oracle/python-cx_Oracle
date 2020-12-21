@@ -32,7 +32,7 @@ For general information on SODA, see the `SODA home page
 and the Oracle Database `Introduction to Simple Oracle Document Access (SODA)
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADSDI>`__ manual.
 
-For specified requirements see the cx_Oracle :ref:`SODA requirements <sodarequirements>`.
+For specific requirements see the cx_Oracle :ref:`SODA requirements <sodarequirements>`.
 
 cx_Oracle uses the following objects for SODA:
 
