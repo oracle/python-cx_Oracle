@@ -30,4 +30,3 @@ sample_env.run_sql_script(conn, "SetupSamples",
                           edition_password=sample_env.get_edition_password(),
                           edition_name=sample_env.get_edition_name())
 print("Done.")
-

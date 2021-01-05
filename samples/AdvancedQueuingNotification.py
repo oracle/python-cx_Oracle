@@ -44,4 +44,3 @@ print("--> Timeout:", sub.timeout)
 while registered:
     print("Waiting for notifications....")
     time.sleep(5)
-

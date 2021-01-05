@@ -29,4 +29,3 @@ print("Query results with id = 1")
 for row in cursor.execute(sql, bvid = 1):
     print(row)
 print()
-

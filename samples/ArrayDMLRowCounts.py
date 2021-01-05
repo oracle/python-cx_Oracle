@@ -46,4 +46,3 @@ cursor.executemany("""
 row_counts = cursor.getarraydmlrowcounts()
 for parent_id, count in zip(parent_ids_to_delete, row_counts):
     print("Parent ID:", parent_id, "deleted", count, "rows.")
-

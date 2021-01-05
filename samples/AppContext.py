@@ -34,4 +34,3 @@ for namespace, name, value in APP_CTX_ENTRIES:
     cursor.execute("select sys_context(:1, :2) from dual", (namespace, name))
     value, = cursor.fetchone()
     print("Value of context key", name, "is", value)
-
