@@ -3,7 +3,7 @@
  *   Sets up configuration for the SetupSamples.sql and DropSamples.sql
  * scripts. Change the values below if you would like to use something other
  * than the default values. Note that the environment variables noted below
- * will also need to be set, or the Python script SampleEnv.py will need to be
+ * will also need to be set, or the Python script sample_env.py will need to be
  * changed if non-default values are used.
  *---------------------------------------------------------------------------*/
 

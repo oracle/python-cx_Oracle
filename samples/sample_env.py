@@ -102,9 +102,9 @@ def get_main_connect_string(password=None):
     return "%s/%s@%s" % (get_main_user(), password, get_connect_string())
 
 def get_drcp_connect_string():
-    connectString = get_value("DRCP_CONNECT_STRING", "DRCP Connect String",
-            DEFAULT_DRCP_CONNECT_STRING)
-    return "%s/%s@%s" % (get_main_user(), get_main_password(), connectString)
+    connect_string = get_value("DRCP_CONNECT_STRING", "DRCP Connect String",
+                               DEFAULT_DRCP_CONNECT_STRING)
+    return "%s/%s@%s" % (get_main_user(), get_main_password(), connect_string)
 
 def get_edition_connect_string():
     return "%s/%s@%s" % \
@@ -143,9 +143,9 @@ def run_sql_script(conn, script_name, **kwargs):
             order by name, type, line, position""",
             owner = get_main_user())
     prev_name = prev_obj_type = None
-    for name, objType, lineNum, position, text in cursor:
-        if name != prev_name or objType != prev_obj_type:
-            print("%s (%s)" % (name, objType))
+    for name, obj_type, line_num, position, text in cursor:
+        if name != prev_name or obj_type != prev_obj_type:
+            print("%s (%s)" % (name, obj_type))
             prev_name = name
-            prev_obj_type = objType
-        print("    %s/%s %s" % (lineNum, position, text))
+            prev_obj_type = obj_type
+        print("    %s/%s %s" % (line_num, position, text))

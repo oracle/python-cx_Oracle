@@ -12,7 +12,8 @@
 #   Documentation:
 #   cx_Oracle:       https://cx-oracle.readthedocs.io/en/latest/user_guide/json_data_type.html
 #   Oracle Database: https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADJSN
-##------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 
 import sys
 import json

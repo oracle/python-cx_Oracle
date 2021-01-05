@@ -18,8 +18,8 @@ contain information on specific data types and features.  See :ref:`batchstmnt`,
 
 cx_Oracle can be used to execute individual statements, one at a time.  It does
 not read SQL*Plus ".sql" files.  To read SQL files, use a technique like the one
-in ``RunSqlScript()`` in `samples/SampleEnv.py
-<https://github.com/oracle/python-cx_Oracle/blob/master/samples/SampleEnv.py>`__
+in ``run_sql_script()`` in `samples/sample_env.py
+<https://github.com/oracle/python-cx_Oracle/blob/master/samples/sample_env.py>`__
 
 SQL statements should not contain a trailing semicolon (";") or forward slash
 ("/").  This will fail:

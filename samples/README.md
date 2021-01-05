@@ -5,7 +5,7 @@ This directory contains samples for cx_Oracle.
    requires SYSDBA privileges and will prompt for these credentials as well as
    the names of the schemas and edition that will be created, unless a number
    of environment variables are set as documented in the Python script
-   [SampleEnv.py][2]. Run the script using the following command:
+   [sample_env.py][2]. Run the script using the following command:
 
        python SetupSamples.py
 
@@ -24,7 +24,7 @@ This directory contains samples for cx_Oracle.
    requires SYSDBA privileges and will prompt for these credentials as well as
    the names of the schemas and edition that will be dropped, unless a number
    of environment variables are set as documented in the Python script
-   [SampleEnv.py][2]. Run the script using the following command:
+   [sample_env.py][2]. Run the script using the following command:
 
        python DropSamples.py
 

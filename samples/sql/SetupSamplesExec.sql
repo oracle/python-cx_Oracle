@@ -556,4 +556,3 @@ create or replace package body &main_user..pkg_SessionCallback as
 
 end;
 /
-
