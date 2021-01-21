@@ -5,6 +5,14 @@
 cx_Oracle Release Notes
 =======================
 
+Version 8.2 (TBD)
+-----------------
+
+#)  Updated embedded ODPI-C to `version 4.2.0
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-4-2-tbd>`__.
+
+
 Version 8.1 (December 2020)
 ---------------------------
 

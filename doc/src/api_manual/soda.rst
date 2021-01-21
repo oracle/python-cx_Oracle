@@ -304,6 +304,9 @@ SODA Collection Object
     used, and the document with the specified key already exists in the
     collection, it will be replaced with the input document.
 
+    This method requires Oracle Client 19.9 or higher in addition to the usual
+    SODA requirements.
+
     .. versionadded:: 8.0
 
 
@@ -313,6 +316,9 @@ SODA Collection Object
     :meth:`~SodaCollection.insertOneAndGet()` except that if client-assigned
     keys are used, and the document with the specified key already exists in
     the collection, it will be replaced with the input document.
+
+    This method requires Oracle Client 19.9 or higher in addition to the usual
+    SODA requirements.
 
     .. versionadded:: 8.0
 
