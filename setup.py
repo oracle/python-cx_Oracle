@@ -1,11 +1,5 @@
-"""Setup script for cx_Oracle.
-
-Windows platforms:
-    python setup.py build --compiler=mingw32 install
-
-Unix platforms
-    python setup.py build install
-
+"""
+Setup script for cx_Oracle.
 """
 
 import os
@@ -25,58 +19,58 @@ pkg_resources.require("setuptools>=40.6.0")
 BUILD_VERSION = "8.2.0-dev"
 
 # setup extra link and compile args
-extraLinkArgs = []
-extraCompileArgs = []
+extra_link_args = []
+extra_compile_args = []
 if sys.platform == "aix4":
-    extraCompileArgs.append("-qcpluscmt")
+    extra_compile_args.append("-qcpluscmt")
 elif sys.platform == "aix5":
-    extraCompileArgs.append("-DAIX5")
+    extra_compile_args.append("-DAIX5")
 elif sys.platform == "cygwin":
-    extraLinkArgs.append("-Wl,--enable-runtime-pseudo-reloc")
+    extra_link_args.append("-Wl,--enable-runtime-pseudo-reloc")
 elif sys.platform == "darwin":
-    extraLinkArgs.append("-shared-libgcc")
+    extra_link_args.append("-shared-libgcc")
 
 # define cx_Oracle sources
-sourceDir = "src"
-sources = [os.path.join(sourceDir, n) \
-        for n in sorted(os.listdir(sourceDir)) if n.endswith(".c")]
+source_dir = "src"
+sources = [os.path.join(source_dir, n) \
+           for n in sorted(os.listdir(source_dir)) if n.endswith(".c")]
 depends = ["src/cxoModule.h"]
 
 # define ODPI-C sources, libraries and include directories; if the environment
 # variables ODPIC_INC_DIR and ODPIC_LIB_DIR are both set, assume these
 # locations contain a compiled installation of ODPI-C; otherwise, use the
 # source of ODPI-C found in the odpi subdirectory
-dpiIncludeDir = os.environ.get("ODPIC_INC_DIR")
-dpiLibDir = os.environ.get("ODPIC_LIB_DIR")
-if dpiIncludeDir and dpiLibDir:
-    dpiSources = []
-    includeDirs = [dpiIncludeDir]
+dpi_include_dir = os.environ.get("ODPIC_INC_DIR")
+dpi_lib_dir = os.environ.get("ODPIC_LIB_DIR")
+if dpi_include_dir and dpi_lib_dir:
+    dpi_sources = []
+    include_dirs = [dpi_include_dir]
     libraries = ["odpic"]
-    libraryDirs = [dpiLibDir]
+    library_dirs = [dpi_lib_dir]
 else:
-    includeDirs = ["odpi/include", "odpi/src"]
-    dpiSourceDir = os.path.join("odpi", "src")
-    dpiSources = [os.path.join(dpiSourceDir, n) \
-            for n in sorted(os.listdir(dpiSourceDir)) if n.endswith(".c")]
+    include_dirs = ["odpi/include", "odpi/src"]
+    dpi_source_dir = os.path.join("odpi", "src")
+    dpi_sources = [os.path.join(dpi_source_dir, n) \
+            for n in sorted(os.listdir(dpi_source_dir)) if n.endswith(".c")]
     depends.extend(["odpi/include/dpi.h", "odpi/src/dpiImpl.h",
             "odpi/src/dpiErrorMessages.h"])
     libraries = []
-    libraryDirs = []
+    library_dirs = []
 
 # setup the extension
 extension = setuptools.Extension(
-        name = "cx_Oracle",
-        include_dirs = includeDirs,
-        extra_compile_args = extraCompileArgs,
-        define_macros = [("CXO_BUILD_VERSION", BUILD_VERSION)],
-        extra_link_args = extraLinkArgs,
-        sources = sources + dpiSources,
-        depends = depends,
-        libraries = libraries,
-        library_dirs = libraryDirs)
+        name="cx_Oracle",
+        include_dirs=include_dirs,
+        extra_compile_args=extra_compile_args,
+        define_macros=[("CXO_BUILD_VERSION", BUILD_VERSION)],
+        extra_link_args=extra_link_args,
+        sources=sources + dpi_sources,
+        depends=depends,
+        libraries=libraries,
+        library_dirs=library_dirs)
 
 # perform the setup
 setuptools.setup(
-        version = BUILD_VERSION,
-        data_files = [ ("cx_Oracle-doc", ["LICENSE.txt", "README.txt"]) ],
-        ext_modules = [extension])
+        version=BUILD_VERSION,
+        data_files=[ ("cx_Oracle-doc", ["LICENSE.txt", "README.txt"]) ],
+        ext_modules=[extension])

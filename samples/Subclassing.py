@@ -5,7 +5,7 @@
 #------------------------------------------------------------------------------
 # Subclassing.py
 #
-# Demonstrate how to subclass cx_Oracle connections and cursors in order to
+#   Demonstrate how to subclass cx_Oracle connections and cursors in order to
 # add additional functionality (like logging) or create specialized interfaces
 # for paticular applications.
 #------------------------------------------------------------------------------

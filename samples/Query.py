@@ -34,7 +34,7 @@ print()
 
 print("Fetch many rows")
 cursor.execute(sql)
-res = cursor.fetchmany(numRows=3)
+res = cursor.fetchmany(3)
 print(res)
 print()
 

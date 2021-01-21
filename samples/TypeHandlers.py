@@ -52,8 +52,8 @@ def building_out_converter(obj):
 
 def input_type_handler(cursor, value, numElements):
     if isinstance(value, Building):
-        return cursor.var(cx_Oracle.OBJECT, arraysize = numElements,
-                inconverter = building_in_converter, typename = obj_type.name)
+        return cursor.var(cx_Oracle.OBJECT, arraysize=numElements,
+                inconverter=building_in_converter, typename=obj_type.name)
 
 def output_type_handler(cursor, name, default_type, size, precision, scale):
     if default_type == cx_Oracle.OBJECT:
