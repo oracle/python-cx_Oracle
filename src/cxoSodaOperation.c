@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -109,16 +109,20 @@ static PyObject *cxoSodaOperation_repr(cxoSodaOperation *op)
 static PyObject *cxoSodaOperation_filter(cxoSodaOperation *op,
         PyObject *filterObj)
 {
+    PyObject *convertedFilterObj = NULL;
+
     cxoBuffer_clear(&op->filterBuffer);
     if (PyDict_Check(filterObj)) {
-        filterObj = PyObject_CallFunctionObjArgs(cxoJsonDumpFunction,
+        convertedFilterObj = PyObject_CallFunctionObjArgs(cxoJsonDumpFunction,
                 filterObj, NULL);
-        if (!filterObj)
+        if (!convertedFilterObj)
             return NULL;
+        filterObj = convertedFilterObj;
     }
     if (cxoBuffer_fromObject(&op->filterBuffer, filterObj,
             op->coll->db->connection->encodingInfo.encoding) < 0)
         return NULL;
+    Py_CLEAR(convertedFilterObj);
     op->options.filter = op->filterBuffer.ptr;
     op->options.filterLength = op->filterBuffer.size;
     Py_INCREF(op);

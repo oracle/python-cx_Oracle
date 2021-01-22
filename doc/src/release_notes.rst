@@ -11,6 +11,8 @@ Version 8.2 (TBD)
 #)  Updated embedded ODPI-C to `version 4.2.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-2-tbd>`__.
+#)  Eliminated memory leak when calling :meth:`SodaOperation.filter()` with a
+    dictionary.
 
 
 Version 8.1 (December 2020)
