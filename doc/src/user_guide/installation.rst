@@ -17,7 +17,7 @@ To use cx_Oracle 8 with Python and Oracle Database you need:
   <https://www.oracle.com/database/technologies/instant-client.html>`__,
   or those included in Oracle Database if Python is on the same
   machine as the database.  Oracle client libraries versions 19, 18, 12,
-  and 11.2 are supported on Linux, Windows and macOS.  Users have
+  and 11.2 are supported on Linux, Windows and macOS (Intel x86).  Users have
   also reported success with other platforms.  Use the latest client possible:
   Oracle's standard client-server version interoperability allows connection to
   both older and newer databases.
@@ -571,8 +571,8 @@ Python architecture.
    Alternatively, pass ``config_dir`` to :meth:`~cx_Oracle.init_oracle_client()`
    as shown in the previous section, or set ``TNS_ADMIN`` to the directory name.
 
-Installing cx_Oracle on macOS
-=============================
+Installing cx_Oracle on macOS (Intel x86)
+=========================================
 
 Install Python
 --------------
@@ -581,6 +581,8 @@ Make sure you are not using the bundled Python.  This has restricted
 entitlements and will fail to load Oracle client libraries.  Instead use
 `Homebrew <https://brew.sh>`__ or `Python.org
 <https://www.python.org/downloads>`__.
+
+A C compiler is needed, for example Xcode and its command line tools.
 
 Install cx_Oracle
 -----------------
@@ -591,6 +593,7 @@ package to install cx_Oracle from `PyPI
 
 .. code-block:: shell
 
+    export ARCHFLAGS="-arch x86_64"
     python -m pip install cx_Oracle --upgrade
 
 The ``--user`` option may be useful, if you don't have permission to write to

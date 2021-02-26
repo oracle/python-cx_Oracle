@@ -1,4 +1,6 @@
-This directory contains samples for cx_Oracle.
+# cx_Oracle Examples
+
+This directory contains samples for [cx_Oracle][6].  Documentation is [here][7].
 
 1. The schemas and SQL objects that are referenced in the samples can be
    created by running the Python script [SetupSamples.py][1]. The script
@@ -39,3 +41,5 @@ This directory contains samples for cx_Oracle.
 [3]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/SetupSamples.sql
 [4]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/DropSamples.py
 [5]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/DropSamples.sql
+[6]: https://oracle.github.io/python-cx_Oracle/
+[7]: http://cx-oracle.readthedocs.org/en/latest/index.html
