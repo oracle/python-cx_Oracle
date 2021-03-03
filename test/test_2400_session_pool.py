@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -20,17 +20,17 @@ class TestCase(test_env.BaseTestCase):
     require_connection = False
 
     def __connect_and_drop(self):
-        connection = self.pool.acquire()
-        cursor = connection.cursor()
-        cursor.execute("select count(*) from TestNumbers")
-        count, = cursor.fetchone()
-        self.assertEqual(count, 10)
+        with self.pool.acquire() as connection:
+            cursor = connection.cursor()
+            cursor.execute("select count(*) from TestNumbers")
+            count, = cursor.fetchone()
+            self.assertEqual(count, 10)
 
     def __connect_and_generate_error(self):
-        connection = self.pool.acquire()
-        cursor = connection.cursor()
-        self.assertRaises(oracledb.DatabaseError, cursor.execute,
-                          "select 1 / 0 from dual")
+        with self.pool.acquire() as connection:
+            cursor = connection.cursor()
+            self.assertRaises(oracledb.DatabaseError, cursor.execute,
+                            "select 1 / 0 from dual")
 
     def __verify_connection(self, connection, expected_user,
                             expected_proxy_user=None):
@@ -58,21 +58,19 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.max, 8, "max differs")
         self.assertEqual(pool.min, 2, "min differs")
         self.assertEqual(pool.increment, 3, "increment differs")
-        self.assertEqual(pool.opened, 2, "opened differs")
         self.assertEqual(pool.busy, 0, "busy not 0 at start")
         connection_1 = pool.acquire()
         self.assertEqual(pool.busy, 1, "busy not 1 after acquire")
-        self.assertEqual(pool.opened, 2, "opened not unchanged (1)")
         connection_2 = pool.acquire()
         self.assertEqual(pool.busy, 2, "busy not 2 after acquire")
-        self.assertEqual(pool.opened, 2, "opened not unchanged (2)")
+        self.assertEqual(pool.opened, 2, "opened differs")
         connection_3 = pool.acquire()
         self.assertEqual(pool.busy, 3, "busy not 3 after acquire")
-        self.assertEqual(pool.opened, 5, "opened not changed (3)")
         pool.release(connection_3)
         self.assertEqual(pool.busy, 2, "busy not 2 after release")
-        del connection_2
-        self.assertEqual(pool.busy, 1, "busy not 1 after del")
+        pool.release(connection_1)
+        pool.release(connection_2)
+        self.assertEqual(pool.busy, 0, "busy not 0 after release")
         pool.getmode = oracledb.SPOOL_ATTRVAL_NOWAIT
         self.assertEqual(pool.getmode, oracledb.SPOOL_ATTRVAL_NOWAIT)
         if test_env.get_client_version() >= (12, 2):
@@ -89,7 +87,7 @@ class TestCase(test_env.BaseTestCase):
     def test_2401_proxy_auth(self):
         "2401 - test that proxy authentication is possible"
         pool = test_env.get_pool(min=2, max=8, increment=3,
-                             getmode=oracledb.SPOOL_ATTRVAL_WAIT)
+                                 getmode=oracledb.SPOOL_ATTRVAL_WAIT)
         self.assertEqual(pool.homogeneous, True,
                          "homogeneous should be True by default")
         self.assertRaises(oracledb.DatabaseError, pool.acquire,
@@ -104,36 +102,24 @@ class TestCase(test_env.BaseTestCase):
         cursor.execute('select user from dual')
         result, = cursor.fetchone()
         self.assertEqual(result, test_env.get_proxy_user().upper())
-
-    def test_2402_rollback_on_del(self):
-        "2402 - connection rolls back before being destroyed"
-        pool = test_env.get_pool()
-        connection = pool.acquire()
-        cursor = connection.cursor()
-        cursor.execute("truncate table TestTempTable")
-        cursor.execute("insert into TestTempTable (IntCol) values (1)")
-        pool = test_env.get_pool()
-        connection = pool.acquire()
-        cursor = connection.cursor()
-        cursor.execute("select count(*) from TestTempTable")
-        count, = cursor.fetchone()
-        self.assertEqual(count, 0)
+        connection.close()
 
     def test_2403_rollback_on_release(self):
         "2403 - connection rolls back before released back to the pool"
-        pool = test_env.get_pool()
+        pool = test_env.get_pool(getmode=oracledb.SPOOL_ATTRVAL_WAIT)
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("truncate table TestTempTable")
         cursor.execute("insert into TestTempTable (IntCol) values (1)")
         cursor.close()
         pool.release(connection)
-        pool = test_env.get_pool()
+        pool = test_env.get_pool(getmode=oracledb.SPOOL_ATTRVAL_WAIT)
         connection = pool.acquire()
         cursor = connection.cursor()
         cursor.execute("select count(*) from TestTempTable")
         count, = cursor.fetchone()
         self.assertEqual(count, 0)
+        connection.close()
 
     def test_2404_threading(self):
         "2404 - test session pool with multiple threads"
@@ -193,28 +179,30 @@ class TestCase(test_env.BaseTestCase):
         result, = cursor.fetchone()
         self.assertEqual(result, None)
         cursor.close()
-        self.assertEqual(pool.opened, 2, "opened (3)")
-        pool.drop(connection)
-        self.assertEqual(pool.opened, 1, "opened (4)")
+        pool.release(connection)
 
     def test_2407_heterogeneous(self):
         "2407 - test heterogeneous pool with user and password specified"
         pool = test_env.get_pool(min=2, max=8, increment=3, homogeneous=False,
                                  getmode=oracledb.SPOOL_ATTRVAL_WAIT)
         self.assertEqual(pool.homogeneous, 0)
+        conn = pool.acquire()
         self.__verify_connection(pool.acquire(), test_env.get_main_user())
-        self.__verify_connection(pool.acquire(test_env.get_main_user(),
-                                 test_env.get_main_password()),
-                                 test_env.get_main_user())
-        self.__verify_connection(pool.acquire(test_env.get_proxy_user(),
-                                 test_env.get_proxy_password()),
-                                 test_env.get_proxy_user())
+        conn.close()
+        conn = pool.acquire(test_env.get_main_user(),
+                            test_env.get_main_password())
+        self.__verify_connection(conn, test_env.get_main_user())
+        conn.close()
+        conn = pool.acquire(test_env.get_proxy_user(),
+                            test_env.get_proxy_password())
+        self.__verify_connection(conn, test_env.get_proxy_user())
+        conn.close()
         user_str = "%s[%s]" % \
                 (test_env.get_main_user(), test_env.get_proxy_user())
-        self.__verify_connection(pool.acquire(user_str,
-                                 test_env.get_main_password()),
-                                 test_env.get_proxy_user(),
+        conn = pool.acquire(user_str, test_env.get_main_password())
+        self.__verify_connection(conn, test_env.get_proxy_user(),
                                  test_env.get_main_user())
+        conn.close()
 
     def test_2408_heterogenous_without_user(self):
         "2408 - test heterogeneous pool without user and password specified"
@@ -222,24 +210,25 @@ class TestCase(test_env.BaseTestCase):
                                  increment=3,
                                  getmode=oracledb.SPOOL_ATTRVAL_WAIT,
                                  homogeneous=False)
-        self.__verify_connection(pool.acquire(test_env.get_main_user(),
-                                 test_env.get_main_password()),
-                                 test_env.get_main_user())
-        self.__verify_connection(pool.acquire(test_env.get_proxy_user(),
-                                 test_env.get_proxy_password()),
-                                 test_env.get_proxy_user())
+        conn = pool.acquire(test_env.get_main_user(),
+                            test_env.get_main_password())
+        self.__verify_connection(conn, test_env.get_main_user())
+        conn.close()
+        conn = pool.acquire(test_env.get_proxy_user(),
+                            test_env.get_proxy_password())
+        self.__verify_connection(conn, test_env.get_proxy_user())
+        conn.close()
         user_str = "%s[%s]" % \
                 (test_env.get_main_user(), test_env.get_proxy_user())
-        self.__verify_connection(pool.acquire(user_str,
-                                 test_env.get_main_password()),
-                                 test_env.get_proxy_user(),
+        conn = pool.acquire(user_str, test_env.get_main_password())
+        self.__verify_connection(conn, test_env.get_proxy_user(),
                                  test_env.get_main_user())
 
     def test_2409_heterogeneous_wrong_password(self):
         "2409 - test heterogeneous pool with wrong password specified"
         pool = test_env.get_pool(min=2, max=8, increment=3,
-                             getmode=oracledb.SPOOL_ATTRVAL_WAIT,
-                             homogeneous=False)
+                                 getmode=oracledb.SPOOL_ATTRVAL_WAIT,
+                                 homogeneous=False)
         self.assertRaises(oracledb.DatabaseError, pool.acquire,
                           test_env.get_proxy_user(),
                           "this is the wrong password")
@@ -247,7 +236,7 @@ class TestCase(test_env.BaseTestCase):
     def test_2410_tagging_session(self):
         "2410 - test tagging a session"
         pool = test_env.get_pool(min=2, max=8, increment=3,
-                             getmode=oracledb.SPOOL_ATTRVAL_NOWAIT)
+                                 getmode=oracledb.SPOOL_ATTRVAL_NOWAIT)
 
         tag_mst = "TIME_ZONE=MST"
         tag_utc = "TIME_ZONE=UTC"
@@ -309,6 +298,7 @@ class TestCase(test_env.BaseTestCase):
         results = cursor.fetchall()
         expected_results = list(zip(tags, actual_tags))
         self.assertEqual(results, expected_results)
+        conn.close()
 
     def test_2412_tagging_invalid_key(self):
         "2412 - testTagging with Invalid key"
@@ -318,6 +308,36 @@ class TestCase(test_env.BaseTestCase):
         if test_env.get_client_version() >= (12, 2):
             self.assertRaises(oracledb.DatabaseError, pool.release, conn,
                               tag="INVALID_TAG")
+
+    def test_2413_close_and_drop_connection_from_pool(self):
+        "2413 - test dropping/closing a connection from the pool"
+        pool = test_env.get_pool(min=1, max=8, increment=1,
+                                 getmode=oracledb.SPOOL_ATTRVAL_WAIT)
+        conn = pool.acquire()
+        self.assertEqual(pool.busy, 1, "busy (1)")
+        self.assertEqual(pool.opened, 1, "opened (1)")
+        pool.drop(conn)
+        self.assertEqual(pool.busy, 0, "busy (2)")
+        self.assertEqual(pool.opened, 0, "opened (2)")
+        conn = pool.acquire()
+        self.assertEqual(pool.busy, 1, "busy (3)")
+        self.assertEqual(pool.opened, 1, "opened (3)")
+        conn.close()
+        self.assertEqual(pool.busy, 0, "busy (4)")
+        self.assertEqual(pool.opened, 1, "opened (4)")
+
+    def test_2414_create_new_pure_connection(self):
+        "2414 - test to ensure pure connections and being created correctly"
+        pool = test_env.get_pool(min=1, max=2, increment=1,
+                                 getmode=oracledb.SPOOL_ATTRVAL_WAIT)
+        connection_1 = pool.acquire()
+        connection_2 = pool.acquire()
+        self.assertEqual(pool.opened, 2, "opened (1)")
+        pool.release(connection_1)
+        pool.release(connection_2)
+        connection_3 = pool.acquire(purity=oracledb.ATTR_PURITY_NEW)
+        self.assertEqual(pool.opened, 2, "opened (2)")
+        pool.release(connection_3)
 
 if __name__ == "__main__":
     test_env.run_test_cases()
