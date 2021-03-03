@@ -4,7 +4,7 @@
  *
  * Run this like:
  *
- *   sqlplus -l pythonhol/welcome@localhost/orclpdb1 @setup_samples
+ *   sqlplus -l pythonhol/welcome@localhost/orclpdb1 @setup_tables
  *
  * Substitute your actual password and connection string.
  * You may want to run create_user.sql before running this.

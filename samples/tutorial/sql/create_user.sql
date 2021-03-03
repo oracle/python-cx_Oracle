@@ -10,7 +10,7 @@
  * For Oracle Autonmous Database, use 'admin' instead of system.
  * You will be prompted for the new username and the new password to use.
  *
- * When you no longer need this user, run DropSamples.sql to drop the user
+ * When you no longer need this user, run drop_user.sql to drop the user
  *
  *---------------------------------------------------------------------------*/
 
