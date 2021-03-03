@@ -42,10 +42,7 @@ grant
 to &main_user
 /
 
-grant execute on dbms_aqadm to &main_user
-/
-
-grant execute on dbms_transform to &main_user
+grant aq_administrator_role to &main_user
 /
 
 begin
