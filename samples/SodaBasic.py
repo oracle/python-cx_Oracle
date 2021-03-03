@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -23,9 +23,31 @@ connection.autocommit = True
 # Create the parent object for SODA
 soda = connection.getSodaDatabase()
 
+# Explicit metadata is used for maximum version portability.
+# Refer to the documentation.
+metadata = {
+    "keyColumn": {
+        "name": "ID"
+    },
+    "contentColumn": {
+        "name": "JSON_DOCUMENT",
+        "sqlType": "BLOB"
+    },
+    "versionColumn": {
+        "name": "VERSION",
+        "method": "UUID"
+    },
+    "lastModifiedColumn": {
+        "name": "LAST_MODIFIED"
+    },
+    "creationTimeColumn": {
+        "name": "CREATED_ON"
+    }
+}
+
 # Create a new SODA collection and index
 # This will open an existing collection, if the name is already in use.
-collection = soda.createCollection("mycollection")
+collection = soda.createCollection("mycollection", metadata)
 
 index_spec = {
     'name': 'CITY_IDX',

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -23,8 +23,30 @@ connection.autocommit = True
 # create the parent object for all SODA work
 soda = connection.getSodaDatabase()
 
+# Explicit metadata is used for maximum version portability.
+# Refer to the documentation.
+metadata = {
+    "keyColumn": {
+        "name": "ID"
+    },
+    "contentColumn": {
+        "name": "JSON_DOCUMENT",
+        "sqlType": "BLOB"
+    },
+    "versionColumn": {
+        "name": "VERSION",
+        "method": "UUID"
+    },
+    "lastModifiedColumn": {
+        "name": "LAST_MODIFIED"
+    },
+    "creationTimeColumn": {
+        "name": "CREATED_ON"
+    }
+}
+
 # create a new (or open an existing) SODA collection
-collection = soda.createCollection("SodaBulkInsert")
+collection = soda.createCollection("SodaBulkInsert", metadata)
 
 # remove all documents from the collection
 collection.find().remove()
