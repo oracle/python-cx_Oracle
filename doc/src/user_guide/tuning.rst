@@ -108,7 +108,7 @@ Here are some suggestions for the starting point to begin your tuning:
 * To tune queries that return an unknown number of rows, estimate the number of
   rows returned and start with an appropriate :attr:`Cursor.arraysize` value.
   The default is 100.  Then set :attr:`Cursor.prefetchrows` to the ``arraysize``
-  value.  Do not make the sizes unnecessarily large.  For example:
+  value.  For example:
 
   .. code-block:: python
 
@@ -120,10 +120,11 @@ Here are some suggestions for the starting point to begin your tuning:
       for row in cur.execute("SELECT * FROM very_big_table"):
           print(row)
 
-  Adjust the values as needed for performance, memory and round-trip usage. For
-  a large quantity of rows or very "wide" rows on fast networks you may prefer
-  to leave ``prefetchrows`` at its default value of 2. Keep ``arraysize`` as
-  big, or bigger than, ``prefetchrows``.
+  Adjust the values as needed for performance, memory and round-trip usage.  Do
+  not make the sizes unnecessarily large.  For a large quantity of rows or very
+  "wide" rows on fast networks you may prefer to leave ``prefetchrows`` at its
+  default value of 2. Keep ``arraysize`` as big, or bigger than,
+  ``prefetchrows``.
 
 * If you are fetching a fixed number of rows, start your tuning by setting
   ``arraysize`` to the number of expected rows, and set ``prefetchrows`` to one
