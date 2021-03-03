@@ -3,12 +3,13 @@
 -------------------------------------------------------------------------------
 
 /*-----------------------------------------------------------------------------
- * Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2021, Oracle and/or its affiliates. All rights reserved.
  *---------------------------------------------------------------------------*/
 
+set echo off
+@@db_config.sql
 set echo on
 
-@@db_config.sql
 connect &user/&pw@&connect_string
 
 begin

@@ -18,104 +18,97 @@
   <ul>
     <li><a href="#overview" >Overview</a></li>
     <li><a href="#preface" >Setup</a></li>
-    <li><a href="#connectioninformation" >Connection Information</a></li>
-    <li><a href="#lab" >Using Python cx_Oracle with Oracle Database</a>
-    <ul>
-      <li><a href="#connecting">1. Connecting to Oracle</a>
-        <ul>
-          <li>1.1 Review the connection credentials</li>
-          <li>1.2 Creating a basic connection</li>
-          <li>1.3 Indentation indicates code structure</li>
-          <li>1.4 Executing a query</li>
-          <li>1.5 Closing connections</li>
-          <li>1.6 Checking versions</li>
-        </ul>
-      </li>
-      <li><a href="#pooling">2. Connection Pooling</a>
-        <ul>
-          <li>2.1 Connection pooling</li>
-          <li>2.2 Connection pool experiments</li>
-          <li>2.3 Creating a DRCP Connection</li>
-          <li>2.4 Connection pooling and DRCP</li>
-          <li>2.5 More DRCP investigation</li>
-        </ul>
-      </li>
-      <li><a href="#fetching">3. Fetching Data</a>
-        <ul>
-          <li>3.1 A simple query</li>
-          <li>3.2 Using fetchone()</li>
-          <li>3.3 Using fetchmany()</li>
-          <li>3.4 Scrollable cursors</li>
-          <li>3.5 Tuning with arraysize and prefetchrows</li>
-        </ul>
-      </li>
-      <li><a href="#binding">4. Binding Data</a>
-        <ul>
-          <li>4.1 Binding in queries</li>
-          <li>4.2 Binding in inserts</li>
-          <li>4.3 Batcherrors</li>
-          <li>4.4 Binding named objects</li>
-        </ul>
-      </li>
-      <li><a href="#plsql">5. PL/SQL</a>
-        <ul>
-          <li>5.1 PL/SQL functions</li>
-          <li>5.2 PL/SQL procedures</li>
-        </ul>
-      </li>
-      <li><a href="#handlers">6. Type Handlers</a>
-        <ul>
-          <li>6.1 Basic output type handler</li>
-          <li>6.2 Output type handlers and variable converters</li>
-          <li>6.3 Input type handlers</li>
-        </ul>
-      </li>
-      <li> <a href="#lobs">7. LOBs</a>
-        <ul>
-          <li>7.1 Fetching a CLOB using a locator</li>
-          <li>7.2 Fetching a CLOB as a string</li>
-        </ul>
-      </li>
-      <li> <a href="#rowfactory" >8. Rowfactory functions</a>
-        <ul>
-          <li>8.1 Rowfactory for mapping column names</li>
-        </ul>
-      </li>
-      <li><a href="#subclass" >9. Subclassing connections and cursors</a>
-        <ul>
-          <li>9.1 Subclassing connections</li>
-          <li>9.2 Subclassing cursors</li>
-        </ul>
-      </li>
-      <li><a href="#aq" >10. Advanced Queuing</a>
-        <ul>
-          <li>10.1 Message passing with Oracle Advanced Queuing</li>
-        </ul>
-      </li>
-      <li><a href="#soda" >11. Simple Oracle Document Access (SODA)</a>
-        <ul>
-          <li>11.1 Inserting JSON Documents</li>
-          <li>11.2 Searching SODA Documents</li>
-        </ul>
-      </li>
-    </ul>
+    <li><a href="#connecting">Connecting to Oracle</a>
+      <ul>
+        <li>1.1 Creating a basic connection</li>
+        <li>1.2 Indentation indicates code structure</li>
+        <li>1.3 Executing a query</li>
+        <li>1.4 Closing connections</li>
+        <li>1.5 Checking versions</li>
+      </ul>
+    </li>
+    <li><a href="#pooling">Connection Pooling</a>
+      <ul>
+        <li>2.1 Connection pooling</li>
+        <li>2.2 Connection pool experiments</li>
+        <li>2.3 Creating a DRCP Connection</li>
+        <li>2.4 Connection pooling and DRCP</li>
+        <li>2.5 More DRCP investigation</li>
+      </ul>
+    </li>
+    <li><a href="#fetching">Fetching Data</a>
+      <ul>
+        <li>3.1 A simple query</li>
+        <li>3.2 Using fetchone()</li>
+        <li>3.3 Using fetchmany()</li>
+        <li>3.4 Scrollable cursors</li>
+        <li>3.5 Tuning with arraysize and prefetchrows</li>
+      </ul>
+    </li>
+    <li><a href="#binding">Binding Data</a>
+      <ul>
+        <li>4.1 Binding in queries</li>
+        <li>4.2 Binding in inserts</li>
+        <li>4.3 Batcherrors</li>
+        <li>4.4 Binding named objects</li>
+      </ul>
+    </li>
+    <li><a href="#plsql">PL/SQL</a>
+      <ul>
+        <li>5.1 PL/SQL functions</li>
+        <li>5.2 PL/SQL procedures</li>
+      </ul>
+    </li>
+    <li><a href="#handlers">Type Handlers</a>
+      <ul>
+        <li>6.1 Basic output type handler</li>
+        <li>6.2 Output type handlers and variable converters</li>
+        <li>6.3 Input type handlers</li>
+      </ul>
+    </li>
+    <li> <a href="#lobs">LOBs</a>
+      <ul>
+        <li>7.1 Fetching a CLOB using a locator</li>
+        <li>7.2 Fetching a CLOB as a string</li>
+      </ul>
+    </li>
+    <li> <a href="#rowfactory">Rowfactory functions</a>
+      <ul>
+        <li>8.1 Rowfactory for mapping column names</li>
+      </ul>
+    </li>
+    <li><a href="#subclass">Subclassing connections and cursors</a>
+      <ul>
+        <li>9.1 Subclassing connections</li>
+        <li>9.2 Subclassing cursors</li>
+      </ul>
+    </li>
+    <li><a href="#aq">Advanced Queuing</a>
+      <ul>
+        <li>10.1 Message passing with Oracle Advanced Queuing</li>
+      </ul>
+    </li>
+    <li><a href="#soda">Simple Oracle Document Access (SODA)</a>
+      <ul>
+        <li>11.1 Inserting JSON Documents</li>
+        <li>11.2 Searching SODA Documents</li>
+      </ul>
     </li>
     <li><a href="#summary" >Summary</a></li>
     <li><a href="#primer" >Appendix: Python Primer</a></li>
     <li><a href="#resources" >Resources</a></li>
   </ul>
 
+  <a name="lab">
   <h2><a name="overview">Overview</a></h2>
 
-  <p>This tutorial is an introduction to using Python with Oracle
-  Database.  It contains beginner and advanced material.  Sections can
-  be done in any order.  Choose the content that interests you and
-  your skill level.</p>
+  <p>This tutorial is an introduction to using Python with Oracle Database.  It
+  contains beginner and advanced material.  Sections can be done in any order.
+  Choose the content that interests you and your skill level. The tutorial has
+  scripts to run and modify, and has suggested solutions.</p>
 
-  <p>Follow the steps in this document.  The <code>tutorial</code>
-  directory has scripts to run and modify.  The
-  <code>tutorial/solutions</code> directory has scripts with the
-  suggested code changes.</p>
+  <p>Python is a popular general purpose dynamic scripting language.  The
+  cx_Oracle interface provides the Python API to access Oracle Database.</p>
 
   <p>If you are new to Python review the <a href="#primer">Appendix:
   Python Primer</a> to gain an understanding of the language. </p>
@@ -124,100 +117,247 @@
   href="http://cx-oracle.readthedocs.org/en/latest/index.html" >cx_Oracle
   documention</a>. </p>
 
+  <p>The master copy of these instructions that you are reading is <a
+  href="https://oracle.github.io/python-cx_Oracle/samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html"
+  >here</a>.</p>
+
+  <h3><a name="architecture">cx_Oracle Architecture</a></h3>
+
+  <p>Python programs call cx_Oracle functions. Internally cx_Oracle dynamically
+  loads Oracle Client libraries to access Oracle Database. The database can be
+  on the same machine as Python, or it can be remote. If the database is local,
+  the client libraries from the Oracle Database software installation can be
+  used.</p>
+
+  <img src="resources/cx_Oracle_arch.png" alt="Python cx_Oracle architecture" width=800/>
+
+
   <h2><a name="preface">Setup</a></h2>
 
-  <p>These cx_Oracle tutorial instructions can be found <a href="https://oracle.github.io/python-cx_Oracle/samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html" >here</a>.   The files used in them can be found in the <a href="https://github.com/oracle/python-cx_Oracle/tree/master/samples/tutorial" >cx_Oracle GitHub repository</a>.</p>
+  <ul>
 
-  <p>If you are running this tutorial in your own environment, install the required software:</p>
+    <li>
+      <h4>Install software</h4>
 
-<ol>
-  <li><p><a target="_blank" href="https://www.python.org/">Python</a>. Version 3.6 (or later) is preferred.</p></li>
-  <li><p>cx_Oracle version 7.3, or version 8, or later.</p></li>
-  <li><p>Oracle Client libraries.</p>
-    <ul>
-      <li><a target="_blank" href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#installing-cx-oracle-on-linux">Linux</a></li>
-      <li><a target="_blank" href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#installing-cx-oracle-on-macos">macOS</a> - please note the special instructions for macOS in the link.</li>
-      <li><a target="_blank" href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#installing-cx-oracle-on-windows">Windows</a></li>
-    </ul>
-  </li>
+      <p>To get going, follow either of the quick start instructions:</p>
 
-  <li><p>SQL*Plus such as from the Oracle <a target="_blank" href="https://www.oracle.com/database/technologies/instant-client.html">Instant Client SQL*Plus Package</a>.</p></li>
-</ol>
+      <ul>
+        <li><p><a href="https://www.oracle.com/database/technologies/appdev/python/quickstartpythononprem.html" >Quick Start: Developing Python Applications for Oracle Database (On-Premises)</a></p></li>
 
-<p>The Advanced Queuing section requires Oracle client 12.2 or later.  The SODA section requires Oracle client 18.5, or later, and Oracle Database 18 or later.</p>
+        <li><p><a
+          href="https://www.oracle.com/database/technologies/appdev/python/quickstartpython.html"
+          >Quick Start: Developing Python Applications for Oracle Autonomous Database</a></p></li>
+        </ul>
 
-<p>To create the schema run:</p>
+
+      <p>For this tutorial, you will need <a href="https://www.python.org/"
+      >Python</a> 3.6 (or later), <a href="https://pypi.org/project/cx-Oracle/"
+      >cx_Oracle</a> 7.3 (or later), and access to Oracle Database.</p>
+
+      <p>The Advanced Queuing section requires Python cx_Oracle to be using
+      Oracle client libraries 12.2 or later.  The SODA section requires Oracle
+      Database 18 or later, and Python cx_Oracle must be using Oracle libraries
+      from 18.5, or later.</p>
+
+      </li>
+
+
+      <li>
+        <h4>Download the tutorial scripts</h4>
+
+        <p>The Python scripts used in this example are in the <a href="https://github.com/oracle/python-cx_Oracle/tree/master/samples/tutorial" >cx_Oracle GitHub repository</a>.</p>
+
+        <p>Download a zip file of the repository from <a href="https://github.com/oracle/python-cx_Oracle/archive/master.zip" >here</a> and unzip it.  Alternatively you can use 'git' to clone the repository with <code>git clone https://github.com/oracle/python-cx_Oracle.git</code></p>
+
+        <p>The <code>samples/tutorial</code> directory has scripts to run and
+          modify.  The <code>samples/tutorial/solutions</code> directory has scripts
+          with suggested code changes.</p>
+
+      </li>
+
+      <li><h4>Create a database user</h4>
+
+          <p>If you have an existing user, you may be able to use it for most
+          examples (some examples may require extra permissions).</p>
+
+          <p>If you need to create a new user, review the grants created in
+          <code>samples/tutorial/sql/create_user.sql</code>.  Then open a terminal
+          window, change to the <code>samples/tutorial/sql</code> directory, and
+          run the <code>create_user.sql</code> script as the SYSTEM user, for
+          example:</p>
 
 <pre>
-sqlplus sys/yoursyspassword@localhost/orclpdb1 as sysdba @sql/SetupSamples
+cd samples/tutorial/sql
+sqlplus -l system/systempassword@localhost/orclpdb1 @create_user
 </pre>
 
-<p>If DRCP is not already running, connect to the SYS user again in
-SQL*Plus and execute the command:</p>
+          <p>The example above connects as the SYSTEM user.  The connection
+          string is "localhost/orclpdb1", meaning use the database service
+          "orclpdb1" running on localhost (the computer you are running SQL*Plus
+          on). Substitute values for your environment.  If you are using Oracle
+          Autonomous Database, use the ADMIN user instead of SYSTEM.</p>
+
+         <p>When the tutorial is finished, the <code>drop_user.sql</code> script
+         in the same directory can be used to remove the tutorial user.</p>
+
+      </li>
+
+      <li><h4>Install the sample tables</h4>
+
+          <p>Once you have a database user, then you can create the tutorial
+          tables by running a command like this, using your values for the
+          tutorial username, password and connection string:</p>
+
+<pre>
+sqlplus -l pythonhol/welcome@localhost/orclpdb1 @setup_tables
+</pre>
+
+        </li>
+
+        <li><h4>Start the Database Resident Connection Pool (DRCP)</h4>
+
+          <p>If you want to try the DRCP examples in section 2, start the DRCP
+          pool.  (The pool is already started in Oracle Autonomous Database).</p>
+
+          <p>Run SQL*Plus with SYSDBA privileges, for example:</p>
+
+<pre>
+sqlplus -l sys/syspassword@localhost/orclcdb as sysdba
+</pre>
+
+          <p>and execute the command:</p>
 
 <pre>
 execute dbms_connection_pool.start_pool()
 </pre>
 
+          <p>Note you may need to do this in the container database, not a pluggable database.</p>
 
-  <h2><a name="connectioninformation">Connection Information</a></h2>
+        </li>
+        <li>
+          <h4>Review the connection credentials used by the tutorial scripts</h4>
 
-  <p>Database credentials and the connection string are set in two files:</p>
+          <p>Review <code>db_config.py</code> and <code>db_config.sql</code> in
+          the <code>tutorial</code> directory.  These are included in other
+          Python and SQL files. </p>
 
-    <ul>
-      <li><p>db_config.py which is imported by the other Python modules.</p></li>
-      <li><p>db_config.sql which is used by the other SQL scripts.</p></li>
-    </ul>
+          <p>Edit <code>db_config.py</code> and change the default values to
+          match the connection information for your environment.  Alternatively
+          you can set the given envionment variables in your terminal
+          window. For example, the default username is "pythonhol" unless the
+          envionment variable "PYTHON_USER" contains a different username.  The
+          default connection string is for the 'orclpdb1' database service on
+          the same machine as Python. (In Python Database API terminology, the
+          connection string parameter is called the "data source name", or
+          "dsn".)  Using envionment variables is convenient because you will not
+          be asked to re-enter the password when you run scripts:</p>
 
-  <p>The username is "pythonhol" with
-  the password "welcome".  The connect string is "localhost/orclpdb1".</p>
+<pre>
+user = os.environ.get("PYTHON_USER", "pythonhol")
 
-  <p>If your database is not local, or has a different service, you will need to
-  modify the connection information in these two files.  If you are installing
-  your own schema, you can also modify the default username and password in
-  <code>sql/SampleEnv.sql</code>.</p>
+dsn = os.environ.get("PYTHON_CONNECT_STRING", "localhost/orclpdb1")
 
-  <p>The following sections may need adjusting, depending on how you
-  have set up your environment.</p>
+pw = os.environ.get("PYTHON_PASSWORD")
+if pw is None:
+    pw = getpass.getpass("Enter password for %s: " % user)
+</pre>
 
-  <h2><a name="lab">Using Python cx_Oracle with Oracle Database</a></h2>
+<p>Also change the default username and connection string in the SQL*Plus
+configuration file <code>db_config.sql</code>:</p>
 
-  <p>Python is a popular general purpose dynamic scripting language.
-  The cx_Oracle interface provides Python API to access Oracle
-  Database.</p>
+<pre>
+-- Default database username
+def user = "pythonhol"
 
-  <ul>
-    <li>
-      <h3><a name="connecting">1. Connecting to Oracle</a></h3>
+-- Default database connection string
+def connect_string = "localhost/orclpdb1"
 
-<p>You can connect from Python to a local or remote database.  <i>Documentation
+-- Prompt for the password
+accept pw char prompt 'Enter database password for &user: ' hide
+</pre>
+
+
+          <p>The tutorial instructions may need adjusting, depending on how you
+          have set up your environment.</p>
+        </li>
+
+        <li>
+          <h4>Review the Instant Client library path</h4>
+
+          <p>Review the Oracle Client library path settings in
+          <code>db_config.py</code>.  If cx_Oracle cannot locate Oracle Client
+          libraries, then your applications will fail with an error like
+          "DPI-1047: Cannot locate a 64-bit Oracle Client library".</p>
+
+<pre>
+# On Linux this must be None.
+# Instead, the Oracle environment must be set before Python starts.
+instant_client_dir = None
+
+# On Windows, if your database is on the same machine, comment these lines out
+# and let instant_client_dir be None.  Otherwise, set this to your Instant
+# Client directory.  Note the use of the raw string r"..."  so backslashes can
+# be used as directory separators.
+if sys.platform.startswith("win"):
+    instant_client_dir = r"c:\oracle\instantclient_19_10"
+
+# On macOS (Intel x86) set the directory to your Instant Client directory
+if sys.platform.startswith("darwin"):
+    instant_client_dir = os.environ.get("HOME")+"/Downloads/instantclient_19_8"
+
+# This can be called at most once per process.
+if instant_client_dir is not None:
+    cx_Oracle.init_oracle_client(lib_dir=instant_client_dir)
+</pre>
+
+          <p>Set <code>instant_client_dir</code> to <code>None</code> or to a
+          valid path according to the following notes:</p>
+
+          <ul>
+            <li>
+
+              <p>If you are on macOS or Windows, and you have installed Oracle
+              Instant Client libraries because your database is on a remote
+              machine, then set <code>instant_client_dir</code> to the path of
+              the Instant Client libraries.</p>
+
+            </li>
+
+            <li>
+
+              <p>If you are on Windows and have a local database installed, then
+              comment out the two Windows lines, so that
+              <code>instant_client_dir</code> remains <code>None</code>.</p>
+
+            </li>
+
+            <li>
+
+              <p>In all other cases (including Linux with Oracle Instant
+              Client), make sure that <code>instant_client_dir</code> is set to
+              <code>None</code>.  In these cases you must make sure that the
+              Oracle libraries from Instant Client or your ORACLE_HOME are in
+              your system library search path before you start Python. On Linux,
+              the path can be configured with ldconfig or with the
+              LD_LIBRARY_PATH environment variables.</p>
+
+            </li>
+
+          </ul>
+
+        </li>
+  </ul>
+
+      <h2><a name="connecting">1. Connecting to Oracle</a></h2>
+
+<p>You can connect from Python to a local, remote or cloud database.  <i>Documentation
 link for further reading: <a
 href="https://cx-oracle.readthedocs.io/en/latest/user_guide/connection_handling.html"
 >Connecting to Oracle Database</a></i>.</p>
 
       <ul>
         <li>
-          <h4>1.1 Review the connection credentials</h4>
-          <p>Review <code>db_config.py</code> and <code>db_config.sql</code> in the <code>tutorial</code> directory.  These are included in other Python and SQL files in this tutorial:</p>
-           <code>db_config.py</code>
-          <pre>
-user = "pythonhol"
-pw = "welcome"
-dsn = "localhost/orclpdb1"
-</pre>
- <code>db_config.sql</code>
-           <pre>
-def user = "pythonhol"
-def pw = "welcome"
-def connect_string = "localhost/orclpdb1"
-          </pre>
-
-          <p>By default they connect to the 'orclpdb1' database service on the same machine as Python.  You can modify the values in both files to match the connection information for your environment.</p>
-
-        </li>
-
-        <li>
-          <h4>1.2 Creating a basic connection</h4>
+          <h4>1.1 Creating a basic connection</h4>
           <p>Review the code contained in <code>connect.py</code>:</p>
           <pre>
 import cx_Oracle
@@ -227,20 +367,22 @@ con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 print("Database version:", con.version)
 </pre>
 
-          <p>The cx_Oracle module is imported to provide the API for
-          accessing the Oracle database. Many inbuilt and third party
-          modules can be included in this way in Python scripts.</p>
+          <p>The cx_Oracle module is imported to provide the API for accessing
+          the Oracle database. Many inbuilt and third party modules can be
+          included in Python scripts this way.</p>
 
-          <p> The <code>connect()</code> method is passed the username,
-          the password and the connection string that you configured in
-          the db_config.py module. In this case, Oracle's Easy Connect connection
-          string syntax is used. It consists of the hostname of your
-          machine, <code>localhost</code>, and the database service name
-          <code>orclpdb1</code>. </p>
+          <p> The <code>connect()</code> method is passed the username, the
+          password and the connection string that you configured in the
+          db_config.py module. In this case, Oracle's Easy Connect connection
+          string syntax is used. It consists of the hostname of your machine,
+          <code>localhost</code>, and the database service name
+          <code>orclpdb1</code>. (In Python Database API terminology, the
+          connection string parameter is called the "data source name", or
+          "dsn".)</p>
 
           <p>Open a command terminal and change to the <code>tutorial</code> directory:</p>
 
-          <pre><strong>cd tutorial</strong></pre>
+          <pre><strong>cd samples/tutorial</strong></pre>
 
           <p>Run the Python script:</p>
 
@@ -248,18 +390,18 @@ print("Database version:", con.version)
 
           <p>The version number of the database should be displayed. An
           exception is raised if the connection fails. Adjust the username,
-          password or connect string parameters to invalid values to see the
+          password or connection string parameters to invalid values to see the
           exception.</p>
 
-          <p>cx_Oracle also supports "external authentication", which
-          allows connections without needing usernames and passwords
-          to be embedded in the code. Authentication would then
-          instead be performed by, for example, LDAP.</p>
+          <p>cx_Oracle also supports "external authentication", which allows
+          connections without needing usernames and passwords to be embedded in
+          the code. Authentication would then instead be performed by, for
+          example, LDAP or Oracle Wallets.</p>
 
         </li>
 
         <li>
-          <h4>1.3 Indentation indicates code structure</h4>
+          <h4>1.2 Indentation indicates code structure</h4>
 
           <p>There are no statement terminators or begin/end keywords
           or braces to indicate blocks of code.</p>
@@ -293,7 +435,7 @@ con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
         </li>
 
         <li>
-          <h4>1.4 Executing a query</h4>
+          <h4>1.3 Executing a query</h4>
 
           <p>Open <code>query.py</code> in an editor.  It looks like:</p>
 
@@ -334,17 +476,16 @@ for row in res:
         </li>
 
         <li>
-          <h4>1.5 Closing connections</h4>
+          <h4>1.4 Closing connections</h4>
 
           <p>Connections and other resources used by cx_Oracle will
           automatically be closed at the end of scope.  This is a
           common programming style that takes care of the correct
           order of resource closure.</p>
 
-          <p>Resources can also be explicitly closed to free up
-          database resources if they are no longer needed.  This may
-          be useful in blocks of code that remain active for some
-          time.</p>
+          <p>Resources can also be explicitly closed to free up database
+          resources if they are no longer needed.  This is strongly recommended
+          in blocks of code that remain active for some time.</p>
 
           <p>Open <code>query.py</code> in an editor and add calls to
           close the cursor and connection like:</p>
@@ -373,7 +514,7 @@ for row in res:
         </li>
 
         <li>
-          <h4>1.6 Checking versions</h4>
+          <h4>1.5 Checking versions</h4>
 
           <p>Review the code contained in <code>versions.py</code>:</p>
 
@@ -407,9 +548,9 @@ print("Client version:", cx_Oracle.clientversion())</strong>
           <p>When the script is run, it will display:</p>
 
           <pre>
-7.0.0
-Database version: 18.3.0.0.0
-Client version: (18, 3, 0, 0, 0)
+7.1.0
+Database version: 19.3.0.0.0
+Client version: (19, 8, 0, 0, 0)
 </pre>
 
           <p>Note the client version is a tuple.</p>
@@ -422,29 +563,28 @@ Client version: (18, 3, 0, 0, 0)
         </li>
 
       </ul>
-    </li>
 
-    <li><h3><a name="pooling">2. Connection Pooling</a></h3>
+    <h2><a name="pooling">2. Connection Pooling</a></h2>
 
-      <p>Connection pooling is important for performance when applications
-      frequently connect and disconnect from the database. Pooling also gives
-      the best support for Oracle high availability features.  <i>Documentation
-      link for further reading: <a
+      <p>Connection pooling is important for performance in when multi-threaded
+      applications frequently connect and disconnect from the database. Pooling
+      also gives the best support for Oracle high availability features.
+      <i>Documentation link for further reading: <a
       href="https://cx-oracle.readthedocs.io/en/latest/user_guide/connection_handling.html#connection-pooling"
       >Connection Pooling</a></i>.</p>
-
 
       <ul>
         <li> <h4>2.1 Connection pooling</h4>
 
       <p>Review the code contained in <code>connect_pool.py</code>:</p>
-      <pre>
+<pre>
 import cx_Oracle
 import threading
 import db_config
 
 pool = cx_Oracle.<strong>SessionPool</strong>(db_config.user, db_config.pw, db_config.dsn,
-                             min = 2, max = 5, increment = 1, threaded = True)
+                             min = 2, max = 5, increment = 1, threaded = True,
+                             getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT)
 
 def Query():
     con = pool.<strong>acquire</strong>()
@@ -470,7 +610,7 @@ print("All done!")
           Oracle connections for the user.  Connections in the pool can
           be used by cx_Oracle by calling <code>pool.acquire()</code>.
           The initial pool size is 2 connections.  The maximum size is 5
-          connections.  When the pool needs to grow, 1 new connection
+          connections.  When the pool needs to grow, then 1 new connection
           will be created at a time.  The pool can shrink back to the
           minimum size of 2 when connections are no longer in use.</p>
 
@@ -517,7 +657,8 @@ import threading
 import db_config
 
 pool = cx_Oracle.SessionPool(db_config.user, db_config.pw, db_config.dsn,
-                             min = 2, max = 5, increment = 1, threaded = True)
+                             min = 2, max = 5, increment = 1, threaded = True,
+                             getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT)
 
 def Query():
     con = pool.acquire()
@@ -546,16 +687,15 @@ print("All done!")
 <pre><strong>python connect_pool2.py</strong></pre>
 
 <p>Experiment with different values of the pool parameters and
-<code>numberOfThreads</code>.  Larger initial pool sizes will make the
-pool creation slower, but the connections will be available immediately
-when needed.  When <code>numberOfThreads</code> exceeds the maximum size
-of the pool, the <code>acquire()</code> call will generate an error such
-as "ORA-24459: OCISessionGet() timed out waiting for pool to create new
-connections".  Adding the additional argument <code>getmode =
-cx_Oracle.SPOOL_ATTRVAL_WAIT</code> to the
-<code>cx_Oracle.SessionPool()</code> call will prevent the exception
-from taking place, but will cause the thread to wait until a connection
-is available.</p>
+<code>numberOfThreads</code>.  Larger initial pool sizes will make the pool
+creation slower, but the connections will be available immediately when needed.
+</p>
+
+<p>Try changing <code>getmode</code> to
+<code>cx_Oracle.SPOOL_ATTRVAL_NOWAIT</code>.  When <code>numberOfThreads</code>
+exceeds the maximum size of the pool, the <code>acquire()</code> call will now
+generate an error such as "ORA-24459: OCISessionGet() timed out waiting for pool
+to create new connections".  </p>
 
 <p>Pool configurations where <code>min</code> is the same as
 <code>max</code> (and <code>increment = 0</code>) are often
@@ -571,15 +711,17 @@ database server.</p>
   processes on multiple machines to share a small pool of database
   server processes.</p>
 
-  <p>Below left is a diagram without DRCP. Every application
-  connection  has its own 'dedicated' database server
-  process.  Application connect and close calls require the expensive
-  create and destroy of those database server processes.  To avoid these
-  costs, scripts may hold connections open even when not doing
-  database work: these idle server processes consumes database host
-  resources.  Below right is a diagram with DRCP.  Scripts can use
-  database servers from a precreated pool of servers and return them
-  when they are not in use.  </p>
+  <p>Below left is a diagram without DRCP. Every application standalone
+  connection (or cx_Oracle connection-pool connection) has its own database
+  server process.  Standalone application <code>connect()</code> and close calls
+  require the expensive create and destroy of those database server processes.
+  cx_Oracle connection pools reduce these costs by keeping database server
+  processes open, but every cx_Oracle connection pool will requires its own set
+  of database server processes, even if they are not doing database work: these
+  idle server processes consumes database host resources.  Below right is a
+  diagram with DRCP.  Scripts and Python processes can share database servers
+  from a precreated pool of servers and return them when they are not in use.
+  </p>
 
   <table cellspacing="0" cellpadding="30" border="0" >
     <tr>
@@ -594,16 +736,16 @@ database server.</p>
     </tr>
   </table>
 
-  <p>DRCP is useful when the database host machine does not have
-  enough memory to handle the number of database server processes
-  required.  However, if database host memory is large enough, then
-  the default, 'dedicated' server process model is generally
-  recommended.  If DRCP is enabled, it is best used in conjunction
-  with cx_Oracle's middle-tier connection pooling.</p>
+  <p>DRCP is useful when the database host machine does not have enough memory
+  to handle the number of database server processes required.  If DRCP is
+  enabled, it is best used in conjunction with cx_Oracle's connection pooling.
+  However, if the database host memory is large enough, then the default,
+  'dedicated' server process model is generally recommended.  This can be with
+  or without a cx_Oracle connection pool, depending on the connection rate.</p>
 
   <p>Batch scripts doing long running jobs should generally use
   dedicated connections. Both dedicated and DRCP servers can be used
-  in the same database for different applications.</p>
+  together in the same application or database.</p>
 
   <p>Review the code contained in <code>connect_drcp.py</code>:</p>
 
@@ -617,10 +759,13 @@ print("Database version:", con.version)
 </pre>
 
   <p> This is similar to <code>connect.py</code> but
-  &quot;<code>:pooled</code>&quot; is appended to the connection
-  string, telling the database to use a pooled server. A Connection Class
-  "PYTHONHOL" is also passed into the <code>connect()</code> method to
-  allow grouping of database servers to applications.  </p>
+  &quot;<code>:pooled</code>&quot; is appended to the connection string, telling
+  the database to use a pooled server. A Connection Class "PYTHONHOL" is also
+  passed into the <code>connect()</code> method to allow grouping of database
+  servers to applications.  Note with Autonomous Database, the connection string
+  has a different form, see the <a
+  href="https://docs.oracle.com/en/cloud/paas/autonomous-database/adbsa/connect-drcp.html#GUID-E1337EC6-4A78-4199-84F0-A2739055F3FA"
+  >ADB documentation</a>. </p>
 
   <p> The &quot;purity&quot; of the connection is defined as the
   <code>ATTR_PURITY_SELF</code> constant, meaning the session state
@@ -654,7 +799,8 @@ import cx_Oracle
 import threading
 
 pool = cx_Oracle.SessionPool(db_config.user, db_config.pw, db_config.dsn <strong>+ ":pooled"</strong>,
-                             min = 2, max = 5, increment = 1, threaded = True)
+                             min = 2, max = 5, increment = 1, threaded = True,
+                             getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT)
 
 def Query():
     con = pool.acquire(<strong>cclass = "PYTHONHOL", purity = cx_Oracle.ATTR_PURITY_SELF</strong>)
@@ -685,23 +831,21 @@ print("All done!")
 
       <pre><strong>python connect_pool2.py</strong></pre>
 
-      <p>If you get an error "ORA-24459: OCISessionGet() timed out waiting for
-      pool to create new connections" or "ORA-24418: Cannot open further
-      sessions", it is because connection requests are being made
-      while the pool is starting or growing.  Add the argument
-      <code>getmode = cx_Oracle.SPOOL_ATTRVAL_WAIT</code> to the
-      <code>cx_Oracle.SessionPool()</code> call so connection
-      requests wait for pooled connections to be available.</p>
-
-      <p>Open a new a terminal window and invoke SQL*Plus:</p>
+      <p>Review <strong>drcp_query.sql</strong> and set the connection string to
+      your database.  Then open a new a terminal window and invoke SQL*Plus:</p>
 
       <pre><strong>sqlplus /nolog @drcp_query.sql</strong></pre>
 
-      <p>This shows the number of connection requests made to the pool
-      since the database was started ("NUM_REQUESTS"), how many of those
-      reused a pooled server's session ("NUM_HITS"), and how many had to
-      create new sessions ("NUM_MISSES").  Typically the goal is a low
-      number of misses.</p>
+      <p>This will prompt for the SYSTEM password and the database connection
+      string.  With Pluggable databases, you will need to connect to the
+      container database.  Note that with ADB, this view does not contain
+      rows, so running this script is not useful.</p>
+
+      <p>For other databases, the script shows the number of connection requests
+      made to the pool since the database was started ("NUM_REQUESTS"), how many
+      of those reused a pooled server's session ("NUM_HITS"), and how many had
+      to create new sessions ("NUM_MISSES").  Typically the goal is a low number
+      of misses.</p>
 
       <p>To see the pool configuration you can query DBA_CPOOL_INFO.</p>
     </li>
@@ -727,9 +871,8 @@ import time</pre>
 
     </li>
   </ul>
-  </li>
 
-<li><h3><a name="fetching">3. Fetching Data</a> </h3>
+  <h2><a name="fetching">3. Fetching Data</a> </h2>
 
 
   <p>Executing SELECT queries is the primary way to get data from Oracle
@@ -774,6 +917,21 @@ for deptno, dname, loc in cur:
     <p>Run the script in a terminal window:</p>
 
     <pre><strong>python query2.py</strong></pre>
+
+    <p>The output is:</p>
+
+    <pre>Department number:  10
+Department name:  ACCOUNTING
+Department location: NEW YORK
+Department number:  20
+Department name:  RESEARCH
+Department location: DALLAS
+Department number:  30
+Department name:  SALES
+Department location: CHICAGO
+Department number:  40
+Department name:  OPERATIONS
+Department location: BOSTON</pre>
 
   </li>
 
@@ -988,9 +1146,7 @@ print(elapsed, "seconds")
   </li>
 </ul>
 
-</li>
-
-<li><h3><a name="binding">4. Binding Data</a></h3>
+<h2><a name="binding">4. Binding Data</a></h2>
 
   <p>Bind variables enable you to re-execute statements with new data values
   without the overhead of re-parsing the statement.  Binding improves code
@@ -1039,6 +1195,8 @@ print(res)
       variable name.  Alternatively, instead of passing multiple arguments you
       could pass a second argument to <code>execute()</code> that is a sequence
       or a dictionary.  Later examples show these syntaxes.</p>
+
+      <p>To bind a database NULL, use the Python value <code>None</code></p>
 
       <p>cx_Oracle uses Oracle Database's Statement Cache.  As long as the
       statement you pass to <code>execute()</code> is in that cache, you can use
@@ -1195,7 +1353,7 @@ print(res)
   <p>In a terminal window, start SQL*Plus using the lab credentials and connection string, such as:</p>
 
   <pre>
-sqlplus pythonhol/welcome@localhost/orclpdb1
+sqlplus -l pythonhol/welcome@localhost/orclpdb1
 </pre>
 
   <p>Use the SQL*Plus DESCRIBE command to look at the SDO definition:</p>
@@ -1352,9 +1510,7 @@ working with scalar values can be faster.</p>
 </li>
 </ul>
 
-</li>
-
-<li><h3><a name="plsql">5. PL/SQL</a></h3>
+<h2><a name="plsql">5. PL/SQL</a></h2>
 
   <p>PL/SQL is Oracle's procedural language extension to SQL. PL/SQL
   procedures and functions are stored and run in the database. Using
@@ -1465,9 +1621,8 @@ print(myvar.getvalue())
       value.</p>
     </li>
   </ul>
-</li>
 
-<li><h3><a name="handlers">6. Type Handlers</a></h3>
+<h2><a name="handlers">6. Type Handlers</a></h2>
 
 <p>Type handlers enable applications to alter data that is fetched from, or sent
 to, the database. <i>Documentation links for further reading: <a
@@ -1737,9 +1892,7 @@ an Oracle object from the Python object values.  The
 
   </ul>
 
-</li>
-
-<li><h3><a name="lobs">7. LOBs</a></h3>
+<h2><a name="lobs">7. LOBs</a></h2>
 
   <p>Oracle Database "LOB" long objects can be streamed using a LOB
   locator, or worked with directly as strings or bytes. <i>Documentation link
@@ -1844,9 +1997,7 @@ print("CLOB data:", clobdata)</strong>
     </li>
   </ul>
 
-</li>
-
-<li><h3><a name="rowfactory">8. Rowfactory functions</a></h3>
+<h2><a name="rowfactory">8. Rowfactory functions</a></h2>
 
   <p>Rowfactory functions enable queries to return objects other than
   tuples.  They can be used to provide names for the various columns
@@ -1919,9 +2070,7 @@ for row in rows:
 </li>
 </ul>
 
-</li>
-
-<li><h3><a name="subclass">9. Subclassing connections and cursors</a></h3>
+<h2><a name="subclass">9. Subclassing connections and cursors</a></h2>
 
   <p>Subclassing enables application to "hook" connection and cursor
   creation.  This can be used to alter or log connection and execution
@@ -2030,9 +2179,8 @@ invoke the parent methods to do the actual statement execution.</p>
     </li>
 
     </ul>
-</li>
 
-<li><h3><a name="aq">10. Advanced Queuing</a></h3>
+<h2><a name="aq">10. Advanced Queuing</a></h2>
 
 <p>Oracle Advanced Queuing (AQ) allows messages to be passed between
 applications. <i>Documentation link for further reading: <a
@@ -2165,9 +2313,8 @@ the <code>aq-dequeue.py</code>, <code>aq-enqueue.py</code> and
 
 </li>
 </ul>
-</li>
 
-<li><h3><a name="soda">11. Simple Oracle Document Access (SODA)</a></h3>
+<h2><a name="soda">11. Simple Oracle Document Access (SODA)</a></h2>
 
   <p>Simple Oracle Document Access (SODA) is a set of NoSQL-style APIs.
   Documents can be inserted, queried, and retrieved from Oracle
@@ -2190,7 +2337,28 @@ con = cx_Oracle.connect(db_config.user, db_config.pw, db_config.dsn)
 
 soda = con.getSodaDatabase()
 
-collection = soda.createCollection("friends")
+# Explicit metadata is used for maximum version portability
+metadata = {
+               "keyColumn": {
+                   "name":"ID"
+               },
+               "contentColumn": {
+                   "name": "JSON_DOCUMENT",
+                   "sqlType": "BLOB"
+               },
+               "versionColumn": {
+                   "name": "VERSION",
+                   "method": "UUID"
+               },
+               "lastModifiedColumn": {
+                   "name": "LAST_MODIFIED"
+               },
+               "creationTimeColumn": {
+                   "name": "CREATED_ON"
+               }
+           }
+
+collection = soda.createCollection("friends", metadata)
 
 content = {'name': 'Jared', 'age': 35, 'address': {'city': 'Melbourne'}}
 
@@ -2203,9 +2371,11 @@ print('Retrieved SODA document dictionary is:')
 print(content)
 </pre>
 
-      <p><code>soda.createCollection()</code> will create a new
-      collection, or open an existing collection, if the name is
-      already in use.</p>
+      <p><code>soda.createCollection()</code> will create a new collection, or
+      open an existing collection, if the name is already in use.  (Due to a
+      change in the default "sqlType" storage for Oracle Database 21c, the
+      metadata is explicitly stated to use a BLOB column. This lets the example
+      run with different client and database versions).</p>
 
       <p><code>insertOneAndGet()</code> inserts the content of a
       document into the database and returns a SODA Document Object.
@@ -2272,10 +2442,6 @@ for doc in myDocuments:
 
     </li>
   </ul>
-
-</li>
-
-</ul>
 
   <h2><a name="summary">Summary</a></h2>
   <p>In this tutorial, you have learned how to: </p>
@@ -2498,7 +2664,7 @@ import sys</pre>
 <h2><a name="resources">Resources</a></h2>
 
 <ul>
-  <li><a href="https://docs.python.org/3/" >Python 3 Documentation</a></li>
+  <li><a href="https://docs.python.org/3/" >Python Documentation</a></li>
   <li><a href="http://cx-oracle.readthedocs.io/en/latest/index.html" >Python cx_Oracle Documentation</a></li>
   <li><a href="https://github.com/oracle/python-cx_Oracle" >Python cx_Oracle Source Code Repository</a></li>
 </ul>
@@ -2506,7 +2672,7 @@ import sys</pre>
 <div class="footer"></div>
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
   <tbody><tr>
-    <td align="right" width="54%">Copyright &copy; 2017, 2020, Oracle and/or its affiliates. All rights reserved</td>
+    <td align="right" width="54%">Copyright &copy; 2017, 2021, Oracle and/or its affiliates. All rights reserved</td>
   </tr>
   <tr><td colspan="2"></td></tr>
   </tbody>
