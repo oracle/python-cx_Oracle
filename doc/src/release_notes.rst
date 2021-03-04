@@ -13,6 +13,9 @@ Version 8.2 (TBD)
     version-4-2-tbd>`__.
 #)  Eliminated memory leak when calling :meth:`SodaOperation.filter()` with a
     dictionary.
+#)  The distributed transaction handle assosciated with the connection is now
+    cleared on commit or rollback (`issue 530
+    <https://github.com/oracle/python-cx_Oracle/issues/530>`__).
 
 
 Version 8.1 (December 2020)

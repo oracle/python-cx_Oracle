@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -372,6 +372,98 @@ class TestCase(test_env.BaseTestCase):
         cursor.execute("select count(*) from TestTempTable")
         count, = cursor.fetchone()
         self.assertEqual(count, 0)
+
+    def test_1126_multiple_transactions(self):
+        "1126 - test multiple transactions on the same connection"
+        connection = test_env.get_connection()
+        with connection.cursor() as cursor:
+            cursor.execute("truncate table TestTempTable")
+
+        id_ = random.randint(0, 2 ** 128)
+        xid = (0x1234, "%032x" % id_, "%032x" % 9)
+        connection.begin(*xid)
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                    insert into TestTempTable (IntCol, StringCol)
+                    values (1, 'tesName')""")
+            self.assertEqual(connection.prepare(), True)
+            connection.commit()
+
+        for begin_trans in (True, False):
+            val = 3
+            if begin_trans:
+                connection.begin()
+                val = 2
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                        insert into TestTempTable (IntCol, StringCol)
+                        values (:int_val, 'tesName')""", int_val=val)
+                connection.commit()
+
+        expected_rows = [(1, "tesName"), (2, "tesName"), (3, "tesName")]
+        with connection.cursor() as cursor:
+            cursor.execute("select IntCol, StringCol from TestTempTable")
+            self.assertEqual(cursor.fetchall(), expected_rows)
+
+    def test_1127_multiple_global_transactions(self):
+        "1127 - test multiple global transactions on the same connection"
+        connection = test_env.get_connection()
+        with connection.cursor() as cursor:
+            cursor.execute("truncate table TestTempTable")
+
+        id_ = random.randint(0, 2 ** 128)
+        xid = (0x1234, "%032x" % id_, "%032x" % 9)
+        connection.begin(*xid)
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                    insert into TestTempTable (IntCol, StringCol)
+                    values (1, 'tesName')""")
+            self.assertEqual(connection.prepare(), True)
+            connection.commit()
+
+        for begin_trans in (True, False):
+            val = 3
+            if begin_trans:
+                connection.begin()
+                val = 2
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                        insert into TestTempTable (IntCol, StringCol)
+                        values (:int_val, 'tesName')""", int_val=val)
+                connection.commit()
+
+        id2_ = random.randint(0, 2 ** 128)
+        xid2 = (0x1234, "%032x" % id2_, "%032x" % 9)
+        connection.begin(*xid2)
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                    insert into TestTempTable (IntCol, StringCol)
+                    values (4, 'tesName')""")
+            self.assertEqual(connection.prepare(), True)
+            connection.commit()
+
+        expected_rows = [(1, "tesName"), (2, "tesName"), (3, "tesName"),
+                         (4, "tesName")]
+
+        with connection.cursor() as cursor:
+            cursor.execute("select IntCol, StringCol from TestTempTable")
+            self.assertEqual(cursor.fetchall(), expected_rows)
+
+    def test_1128_exception_creating_global_txn_after_local_txn(self):
+        "1128 - test creating global txn after a local txn"
+        connection = test_env.get_connection()
+        with connection.cursor() as cursor:
+            cursor.execute("truncate table TestTempTable")
+
+        val = 2
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                    insert into TestTempTable (IntCol, StringCol)
+                    values (:int_val, 'tesName')""", int_val=val)
+
+        id_ = random.randint(0, 2 ** 128)
+        xid = (0x1234, "%032x" % id_, "%032x" % 9)
+        self.assertRaises(oracledb.DatabaseError, connection.begin, *xid)
 
 if __name__ == "__main__":
     test_env.run_test_cases()
