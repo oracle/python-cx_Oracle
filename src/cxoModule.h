@@ -238,6 +238,7 @@ struct cxoConnection {
     PyObject *tag;
     dpiEncodingInfo encodingInfo;
     int autocommit;
+    int bypassStringEncoding;
 };
 
 struct cxoCursor {
