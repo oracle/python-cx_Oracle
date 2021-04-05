@@ -11,7 +11,7 @@ defined by cx_Oracle. See the exception handling section in the
 when an exception is raised.
 
 Applications can catch exceptions as needed. For example, when trying to add a
-customer that already exists in the database, the following could could be used
+customer that already exists in the database, the following could be used
 to catch the exception:
 
 .. code-block:: python
