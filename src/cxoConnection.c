@@ -470,7 +470,7 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     PyObject *tagObj, *matchAnyTagObj, *threadedObj, *eventsObj, *contextObj;
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj, *editionObj;
     PyObject *shardingKeyObj, *superShardingKeyObj, *tempObj;
-    int status, temp, invokeSessionCallback, bypassStringEncoding;
+    int status, temp, invokeSessionCallback;
     PyObject *beforePartObj, *afterPartObj;
     dpiCommonCreateParams dpiCommonParams;
     dpiConnCreateParams dpiCreateParams;
@@ -483,12 +483,12 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     static char *keywordList[] = { "user", "password", "dsn", "mode",
             "handle", "pool", "threaded", "events", "cclass", "purity",
             "newpassword", "encoding", "nencoding", "edition", "appcontext",
-            "tag", "matchanytag", "shardingkey", "supershardingkey", "bypassstringencoding", NULL };
+            "tag", "matchanytag", "shardingkey", "supershardingkey", NULL };
 
     // parse arguments
     pool = NULL;
     tagObj = Py_None;
-    externalHandle = bypassStringEncoding = 0;
+    externalHandle = 0;
     passwordObj = dsnObj = cclassObj = editionObj = NULL;
     threadedObj = eventsObj = newPasswordObj = usernameObj = NULL;
     matchAnyTagObj = contextObj = shardingKeyObj = superShardingKeyObj = NULL;
@@ -499,13 +499,13 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     if (dpiContext_initConnCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOiKO!OOOiOssOOOOOOp", keywordList, &usernameObj, &passwordObj,
+            "|OOOiKO!OOOiOssOOOOOO", keywordList, &usernameObj, &passwordObj,
             &dsnObj, &dpiCreateParams.authMode, &externalHandle,
             &cxoPyTypeSessionPool, &pool, &threadedObj, &eventsObj, &cclassObj,
             &dpiCreateParams.purity, &newPasswordObj,
             &dpiCommonParams.encoding, &dpiCommonParams.nencoding, &editionObj,
             &contextObj, &tagObj, &matchAnyTagObj, &shardingKeyObj,
-            &superShardingKeyObj, &bypassStringEncoding))
+            &superShardingKeyObj))
         return -1;
     dpiCreateParams.externalHandle = (void*) externalHandle;
     if (cxoUtils_getBooleanValue(threadedObj, 0, &temp) < 0)
@@ -665,9 +665,6 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
             return -1;
         Py_DECREF(tempObj);
     }
-
-    // set if should bypass default encoding and return bytes
-    conn->bypassStringEncoding = bypassStringEncoding;
 
     return 0;
 }
@@ -1950,7 +1947,6 @@ static PyMemberDef cxoMembers[] = {
     { "username", T_OBJECT, offsetof(cxoConnection, username), READONLY },
     { "dsn", T_OBJECT, offsetof(cxoConnection, dsn), READONLY },
     { "tnsentry", T_OBJECT, offsetof(cxoConnection, dsn), READONLY },
-    { "bypassstringencoding", T_INT, offsetof(cxoConnection, bypassStringEncoding), READONLY },
     { "tag", T_OBJECT, offsetof(cxoConnection, tag), 0 },
     { "autocommit", T_INT, offsetof(cxoConnection, autocommit), 0 },
     { "inputtypehandler", T_OBJECT,

@@ -41,13 +41,13 @@ Module Interface
         events=False, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, \
         newpassword=None, encoding=None, nencoding=None, edition=None, \
         appcontext=[], tag=None, matchanytag=None, shardingkey=[], \
-        supershardingkey=[], bypassstringencoding)
+        supershardingkey=[])
     Connection(user=None, password=None, dsn=None, \
         mode=cx_Oracle.DEFAULT_AUTH, handle=0, pool=None, threaded=False, \
         events=False, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, \
         newpassword=None, encoding=None, nencoding=None, edition=None, \
         appcontext=[], tag=None, matchanytag=False, shardingkey=[], \
-        supershardingkey=[], bypassstringencoding)
+        supershardingkey=[])
 
     Constructor for creating a connection to the database. Return a
     :ref:`connection object <connobj>`. All parameters are optional and can be
@@ -125,12 +125,6 @@ Module Interface
     The shardingkey and supershardingkey parameters, if specified, are expected
     to be a sequence of values which will be used to identify the database
     shard to connect to. The key values can be strings, numbers, bytes or dates.
-	
-    The bypassstringencoding parameter, if specified, should be passed as 
-    boolean. This feature allows results of database types CHAR, NCHAR, 
-    LONG_STRING, NSTRING, STRING to be returned raw meaning cx_Oracle
-    won't do any decoding conversion. See 
-    :ref:`Quering raw data <querying-raw-data>` for more information.
 
 
 .. function:: Cursor(connection)

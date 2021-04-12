@@ -572,7 +572,7 @@ Cursor Object
 
 
 .. method:: Cursor.var(dataType, [size, arraysize, inconverter, outconverter, \
-        typename, encodingErrors])
+        typename, encodingErrors, bypassstringencoding])
 
     Create a variable with the specified characteristics. This method was
     designed for use with PL/SQL in/out variables where the length or type
@@ -631,6 +631,12 @@ Cursor Object
     the values noted in the builtin
     `decode <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__
     function.
+
+    The bypassstringencoding parameter, if specified, should be passed as
+    boolean. This feature allows results of database types CHAR, NCHAR,
+    LONG_STRING, NSTRING, STRING to be returned raw meaning cx_Oracle
+    won't do any decoding conversion. See 
+    :ref:`Fetching raw data <fetching-raw-data>` for more information.
 
     .. note::
 

@@ -1845,7 +1845,7 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
 
     // Flag that manually changes transform type to bytes
     if (bypassStringEncoding) {
-        var->transformNum = 1;
+        var->transformNum = CXO_TRANSFORM_BINARY;
     }
 
     return (PyObject*) var;

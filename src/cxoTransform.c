@@ -849,8 +849,6 @@ PyObject *cxoTransform_toPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_NSTRING:
         case CXO_TRANSFORM_STRING:
             bytes = &dbValue->asBytes;
-            if (connection->bypassStringEncoding)
-                return Py_BuildValue("y#", bytes->ptr, bytes->length);
             return PyUnicode_Decode(bytes->ptr, bytes->length, bytes->encoding,
                     encodingErrors);
         case CXO_TRANSFORM_NATIVE_DOUBLE:

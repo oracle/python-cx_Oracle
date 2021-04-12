@@ -252,20 +252,6 @@ Connection Object
         This attribute is an extension to the DB API definition.
 
 
-.. attribute:: Connection.bypassstringencoding
-
-    This read-only attribute determines whether bypassstringencoding mode is 
-    on or off. When bypassstringencoding mode is on, results of database 
-    types CHAR, NCHAR, LONG_STRING, NSTRING, STRING will be returned raw 
-    meaning cx_Oracle won't do any decoding conversion.
-	
-    See :ref:`Quering raw data <querying-raw-data>` for more information.
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
-
-
 .. method:: Connection.enq(name, options, msgproperties, payload)
 
     Returns a message id after successfully enqueuing a message. The options
