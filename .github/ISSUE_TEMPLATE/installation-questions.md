@@ -1,5 +1,5 @@
 ---
-name: Installation Questions
+name: Installation Problems
 about: Use this for cx_Oracle installation questions
 title: ''
 labels: install & configuration

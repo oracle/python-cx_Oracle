@@ -1,5 +1,5 @@
 ---
-name: General Questions and Runtime Problems
+name: Questions and Runtime Problems
 about: For general cx_Oracle questions
 title: ''
 labels: question
