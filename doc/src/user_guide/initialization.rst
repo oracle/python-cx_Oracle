@@ -27,9 +27,10 @@ Database do not have to be the same.  For certified configurations see Oracle
 Support's `Doc ID 207303.1
 <https://support.oracle.com/epmos/faces/DocumentDisplay?id=207303.1>`__.
 
-cx_Oracle looks for the Oracle Client libraries as follows:
 
-* On Windows:
+.. _wininit:
+
+* On Windows, cx_Oracle looks for the Oracle Client libraries as follows:
 
     - In the ``lib_dir`` directory specified in a call to
       :meth:`cx_Oracle.init_oracle_client()`.  This directory should contain
@@ -52,7 +53,9 @@ cx_Oracle looks for the Oracle Client libraries as follows:
       environment variable.  If the Oracle Client libraries cannot be loaded,
       then an exception is raised.
 
-* On macOS:
+.. _macinit:
+
+* On macOS, cx_Oracle looks for the Oracle Client libraries as follows:
 
     - In the ``lib_dir`` directory specified in a call to
       :meth:`cx_Oracle.init_oracle_client()`.  This directory should contain
@@ -77,18 +80,24 @@ cx_Oracle looks for the Oracle Client libraries as follows:
       ``DYLD_LIBRARY_PATH`` will not propagate to a sub-shell.  If the Oracle
       Client libraries cannot be loaded, then an exception is raised.
 
-* On Linux and related platforms:
+.. _linuxinit:
+
+* On Linux and related platforms, cx_Oracle looks for the Oracle Client
+  libraries as follows:
 
     - In the ``lib_dir`` directory specified in a call to
-      :meth:`cx_Oracle.init_oracle_client()`.  Note on Linux this is only
-      useful to force immediate loading of the libraries because the libraries
-      must also be in the system library search path.  This directory should
-      contain the libraries from an unzipped Instant Client 'Basic' or 'Basic
-      Light' package.  If you pass the library directory from a full client or
-      database installation, such as Oracle Database "XE" Express Edition then
-      you will need to have previously set the ``ORACLE_HOME`` environment
-      variable.  If the Oracle Client libraries cannot be loaded from
-      ``lib_dir``, then an exception is raised.
+      :meth:`cx_Oracle.init_oracle_client()`.
+
+      **Note this is only useful to force immediate loading of the libraries
+      because on Linux and related platforms the libraries must always be in the
+      system library search path**.
+
+      The ``lib_dir`` directory should contain the libraries from an unzipped
+      Instant Client 'Basic' or 'Basic Light' package.  If you pass the library
+      directory from a full client or database installation, such as Oracle
+      Database "XE" Express Edition then you will need to have previously set
+      the ``ORACLE_HOME`` environment variable.  If the Oracle Client libraries
+      cannot be loaded from ``lib_dir``, then an exception is raised.
 
     - If ``lib_dir`` was not specified, then Oracle Client libraries are looked
       for in the operating system library search path, such as configured with
@@ -166,9 +175,9 @@ treated as directory separators.
 
 The :meth:`~cx_Oracle.init_oracle_client()` function can only be called once.
 
-If you set ``lib_dir`` on Linux and related platforms, you must still have
-configured the system library search path to include that directory before
-starting Python.
+**Note if you set** ``lib_dir`` **on Linux and related platforms, you must still
+have configured the system library search path to include that directory before
+starting Python**.
 
 On any operating system, if you set ``lib_dir`` to the library directory of a
 full database or full client installation, you will need to have previously set

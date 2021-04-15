@@ -66,8 +66,8 @@ Quick Start cx_Oracle Installation
 - Add Oracle 19, 18, 12 or 11.2 client libraries to your operating system
   library search path such as ``PATH`` on Windows or ``LD_LIBRARY_PATH`` on
   Linux.  On macOS use :meth:`~cx_Oracle.init_oracle_client()` in your
-  application to pass the Oracle Client directory name, see :ref:`libinit`.
-  This is also usable on Windows.
+  application to pass the Oracle Client directory name, see
+  :ref:`usinginitoracleclient`.  This is also usable on Windows.
 
   To get the libraries:
 
