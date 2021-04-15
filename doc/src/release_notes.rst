@@ -11,6 +11,12 @@ Version 8.2 (TBD)
 #)  Updated embedded ODPI-C to `version 4.2.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-2-tbd>`__.
+#)  Added support for supplying hints to SODA operations. A new non-terminal
+    method :meth:`~SodaOperation.hint()` was added and a `hint` parameter was
+    added to the methods :meth:`SodaCollection.insertOneAndGet()`,
+    :meth:`SodaCollection.insertManyAndGet()` and
+    :meth:`SodaCollection.saveAndGet()`. All of these require Oracle Client
+    21.3 or higher (or Oracle Client 19 from 19.11).
 #)  Eliminated memory leak when calling :meth:`SodaOperation.filter()` with a
     dictionary.
 #)  The distributed transaction handle assosciated with the connection is now

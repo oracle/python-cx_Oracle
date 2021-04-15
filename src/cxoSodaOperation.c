@@ -131,6 +131,23 @@ static PyObject *cxoSodaOperation_filter(cxoSodaOperation *op,
 
 
 //-----------------------------------------------------------------------------
+// cxoSodaOperation_hint()
+//   Set the hint to be used for the operation.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSodaOperation_hint(cxoSodaOperation *op, PyObject *hintObj)
+{
+    cxoBuffer_clear(&op->hintBuffer);
+    if (cxoBuffer_fromObject(&op->hintBuffer, hintObj,
+            op->coll->db->connection->encodingInfo.encoding) < 0)
+        return NULL;
+    op->options.hint = op->hintBuffer.ptr;
+    op->options.hintLength = op->hintBuffer.size;
+    Py_INCREF(op);
+    return (PyObject*) op;
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoSodaOperation_key()
 //   Set the key to be used for the operation.
 //-----------------------------------------------------------------------------
@@ -502,6 +519,7 @@ static PyMethodDef cxoMethods[] = {
     { "getDocuments", (PyCFunction) cxoSodaOperation_getDocuments,
             METH_NOARGS },
     { "getOne", (PyCFunction) cxoSodaOperation_getOne, METH_NOARGS },
+    { "hint", (PyCFunction) cxoSodaOperation_hint, METH_O },
     { "remove", (PyCFunction) cxoSodaOperation_remove, METH_NOARGS },
     { "replaceOne", (PyCFunction) cxoSodaOperation_replaceOne, METH_O },
     { "replaceOneAndGet", (PyCFunction) cxoSodaOperation_replaceOneAndGet,

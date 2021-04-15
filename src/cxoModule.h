@@ -436,6 +436,7 @@ struct cxoSodaOperation {
     cxoBuffer keyBuffer;
     cxoBuffer versionBuffer;
     cxoBuffer filterBuffer;
+    cxoBuffer hintBuffer;
 };
 
 

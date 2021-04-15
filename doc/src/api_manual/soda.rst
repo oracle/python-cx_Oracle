@@ -247,18 +247,28 @@ SODA Collection Object
     .. versionadded:: 7.2
 
 
-.. method:: SodaCollection.insertManyAndGet(docs)
+.. method:: SodaCollection.insertManyAndGet(docs, hint=None)
 
     Similarly to :meth:`~SodaCollection.insertMany()` this method inserts a
     list of documents into the collection at one time. The only difference is
     that it returns a list of :ref:`SODA Document objects <sodadoc>`. Note that
     for performance reasons the returned documents do not contain the content.
 
+    The hint parameter, if specified, supplies a hint to the database when
+    processing the SODA operation. This is expected to be a string in the same
+    format as SQL hints but without the enclosing comment characters. Use of
+    this parameter requires Oracle Client 21.3 or higher (or Oracle Client 19
+    from 19.11).
+
     .. note::
 
         This method requires Oracle Client 18.5 and higher.
 
     .. versionadded:: 7.2
+
+    .. versionchanged:: 8.2
+
+        The parameter `hint` was added.
 
 
 .. method:: SodaCollection.insertOne(doc)
@@ -269,14 +279,24 @@ SODA Collection Object
     .. versionadded:: 7.0
 
 
-.. method:: SodaCollection.insertOneAndGet(doc)
+.. method:: SodaCollection.insertOneAndGet(doc, hint=None)
 
     Similarly to :meth:`~SodaCollection.insertOne()` this method inserts a
     given document into the collection. The only difference is that it
     returns a :ref:`SODA Document object <sodadoc>`. Note that for performance
     reasons the returned document does not contain the content.
 
+    The hint parameter, if specified, supplies a hint to the database when
+    processing the SODA operation. This is expected to be a string in the same
+    format as SQL hints but without the enclosing comment characters. Use of
+    this parameter requires Oracle Client 21.3 or higher (or Oracle Client 19
+    from 19.11).
+
     .. versionadded:: 7.0
+
+    .. versionchanged:: 8.2
+
+        The parameter `hint` was added.
 
 
 .. attribute:: SodaCollection.metadata
@@ -310,17 +330,27 @@ SODA Collection Object
     .. versionadded:: 8.0
 
 
-.. method:: SodaCollection.saveAndGet(doc)
+.. method:: SodaCollection.saveAndGet(doc, hint=None)
 
     Saves a document into the collection. This method is equivalent to
     :meth:`~SodaCollection.insertOneAndGet()` except that if client-assigned
     keys are used, and the document with the specified key already exists in
     the collection, it will be replaced with the input document.
 
+    The hint parameter, if specified, supplies a hint to the database when
+    processing the SODA operation. This is expected to be a string in the same
+    format as SQL hints but without the enclosing comment characters. Use of
+    this parameter requires Oracle Client 21.3 or higher (or Oracle Client 19
+    from 19.11).
+
     This method requires Oracle Client 19.9 or higher in addition to the usual
     SODA requirements.
 
     .. versionadded:: 8.0
+
+    .. versionchanged:: 8.2
+
+        The parameter `hint` was added.
 
 
 .. method:: SodaCollection.truncate()
@@ -524,6 +554,19 @@ SODA Operation Object
     one is returned.
 
     .. versionadded:: 7.0
+
+
+.. method:: SodaOperation.hint(value)
+
+    Specifies a hint that will be provided to the SODA operation when it is
+    performed. This is expected to be a string in the same format as SQL hints
+    but without the enclosing comment characters. Use of this method
+    requires Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+
+    As a convenience, the SodaOperation object is returned so that further
+    criteria can be specified by chaining methods together.
+
+    .. versionadded:: 8.2
 
 
 .. method:: SodaOperation.key(value)

@@ -10,6 +10,26 @@
 #include "cxoModule.h"
 
 //-----------------------------------------------------------------------------
+// cxoSodaCollection_processOptions()
+//   Populate the SODA operations structure with the information provided by
+// the user.
+//-----------------------------------------------------------------------------
+static int cxoSodaCollection_processOptions(cxoSodaCollection *coll,
+        dpiSodaOperOptions *options, PyObject *hintObj, cxoBuffer *hintBuffer)
+{
+    if (dpiContext_initSodaOperOptions(cxoDpiContext, options) < 0)
+        return cxoError_raiseAndReturnInt();
+    if (cxoBuffer_fromObject(hintBuffer, hintObj,
+            coll->db->connection->encodingInfo.encoding) < 0)
+        return -1;
+    options->hint = hintBuffer->ptr;
+    options->hintLength = hintBuffer->size;
+
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoSodaCollection_initialize()
 //   Initialize a new collection with its attributes.
 //-----------------------------------------------------------------------------
@@ -228,7 +248,7 @@ static PyObject *cxoSodaCollection_getDataGuide(cxoSodaCollection *coll,
 //-----------------------------------------------------------------------------
 static PyObject *cxoSodaCollection_insertManyHelper(cxoSodaCollection *coll,
         PyObject *docs, Py_ssize_t numDocs, dpiSodaDoc **handles,
-        dpiSodaDoc **returnHandles)
+        dpiSodaDoc **returnHandles, dpiSodaOperOptions *options)
 {
     PyObject *element, *returnDocs;
     Py_ssize_t i, j;
@@ -252,8 +272,8 @@ static PyObject *cxoSodaCollection_insertManyHelper(cxoSodaCollection *coll,
 
     // perform bulk insert
     Py_BEGIN_ALLOW_THREADS
-    status = dpiSodaColl_insertMany(coll->handle, (uint32_t) numDocs, handles,
-            flags, returnHandles);
+    status = dpiSodaColl_insertManyWithOptions(coll->handle,
+            (uint32_t) numDocs, handles, options, flags, returnHandles);
     Py_END_ALLOW_THREADS
     if (status < 0)
         cxoError_raiseAndReturnNull();
@@ -309,7 +329,7 @@ static PyObject *cxoSodaCollection_insertMany(cxoSodaCollection *coll,
         return NULL;
     }
     result = cxoSodaCollection_insertManyHelper(coll, arg, numDocs, handles,
-            NULL);
+            NULL, NULL);
     PyMem_Free(handles);
     return result;
 }
@@ -321,32 +341,52 @@ static PyObject *cxoSodaCollection_insertMany(cxoSodaCollection *coll,
 // list of documents containing all but the content itself.
 //-----------------------------------------------------------------------------
 static PyObject *cxoSodaCollection_insertManyAndGet(cxoSodaCollection *coll,
-        PyObject *arg)
+        PyObject *args, PyObject *keywordArgs)
 {
+    static char *keywordList[] = { "docs", "hint", NULL };
+    dpiSodaOperOptions options, *optionsPtr = NULL;
     dpiSodaDoc **handles, **returnHandles;
+    PyObject *docsObj, *hintObj, *result;
+    cxoBuffer hintBuffer;
     Py_ssize_t numDocs;
-    PyObject *result;
 
-    if (!PyList_Check(arg)) {
+    // parse arguments
+    docsObj = hintObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|O", keywordList,
+            &docsObj, &hintObj))
+        return NULL;
+    if (!PyList_Check(docsObj)) {
         PyErr_SetString(PyExc_TypeError, "expecting list");
         return NULL;
     }
-    numDocs = PyList_GET_SIZE(arg);
+
+    // setup for actual work
+    cxoBuffer_init(&hintBuffer);
+    if (hintObj && hintObj != Py_None) {
+        optionsPtr = &options;
+        if (cxoSodaCollection_processOptions(coll, &options, hintObj,
+                 &hintBuffer) < 0)
+            return NULL;
+    }
+    numDocs = PyList_GET_SIZE(docsObj);
     handles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
     if (!handles) {
         PyErr_NoMemory();
+        cxoBuffer_clear(&hintBuffer);
         return NULL;
     }
     returnHandles = PyMem_Malloc(numDocs * sizeof(dpiSodaDoc*));
     if (!returnHandles) {
         PyErr_NoMemory();
         PyMem_Free(handles);
+        cxoBuffer_clear(&hintBuffer);
         return NULL;
     }
-    result = cxoSodaCollection_insertManyHelper(coll, arg, numDocs, handles,
-            returnHandles);
+    result = cxoSodaCollection_insertManyHelper(coll, docsObj, numDocs,
+            handles, returnHandles, optionsPtr);
     PyMem_Free(handles);
     PyMem_Free(returnHandles);
+    cxoBuffer_clear(&hintBuffer);
     return result;
 }
 
@@ -384,23 +424,46 @@ static PyObject *cxoSodaCollection_insertOne(cxoSodaCollection *coll,
 // containing all but the content itself.
 //-----------------------------------------------------------------------------
 static PyObject *cxoSodaCollection_insertOneAndGet(cxoSodaCollection *coll,
-        PyObject *arg)
+        PyObject *args, PyObject *keywordArgs)
 {
+    static char *keywordList[] = { "doc", "hint", NULL };
+    dpiSodaOperOptions options, *optionsPtr = NULL;
     dpiSodaDoc *handle, *returnedHandle;
+    PyObject *docObj, *hintObj;
+    cxoBuffer hintBuffer;
     uint32_t flags;
     int status;
 
-    if (cxoUtils_processSodaDocArg(coll->db, arg, &handle) < 0)
+    // parse arguments
+    docObj = hintObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|O", keywordList,
+            &docObj, &hintObj))
         return NULL;
+
+    // setup for actual work
     if (cxoConnection_getSodaFlags(coll->db->connection, &flags) < 0)
         return NULL;
+    if (cxoUtils_processSodaDocArg(coll->db, docObj, &handle) < 0)
+        return NULL;
+    cxoBuffer_init(&hintBuffer);
+    if (hintObj && hintObj != Py_None) {
+        optionsPtr = &options;
+        if (cxoSodaCollection_processOptions(coll, &options, hintObj,
+                 &hintBuffer) < 0) {
+            dpiSodaDoc_release(handle);
+            return NULL;
+        }
+    }
+
+    // perform actual work
     Py_BEGIN_ALLOW_THREADS
-    status = dpiSodaColl_insertOne(coll->handle, handle, flags,
-            &returnedHandle);
+    status = dpiSodaColl_insertOneWithOptions(coll->handle, handle, optionsPtr,
+            flags, &returnedHandle);
     Py_END_ALLOW_THREADS
     if (status < 0)
         cxoError_raiseAndReturnNull();
     dpiSodaDoc_release(handle);
+    cxoBuffer_clear(&hintBuffer);
     if (status < 0)
         return NULL;
     return (PyObject*) cxoSodaDoc_new(coll->db, returnedHandle);
@@ -463,22 +526,46 @@ static PyObject *cxoSodaCollection_save(cxoSodaCollection *coll,
 // containing all but the content itself.
 //-----------------------------------------------------------------------------
 static PyObject *cxoSodaCollection_saveAndGet(cxoSodaCollection *coll,
-        PyObject *arg)
+        PyObject *args, PyObject *keywordArgs)
 {
+    static char *keywordList[] = { "doc", "hint", NULL };
+    dpiSodaOperOptions options, *optionsPtr = NULL;
     dpiSodaDoc *handle, *returnedHandle;
+    PyObject *docObj, *hintObj;
+    cxoBuffer hintBuffer;
     uint32_t flags;
     int status;
 
-    if (cxoUtils_processSodaDocArg(coll->db, arg, &handle) < 0)
+    // parse arguments
+    docObj = hintObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|O", keywordList,
+            &docObj, &hintObj))
         return NULL;
+
+    // setup for actual work
     if (cxoConnection_getSodaFlags(coll->db->connection, &flags) < 0)
         return NULL;
+    if (cxoUtils_processSodaDocArg(coll->db, docObj, &handle) < 0)
+        return NULL;
+    cxoBuffer_init(&hintBuffer);
+    if (hintObj && hintObj != Py_None) {
+        optionsPtr = &options;
+        if (cxoSodaCollection_processOptions(coll, &options, hintObj,
+                 &hintBuffer) < 0) {
+            dpiSodaDoc_release(handle);
+            return NULL;
+        }
+    }
+
+    // perform actual work
     Py_BEGIN_ALLOW_THREADS
-    status = dpiSodaColl_save(coll->handle, handle, flags, &returnedHandle);
+    status = dpiSodaColl_saveWithOptions(coll->handle, handle, optionsPtr,
+            flags, &returnedHandle);
     Py_END_ALLOW_THREADS
     if (status < 0)
         cxoError_raiseAndReturnNull();
     dpiSodaDoc_release(handle);
+    cxoBuffer_clear(&hintBuffer);
     if (status < 0)
         return NULL;
     return (PyObject*) cxoSodaDoc_new(coll->db, returnedHandle);
@@ -516,12 +603,13 @@ static PyMethodDef cxoMethods[] = {
             METH_NOARGS },
     { "insertOne", (PyCFunction) cxoSodaCollection_insertOne, METH_O },
     { "insertOneAndGet", (PyCFunction) cxoSodaCollection_insertOneAndGet,
-            METH_O },
+            METH_VARARGS | METH_KEYWORDS },
     { "insertMany", (PyCFunction) cxoSodaCollection_insertMany, METH_O },
     { "insertManyAndGet", (PyCFunction) cxoSodaCollection_insertManyAndGet,
-            METH_O },
+            METH_VARARGS | METH_KEYWORDS },
     { "save", (PyCFunction) cxoSodaCollection_save, METH_O },
-    { "saveAndGet", (PyCFunction) cxoSodaCollection_saveAndGet, METH_O },
+    { "saveAndGet", (PyCFunction) cxoSodaCollection_saveAndGet,
+            METH_VARARGS | METH_KEYWORDS },
     { "truncate", (PyCFunction) cxoSodaCollection_truncate, METH_NOARGS },
     { NULL }
 };
