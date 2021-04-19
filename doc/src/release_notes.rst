@@ -269,10 +269,10 @@ Version 7.2 (July 2019)
     (`issue 299 <https://github.com/oracle/python-cx_Oracle/issues/299>`__).
 #)  Added mode :data:`cx_Oracle.DEFAULT_AUTH` as requested
     (`issue 293 <https://github.com/oracle/python-cx_Oracle/issues/293>`__).
-#)  Added support for setting the LOB prefetch length indicator in order to
+#)  Added support for using the LOB prefetch length indicator in order to
     reduce the number of round trips when fetching LOBs and then subsequently
     calling :meth:`LOB.size()`, :meth:`LOB.getchunksize()` or
-    :meth:`LOB.read()`.
+    :meth:`LOB.read()`. This is always enabled.
 #)  Added support for types BINARY_INTEGER, PLS_INTEGER, ROWID, LONG and LONG
     RAW when used in PL/SQL.
 #)  Eliminated deprecation of attribute :attr:`Subscription.id`. It is now
