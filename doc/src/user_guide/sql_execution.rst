@@ -359,7 +359,7 @@ This functionality is aimed at troubleshooting databases
 that have inconsistent encodings for external reasons.
 
 For these cases, you can pass in the in additional keyword argument 
-``bypassstringencoding = True`` into :meth:`Cursor.var()`. This needs
+``bypassencoding = True`` into :meth:`Cursor.var()`. This needs
 to be used in combination with :ref:`outputtypehandlers`
 
     .. code-block:: python
@@ -367,7 +367,7 @@ to be used in combination with :ref:`outputtypehandlers`
 		#defining output type handlers method
 		def ConvertStringToBytes(cursor, name, defaultType, size, precision, scale):
 		    if defaultType == cx_Oracle.STRING:
-		        return cursor.var(str, arraysize=cursor.arraysize, bypassstringencoding = True) 
+		        return cursor.var(str, arraysize=cursor.arraysize, bypassencoding = True) 
 
 		#set cursor outputtypehandler to the method above
 		cursor = connection.cursor()
