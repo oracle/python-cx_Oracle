@@ -1792,25 +1792,25 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "type", "size", "arraysize",
-            "inconverter", "outconverter", "typename", "encodingErrors",
+            "inconverter", "outconverter", "typename", "encodingErrors", "bypassencoding",
             NULL };
     PyObject *inConverter, *outConverter, *typeNameObj;
     Py_ssize_t encodingErrorsLength;
     cxoTransformNum transformNum;
     const char *encodingErrors;
     cxoObjectType *objType;
-    int size, arraySize;
+    int size, arraySize, bypassEncoding;
     PyObject *type;
     cxoVar *var;
 
     // parse arguments
-    size = 0;
+    size = bypassEncoding = 0;
     encodingErrors = NULL;
     arraySize = cursor->bindArraySize;
     inConverter = outConverter = typeNameObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOOz#",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOOz#p",
             keywordList, &type, &size, &arraySize, &inConverter, &outConverter,
-            &typeNameObj, &encodingErrors, &encodingErrorsLength))
+            &typeNameObj, &encodingErrors, &encodingErrorsLength, &bypassEncoding))
         return NULL;
 
     // determine the type of variable
@@ -1841,6 +1841,11 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
             return NULL;
         }
         strcpy((char*) var->encodingErrors, encodingErrors);
+    }
+
+    // Flag that manually changes transform type to bytes
+    if (bypassEncoding) {
+        var->transformNum = CXO_TRANSFORM_BINARY;
     }
 
     return (PyObject*) var;
