@@ -60,18 +60,6 @@ used to enqueue and dequeue messages.
         the attribute was changed from `deqOptions`. The old name will continue
         to work for a period of time.
 
-.. method:: Queue.enqone(message)
-
-    Enqueues a single message into the queue. The message must be a
-    :ref:`message property<msgproperties>` object which has had its payload
-    attribute set to a value that the queue supports.
-
-    .. versionchanged:: 8.2
-
-        For consistency and compliance with the PEP 8 naming style, the name of
-        the method was changed from `enqone()`. The old name will continue
-        to work for a period of time.
-
 .. method:: Queue.enqmany(messages)
 
     Enqueues multiple messages into the queue. The messages parameter must be a
@@ -86,6 +74,24 @@ used to enqueue and dequeue messages.
     :meth:`Queue.enqone()` instead. The function :meth:`Queue.deqmany()`
     call is not affected.
 
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the name of
+        the method was changed from `enqMany()`. The old name will continue
+        to work for a period of time.
+
+
+.. method:: Queue.enqone(message)
+
+    Enqueues a single message into the queue. The message must be a
+    :ref:`message property<msgproperties>` object which has had its payload
+    attribute set to a value that the queue supports.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the name of
+        the method was changed from `enqOne()`. The old name will continue
+        to work for a period of time.
 
 .. attribute:: Queue.enqoptions
 

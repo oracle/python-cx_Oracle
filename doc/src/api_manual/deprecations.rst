@@ -58,9 +58,9 @@ if applicable. The most recent deprecations are listed first.
     * - `Queue.enqOne`
       - Replace with :meth:`Queue.enqone()`
     * - `Queue.deqOptions`
-      - Replace with :data:`Queue.deqoptions()`
+      - Replace with :data:`Queue.deqoptions`
     * - `Queue.enqOptions`
-      - Replace with :meth:`Queue.enqoptions()`
+      - Replace with :meth:`Queue.enqoptions`
     * - `Queue.payloadType`
       - Replace with :meth:`Queue.payload_type`
 
@@ -116,13 +116,13 @@ if applicable. The most recent deprecations are listed first.
     * - Name
       - Comments
     * - Connection.deq()
-      - Replace with :meth:`Queue.deqOne()` or :meth:`Queue.deqMany()`.
+      - Replace with :meth:`Queue.deqone()` or :meth:`Queue.deqmany()`.
     * - Connection.deqoptions()
-      - Replace with attribute :attr:`Queue.deqOptions`.
+      - Replace with attribute :attr:`Queue.deqoptions`.
     * - Connection.enq()
-      - Replace with :meth:`Queue.enqOne()` or :meth:`Queue.enqMany()`.
+      - Replace with :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`.
     * - Connection.enqoptions()
-      - Replace with attribute :attr:`Queue.enqOptions`.
+      - Replace with attribute :attr:`Queue.enqoptions`.
 
 
 .. list-table:: Deprecated in 6.4
