@@ -23,7 +23,7 @@ the same machine as Python, or it can be remote.
 
 cx_Oracle is typically installed from `PyPI
 <https://pypi.org/project/cx-Oracle/>`__ using `pip
-<http://pip.readthedocs.io/en/latest/installing/>`__.  The Oracle Client
+<https://pip.pypa.io/en/latest/installing/>`__.  The Oracle Client
 libraries need to be installed separately.  The libraries can be obtained from
 an installation of `Oracle Instant Client
 <https://www.oracle.com/database/technologies/instant-client.html>`__, from a

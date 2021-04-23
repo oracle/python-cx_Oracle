@@ -305,7 +305,7 @@ Connection Object
     Return a :ref:`SodaDatabase <sodadb>` object for Simple Oracle Document
     Access (SODA). All SODA operations are performed either on the returned
     SodaDatabase object or from objects created by the returned SodaDatabase
-    object. See `here <http://www.oracle.com/pls/topic/lookup?
+    object. See `here <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-BE42F8D3-B86B-43B4-B2A3-5760A4DF79FB>`__  for
     additional information on SODA.
 
