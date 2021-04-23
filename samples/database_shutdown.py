@@ -19,7 +19,7 @@
 import cx_Oracle
 
 # need to connect as SYSDBA or SYSOPER
-connection = cx_Oracle.connect("/", mode=cx_Oracle.SYSDBA)
+connection = cx_Oracle.connect(mode=cx_Oracle.SYSDBA)
 
 # first shutdown() call must specify the mode, if DBSHUTDOWN_ABORT is used,
 # there is no need for any of the other steps

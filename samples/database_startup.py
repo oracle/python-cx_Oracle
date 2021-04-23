@@ -19,8 +19,7 @@
 import cx_Oracle
 
 # the connection must be in PRELIM_AUTH mode
-connection = cx_Oracle.connect("/",
-                               mode=cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
+connection = cx_Oracle.connect(mode=cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
 connection.startup()
 
 # the following statements must be issued in normal SYSDBA mode
