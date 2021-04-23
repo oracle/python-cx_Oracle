@@ -1209,15 +1209,26 @@ static PyObject *cxoCursor_callFunc(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "name", "returnType", "parameters",
-            "keywordParameters", NULL };
-    PyObject *listOfArguments, *keywordArguments, *returnType, *results, *name;
+            "keyword_parameters", "keywordParameters", NULL };
+    PyObject *listOfArguments, *keywordArguments, *keywordArgumentsDeprecated;
+    PyObject *returnType, *results, *name;
     cxoVar *var;
 
     // parse arguments
-    listOfArguments = keywordArguments = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO|OO", keywordList,
-            &name, &returnType, &listOfArguments, &keywordArguments))
+    listOfArguments = keywordArguments = keywordArgumentsDeprecated = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "OO|OOO", keywordList,
+            &name, &returnType, &listOfArguments, &keywordArguments,
+            &keywordArgumentsDeprecated))
         return NULL;
+    if (keywordArgumentsDeprecated) {
+        if (keywordArguments) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "keyword_parameters and keywordParameters cannot both be "
+                    "specified");
+            return NULL;
+        }
+        keywordArguments = keywordArgumentsDeprecated;
+    }
 
     // create the return variable
     var = cxoVar_newByType(cursor, returnType, 1);
@@ -1243,16 +1254,26 @@ static PyObject *cxoCursor_callFunc(cxoCursor *cursor, PyObject *args,
 static PyObject *cxoCursor_callProc(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
-    static char *keywordList[] = { "name", "parameters", "keywordParameters",
-            NULL };
-    PyObject *listOfArguments, *keywordArguments, *results, *var, *temp, *name;
+    static char *keywordList[] = { "name", "parameters",
+            "keyword_parameters", "keywordParameters", NULL };
+    PyObject *listOfArguments, *keywordArguments, *keywordArgumentsDeprecated;
+    PyObject *results, *var, *temp, *name;
     Py_ssize_t numArgs, i;
 
     // parse arguments
-    listOfArguments = keywordArguments = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|OO", keywordList,
+    listOfArguments = keywordArguments = keywordArgumentsDeprecated = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|OOO", keywordList,
             &name, &listOfArguments, &keywordArguments))
         return NULL;
+    if (keywordArgumentsDeprecated) {
+        if (keywordArguments) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "keyword_parameters and keywordParameters cannot both be "
+                    "specified");
+            return NULL;
+        }
+        keywordArguments = keywordArgumentsDeprecated;
+    }
 
     // call the stored procedure
     if (cxoCursor_call(cursor, NULL, name, listOfArguments,

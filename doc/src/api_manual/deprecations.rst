@@ -47,8 +47,26 @@ if applicable. The most recent deprecations are listed first.
       - Replace with parameter name `max_sessions_per_shard`
     * - `payloadType` parameter to :meth:`Connection.queue()`
       - Replace with parameter name `payload_type` if using keyword parmeters.
+    * - `ipAddress` parameter to :meth:`Connection.subscribe()`
+      - Replace with parameter name `ip_address`
+    * - `groupingClass` parameter to :meth:`Connection.subscribe()`
+      - Replace with parameter name `grouping_class`
+    * - `groupingValue` parameter to :meth:`Connection.subscribe()`
+      - Replace with parameter name `grouping_value`
+    * - `groupingType` parameter to :meth:`Connection.subscribe()`
+      - Replace with parameter name `grouping_type`
+    * - `clientInitiated` parameter to :meth:`Connection.subscribe()`
+      - Replace with parameter name `client_initiated`
     * - `Connection.callTimeout`
       - Replace with :data:`Connection.call_timeout`
+    * - `Connection.tnsentry`
+      - Replace with :data:`Connection.dsn`
+    * - `keywordParameters` parameter to :meth:`Cursor.callfunc()`
+      - Replace with parameter name `keyword_parameters`
+    * - `keywordParameters` parameter to :meth:`Cursor.callproc()`
+      - Replace with parameter name `keyword_parameters`
+    * - `Cursor.fetchraw()`
+      - Replace with :meth:`Cursor.fetchmany()`
     * - `Queue.deqMany`
       - Replace with :meth:`Queue.deqmany()`
     * - `Queue.deqOne`

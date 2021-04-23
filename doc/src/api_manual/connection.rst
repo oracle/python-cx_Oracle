@@ -579,7 +579,7 @@ Connection Object
         This attribute is an extension to the DB API definition.
 
 
-.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0, ipAddress=None, groupingClass=0, groupingValue=0, groupingType=cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY, name=None, clientInitiated=False)
+.. method:: Connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE, protocol=cx_Oracle.SUBSCR_PROTO_OCI, callback=None, timeout=0, operations=OPCODE_ALLOPS, port=0, qos=0, ip_address=None, grouping_class=0, grouping_value=0, grouping_type=cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY, name=None, client_initiated=False)
 
     Return a new :ref:`subscription object <subscrobj>` that receives
     notifications for events that take place in the database that match the
@@ -617,16 +617,16 @@ Connection Object
     :data:`cx_Oracle.SUBSCR_QOS_QUERY`,
     :data:`cx_Oracle.SUBSCR_QOS_BEST_EFFORT`.
 
-    The ipAddress parameter specifies the IP address (IPv4 or IPv6) in standard
-    string notation to bind for callback notifications from the database
-    server. If not specified, the client IP address will be determined by the
-    Oracle Client libraries.
+    The ip_address parameter specifies the IP address (IPv4 or IPv6) in
+    standard string notation to bind for callback notifications from the
+    database server. If not specified, the client IP address will be determined
+    by the Oracle Client libraries.
 
-    The groupingClass parameter specifies what type of grouping of
+    The grouping_class parameter specifies what type of grouping of
     notifications should take place. Currently, if set, this value can only be
     set to the value :data:`cx_Oracle.SUBSCR_GROUPING_CLASS_TIME`, which
     will group notifications by the number of seconds specified in the
-    groupingValue parameter. The groupingType parameter should be one of the
+    grouping_value parameter. The grouping_type parameter should be one of the
     values :data:`cx_Oracle.SUBSCR_GROUPING_TYPE_SUMMARY` (the default) or
     :data:`cx_Oracle.SUBSCR_GROUPING_TYPE_LAST`.
 
@@ -640,7 +640,7 @@ Connection Object
     the queue that will be monitored for messages. The queue name may include
     the schema, if needed.
 
-    The clientInitiated parameter is used to determine if client initiated
+    The client_initiated parameter is used to determine if client initiated
     connections or server initiated connections (the default) will be
     established. Client initiated connections are only available in Oracle
     Client 19.4 and Oracle Database 19.4 and higher.
@@ -653,6 +653,16 @@ Connection Object
     .. versionadded:: 7.3
 
         The parameter clientInitiated was added.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter `ipAddress` was renamed to `ip_address`, the parameter
+        `groupingClass` was renamed to `grouping_class`, the parameter
+        `groupingValue` was renamed to `grouping_value`, the parameter
+        `groupingType` was renamed to `grouping_type` and the parameter
+        `clientInitiated` was renamed to `client_initiated`. The old names will
+        continue to work as keyword parameters for a period of time.
 
     .. note::
 
@@ -691,6 +701,10 @@ Connection Object
 
     This read-only attribute returns the TNS entry of the database to which a
     connection has been established.
+
+    .. deprecated:: 8.2
+
+        Use the attribute :attr:`~Connection.dsn` instead.
 
     .. note::
 

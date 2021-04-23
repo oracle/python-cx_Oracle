@@ -99,7 +99,7 @@ Cursor Object
 
 
 .. method:: Cursor.callfunc(name, returnType, parameters=[], \
-        keywordParameters={})
+        keyword_parameters={})
 
     Call a function with the given name. The return type is specified in the
     same notation as is required by :meth:`~Cursor.setinputsizes()`. The
@@ -109,6 +109,13 @@ Cursor Object
     function.
 
     See :ref:`plsqlfunc` for an example.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter `keywordParameters` was renamed to `keyword_parameters`. The
+        old name will continue to work as a keyword parameter for a period of
+        time.
 
     .. note::
 
@@ -121,7 +128,7 @@ Cursor Object
         parameter list refers to the return value of the function.
 
 
-.. method:: Cursor.callproc(name, parameters=[], keywordParameters={})
+.. method:: Cursor.callproc(name, parameters=[], keyword_parameters={})
 
     Call a procedure with the given name. The sequence of parameters must
     contain one entry for each parameter that the procedure expects. The result
@@ -131,6 +138,13 @@ Cursor Object
     positional parameters and are not returned as part of the output sequence.
 
     See :ref:`plsqlproc` for an example.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter `keywordParameters` was renamed to `keyword_parameters`. The
+        old name will continue to work as a keyword parameter for a period of
+        time.
 
     .. note::
 
@@ -167,7 +181,7 @@ Cursor Object
     defined at the module level.
 
 
-.. method:: Cursor.execute(statement, [parameters], \*\*keywordParameters)
+.. method:: Cursor.execute(statement, parameters=[], ** keyword_parameters)
 
     Execute a statement against the database.  See :ref:`sqlexecution`.
 
@@ -245,7 +259,7 @@ Cursor Object
     a TypeError exception.
 
 
-.. method:: Cursor.executemanyprepared(numIters)
+.. method:: Cursor.executemanyprepared(num_iters)
 
     Execute the previously prepared and bound statement the given number of
     times.  The variables that are bound must have already been set to their
@@ -276,7 +290,7 @@ Cursor Object
     See :ref:`fetching` for an example.
 
 
-.. method:: Cursor.fetchmany([numRows=cursor.arraysize])
+.. method:: Cursor.fetchmany(num_rows=cursor.arraysize)
 
     Fetch the next set of rows of a query result, returning a list of tuples.
     An empty list is returned if no more rows are available. Note that the
@@ -302,16 +316,18 @@ Cursor Object
 
     See :ref:`fetching` for an example.
 
-.. method:: Cursor.fetchraw([numRows=cursor.arraysize])
+.. method:: Cursor.fetchraw(num_rows=cursor.arraysize)
 
     Fetch the next set of rows of a query result into the internal buffers of
     the defined variables for the cursor. The number of rows actually fetched
-    is returned.  This method was designed for the case where optimal
-    performance is required as it comes at the expense of compatibility with
-    the DB API.
+    is returned.
 
     An exception is raised if the previous call to :meth:`~Cursor.execute()`
     did not produce any result set or no call was issued yet.
+
+    .. deprecated:: 8.2
+
+        Use :meth:`Cursor.fetchmany()` instead.
 
     .. note::
 

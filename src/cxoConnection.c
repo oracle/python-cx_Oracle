@@ -1536,11 +1536,15 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
         PyObject* keywordArgs)
 {
     static char *keywordList[] = { "namespace", "protocol", "callback",
-            "timeout", "operations", "port", "qos", "ipAddress",
-            "groupingClass", "groupingValue", "groupingType", "name",
-            "clientInitiated", NULL };
-    PyObject *callback, *ipAddress, *name;
+            "timeout", "operations", "port", "qos", "ip_address",
+            "grouping_class", "grouping_value", "grouping_type", "name",
+            "client_initiated", "ipAddress", "groupingClass", "groupingValue",
+            "groupingType", "clientInitiated", NULL };
+    PyObject *callback, *ipAddress, *ipAddressDeprecated, *name;
+    uint8_t groupingClassDeprecated, groupingTypeDeprecated;
     cxoBuffer ipAddressBuffer, nameBuffer;
+    uint32_t groupingValueDeprecated;
+    int clientInitiatedDeprecated;
     dpiSubscrCreateParams params;
     cxoSubscr *subscr;
 
@@ -1549,16 +1553,67 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
         return cxoError_raiseAndReturnNull();
 
     // validate parameters
-    callback = name = ipAddress = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|IIOIIIIObIbOp",
+    groupingValueDeprecated = 0;
+    clientInitiatedDeprecated = 0;
+    groupingClassDeprecated = groupingTypeDeprecated = 0;
+    callback = name = ipAddress = ipAddressDeprecated = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|IIOIIIIObIbOpObIbp",
             keywordList, &params.subscrNamespace, &params.protocol, &callback,
             &params.timeout, &params.operations, &params.portNumber,
             &params.qos, &ipAddress, &params.groupingClass,
             &params.groupingValue, &params.groupingType, &name,
-            &params.clientInitiated))
+            &params.clientInitiated, &ipAddressDeprecated,
+            &groupingClassDeprecated, &groupingValueDeprecated,
+            &groupingTypeDeprecated, &clientInitiatedDeprecated))
         return NULL;
     if (cxoConnection_isConnected(conn) < 0)
         return NULL;
+
+    // check duplicate parameters to ensure that both are not specified
+    if (ipAddressDeprecated) {
+        if (ipAddress) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "ip_address and ipAddress cannot both be specified");
+            return NULL;
+        }
+        ipAddress = ipAddressDeprecated;
+    }
+    if (groupingClassDeprecated != 0) {
+        if (params.groupingClass != 0) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "grouping_class and groupingClass cannot both be "
+                    "specified");
+            return NULL;
+        }
+        params.groupingClass = groupingClassDeprecated;
+    }
+    if (groupingValueDeprecated != 0) {
+        if (params.groupingValue != 0) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "grouping_value and groupingValue cannot both be "
+                    "specified");
+            return NULL;
+        }
+        params.groupingValue = groupingValueDeprecated;
+    }
+    if (groupingTypeDeprecated != 0) {
+        if (params.groupingType != 0) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "grouping_type and groupingType cannot both be "
+                    "specified");
+            return NULL;
+        }
+        params.groupingType = groupingTypeDeprecated;
+    }
+    if (clientInitiatedDeprecated != 0) {
+        if (params.clientInitiated != 0) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "client_initiated and clientInitiated cannot both be "
+                    "specified");
+            return NULL;
+        }
+        params.clientInitiated = clientInitiatedDeprecated;
+    }
 
     // populate IP address in parameters, if applicable
     cxoBuffer_init(&ipAddressBuffer);
