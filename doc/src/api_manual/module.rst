@@ -78,8 +78,7 @@ Module Interface
 
     The threaded parameter is expected to be a boolean expression which
     indicates whether or not Oracle should wrap accesses to connections with a
-    mutex. Doing so in single threaded applications imposes a performance
-    penalty of about 10-15% which is why the default is False.
+    mutex.
 
     The events parameter is expected to be a boolean expression which indicates
     whether or not to initialize Oracle in events mode. This is required for
@@ -250,11 +249,6 @@ Module Interface
     :meth:`~SessionPool.acquire()` will create connection objects of that type,
     rather than the base type defined at the module level.
 
-    The threaded parameter is expected to be a boolean expression which
-    indicates whether Oracle should wrap accesses to connections with a mutex.
-    Doing so in single threaded applications imposes a performance penalty of
-    about 10-15% which is why the default is False.
-
     The getmode parameter indicates whether or not future
     :func:`SessionPool.acquire()` calls will wait for available connections.  It
     can be one of the :ref:`Session Pool Get Modes <sesspoolmodes>` values.
@@ -352,7 +346,8 @@ Module Interface
         parameter `sessionCallback` was renamed to `session_callback` and the
         parameter `maxSessionsPerShard` was renamed to
         `max_sessions_per_shard`. The old names will continue to work as
-        keyword parameters for a period of time.
+        keyword parameters for a period of time. The `threaded` parameter value
+        is ignored and threading is always enabled.
 
 
 .. function:: Time(hour, minute, second)
@@ -429,7 +424,7 @@ General
 
     Note that in order to make use of multiple threads in a program which
     intends to connect and disconnect in different threads, the threaded
-    parameter to :meth:`connect()` or :meth:`SessionPool()` must be true.
+    parameter to :meth:`connect()` must be `True`.
 
 
 .. data:: version

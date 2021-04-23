@@ -316,17 +316,6 @@ for a connection to become available if all are currently in use, for example:
     pool = cx_Oracle.SessionPool("hr", userpwd, "dbhost.example.com/orclpdb1",
                   min=2, max=5, increment=1, getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT, encoding="UTF-8")
 
-
-Applications that are using connections concurrently in multiple threads should
-set the ``threaded`` parameter to *True* when creating a connection pool:
-
-.. code-block:: python
-
-    # Create the session pool
-    pool = cx_Oracle.SessionPool("hr", userpwd, "dbhost.example.com/orclpdb1",
-                  min=2, max=5, increment=1, threaded=True, encoding="UTF-8")
-
-
 See `ConnectionPool.py
 <https://github.com/oracle/python-cx_Oracle/tree/master/samples/ConnectionPool.py>`__
 for an example.

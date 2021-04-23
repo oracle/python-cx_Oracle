@@ -12,9 +12,8 @@
 # The script uses threading to show multiple users of the pool. One thread
 # performs a database sleep while another performs a query. A more typical
 # application might be a web service that handles requests from multiple users.
-# Applications that use connections concurrently in multiple threads should set
-# the 'threaded' parameter to True. Note only one operation (such as an execute
-# or fetch) can take place at a time on each connection.
+# Note only one operation (such as an execute or fetch) can take place at a time
+# on each connection.
 #
 # Also see session_callback.py.
 #
@@ -29,7 +28,7 @@ import sample_env
 pool = oracledb.SessionPool(user=sample_env.get_main_user(),
                             password=sample_env.get_main_password(),
                             dsn=sample_env.get_connect_string(), min=2,
-                            max=5, increment=1, threaded=True)
+                            max=5, increment=1)
 
 def the_long_query():
     with pool.acquire() as conn:

@@ -18,7 +18,8 @@ if applicable. The most recent deprecations are listed first.
       - Comments
     * - `encoding` parameter to :meth:`cx_Oracle.connect()`
       - No longer needed as the use of encodings other than UTF-8 is
-        deprecated.
+        deprecated. Encoding is handled internally between cx_Oracle and Oracle
+        Database.
     * - `nencoding` parameter to :meth:`cx_Oracle.connect()`
       - No longer needed as the use of encodings other than UTF-8 is
         deprecated.
@@ -30,13 +31,15 @@ if applicable. The most recent deprecations are listed first.
         deprecated.
     * - Connection.maxBytesPerCharacter
       - No longer needed as the use of encodings other than UTF-8 is
-        deprecated.
-    * - positional parmeters to :meth:`cx_Oracle.connect()`
+        deprecated. The constant value 4 can be used instead.
+    * - Positional parameters to :meth:`cx_Oracle.connect()`
       - Replace with keyword parameters in order to comply with the Python
         database API.
-    * - positional parmeters to :meth:`cx_Oracle.SessionPool()`
+    * - positional parameters to :meth:`cx_Oracle.SessionPool()`
       - Replace with keyword parameters in order to comply with the Python
         database API.
+    * - `threaded` parameter to :meth:`cx_Oracle.SessionPool()`
+      - The value of this parameter is ignored. Threading is now always used.
     * - `waitTimeout` parameter to :meth:`cx_Oracle.SessionPool()`
       - Replace with parameter name `wait_timeout`
     * - `maxLifetimeSession` parameter to :meth:`cx_Oracle.SessionPool()`
@@ -46,7 +49,7 @@ if applicable. The most recent deprecations are listed first.
     * - `maxSessionsPerShard` parameter to :meth:`cx_Oracle.SessionPool()`
       - Replace with parameter name `max_sessions_per_shard`
     * - `payloadType` parameter to :meth:`Connection.queue()`
-      - Replace with parameter name `payload_type` if using keyword parmeters.
+      - Replace with parameter name `payload_type` if using keyword parameters.
     * - `ipAddress` parameter to :meth:`Connection.subscribe()`
       - Replace with parameter name `ip_address`
     * - `groupingClass` parameter to :meth:`Connection.subscribe()`

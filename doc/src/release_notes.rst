@@ -15,7 +15,7 @@ Version 8.2 (TBD)
     pools. This significantly improves the performance of methods
     :meth:`SodaDatabase.createCollection()` (when not specifying a value for
     the metadata parameter) and :meth:`SodaDatabase.openCollection()`. Caching
-    is available when using Oracle Client version 19.11 and higher
+    is available when using Oracle Client version 19.11 and higher.
 #)  Added support for supplying hints to SODA operations. A new non-terminal
     method :meth:`~SodaOperation.hint()` was added and a `hint` parameter was
     added to the methods :meth:`SodaCollection.insertOneAndGet()`,
@@ -26,20 +26,20 @@ Version 8.2 (TBD)
     :meth:`cx_Oracle.SessionPool()` in order to permit specifying the size of
     the statement cache during the creation of pools and standalone
     connections.
+#)  Threaded mode is now always enabled when creating connection pools with
+    :meth:`cx_Oracle.SessionPool()`. Any `threaded` parameter value is ignored.
 #)  Eliminated a memory leak when calling :meth:`SodaOperation.filter()` with a
     dictionary.
 #)  The distributed transaction handle assosciated with the connection is now
     cleared on commit or rollback (`issue 530
     <https://github.com/oracle/python-cx_Oracle/issues/530>`__).
-#)  Stop passing unsupported flags to dpiSodaDocCursor_getNext().
 #)  Added check to ensure that when setting variables or object attributes, the
     type of the temporary LOB must match the expected type.
-#)  In order to follow the PEP 8 naming style a number of parameter names,
-    method names and attribute names were modified. The old names will be
-    removed in a subsequent release of cx_Oracle. In addition, the use of
-    encodings other than UTF-8 is also deprecated. See
-    :ref:`_deprecations_8_2` for details.
-#)  Improved test suite.
+#)  A small number of parameter, method, and attribute names were updated to
+    follow the PEP 8 style guide. This brings better consistency to the
+    cx_Oracle API. The old names are still usable but may be removed in a
+    future release of cx_Oracle. See :ref:`_deprecations_8_2` for details.
+#)  Improved the test suite.
 
 
 Version 8.1 (December 2020)
