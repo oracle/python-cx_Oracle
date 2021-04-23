@@ -41,13 +41,13 @@ Module Interface
         events=False, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, \
         newpassword=None, encoding=None, nencoding=None, edition=None, \
         appcontext=[], tag=None, matchanytag=None, shardingkey=[], \
-        supershardingkey=[])
+        supershardingkey=[], stmtcachesize=20)
     Connection(user=None, password=None, dsn=None, \
         mode=cx_Oracle.DEFAULT_AUTH, handle=0, pool=None, threaded=False, \
         events=False, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, \
         newpassword=None, encoding=None, nencoding=None, edition=None, \
         appcontext=[], tag=None, matchanytag=False, shardingkey=[], \
-        supershardingkey=[])
+        supershardingkey=[], stmtcachesize=20)
 
     Constructor for creating a connection to the database. Return a
     :ref:`connection object <connobj>`. All parameters are optional and can be
@@ -126,6 +126,12 @@ Module Interface
     to be a sequence of values which will be used to identify the database
     shard to connect to. The key values can be strings, numbers, bytes or dates.
 
+    The stmtcachesize parameter, if specified, is expected to be an integer
+    which specifies the initial value of :data:`~Connection.stmtcachesize`.
+
+    .. versionchanged:: 8.2
+
+        The parameter `stmtcachesize` was added.
 
 .. function:: Cursor(connection)
 
@@ -320,19 +326,22 @@ Module Interface
     used for any given shard in a sharded database. This value is ignored if
     the Oracle client library version is less than 18.3.
 
+    The stmtcachesize parameter, if specified, is expected to be an integer
+    which specifies the initial value of :data:`~SessionPool.stmtcachesize`.
+
     .. note::
 
         This method is an extension to the DB API definition.
 
     .. versionchanged:: 8.2
 
-        For consistency and compliance with the PEP 8 naming style, the
-        parameter `waitTimeout` was renamed to `wait_timeout`, the parameter
-        `maxLifetimeSession` was renamed to `max_lifetime_session`, the
-        parameter `sessionCallback` was renamed to `session_callback` and the
-        parameter `maxSessionsPerShard` was renamed to
-        `max_sessions_per_shard`. The old names will continue to work as
-        keyword parameters for a period of time.
+        The parameter `stmtcachesize` was added.  For consistency and
+        compliance with the PEP 8 naming style, the parameter `waitTimeout` was
+        renamed to `wait_timeout`, the parameter `maxLifetimeSession` was
+        renamed to `max_lifetime_session`, the parameter `sessionCallback` was
+        renamed to `session_callback` and the parameter `maxSessionsPerShard`
+        was renamed to `max_sessions_per_shard`. The old names will continue to
+        work as keyword parameters for a period of time.
 
 
 .. function:: Time(hour, minute, second)

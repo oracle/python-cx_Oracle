@@ -475,6 +475,7 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     dpiCommonCreateParams dpiCommonParams;
     dpiConnCreateParams dpiCreateParams;
     unsigned long long externalHandle;
+    unsigned int stmtCacheSize;
     cxoConnectionParams params;
     PyObject *newPasswordObj;
     cxoSessionPool *pool;
@@ -483,7 +484,8 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     static char *keywordList[] = { "user", "password", "dsn", "mode",
             "handle", "pool", "threaded", "events", "cclass", "purity",
             "newpassword", "encoding", "nencoding", "edition", "appcontext",
-            "tag", "matchanytag", "shardingkey", "supershardingkey", NULL };
+            "tag", "matchanytag", "shardingkey", "supershardingkey",
+            "stmtcachesize", NULL };
 
     // parse arguments
     pool = NULL;
@@ -492,6 +494,7 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     passwordObj = dsnObj = cclassObj = editionObj = NULL;
     threadedObj = eventsObj = newPasswordObj = usernameObj = NULL;
     matchAnyTagObj = contextObj = shardingKeyObj = superShardingKeyObj = NULL;
+    stmtCacheSize = DPI_DEFAULT_STMT_CACHE_SIZE;
     if (cxoUtils_initializeDPI(NULL) < 0)
         return -1;
     if (dpiContext_initCommonCreateParams(cxoDpiContext, &dpiCommonParams) < 0)
@@ -499,13 +502,13 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     if (dpiContext_initConnCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOiKO!OOOiOssOOOOOO", keywordList, &usernameObj, &passwordObj,
+            "|OOOiKO!OOOiOssOOOOOOI", keywordList, &usernameObj, &passwordObj,
             &dsnObj, &dpiCreateParams.authMode, &externalHandle,
             &cxoPyTypeSessionPool, &pool, &threadedObj, &eventsObj, &cclassObj,
             &dpiCreateParams.purity, &newPasswordObj,
             &dpiCommonParams.encoding, &dpiCommonParams.nencoding, &editionObj,
             &contextObj, &tagObj, &matchAnyTagObj, &shardingKeyObj,
-            &superShardingKeyObj))
+            &superShardingKeyObj, &stmtCacheSize))
         return -1;
     dpiCreateParams.externalHandle = (void*) externalHandle;
     if (cxoUtils_getBooleanValue(threadedObj, 0, &temp) < 0)
@@ -593,6 +596,7 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     dpiCreateParams.newPasswordLength = params.newPasswordBuffer.size;
     dpiCommonParams.edition = params.editionBuffer.ptr;
     dpiCommonParams.editionLength = params.editionBuffer.size;
+    dpiCommonParams.stmtCacheSize = stmtCacheSize;
     dpiCreateParams.tag = params.tagBuffer.ptr;
     dpiCreateParams.tagLength = params.tagBuffer.size;
     dpiCreateParams.appContext = params.appContext;

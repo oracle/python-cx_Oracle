@@ -17,6 +17,10 @@ Version 8.2 (TBD)
     :meth:`SodaCollection.insertManyAndGet()` and
     :meth:`SodaCollection.saveAndGet()`. All of these require Oracle Client
     21.3 or higher (or Oracle Client 19 from 19.11).
+#)  Added parameter `stmtcachesize` to :meth:`cx_Oracle.connect()` and
+    :meth:`cx_Oracle.SessionPool()` in order to permit specifying the size of
+    the statement cache during the creation of pools and standalone
+    connections.
 #)  Eliminated memory leak when calling :meth:`SodaOperation.filter()` with a
     dictionary.
 #)  The distributed transaction handle assosciated with the connection is now
