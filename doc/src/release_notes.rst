@@ -1001,10 +1001,10 @@ Version 6.0 beta 1 (April 2017)
 #)  Added parameter edition to the :meth:`cx_Oracle.SessionPool` method.
 #)  Added support for
     `universal rowids <https://github.com/oracle/python-cx_Oracle/blob/master/
-    samples/UniversalRowids.py>`__.
+    samples/universal_rowids.py>`__.
 #)  Added support for `DML Returning of multiple rows
     <https://github.com/oracle/python-cx_Oracle/blob/master/samples/
-    DMLReturningMultipleRows.py>`__.
+    dml_returning_multiple_rows.py>`__.
 #)  Added attributes :attr:`Variable.actualElements` and
     :attr:`Variable.values` to variables.
 #)  Added parameters region, sharding_key and super_sharding_key to the
@@ -1033,19 +1033,19 @@ Version 6.0 beta 1 (April 2017)
 #)  Dropped deprecated parameters action, module and clientinfo from the
     :meth:`cx_Oracle.connect` method. The appcontext parameter should be used
     instead as shown in this `sample <https://github.com/oracle/
-    python-cx_Oracle/blob/master/samples/AppContext.py>`__.
+    python-cx_Oracle/blob/master/samples/app_context.py>`__.
 #)  Dropped deprecated attribute numbersAsString from
     :ref:`cursor objects <cursorobj>`. Use an output type handler instead as
     shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
-    master/samples/ReturnNumbersAsDecimals.py>`__.
+    master/samples/return_numbers_as_decimals.py>`__.
 #)  Dropped deprecated attributes cqqos and rowids from
     :ref:`subscription objects <subscrobj>`. Use the qos attribute instead as
     shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
-    master/samples/CQN.py>`__.
+    master/samples/cqn.py>`__.
 #)  Dropped deprecated parameters cqqos and rowids from the
     :meth:`Connection.subscribe()` method. Use the qos parameter instead as
     shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
-    master/samples/CQN.py>`__.
+    master/samples/cqn.py>`__.
 
 
 Version 5.3 (March 2017)

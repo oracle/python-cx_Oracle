@@ -121,7 +121,7 @@ def run_sql_script(conn, script_name, **kwargs):
     replace_values = [("&" + k + ".", v) for k, v in kwargs.items()] + \
                      [("&" + k, v) for k, v in kwargs.items()]
     script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-    file_name = os.path.join(script_dir, "sql", script_name + "Exec.sql")
+    file_name = os.path.join(script_dir, "sql", script_name + "_exec.sql")
     for line in open(file_name):
         if line.strip() == "/":
             statement = "".join(statement_parts).strip()

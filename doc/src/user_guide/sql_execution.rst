@@ -289,7 +289,7 @@ should be used.
 
 Examples of output handlers are shown in :ref:`numberprecision`,
 :ref:`directlobs` and :ref:`fetching-raw-data`.  Also see samples such as `samples/TypeHandlers.py
-<https://github.com/oracle/python-cx_Oracle/blob/master/samples/TypeHandlers.py>`__
+<https://github.com/oracle/python-cx_Oracle/blob/master/samples/type_handlers.py>`__
 
 .. _numberprecision:
 
@@ -340,8 +340,8 @@ The Python ``decimal.Decimal`` converter gets called with the string
 representation of the Oracle number.  The output from ``decimal.Decimal`` is
 returned in the output tuple.
 
-See `samples/ReturnNumbersAsDecimals.py
-<https://github.com/oracle/python-cx_Oracle/blob/master/samples/ReturnNumbersAsDecimals.py>`__
+See `samples/return_numbers_as_decimals.py
+<https://github.com/oracle/python-cx_Oracle/blob/master/samples/return_numbers_as_decimals.py>`__
 
 
 .. _fetching-raw-data:

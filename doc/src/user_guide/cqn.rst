@@ -153,5 +153,5 @@ which should print something like the following::
     INSERT of rowid: AAA7EsAAHAAAFS/AAA
 
 See `GitHub Samples
-<https://github.com/oracle/python-cx_Oracle/blob/master/samples/CQN.py>`__
+<https://github.com/oracle/python-cx_Oracle/blob/master/samples/cqn.py>`__
 for a runnable CQN example.

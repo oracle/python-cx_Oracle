@@ -213,4 +213,4 @@ In the Python application code:
 
 See the `Transaction Guard Sample
 <https://github.com/oracle/python-cx_Oracle/blob/master/
-samples/TransactionGuard.py>`__ for further details.
+samples/transaction_guard.py>`__ for further details.

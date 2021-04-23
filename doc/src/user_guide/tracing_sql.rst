@@ -66,7 +66,7 @@ In production applications be careful not to log sensitive information.
 
 See `Subclassing.py
 <https://github.com/oracle/python-cx_Oracle/blob/master/
-samples/Subclassing.py>`__ for an example.
+samples/subclassing.py>`__ for an example.
 
 
 .. _endtoendtracing:
