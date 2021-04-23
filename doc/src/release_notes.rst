@@ -11,6 +11,11 @@ Version 8.2 (TBD)
 #)  Updated embedded ODPI-C to `version 4.2.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-2-tbd>`__.
+#)  Added :ref:`SODA metadata cache <sodametadatacache>` support to connection
+    pools. This significantly improves the performance of methods
+    :meth:`SodaDatabase.createCollection()` (when not specifying a value for
+    the metadata parameter) and :meth:`SodaDatabase.openCollection()`. Caching
+    is available when using Oracle Client version 19.11 and higher
 #)  Added support for supplying hints to SODA operations. A new non-terminal
     method :meth:`~SodaOperation.hint()` was added and a `hint` parameter was
     added to the methods :meth:`SodaCollection.insertOneAndGet()`,
@@ -21,7 +26,7 @@ Version 8.2 (TBD)
     :meth:`cx_Oracle.SessionPool()` in order to permit specifying the size of
     the statement cache during the creation of pools and standalone
     connections.
-#)  Eliminated memory leak when calling :meth:`SodaOperation.filter()` with a
+#)  Eliminated a memory leak when calling :meth:`SodaOperation.filter()` with a
     dictionary.
 #)  The distributed transaction handle assosciated with the connection is now
     cleared on commit or rollback (`issue 530

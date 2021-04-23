@@ -213,7 +213,8 @@ Module Interface
         getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, events=False, \
         homogeneous=True, externalauth=False, encoding=None, nencoding=None, \
         edition=None, timeout=0, wait_timeout=0, max_lifetime_session=0, \
-        session_callback=None, max_sessions_per_shard=0)
+        session_callback=None, max_sessions_per_shard=0, \
+        soda_metadata_cache=False, stmtcachesize=20)
 
     Create and return a :ref:`session pool object <sesspool>`.  Session pooling
     (also known as connection pooling) creates a pool of available connections
@@ -326,6 +327,15 @@ Module Interface
     used for any given shard in a sharded database. This value is ignored if
     the Oracle client library version is less than 18.3.
 
+    The soda_metadata_cache parameter is expected to be a boolean expresion
+    which indicates whether or not to enable the SODA metatata cache. This
+    significantly improves the performance of methods
+    :meth:`SodaDatabase.createCollection()` and
+    :meth:`SodaDatabase.openCollection()` but can become out of date as it does
+    not track changes made externally. It is also only available in Oracle
+    Client 19.11 and higher. See :ref:`Using the SODA Metadata Cache
+    <sodametadatacache>`.
+
     The stmtcachesize parameter, if specified, is expected to be an integer
     which specifies the initial value of :data:`~SessionPool.stmtcachesize`.
 
@@ -335,13 +345,14 @@ Module Interface
 
     .. versionchanged:: 8.2
 
-        The parameter `stmtcachesize` was added.  For consistency and
-        compliance with the PEP 8 naming style, the parameter `waitTimeout` was
-        renamed to `wait_timeout`, the parameter `maxLifetimeSession` was
-        renamed to `max_lifetime_session`, the parameter `sessionCallback` was
-        renamed to `session_callback` and the parameter `maxSessionsPerShard`
-        was renamed to `max_sessions_per_shard`. The old names will continue to
-        work as keyword parameters for a period of time.
+        The parameters `soda_metadata_cache` and `stmtcachesize` were added.
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter `waitTimeout` was renamed to `wait_timeout`, the parameter
+        `maxLifetimeSession` was renamed to `max_lifetime_session`, the
+        parameter `sessionCallback` was renamed to `session_callback` and the
+        parameter `maxSessionsPerShard` was renamed to
+        `max_sessions_per_shard`. The old names will continue to work as
+        keyword parameters for a period of time.
 
 
 .. function:: Time(hour, minute, second)

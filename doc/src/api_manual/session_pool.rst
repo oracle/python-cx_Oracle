@@ -146,6 +146,19 @@ SessionPool Object
     back to the pool.
 
 
+.. attribute:: SessionPool.soda_metadata_cache
+
+    This read-write boolean attribute returns whether the SODA metadata cache
+    is enabled or not. Enabling the cache significantly improves the
+    performance of methods :meth:`SodaDatabase.createCollection()` (when not
+    specifying a value for the metadata parameter) and
+    :meth:`SodaDatabase.openCollection()`. Note that the cache can become out
+    of date if changes to the metadata of cached collections are made
+    externally.
+
+    .. versionadded:: 8.2
+
+
 .. attribute:: SessionPool.stmtcachesize
 
     This read-write attribute specifies the size of the statement cache that
