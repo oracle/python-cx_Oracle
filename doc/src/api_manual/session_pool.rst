@@ -41,7 +41,9 @@ SessionPool Object
 
     The shardingkey and supershardingkey parameters, if specified, are expected
     to be a sequence of values which will be used to identify the database
-    shard to connect to.  The key values can be strings, numbers, bytes or dates.
+    shard to connect to.  The key values can be strings, numbers, bytes or
+    dates.
+
 
 .. attribute:: SessionPool.busy
 
@@ -98,8 +100,6 @@ SessionPool Object
     value of 0 means that there is no maximum length of time that a pooled
     session may exist. This attribute is only available in Oracle Database
     12.1.
-
-
 
     .. versionadded:: 5.3
 

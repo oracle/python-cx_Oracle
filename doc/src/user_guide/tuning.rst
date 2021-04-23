@@ -213,8 +213,6 @@ data from one database to another:
         targetCursor.executemany("insert into MyTable values (:1, :2)", rows)
         targetConnection.commit()
 
-.. _roundtrips:
-
 Tuning REF CURSORS
 ++++++++++++++++++
 
@@ -238,6 +236,8 @@ For example:
     for row in ref_cursor:
         sum_rows += row[0]
     print(sum_rows)
+
+.. _roundtrips:
 
 Database Round-trips
 ====================
