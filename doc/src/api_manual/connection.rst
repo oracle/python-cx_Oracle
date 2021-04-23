@@ -201,7 +201,7 @@ Connection Object
 
     .. deprecated:: 7.2
 
-        Use the methods :meth:`Queue.deqOne()` or :meth:`Queue.deqMany()`
+        Use the methods :meth:`Queue.deqone()` or :meth:`Queue.deqmany()`
         instead.
 
     .. note::
@@ -218,7 +218,7 @@ Connection Object
 
     .. deprecated:: 7.2
 
-        Use the attribute :attr:`Queue.deqOptions` instead.
+        Use the attribute :attr:`Queue.deqoptions` instead.
 
     .. note::
 
@@ -253,6 +253,8 @@ Connection Object
     This read-only attribute returns the IANA character set name of the
     character set in use by the Oracle client for regular strings.
 
+    .. deprecated:: 8.2
+
     .. note::
 
         This attribute is an extension to the DB API definition.
@@ -270,7 +272,7 @@ Connection Object
 
     .. deprecated:: 7.2
 
-        Use the methods :meth:`Queue.enqOne()` or :meth:`Queue.enqMany()`
+        Use the methods :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`
         instead.
 
     .. note::
@@ -287,7 +289,7 @@ Connection Object
 
     .. deprecated:: 7.2
 
-        Use the attribute :attr:`Queue.enqOptions` instead.
+        Use the attribute :attr:`Queue.enqoptions` instead.
 
     .. note::
 
@@ -433,6 +435,8 @@ Connection Object
 
     This read-only attribute returns the IANA character set name of the
     national character set in use by the Oracle client.
+
+    .. deprecated:: 8.2
 
     .. note::
 

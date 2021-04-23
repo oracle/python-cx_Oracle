@@ -52,7 +52,7 @@ Cursor Object
         The DB API definition does not define this attribute.
 
 
-.. method:: Cursor.arrayvar(dataType, value, [size])
+.. method:: Cursor.arrayvar(data_type, value, [size])
 
     Create an array variable associated with the cursor of the given type and
     size and return a :ref:`variable object <varobj>`. The value is either an
