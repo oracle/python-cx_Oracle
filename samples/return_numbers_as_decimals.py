@@ -14,15 +14,16 @@
 # This script requires cx_Oracle 5.0 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
 import decimal
+
+import cx_Oracle as oracledb
 import sample_env
 
-def output_type_handler(cursor, name, defaultType, size, precision, scale):
-    if defaultType == cx_Oracle.NUMBER:
-        return cursor.var(decimal.Decimal, arraysize = cursor.arraysize)
+def output_type_handler(cursor, name, default_type, size, precision, scale):
+    if default_type == oracledb.NUMBER:
+        return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 connection.outputtypehandler = output_type_handler
 cursor = connection.cursor()
 cursor.execute("select * from TestNumbers")

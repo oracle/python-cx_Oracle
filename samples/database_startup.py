@@ -16,14 +16,14 @@
 # This script requires cx_Oracle 4.3 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 
 # the connection must be in PRELIM_AUTH mode
-connection = cx_Oracle.connect(mode=cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
+connection = oracledb.connect(mode=oracledb.SYSDBA | oracledb.PRELIM_AUTH)
 connection.startup()
 
 # the following statements must be issued in normal SYSDBA mode
-connection = cx_Oracle.connect("/", mode=cx_Oracle.SYSDBA)
+connection = oracledb.connect("/", mode=oracledb.SYSDBA)
 cursor = connection.cursor()
 cursor.execute("alter database mount")
 cursor.execute("alter database open")

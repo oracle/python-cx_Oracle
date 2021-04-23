@@ -15,12 +15,11 @@
 # This script requires cx_Oracle 6.0 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
-import datetime
+import cx_Oracle as oracledb
 import sample_env
 
 # truncate table first so that script can be rerun
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 print("Truncating table...")
 cursor.execute("truncate table TestTempTable")

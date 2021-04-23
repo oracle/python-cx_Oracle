@@ -17,20 +17,21 @@
 # This script requires cx_Oracle 5.0 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
 import datetime
+
+import cx_Oracle as oracledb
 import sample_env
 
-con = cx_Oracle.connect(sample_env.get_main_connect_string())
+con = oracledb.connect(sample_env.get_main_connect_string())
 obj_type = con.gettype("UDT_BUILDING")
 
-class Building(object):
+class Building:
 
-    def __init__(self, building_id, description, num_floors, dateBuilt):
+    def __init__(self, building_id, description, num_floors, date_built):
         self.building_id = building_id
         self.description = description
         self.num_floors = num_floors
-        self.dateBuilt = dateBuilt
+        self.date_built = date_built
 
     def __repr__(self):
         return "<Building %s: %s>" % (self.building_id, self.description)
@@ -41,7 +42,7 @@ def building_in_converter(value):
     obj.BUILDINGID = value.building_id
     obj.DESCRIPTION = value.description
     obj.NUMFLOORS = value.num_floors
-    obj.DATEBUILT = value.dateBuilt
+    obj.DATEBUILT = value.date_built
     return obj
 
 
@@ -50,14 +51,14 @@ def building_out_converter(obj):
             obj.DATEBUILT)
 
 
-def input_type_handler(cursor, value, numElements):
+def input_type_handler(cursor, value, num_elements):
     if isinstance(value, Building):
-        return cursor.var(cx_Oracle.OBJECT, arraysize=numElements,
+        return cursor.var(oracledb.OBJECT, arraysize=num_elements,
                 inconverter=building_in_converter, typename=obj_type.name)
 
 def output_type_handler(cursor, name, default_type, size, precision, scale):
-    if default_type == cx_Oracle.OBJECT:
-        return cursor.var(cx_Oracle.OBJECT, arraysize=cursor.arraysize,
+    if default_type == oracledb.OBJECT:
+        return cursor.var(oracledb.OBJECT, arraysize=cursor.arraysize,
                           outconverter=building_out_converter,
                           typename=obj_type.name)
 
@@ -73,7 +74,7 @@ for building in buildings:
     try:
         cur.execute("insert into TestBuildings values (:1, :2)",
                 (building.building_id, building))
-    except cx_Oracle.DatabaseError as e:
+    except oracledb.DatabaseError as e:
         error, = e.args
         print("CONTEXT:", error.context)
         print("MESSAGE:", error.message)

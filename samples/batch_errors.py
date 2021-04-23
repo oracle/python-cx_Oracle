@@ -15,10 +15,10 @@
 # This script requires cx_Oracle 5.2 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # define data to insert
@@ -47,7 +47,7 @@ print("number of rows to insert:", len(data_to_insert))
 try:
     cursor.executemany("insert into ChildTable values (:1, :2, :3)",
                        data_to_insert)
-except cx_Oracle.DatabaseError as e:
+except oracledb.DatabaseError as e:
     error, = e.args
     print("FAILED with error:", error.message)
     print("number of rows which succeeded:", cursor.rowcount)

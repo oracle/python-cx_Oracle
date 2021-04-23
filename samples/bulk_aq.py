@@ -16,7 +16,7 @@
 # This script requires cx_Oracle 7.2 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
 QUEUE_NAME = "DEMO_RAW_QUEUE"
@@ -36,13 +36,13 @@ PAYLOAD_DATA = [
 ]
 
 # connect to database
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # create queue
 queue = connection.queue(QUEUE_NAME)
-queue.deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
-queue.deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
+queue.deqOptions.wait = oracledb.DEQ_NO_WAIT
+queue.deqOptions.navigation = oracledb.DEQ_FIRST_MSG
 
 # dequeue all existing messages to ensure the queue is empty, just so that
 # the results are consistent

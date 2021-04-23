@@ -22,13 +22,14 @@
 # dependencies (see http://geopandas.org/install.html).
 #------------------------------------------------------------------------------
 
-import sample_env
-import cx_Oracle
 from shapely.wkb import loads
 import geopandas as gpd
 
+import cx_Oracle as oracledb
+import sample_env
+
 # create Oracle connection and cursor objects
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # enable autocommit to avoid the additional round trip to the database to
@@ -39,8 +40,8 @@ connection.autocommit = True
 # define output type handler to fetch LOBs, avoiding the second round trip to
 # the database to read the LOB contents
 def output_type_handler(cursor, name, default_type, size, precision, scale):
-    if default_type == cx_Oracle.BLOB:
-        return cursor.var(cx_Oracle.LONG_BINARY, arraysize=cursor.arraysize)
+    if default_type == oracledb.BLOB:
+        return cursor.var(oracledb.LONG_BINARY, arraysize=cursor.arraysize)
 connection.outputtypehandler = output_type_handler
 
 # drop and create table

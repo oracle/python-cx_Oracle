@@ -16,9 +16,10 @@
 # This script requires cx_Oracle 8.2 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
-import sample_env
 import decimal
+
+import cx_Oracle as oracledb
+import sample_env
 
 BOOK_TYPE_NAME = "UDT_BOOK"
 QUEUE_NAME = "DEMO_BOOK_QUEUE"
@@ -30,14 +31,14 @@ BOOK_DATA = [
 ]
 
 # connect to database
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # create queue
 books_type = connection.gettype(BOOK_TYPE_NAME)
 queue = connection.queue(QUEUE_NAME, payload_type=books_type)
-queue.deqoptions.wait = cx_Oracle.DEQ_NO_WAIT
-queue.deqoptions.navigation = cx_Oracle.DEQ_FIRST_MSG
+queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
 
 # dequeue all existing messages to ensure the queue is empty, just so that
 # the results are consistent

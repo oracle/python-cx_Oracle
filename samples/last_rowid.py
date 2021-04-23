@@ -9,10 +9,10 @@
 # This script requires cx_Oracle 7.3 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 
 row1 = [1, "First"]
 row2 = [2, "Second"]

@@ -16,7 +16,7 @@
 # This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
 # define constants used throughout the script; adjust as desired
@@ -27,8 +27,8 @@ APP_CTX_ENTRIES = [
     ( APP_CTX_NAMESPACE, "ATTR3", "VALUE3" )
 ]
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string(),
-                               appcontext=APP_CTX_ENTRIES)
+connection = oracledb.connect(sample_env.get_main_connect_string(),
+                              appcontext=APP_CTX_ENTRIES)
 cursor = connection.cursor()
 for namespace, name, value in APP_CTX_ENTRIES:
     cursor.execute("select sys_context(:1, :2) from dual", (namespace, name))

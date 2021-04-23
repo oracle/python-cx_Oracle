@@ -13,10 +13,10 @@
 # higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 connection.call_timeout = 2000
 print("Call timeout set at", connection.call_timeout, "milliseconds...")
 
@@ -33,7 +33,7 @@ sleep_proc_name = "dbms_session.sleep" \
 print("Sleeping...should time out...")
 try:
     cursor.callproc(sleep_proc_name, (3,))
-except cx_Oracle.DatabaseError as e:
+except oracledb.DatabaseError as e:
     print("ERROR:", e)
 
 cursor.execute("select sysdate from dual")

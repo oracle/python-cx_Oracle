@@ -17,9 +17,10 @@
 # This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
-import sample_env
 import time
+
+import cx_Oracle as oracledb
+import sample_env
 
 registered = True
 
@@ -47,10 +48,10 @@ def callback(message):
                     print("-" * 60)
             print("=" * 60)
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string(),
-                               events=True)
-sub = connection.subscribe(callback = callback, timeout = 1800,
-        qos = cx_Oracle.SUBSCR_QOS_QUERY | cx_Oracle.SUBSCR_QOS_ROWIDS)
+connection = oracledb.connect(sample_env.get_main_connect_string(),
+                              events=True)
+qos = oracledb.SUBSCR_QOS_QUERY | oracledb.SUBSCR_QOS_ROWIDS
+sub = connection.subscribe(callback=callback, timeout=1800, qos=qos)
 print("Subscription:", sub)
 print("--> Connection:", sub.connection)
 print("--> Callback:", sub.callback)
@@ -58,7 +59,7 @@ print("--> Namespace:", sub.namespace)
 print("--> Protocol:", sub.protocol)
 print("--> Timeout:", sub.timeout)
 print("--> Operations:", sub.operations)
-print("--> Rowids?:", bool(sub.qos & cx_Oracle.SUBSCR_QOS_ROWIDS))
+print("--> Rowids?:", bool(sub.qos & oracledb.SUBSCR_QOS_ROWIDS))
 queryId = sub.registerquery("select * from TestTempTable")
 print("Registered query:", queryId)
 

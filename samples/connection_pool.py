@@ -20,27 +20,22 @@
 #
 #------------------------------------------------------------------------------
 
-import cx_Oracle
-import sample_env
 import threading
 
+import cx_Oracle as oracledb
+import sample_env
+
 # Create a Connection Pool
-pool = cx_Oracle.SessionPool(user=sample_env.get_main_user(),
-                             password=sample_env.get_main_password(),
-                             dsn=sample_env.get_connect_string(), min=2,
-                             max=5, increment=1, threaded=True)
+pool = oracledb.SessionPool(user=sample_env.get_main_user(),
+                            password=sample_env.get_main_password(),
+                            dsn=sample_env.get_connect_string(), min=2,
+                            max=5, increment=1, threaded=True)
 
-# dbms_session.sleep() replaces dbms_lock.sleep() from Oracle Database 18c
-with pool.acquire() as conn:
-    sleep_proc_name = "dbms_session.sleep" \
-            if int(conn.version.split(".")[0]) >= 18 \
-            else "dbms_lock.sleep"
-
-def TheLongQuery():
+def the_long_query():
     with pool.acquire() as conn:
         cursor = conn.cursor()
         cursor.arraysize = 25000
-        print("TheLongQuery(): beginning execute...")
+        print("the_long_query(): beginning execute...")
         cursor.execute("""
                 select *
                 from
@@ -50,27 +45,32 @@ def TheLongQuery():
                     cross join TestNumbers
                     cross join TestNumbers
                     cross join TestNumbers""")
-        print("TheLongQuery(): done execute...")
+        print("the_long_query(): done execute...")
         while True:
             rows = cursor.fetchmany()
             if not rows:
                 break
-            print("TheLongQuery(): fetched", len(rows), "rows...")
-        print("TheLongQuery(): all done!")
+            print("the_long_query(): fetched", len(rows), "rows...")
+        print("the_long_query(): all done!")
 
 
-def DoALock():
+def do_a_lock():
     with pool.acquire() as conn:
+        # dbms_session.sleep() replaces dbms_lock.sleep()
+        # from Oracle Database 18c
+        sleep_proc_name = "dbms_session.sleep" \
+                if int(conn.version.split(".")[0]) >= 18 \
+                else "dbms_lock.sleep"
         cursor = conn.cursor()
-        print("DoALock(): beginning execute...")
+        print("do_a_lock(): beginning execute...")
         cursor.callproc(sleep_proc_name, (5,))
-        print("DoALock(): done execute...")
+        print("do_a_lock(): done execute...")
 
 
-thread1 = threading.Thread(None, TheLongQuery)
+thread1 = threading.Thread(target=the_long_query)
 thread1.start()
 
-thread2 = threading.Thread(None, DoALock)
+thread2 = threading.Thread(target=do_a_lock)
 thread2.start()
 
 thread1.join()

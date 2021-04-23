@@ -10,23 +10,23 @@
 #------------------------------------------------------------------------------
 
 import collections
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
-class Connection(cx_Oracle.Connection):
+class Connection(oracledb.Connection):
 
     def cursor(self):
         return Cursor(self)
 
 
-class Cursor(cx_Oracle.Cursor):
+class Cursor(oracledb.Cursor):
 
     def execute(self, statement, args = None):
         prepare_needed = (self.statement != statement)
-        result = super(Cursor, self).execute(statement, args or [])
+        result = super().execute(statement, args or [])
         if prepare_needed:
             description = self.description
-            if description:
+            if description is not None:
                 names = [d[0] for d in description]
                 self.rowfactory = collections.namedtuple("GenericQuery", names)
         return result

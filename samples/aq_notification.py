@@ -12,27 +12,27 @@
 # This script requires cx_Oracle 6.4 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
-import sample_env
-import threading
 import time
+
+import cx_Oracle as oracledb
+import sample_env
 
 registered = True
 
-def ProcessMessages(message):
+def process_messages(message):
     global registered
     print("Message type:", message.type)
-    if message.type == cx_Oracle.EVENT_DEREG:
+    if message.type == oracledb.EVENT_DEREG:
         print("Deregistration has taken place...")
         registered = False
         return
     print("Queue name:", message.queueName)
     print("Consumer name:", message.consumerName)
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string(),
-                               events=True)
-sub = connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_AQ,
-                           name="DEMO_BOOK_QUEUE", callback=ProcessMessages,
+connection = oracledb.connect(sample_env.get_main_connect_string(),
+                              events=True)
+sub = connection.subscribe(namespace=oracledb.SUBSCR_NAMESPACE_AQ,
+                           name="DEMO_BOOK_QUEUE", callback=process_messages,
                            timeout=300)
 print("Subscription:", sub)
 print("--> Connection:", sub.connection)

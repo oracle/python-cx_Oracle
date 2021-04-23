@@ -10,13 +10,13 @@
 # demonstration of PL/SQL editioning.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 
 import sample_env
 import drop_samples
 
 # connect as administrative user (usually SYSTEM or ADMIN)
-conn = cx_Oracle.connect(sample_env.get_admin_connect_string())
+conn = oracledb.connect(sample_env.get_admin_connect_string())
 
 # drop existing users and editions, if applicable
 drop_samples.drop_samples(conn)

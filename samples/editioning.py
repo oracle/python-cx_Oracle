@@ -17,14 +17,15 @@
 # This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
-import sample_env
 import os
+
+import cx_Oracle as oracledb
+import sample_env
 
 # connect to the editions user and create a procedure
 edition_connect_string = sample_env.get_edition_connect_string()
 edition_name = sample_env.get_edition_name()
-connection = cx_Oracle.connect(edition_connect_string)
+connection = oracledb.connect(edition_connect_string)
 print("Edition should be None, actual value is:", repr(connection.edition))
 cursor = connection.cursor()
 cursor.execute("""
@@ -57,8 +58,8 @@ print("Function should return 'Base Procedure', actually returns:",
       repr(result))
 
 # the edition can be set upon connection
-connection = cx_Oracle.connect(edition_connect_string,
-                               edition=edition_name.upper())
+connection = oracledb.connect(edition_connect_string,
+                              edition=edition_name.upper())
 cursor = connection.cursor()
 result = cursor.callfunc("TestEditions", str)
 print("Function should return 'Edition 1 Procedure', actually returns:",
@@ -66,7 +67,7 @@ print("Function should return 'Edition 1 Procedure', actually returns:",
 
 # it can also be set via the environment variable ORA_EDITION
 os.environ["ORA_EDITION"] = edition_name.upper()
-connection = cx_Oracle.connect(edition_connect_string)
+connection = oracledb.connect(edition_connect_string)
 print("Edition should be", repr(edition_name.upper()),
       "actual value is:", repr(connection.edition))
 cursor = connection.cursor()

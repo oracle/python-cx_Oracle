@@ -16,17 +16,17 @@
 # This script requires cx_Oracle 4.3 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
-class Test(object):
+class Test:
 
     def __init__(self, a, b, c):
         self.a = a
         self.b = b
         self.c = c
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 cursor = connection.cursor()
 
 # change this to False if you want to create the table yourself using SQL*Plus

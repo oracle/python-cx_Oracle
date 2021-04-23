@@ -15,11 +15,11 @@
 # This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
 # create and populate Oracle objects
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 type_obj = connection.gettype("MDSYS.SDO_GEOMETRY")
 element_info_type_obj = connection.gettype("MDSYS.SDO_ELEM_INFO_ARRAY")
 ordinate_type_obj = connection.gettype("MDSYS.SDO_ORDINATE_ARRAY")

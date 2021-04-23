@@ -12,12 +12,12 @@
 
 import sys
 import json
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 
-client_version = cx_Oracle.clientversion()[0]
+client_version = oracledb.clientversion()[0]
 db_version = int(connection.version.split(".")[0])
 
 # this script only works with Oracle Database 21
@@ -49,7 +49,7 @@ data = dict(name="Rod", dept="Sales", location="Germany")
 inssql = "insert into customers values (:1, :2)"
 if client_version >= 21:
     # Take advantage of direct binding
-    cursor.setinputsizes(None, cx_Oracle.DB_TYPE_JSON)
+    cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
     cursor.execute(inssql, [1, data])
 else:
     # Insert the data as a JSON string

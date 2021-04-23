@@ -15,13 +15,13 @@
 # sharding capabilities.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
-pool = cx_Oracle.SessionPool(user=sample_env.get_main_user(),
-                             password=sample_env.get_main_password(),
-                             dsn=sample_env.get_connect_string(), min=1, max=5,
-                             increment=1)
+pool = oracledb.SessionPool(user=sample_env.get_main_user(),
+                            password=sample_env.get_main_password(),
+                            dsn=sample_env.get_connect_string(), min=1, max=5,
+                            increment=1)
 
 def connect_and_display(sharding_key):
     print("Connecting with sharding key:", sharding_key)

@@ -11,11 +11,12 @@
 # Database 12.1 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
-import sample_env
 import datetime
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+import cx_Oracle as oracledb
+import sample_env
+
+connection = oracledb.connect(sample_env.get_main_connect_string())
 
 # create new object of the correct type
 # note the use of a PL/SQL record defined in a package

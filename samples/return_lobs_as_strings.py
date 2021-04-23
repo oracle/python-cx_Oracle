@@ -18,16 +18,16 @@
 # This script requires cx_Oracle 5.0 and higher.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
 def output_type_handler(cursor, name, default_type, size, precision, scale):
-    if default_type == cx_Oracle.CLOB:
-        return cursor.var(cx_Oracle.LONG_STRING, arraysize=cursor.arraysize)
-    if default_type == cx_Oracle.BLOB:
-        return cursor.var(cx_Oracle.LONG_BINARY, arraysize=cursor.arraysize)
+    if default_type == oracledb.CLOB:
+        return cursor.var(oracledb.LONG_STRING, arraysize=cursor.arraysize)
+    if default_type == oracledb.BLOB:
+        return cursor.var(oracledb.LONG_BINARY, arraysize=cursor.arraysize)
 
-connection = cx_Oracle.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(sample_env.get_main_connect_string())
 connection.outputtypehandler = output_type_handler
 cursor = connection.cursor()
 
@@ -40,11 +40,11 @@ for i in range(10):
     char = chr(ord('A') + i)
     long_string += char * 25000
     # uncomment the line below for cx_Oracle 5.3 and earlier
-    # cursor.setinputsizes(None, cx_Oracle.LONG_STRING)
+    # cursor.setinputsizes(None, oracledb.LONG_STRING)
     cursor.execute("insert into TestClobs values (:1, :2)",
             (i + 1, "STRING " + long_string))
     # uncomment the line below for cx_Oracle 5.3 and earlier
-    # cursor.setinputsizes(None, cx_Oracle.LONG_BINARY)
+    # cursor.setinputsizes(None, oracledb.LONG_BINARY)
     cursor.execute("insert into TestBlobs values (:1, :2)",
             (i + 1, long_string.encode("ascii")))
 connection.commit()

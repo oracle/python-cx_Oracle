@@ -20,7 +20,7 @@
 #
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
 # define a dictionary of NLS_DATE_FORMAT formats supported by this sample
@@ -52,22 +52,22 @@ def init_session(conn, requested_tag):
     # in this example, they are used to set NLS parameters and the tag is
     # parsed to validate it
     if requested_tag is not None:
-        stateParts = []
+        state_parts = []
         for directive in requested_tag.split(";"):
             parts = directive.split("=")
             if len(parts) != 2:
                 raise ValueError("Tag must contain key=value pairs")
             key, value = parts
-            valueDict = SUPPORTED_KEYS.get(key)
-            if valueDict is None:
+            value_dict = SUPPORTED_KEYS.get(key)
+            if value_dict is None:
                 raise ValueError("Tag only supports keys: %s" % \
                         (", ".join(SUPPORTED_KEYS)))
-            actualValue = valueDict.get(value)
-            if actualValue is None:
+            actual_value = value_dict.get(value)
+            if actual_value is None:
                 raise ValueError("Key %s only supports values: %s" % \
-                        (key, ", ".join(valueDict)))
-            stateParts.append("%s = %s" % (key, actualValue))
-        sql = "alter session set %s" % " ".join(stateParts)
+                        (key, ", ".join(value_dict)))
+            state_parts.append("%s = %s" % (key, actual_value))
+        sql = "alter session set %s" % " ".join(state_parts)
         cursor = conn.cursor()
         cursor.execute(sql)
 
@@ -78,11 +78,11 @@ def init_session(conn, requested_tag):
 
 
 # create pool with session callback defined
-pool = cx_Oracle.SessionPool(user=sample_env.get_main_user(),
-                             password=sample_env.get_main_password(),
-                             dsn=sample_env.get_connect_string(), min=2, max=5,
-                             increment=1, threaded=True,
-                             session_callback=init_session)
+pool = oracledb.SessionPool(user=sample_env.get_main_user(),
+                            password=sample_env.get_main_password(),
+                            dsn=sample_env.get_connect_string(), min=2, max=5,
+                            increment=1, threaded=True,
+                            session_callback=init_session)
 
 # acquire session without specifying a tag; since the session returned is
 # newly created, the callback will be invoked but since there is no tag

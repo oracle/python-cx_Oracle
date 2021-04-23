@@ -8,7 +8,7 @@
 # Drops the database objects used for the cx_Oracle samples.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import sample_env
 
 def drop_samples(conn):
@@ -19,6 +19,6 @@ def drop_samples(conn):
                               edition_name=sample_env.get_edition_name())
 
 if __name__ == "__main__":
-    conn = cx_Oracle.connect(sample_env.get_admin_connect_string())
+    conn = oracledb.connect(sample_env.get_admin_connect_string())
     drop_samples(conn)
     print("Done.")
