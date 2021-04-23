@@ -49,7 +49,7 @@ end;
 /
 
 accept pw char prompt 'Enter password for &user: ' hide
-alter user &user identified by &pw;
+alter user &user identified by "&pw";
 
 prompt
 prompt Database user &user has been created.
