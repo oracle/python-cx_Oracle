@@ -22,6 +22,7 @@ Version 8.2 (TBD)
 #)  The distributed transaction handle assosciated with the connection is now
     cleared on commit or rollback (`issue 530
     <https://github.com/oracle/python-cx_Oracle/issues/530>`__).
+#)  Stop passing unsupported flags to dpiSodaDocCursor_getNext().
 #)  Added check to ensure that when setting variables or object attributes, the
     type of the temporary LOB must match the expected type.
 #)  In order to follow the PEP 8 naming style a number of parameter names,

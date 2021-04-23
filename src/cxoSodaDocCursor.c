@@ -97,13 +97,11 @@ static PyObject *cxoSodaDocCursor_getNext(cxoSodaDocCursor *cursor)
 {
     dpiSodaDoc *handle;
     cxoSodaDoc *doc;
-    uint32_t flags;
     int status;
 
-    if (cxoConnection_getSodaFlags(cursor->db->connection, &flags) < 0)
-        return NULL;
     Py_BEGIN_ALLOW_THREADS
-    status = dpiSodaDocCursor_getNext(cursor->handle, flags, &handle);
+    status = dpiSodaDocCursor_getNext(cursor->handle, DPI_SODA_FLAGS_DEFAULT,
+            &handle);
     Py_END_ALLOW_THREADS
     if (status < 0)
         return cxoError_raiseAndReturnNull();
