@@ -17,8 +17,8 @@ import cx_Oracle
 import sample_env
 
 connection = cx_Oracle.connect(sample_env.get_main_connect_string())
-connection.callTimeout = 2000
-print("Call timeout set at", connection.callTimeout, "milliseconds...")
+connection.call_timeout = 2000
+print("Call timeout set at", connection.call_timeout, "milliseconds...")
 
 cursor = connection.cursor()
 cursor.execute("select sysdate from dual")

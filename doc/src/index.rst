@@ -57,6 +57,7 @@ API Manual
     api_manual/object_type.rst
     api_manual/aq.rst
     api_manual/soda.rst
+    api_manual/deprecations.rst
 
 
 Indices and tables

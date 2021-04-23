@@ -1348,8 +1348,9 @@ static PyObject *cxoConnection_enqueue(cxoConnection *conn, PyObject* args,
 static PyObject *cxoConnection_queue(cxoConnection *conn, PyObject* args,
         PyObject* keywordArgs)
 {
-    static char *keywordList[] = { "name", "payloadType", NULL };
-    cxoObjectType *typeObj;
+    static char *keywordList[] = { "name", "payload_type", "payloadType",
+            NULL };
+    cxoObjectType *typeObj, *deprecatedTypeObj;
     cxoBuffer nameBuffer;
     PyObject *nameObj;
     dpiQueue *handle;
@@ -1357,12 +1358,21 @@ static PyObject *cxoConnection_queue(cxoConnection *conn, PyObject* args,
     int status;
 
     // parse arguments
-    typeObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|O!", keywordList,
-            &nameObj, &cxoPyTypeObjectType, &typeObj))
+    typeObj = deprecatedTypeObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|O!O!", keywordList,
+            &nameObj, &cxoPyTypeObjectType, &typeObj, &cxoPyTypeObjectType,
+            &deprecatedTypeObj))
         return NULL;
     if (cxoConnection_isConnected(conn) < 0)
         return NULL;
+    if (deprecatedTypeObj) {
+        if (typeObj) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "payload_type and payloadType cannot both be specified");
+            return NULL;
+        }
+        typeObj = deprecatedTypeObj;
+    }
     if (cxoBuffer_fromObject(&nameBuffer, nameObj,
             conn->encodingInfo.encoding) < 0)
         return NULL;
@@ -1964,7 +1974,7 @@ static PyGetSetDef cxoCalcMembers[] = {
     { "version", (getter) cxoConnection_getVersion, 0, 0, 0 },
     { "encoding", (getter) cxoConnection_getEncoding, 0, 0, 0 },
     { "nencoding", (getter) cxoConnection_getNationalEncoding, 0, 0, 0 },
-    { "callTimeout", (getter) cxoConnection_getCallTimeout,
+    { "call_timeout", (getter) cxoConnection_getCallTimeout,
             (setter) cxoConnection_setCallTimeout, 0, 0 },
     { "maxBytesPerCharacter", (getter) cxoConnection_getMaxBytesPerCharacter,
             0, 0, 0 },
@@ -2005,6 +2015,8 @@ static PyGetSetDef cxoCalcMembers[] = {
             &cxoDataErrorException },
     { "NotSupportedError", (getter) cxoConnection_getException, NULL, NULL,
             &cxoNotSupportedErrorException },
+    { "callTimeout", (getter) cxoConnection_getCallTimeout,
+            (setter) cxoConnection_setCallTimeout, 0, 0 },
     { NULL }
 };
 

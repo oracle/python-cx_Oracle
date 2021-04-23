@@ -68,13 +68,19 @@ Connection Object
         This method is an extension to the DB API definition.
 
 
-.. attribute:: Connection.callTimeout
+.. attribute:: Connection.call_timeout
 
     This read-write attribute specifies the amount of time (in milliseconds)
     that a single round-trip to the database may take before a timeout will
     occur. A value of 0 means that no timeout will take place.
 
     .. versionadded:: 7.0
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        attribute `callTimeout` was renamed to `call_timeout`. The old name
+        will continue to work for a period of time.
 
     .. note::
 
@@ -387,6 +393,8 @@ Connection Object
     This read-only attribute returns the maximum number of bytes each character
     can use for the client character set.
 
+    .. deprecated:: 8.2
+
     .. note::
 
         This attribute is an extension to the DB API definition.
@@ -469,7 +477,7 @@ Connection Object
         This method is an extension to the DB API definition.
 
 
-.. method:: Connection.queue(name, payloadType=None)
+.. method:: Connection.queue(name, payload_type=None)
 
     Creates a :ref:`queue <queue>` which is used to enqueue and dequeue
     messages in Advanced Queueing.
@@ -477,11 +485,17 @@ Connection Object
     The name parameter is expected to be a string identifying the queue in
     which messages are to be enqueued or dequeued.
 
-    The payloadType parameter, if specified, is expected to be an
+    The payload_type parameter, if specified, is expected to be an
     :ref:`object type <objecttype>` that identifies the type of payload the
     queue expects. If not specified, RAW data is enqueued and dequeued.
 
     .. versionadded:: 7.2
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter `payloadType` was renamed to `payload_type`. The old name
+        will continue to work as a keyword parameter for a period of time.
 
     .. note::
 

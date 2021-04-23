@@ -25,33 +25,54 @@ used to enqueue and dequeue messages.
     which the queue was created.
 
 
-.. method:: Queue.deqMany(maxMessages)
+.. method:: Queue.deqmany(maxMessages)
 
     Dequeues up to the specified number of messages from the queue and returns
     a list of these messages. Each element of the returned list is a
     :ref:`message property<msgproperties>` object.
 
+    .. versionchanged:: 8.2
 
-.. method:: Queue.deqOne()
+        For consistency and compliance with the PEP 8 naming style, the name of
+        the method was changed from `deqMany()`. The old name will continue to
+        work for a period of time.
+
+.. method:: Queue.deqone()
 
     Dequeues at most one message from the queue. If a message is dequeued, it
     will be a :ref:`message property<msgproperties>` object; otherwise, it will
     be the value None.
 
-.. attribute:: Queue.deqOptions
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the name of
+        the method was changed from `deqOne()`. The old name will continue to
+        work for a period of time.
+
+.. attribute:: Queue.deqoptions
 
     This read-only attribute returns a reference to the :ref:`options
     <deqoptions>` that will be used when dequeuing messages from the queue.
 
+    .. versionchanged:: 8.2
 
-.. method:: Queue.enqOne(message)
+        For consistency and compliance with the PEP 8 naming style, the name of
+        the attribute was changed from `deqOptions`. The old name will continue
+        to work for a period of time.
+
+.. method:: Queue.enqone(message)
 
     Enqueues a single message into the queue. The message must be a
     :ref:`message property<msgproperties>` object which has had its payload
     attribute set to a value that the queue supports.
 
+    .. versionchanged:: 8.2
 
-.. method:: Queue.enqMany(messages)
+        For consistency and compliance with the PEP 8 naming style, the name of
+        the method was changed from `enqone()`. The old name will continue
+        to work for a period of time.
+
+.. method:: Queue.enqmany(messages)
 
     Enqueues multiple messages into the queue. The messages parameter must be a
     sequence containing :ref:`message property <msgproperties>` objects which
@@ -62,14 +83,20 @@ used to enqueue and dequeue messages.
     acquired from the same pool may fail due to Oracle bug 29928074. Ensure
     that this function is not run in parallel, use standalone connections or
     connections from different pools, or make multiple calls to
-    :meth:`Queue.enqOne()` instead. The function :meth:`Queue.deqMany()`
+    :meth:`Queue.enqone()` instead. The function :meth:`Queue.deqmany()`
     call is not affected.
 
 
-.. attribute:: Queue.enqOptions
+.. attribute:: Queue.enqoptions
 
     This read-only attribute returns a reference to the :ref:`options
     <enqoptions>` that will be used when enqueuing messages into the queue.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the name of
+        the attribute was changed from `enqOptions`. The old name will continue
+        to work for a period of time.
 
 
 .. attribute:: Queue.name
@@ -77,10 +104,16 @@ used to enqueue and dequeue messages.
     This read-only attribute returns the name of the queue.
 
 
-.. attribute:: Queue.payloadType
+.. attribute:: Queue.payload_type
 
     This read-only attribute returns the object type for payloads that can be
     enqueued and dequeued. If using a raw queue, this returns the value None.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the name of
+        the attribute was changed from `payloadType`. The old name will
+        continue to work for a period of time.
 
 
 .. _deqoptions:
@@ -225,8 +258,8 @@ Message Properties
     These objects are used to identify the properties of messages that are
     enqueued and dequeued in queues. They are created by the method
     :meth:`Connection.msgproperties()`.  They are used by the methods
-    :meth:`Queue.enqOne()` and :meth:`Queue.enqMany()` and
-    returned by the methods :meth:`Queue.deqOne()` and :meth:`Queue.deqMany()`.
+    :meth:`Queue.enqone()` and :meth:`Queue.enqmany()` and
+    returned by the methods :meth:`Queue.deqone()` and :meth:`Queue.deqmany()`.
 
 
 .. attribute:: MessageProperties.attempts

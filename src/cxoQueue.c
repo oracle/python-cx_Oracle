@@ -355,6 +355,10 @@ static PyObject *cxoQueue_enqOne(cxoQueue *queue, PyObject *args)
 // declaration of methods
 //-----------------------------------------------------------------------------
 static PyMethodDef cxoMethods[] = {
+    { "deqmany", (PyCFunction) cxoQueue_deqMany, METH_VARARGS },
+    { "deqone", (PyCFunction) cxoQueue_deqOne, METH_NOARGS },
+    { "enqmany", (PyCFunction) cxoQueue_enqMany, METH_VARARGS },
+    { "enqone", (PyCFunction) cxoQueue_enqOne, METH_VARARGS },
     { "deqMany", (PyCFunction) cxoQueue_deqMany, METH_VARARGS },
     { "deqOne", (PyCFunction) cxoQueue_deqOne, METH_NOARGS },
     { "enqMany", (PyCFunction) cxoQueue_enqMany, METH_VARARGS },
@@ -368,9 +372,12 @@ static PyMethodDef cxoMethods[] = {
 //-----------------------------------------------------------------------------
 static PyMemberDef cxoMembers[] = {
     { "connection", T_OBJECT, offsetof(cxoQueue, conn), READONLY },
+    { "deqoptions", T_OBJECT, offsetof(cxoQueue, deqOptions), READONLY },
+    { "enqoptions", T_OBJECT, offsetof(cxoQueue, enqOptions), READONLY },
+    { "name", T_OBJECT, offsetof(cxoQueue, name), READONLY },
+    { "payload_type", T_OBJECT, offsetof(cxoQueue, payloadType), READONLY },
     { "deqOptions", T_OBJECT, offsetof(cxoQueue, deqOptions), READONLY },
     { "enqOptions", T_OBJECT, offsetof(cxoQueue, enqOptions), READONLY },
-    { "name", T_OBJECT, offsetof(cxoQueue, name), READONLY },
     { "payloadType", T_OBJECT, offsetof(cxoQueue, payloadType), READONLY },
     { NULL }
 };

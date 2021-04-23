@@ -12,7 +12,7 @@
 #   This script demonstrates how to use advanced queuing with RAW data using
 # cx_Oracle. It makes use of a RAW queue created in the sample setup.
 #
-# This script requires cx_Oracle 7.2 and higher.
+# This script requires cx_Oracle 8.2 and higher.
 #------------------------------------------------------------------------------
 
 import cx_Oracle
@@ -32,25 +32,25 @@ cursor = connection.cursor()
 
 # create queue
 queue = connection.queue(QUEUE_NAME)
-queue.deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
-queue.deqOptions.navigation = cx_Oracle.DEQ_FIRST_MSG
+queue.deqoptions.wait = cx_Oracle.DEQ_NO_WAIT
+queue.deqoptions.navigation = cx_Oracle.DEQ_FIRST_MSG
 
 # dequeue all existing messages to ensure the queue is empty, just so that
 # the results are consistent
-while queue.deqOne():
+while queue.deqone():
     pass
 
 # enqueue a few messages
 print("Enqueuing messages...")
 for data in PAYLOAD_DATA:
     print(data)
-    queue.enqOne(connection.msgproperties(payload=data))
+    queue.enqone(connection.msgproperties(payload=data))
 connection.commit()
 
 # dequeue the messages
 print("\nDequeuing messages...")
 while True:
-    props = queue.deqOne()
+    props = queue.deqone()
     if not props:
         break
     print(props.payload.decode())

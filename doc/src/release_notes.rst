@@ -24,12 +24,11 @@ Version 8.2 (TBD)
     <https://github.com/oracle/python-cx_Oracle/issues/530>`__).
 #)  Added check to ensure that when setting variables or object attributes, the
     type of the temporary LOB must match the expected type.
-#)  All of the parameter names for the :meth:`~cx_Oracle.SessionPool`
-    constructor now follow the PEP 8 naming style. The parameter names
-    `waitTimeout` (use `wait_timeout` instead), `maxLifetimeSession` (use
-    `max_lifetime_session` instead), `sessionCallback` (use `session_callback`
-    instead) and `maxSessionsPerShard` (use `max_sessions_per_shard` instead)
-    are deprecated and will be removed in a subsequent release of cx_Oracle.
+#)  In order to follow the PEP 8 naming style a number of parameter names,
+    method names and attribute names were modified. The old names will be
+    removed in a subsequent release of cx_Oracle. In addition, the use of
+    encodings other than UTF-8 is also deprecated. See
+    :ref:`_deprecations_8_2` for details.
 #)  Improved test suite.
 
 
@@ -455,7 +454,7 @@ Version 7.0 (September 2018)
     :ref:`SODA Collection <sodacoll>` and :ref:`SODA Document <sodadoc>` for
     more information.
 #)  Added support for call timeouts available in Oracle Client 18.1 and
-    higher. See :attr:`Connection.callTimeout`.
+    higher. See :attr:`Connection.call_timeout`.
 #)  Added support for getting the contents of a SQL collection object as a
     dictionary, where the keys are the indices of the collection and the values
     are the elements of the collection. See function :meth:`Object.asdict()`.

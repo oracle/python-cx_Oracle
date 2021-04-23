@@ -33,10 +33,10 @@ class TestCase(test_env.BaseTestCase):
     def __deq_in_thread(self, results):
         connection = test_env.get_connection(threaded=True)
         queue = connection.queue(RAW_QUEUE_NAME)
-        queue.deqOptions.wait = 10
-        queue.deqOptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.wait = 10
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
         while len(results) < len(RAW_PAYLOAD_DATA):
-            messages = queue.deqMany(5)
+            messages = queue.deqmany(5)
             if not messages:
                 break
             for m in messages:
@@ -45,9 +45,9 @@ class TestCase(test_env.BaseTestCase):
 
     def __get_and_clear_raw_queue(self):
         queue = self.connection.queue(RAW_QUEUE_NAME)
-        queue.deqOptions.wait = oracledb.DEQ_NO_WAIT
-        queue.deqOptions.navigation = oracledb.DEQ_FIRST_MSG
-        while queue.deqOne():
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        while queue.deqone():
             pass
         self.connection.commit()
         return queue
@@ -57,8 +57,8 @@ class TestCase(test_env.BaseTestCase):
         queue = self.__get_and_clear_raw_queue()
         messages = [self.connection.msgproperties(payload=d) \
                     for d in RAW_PAYLOAD_DATA]
-        queue.enqMany(messages)
-        messages = queue.deqMany(len(RAW_PAYLOAD_DATA))
+        queue.enqmany(messages)
+        messages = queue.deqmany(len(RAW_PAYLOAD_DATA))
         data = [m.payload.decode(self.connection.encoding) for m in messages]
         self.connection.commit()
         self.assertEqual(data, RAW_PAYLOAD_DATA)
@@ -66,7 +66,7 @@ class TestCase(test_env.BaseTestCase):
     def test_2801_dequeue_empty(self):
         "2801 - test empty bulk dequeue"
         queue = self.__get_and_clear_raw_queue()
-        messages = queue.deqMany(5)
+        messages = queue.deqmany(5)
         self.connection.commit()
         self.assertEqual(messages, [])
 
@@ -78,8 +78,8 @@ class TestCase(test_env.BaseTestCase):
         thread.start()
         messages = [self.connection.msgproperties(payload=d) \
                     for d in RAW_PAYLOAD_DATA]
-        queue.enqOptions.visibility = oracledb.ENQ_IMMEDIATE
-        queue.enqMany(messages)
+        queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
+        queue.enqmany(messages)
         thread.join()
         self.assertEqual(results, RAW_PAYLOAD_DATA)
 
@@ -91,11 +91,11 @@ class TestCase(test_env.BaseTestCase):
             messages = [self.connection.msgproperties(payload=d) \
                     for d in data_to_enqueue[:num]]
             data_to_enqueue = data_to_enqueue[num:]
-            queue.enqMany(messages)
+            queue.enqmany(messages)
         self.connection.commit()
         all_data = []
         for num in (3, 5, 10):
-            messages = queue.deqMany(num)
+            messages = queue.deqmany(num)
             all_data.extend(m.payload.decode(self.connection.encoding) \
                     for m in messages)
         self.connection.commit()
@@ -106,29 +106,29 @@ class TestCase(test_env.BaseTestCase):
         queue = self.__get_and_clear_raw_queue()
 
         # first test with ENQ_ON_COMMIT (commit required)
-        queue.enqOptions.visibility = oracledb.ENQ_ON_COMMIT
+        queue.enqoptions.visibility = oracledb.ENQ_ON_COMMIT
         props1 = self.connection.msgproperties(payload="A first message")
         props2 = self.connection.msgproperties(payload="A second message")
-        queue.enqMany([props1, props2])
+        queue.enqmany([props1, props2])
         other_connection = test_env.get_connection()
         other_queue = other_connection.queue(RAW_QUEUE_NAME)
-        other_queue.deqOptions.wait = oracledb.DEQ_NO_WAIT
-        other_queue.deqOptions.visibility = oracledb.DEQ_ON_COMMIT
-        messages = other_queue.deqMany(5)
+        other_queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        other_queue.deqoptions.visibility = oracledb.DEQ_ON_COMMIT
+        messages = other_queue.deqmany(5)
         self.assertEqual(len(messages), 0)
         self.connection.commit()
-        messages = other_queue.deqMany(5)
+        messages = other_queue.deqmany(5)
         self.assertEqual(len(messages), 2)
         other_connection.rollback()
 
         # second test with ENQ_IMMEDIATE (no commit required)
-        queue.enqOptions.visibility = oracledb.ENQ_IMMEDIATE
-        other_queue.deqOptions.visibility = oracledb.DEQ_IMMEDIATE
-        queue.enqMany([props1, props2])
-        messages = other_queue.deqMany(5)
+        queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
+        other_queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.enqmany([props1, props2])
+        messages = other_queue.deqmany(5)
         self.assertEqual(len(messages), 4)
         other_connection.rollback()
-        messages = other_queue.deqMany(5)
+        messages = other_queue.deqmany(5)
         self.assertEqual(len(messages), 0)
 
 if __name__ == "__main__":
