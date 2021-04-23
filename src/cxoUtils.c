@@ -179,23 +179,6 @@ const char *cxoUtils_getAdjustedEncoding(const char *encoding)
 
 
 //-----------------------------------------------------------------------------
-// cxoUtils_getBooleanValue()
-//   Get a boolean value from a Python object.
-//-----------------------------------------------------------------------------
-int cxoUtils_getBooleanValue(PyObject *obj, int defaultValue, int *value)
-{
-    if (!obj)
-        *value = defaultValue;
-    else {
-        *value = PyObject_IsTrue(obj);
-        if (*value < 0)
-            return -1;
-    }
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
 // cxoUtils_getModuleAndName()
 //   Return the module and name for the type.
 //-----------------------------------------------------------------------------

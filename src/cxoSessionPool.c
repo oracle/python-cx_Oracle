@@ -34,18 +34,17 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
 {
     uint32_t minSessions, maxSessions, sessionIncrement, maxSessionsPerShard;
     uint32_t waitTimeoutDeprecated, maxSessionsPerShardDeprecated;
-    PyObject *externalAuthObj, *editionObj, *sessionCallbackObjDeprecated;
     cxoBuffer userNameBuffer, passwordBuffer, dsnBuffer, editionBuffer;
-    PyObject *threadedObj, *eventsObj, *homogeneousObj, *passwordObj;
-    PyObject *usernameObj, *dsnObj, *sessionCallbackObj;
+    PyObject *usernameObj, *dsnObj, *sessionCallbackObj, *passwordObj;
+    PyObject *editionObj, *sessionCallbackObjDeprecated;
     dpiCommonCreateParams dpiCommonParams;
     uint32_t maxLifetimeSessionDeprecated;
     dpiPoolCreateParams dpiCreateParams;
     cxoBuffer sessionCallbackBuffer;
+    int status, threaded, events;
     PyTypeObject *connectionType;
     unsigned int stmtCacheSize;
     const char *encoding;
-    int status, temp;
 
     // define keyword arguments
     static char *keywordList[] = { "user", "password", "dsn", "min", "max",
@@ -58,8 +57,7 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
 
     // parse arguments and keywords
     usernameObj = passwordObj = dsnObj = editionObj = Py_None;
-    externalAuthObj = sessionCallbackObj = sessionCallbackObjDeprecated = NULL;
-    threadedObj = eventsObj = homogeneousObj = passwordObj = NULL;
+    sessionCallbackObj = sessionCallbackObjDeprecated = passwordObj = NULL;
     connectionType = &cxoPyTypeConnection;
     minSessions = 1;
     maxSessions = 2;
@@ -75,11 +73,11 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     if (dpiContext_initPoolCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOiiiOObOOOssOiiiOiIiiOi", keywordList, &usernameObj,
+            "|OOOiiiOpbpppssOiiiOiIiiOi", keywordList, &usernameObj,
             &passwordObj, &dsnObj, &minSessions, &maxSessions,
-            &sessionIncrement, &connectionType, &threadedObj,
-            &dpiCreateParams.getMode, &eventsObj, &homogeneousObj,
-            &externalAuthObj, &dpiCommonParams.encoding,
+            &sessionIncrement, &connectionType, &threaded,
+            &dpiCreateParams.getMode, &events, &dpiCreateParams.homogeneous,
+            &dpiCreateParams.externalAuth, &dpiCommonParams.encoding,
             &dpiCommonParams.nencoding, &editionObj, &dpiCreateParams.timeout,
             &dpiCreateParams.waitTimeout, &dpiCreateParams.maxLifetimeSession,
             &sessionCallbackObj, &maxSessionsPerShard, &stmtCacheSize,
@@ -96,20 +94,10 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
                 "connectiontype must be a subclass of Connection");
         return -1;
     }
-    if (cxoUtils_getBooleanValue(threadedObj, 0, &temp) < 0)
-        return -1;
-    if (temp)
+    if (threaded)
         dpiCommonParams.createMode |= DPI_MODE_CREATE_THREADED;
-    if (cxoUtils_getBooleanValue(eventsObj, 0, &temp) < 0)
-        return -1;
-    if (temp)
+    if (events)
         dpiCommonParams.createMode |= DPI_MODE_CREATE_EVENTS;
-    if (cxoUtils_getBooleanValue(externalAuthObj, 0,
-            &dpiCreateParams.externalAuth) < 0)
-        return -1;
-    if (cxoUtils_getBooleanValue(homogeneousObj, 1,
-            &dpiCreateParams.homogeneous) < 0)
-        return -1;
 
     // check duplicate parameters to ensure that both are not specified
     if (waitTimeoutDeprecated > 0) {
@@ -294,18 +282,15 @@ static PyObject *cxoSessionPool_close(cxoSessionPool *pool, PyObject *args,
         PyObject *keywordArgs)
 {
     static char *keywordList[] = { "force", NULL };
-    PyObject *forceObj;
     uint32_t closeMode;
-    int temp, status;
+    int status, force;
 
     // parse arguments
-    forceObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|O", keywordList,
-            &forceObj))
+    force = 0;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|p", keywordList,
+            &force))
         return NULL;
-    if (cxoUtils_getBooleanValue(forceObj, 0, &temp) < 0)
-        return NULL;
-    closeMode = (temp) ? DPI_MODE_POOL_CLOSE_FORCE :
+    closeMode = (force) ? DPI_MODE_POOL_CLOSE_FORCE :
             DPI_MODE_POOL_CLOSE_DEFAULT;
 
     // close pool

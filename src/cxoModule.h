@@ -573,7 +573,6 @@ int cxoUtils_convertPythonValueToOciAttr(PyObject *value, unsigned attrType,
         uint32_t *ociValueLength, const char *encoding);
 PyObject *cxoUtils_formatString(const char *format, PyObject *args);
 const char *cxoUtils_getAdjustedEncoding(const char *encoding);
-int cxoUtils_getBooleanValue(PyObject *obj, int defaultValue, int *value);
 int cxoUtils_getModuleAndName(PyTypeObject *type, PyObject **module,
         PyObject **name);
 int cxoUtils_initializeDPI(dpiContextCreateParams *params);

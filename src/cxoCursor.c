@@ -34,15 +34,12 @@ static int cxoCursor_init(cxoCursor *cursor, PyObject *args,
 {
     static char *keywordList[] = { "connection", "scrollable", NULL };
     cxoConnection *connection;
-    PyObject *scrollableObj;
     int isScrollable;
 
     // parse arguments
-    scrollableObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|O", keywordList,
-            &cxoPyTypeConnection, &connection, &scrollableObj))
-        return -1;
-    if (cxoUtils_getBooleanValue(scrollableObj, 0, &isScrollable) < 0)
+    isScrollable = 0;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O!|p", keywordList,
+            &cxoPyTypeConnection, &connection, &isScrollable))
         return -1;
     cursor->isScrollable = (char) isScrollable;
 

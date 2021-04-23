@@ -99,8 +99,8 @@ static PyObject *cxoSodaDatabase_createCollection(cxoSodaDatabase *db,
         PyObject *args, PyObject *keywordArgs)
 {
     static char *keywordList[] = { "name", "metadata", "mapMode", NULL };
-    PyObject *nameObj, *metadataObj, *mapModeObj;
     cxoBuffer nameBuffer, metadataBuffer;
+    PyObject *nameObj, *metadataObj;
     cxoSodaCollection *coll;
     const char *encoding;
     dpiSodaColl *handle;
@@ -108,20 +108,16 @@ static PyObject *cxoSodaDatabase_createCollection(cxoSodaDatabase *db,
     uint32_t flags;
 
     // parse arguments
-    nameObj = metadataObj = mapModeObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|OO", keywordList,
-            &nameObj, &metadataObj, &mapModeObj))
+    mapMode = 0;
+    nameObj = metadataObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|Op", keywordList,
+            &nameObj, &metadataObj, &mapMode))
         return NULL;
     encoding = db->connection->encodingInfo.encoding;
     if (cxoBuffer_fromObject(&nameBuffer, nameObj, encoding) < 0)
         return NULL;
     if (cxoUtils_processJsonArg(metadataObj, &metadataBuffer) < 0) {
         cxoBuffer_clear(&nameBuffer);
-        return NULL;
-    }
-    if (cxoUtils_getBooleanValue(mapModeObj, 0, &mapMode) < 0) {
-        cxoBuffer_clear(&nameBuffer);
-        cxoBuffer_clear(&metadataBuffer);
         return NULL;
     }
 

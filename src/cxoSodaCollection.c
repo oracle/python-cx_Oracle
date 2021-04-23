@@ -168,16 +168,14 @@ static PyObject *cxoSodaCollection_dropIndex(cxoSodaCollection *coll,
 {
     static char *keywordList[] = { "name", "force", NULL };
     int status, isDropped, force;
-    PyObject *nameObj, *forceObj;
     cxoBuffer nameBuffer;
+    PyObject *nameObj;
     uint32_t flags;
 
     // parse arguments
-    forceObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|O", keywordList,
-            &nameObj, &forceObj))
-        return NULL;
-    if (cxoUtils_getBooleanValue(forceObj, 0, &force) < 0)
+    force = 0;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|p", keywordList,
+            &nameObj, &force))
         return NULL;
 
     // drop index

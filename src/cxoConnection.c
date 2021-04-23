@@ -467,14 +467,14 @@ static int cxoConnection_splitComponent(PyObject *sourceObj,
 static int cxoConnection_init(cxoConnection *conn, PyObject *args,
         PyObject *keywordArgs)
 {
-    PyObject *tagObj, *matchAnyTagObj, *threadedObj, *eventsObj, *contextObj;
     PyObject *usernameObj, *passwordObj, *dsnObj, *cclassObj, *editionObj;
+    int status, temp, invokeSessionCallback, threaded, events;
     PyObject *shardingKeyObj, *superShardingKeyObj, *tempObj;
-    int status, temp, invokeSessionCallback;
     PyObject *beforePartObj, *afterPartObj;
     dpiCommonCreateParams dpiCommonParams;
     dpiConnCreateParams dpiCreateParams;
     unsigned long long externalHandle;
+    PyObject *tagObj, *contextObj;
     unsigned int stmtCacheSize;
     cxoConnectionParams params;
     PyObject *newPasswordObj;
@@ -490,10 +490,11 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     // parse arguments
     pool = NULL;
     tagObj = Py_None;
+    threaded = 0;
     externalHandle = 0;
+    newPasswordObj = usernameObj = NULL;
     passwordObj = dsnObj = cclassObj = editionObj = NULL;
-    threadedObj = eventsObj = newPasswordObj = usernameObj = NULL;
-    matchAnyTagObj = contextObj = shardingKeyObj = superShardingKeyObj = NULL;
+    contextObj = shardingKeyObj = superShardingKeyObj = NULL;
     stmtCacheSize = DPI_DEFAULT_STMT_CACHE_SIZE;
     if (cxoUtils_initializeDPI(NULL) < 0)
         return -1;
@@ -502,26 +503,19 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
     if (dpiContext_initConnCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOiKO!OOOiOssOOOOOOI", keywordList, &usernameObj, &passwordObj,
+            "|OOOiKO!ppOiOssOOOpOOI", keywordList, &usernameObj, &passwordObj,
             &dsnObj, &dpiCreateParams.authMode, &externalHandle,
-            &cxoPyTypeSessionPool, &pool, &threadedObj, &eventsObj, &cclassObj,
+            &cxoPyTypeSessionPool, &pool, &threaded, &events, &cclassObj,
             &dpiCreateParams.purity, &newPasswordObj,
             &dpiCommonParams.encoding, &dpiCommonParams.nencoding, &editionObj,
-            &contextObj, &tagObj, &matchAnyTagObj, &shardingKeyObj,
-            &superShardingKeyObj, &stmtCacheSize))
+            &contextObj, &tagObj, &dpiCreateParams.matchAnyTag,
+            &shardingKeyObj, &superShardingKeyObj, &stmtCacheSize))
         return -1;
     dpiCreateParams.externalHandle = (void*) externalHandle;
-    if (cxoUtils_getBooleanValue(threadedObj, 0, &temp) < 0)
-        return -1;
-    if (temp)
+    if (threaded)
         dpiCommonParams.createMode |= DPI_MODE_CREATE_THREADED;
-    if (cxoUtils_getBooleanValue(eventsObj, 0, &temp) < 0)
-        return -1;
-    if (temp)
+    if (events)
         dpiCommonParams.createMode |= DPI_MODE_CREATE_EVENTS;
-    if (cxoUtils_getBooleanValue(matchAnyTagObj, 0,
-            &dpiCreateParams.matchAnyTag) < 0)
-        return -1;
 
     // keep a copy of the user name and connect string (DSN)
     Py_XINCREF(usernameObj);
@@ -1494,26 +1488,22 @@ static PyObject *cxoConnection_startup(cxoConnection *conn, PyObject* args,
         PyObject* keywordArgs)
 {
     static char *keywordList[] = { "force", "restrict", "pfile", NULL };
-    PyObject *forceObj, *restrictObj, *pfileObj;
+    int temp, force, restrictStartup;
     cxoBuffer pfileBuffer;
     dpiStartupMode mode;
-    int temp;
+    PyObject *pfileObj;
 
     // parse arguments
-    forceObj = restrictObj = pfileObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|OOO", keywordList,
-            &forceObj, &restrictObj, &pfileObj))
+    pfileObj = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|ppO", keywordList,
+            &force, &restrictStartup, &pfileObj))
         return NULL;
 
     // set the flags to use during startup
     mode = DPI_MODE_STARTUP_DEFAULT;
-    if (cxoUtils_getBooleanValue(forceObj, 0, &temp) < 0)
-        return NULL;
-    if (temp)
+    if (force)
         mode |= DPI_MODE_STARTUP_FORCE;
-    if (cxoUtils_getBooleanValue(restrictObj, 0, &temp) < 0)
-        return NULL;
-    if (temp)
+    if (restrictStartup)
         mode |= DPI_MODE_STARTUP_RESTRICT;
 
     // check the pfile parameter
@@ -1549,7 +1539,7 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
             "timeout", "operations", "port", "qos", "ipAddress",
             "groupingClass", "groupingValue", "groupingType", "name",
             "clientInitiated", NULL };
-    PyObject *callback, *ipAddress, *name, *clientInitiatedObj;
+    PyObject *callback, *ipAddress, *name;
     cxoBuffer ipAddressBuffer, nameBuffer;
     dpiSubscrCreateParams params;
     cxoSubscr *subscr;
@@ -1559,18 +1549,15 @@ static PyObject *cxoConnection_subscribe(cxoConnection *conn, PyObject* args,
         return cxoError_raiseAndReturnNull();
 
     // validate parameters
-    callback = name = ipAddress = clientInitiatedObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|IIOIIIIObIbOO",
+    callback = name = ipAddress = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|IIOIIIIObIbOp",
             keywordList, &params.subscrNamespace, &params.protocol, &callback,
             &params.timeout, &params.operations, &params.portNumber,
             &params.qos, &ipAddress, &params.groupingClass,
             &params.groupingValue, &params.groupingType, &name,
-            &clientInitiatedObj))
+            &params.clientInitiated))
         return NULL;
     if (cxoConnection_isConnected(conn) < 0)
-        return NULL;
-    if (cxoUtils_getBooleanValue(clientInitiatedObj, 0,
-            &params.clientInitiated) < 0)
         return NULL;
 
     // populate IP address in parameters, if applicable
