@@ -588,7 +588,7 @@ Cursor Object
 
 
 .. method:: Cursor.var(typ, [size, arraysize, inconverter, outconverter, \
-        typename, encoding_errors, bypass_encoding])
+        typename, encoding_errors, bypass_decode])
 
     Create a variable with the specified characteristics. This method was
     designed for use with PL/SQL in/out variables where the length or type
@@ -648,7 +648,7 @@ Cursor Object
     `decode <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__
     function.
 
-    The bypass_encoding parameter, if specified, should be passed as a
+    The bypass_decode parameter, if specified, should be passed as a
     boolean value. Passing a `True` value causes values of database types
     :data:`~cx_Oracle.DB_TYPE_VARCHAR`, :data:`~cx_Oracle.DB_TYPE_CHAR`,
     :data:`~cx_Oracle.DB_TYPE_NVARCHAR`, :data:`~cx_Oracle.DB_TYPE_NCHAR` and
@@ -658,7 +658,7 @@ Cursor Object
 
     .. versionadded:: 8.2
 
-        The parameter `bypass_encoding` was added.
+        The parameter `bypass_decode` was added.
 
     .. versionchanged:: 8.2
 
