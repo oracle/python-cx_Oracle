@@ -52,7 +52,7 @@ Cursor Object
         The DB API definition does not define this attribute.
 
 
-.. method:: Cursor.arrayvar(data_type, value, [size])
+.. method:: Cursor.arrayvar(typ, value, [size])
 
     Create an array variable associated with the cursor of the given type and
     size and return a :ref:`variable object <varobj>`. The value is either an
@@ -587,19 +587,19 @@ Cursor Object
         The DB API definition does not define this attribute.
 
 
-.. method:: Cursor.var(dataType, [size, arraysize, inconverter, outconverter, \
-        typename, encodingErrors, bypassencoding])
+.. method:: Cursor.var(typ, [size, arraysize, inconverter, outconverter, \
+        typename, encoding_errors, bypass_encoding])
 
     Create a variable with the specified characteristics. This method was
     designed for use with PL/SQL in/out variables where the length or type
     cannot be determined automatically from the Python object passed in or for
     use in input and output type handlers defined on cursors or connections.
 
-    The dataType parameter specifies the type of data that should be stored in
-    the variable. This should be one of the
-    :ref:`database type constants <dbtypes>`, :ref:`DB API constants <types>`,
-    an object type returned from the method :meth:`Connection.gettype()` or one
-    of the following Python types:
+    The typ parameter specifies the type of data that should be stored in the
+    variable. This should be one of the :ref:`database type constants
+    <dbtypes>`, :ref:`DB API constants <types>`, an object type returned from
+    the method :meth:`Connection.gettype()` or one of the following Python
+    types:
 
     .. list-table::
         :header-rows: 1
@@ -642,17 +642,29 @@ Cursor Object
     specified when using type :data:`cx_Oracle.OBJECT` unless the type object
     was passed directly as the first parameter.
 
-    The encodingErrors parameter specifies what should happen when decoding
+    The encoding_errors parameter specifies what should happen when decoding
     byte strings fetched from the database into strings. It should be one of
     the values noted in the builtin
     `decode <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__
     function.
 
-    The bypassencoding parameter, if specified, should be passed as
-    boolean. This feature allows results of database types CHAR, NCHAR,
-    LONG_STRING, NSTRING, STRING to be returned raw meaning cx_Oracle
-    won't do any decoding conversion. See 
-    :ref:`Fetching raw data <fetching-raw-data>` for more information.
+    The bypass_encoding parameter, if specified, should be passed as a
+    boolean value. Passing a `True` value causes values of database types
+    :data:`~cx_Oracle.DB_TYPE_VARCHAR`, :data:`~cx_Oracle.DB_TYPE_CHAR`,
+    :data:`~cx_Oracle.DB_TYPE_NVARCHAR`, :data:`~cx_Oracle.DB_TYPE_NCHAR` and
+    :data:`~cx_Oracle.DB_TYPE_LONG` to be returned as `bytes` instead of `str`,
+    meaning that cx_Oracle doesn't do any decoding. See :ref:`Fetching raw
+    data <fetching-raw-data>` for more information.
+
+    .. versionadded:: 8.2
+
+        The parameter `bypass_encoding` was added.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter `encodingErrors` was renamed to `encoding_errors`. The old
+        name will continue to work as a keyword parameter for a period of time.
 
     .. note::
 

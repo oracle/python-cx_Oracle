@@ -1809,27 +1809,39 @@ static PyObject *cxoCursor_setOutputSize(cxoCursor *cursor, PyObject *args)
 static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
         PyObject *keywordArgs)
 {
-    static char *keywordList[] = { "type", "size", "arraysize",
-            "inconverter", "outconverter", "typename", "encodingErrors", "bypassencoding",
-            NULL };
+    static char *keywordList[] = { "typ", "size", "arraysize", "inconverter",
+            "outconverter", "typename", "encoding_errors", "bypass_decode",
+            "encodingErrors", NULL };
+    Py_ssize_t encodingErrorsLength, encodingErrorsDeprecatedLength;
+    const char *encodingErrors, *encodingErrorsDeprecated;
     PyObject *inConverter, *outConverter, *typeNameObj;
-    Py_ssize_t encodingErrorsLength;
+    int size, arraySize, bypassDecode;
     cxoTransformNum transformNum;
-    const char *encodingErrors;
     cxoObjectType *objType;
-    int size, arraySize, bypassEncoding;
     PyObject *type;
     cxoVar *var;
 
     // parse arguments
-    size = bypassEncoding = 0;
-    encodingErrors = NULL;
+    size = bypassDecode = 0;
     arraySize = cursor->bindArraySize;
+    encodingErrors = encodingErrorsDeprecated = NULL;
     inConverter = outConverter = typeNameObj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOOz#p",
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|iiOOOz#pz#",
             keywordList, &type, &size, &arraySize, &inConverter, &outConverter,
-            &typeNameObj, &encodingErrors, &encodingErrorsLength, &bypassEncoding))
+            &typeNameObj, &encodingErrors, &encodingErrorsLength,
+            &bypassDecode, &encodingErrorsDeprecated,
+            &encodingErrorsDeprecatedLength))
         return NULL;
+    if (encodingErrorsDeprecated) {
+        if (encodingErrors) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "encoding_errors and encodingErrors cannot both be "
+                    "specified");
+            return NULL;
+        }
+        encodingErrors = encodingErrorsDeprecated;
+        encodingErrorsLength = encodingErrorsDeprecatedLength;
+    }
 
     // determine the type of variable
     if (cxoTransform_getNumFromType(type, &transformNum, &objType) < 0)
@@ -1861,10 +1873,9 @@ static PyObject *cxoCursor_var(cxoCursor *cursor, PyObject *args,
         strcpy((char*) var->encodingErrors, encodingErrors);
     }
 
-    // Flag that manually changes transform type to bytes
-    if (bypassEncoding) {
+    // if the decode step is to be bypassed, use the binary transform instead
+    if (bypassDecode)
         var->transformNum = CXO_TRANSFORM_BINARY;
-    }
 
     return (PyObject*) var;
 }

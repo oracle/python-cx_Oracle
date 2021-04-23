@@ -288,7 +288,7 @@ or the value ``None``. The value ``None`` indicates that the default type
 should be used.
 
 Examples of output handlers are shown in :ref:`numberprecision`,
-:ref:`directlobs` and :ref:`fetching-raw-data`.  Also see samples such as `samples/TypeHandlers.py
+:ref:`directlobs` and :ref:`fetching-raw-data`.  Also see samples such as `samples/type_handlers.py
 <https://github.com/oracle/python-cx_Oracle/blob/master/samples/type_handlers.py>`__
 
 .. _numberprecision:
@@ -347,82 +347,73 @@ See `samples/return_numbers_as_decimals.py
 .. _fetching-raw-data:
 
 Fetching Raw Data
----------------------
+-----------------
 
-Sometimes cx_Oracle may have problems converting data to unicode and you may 
-want to inspect the problem closer rather than auto-fix it using the 
-encodingerrors parameter. This may be useful when a database contains 
-records or fields that are in a wrong encoding altogether.
+Sometimes cx_Oracle may have problems converting data stored in the database to
+Python strings. This can occur if the data stored in the database doesn't match
+the character set defined by the database. The `encoding_errors` parameter to
+:meth:`Cursor.var()` permits the data to be returned with some invalid data
+replaced, but for additional control the parameter `bypass_decode` can be set
+to `True` and cx_Oracle will bypass the decode step and return `bytes` instead
+of `str` for data stored in the database as strings. The data can then be
+examined and corrected as required. This approach should only be used for
+troubleshooting and correcting invalid data, not for general use!
 
-It is not recommended to use mixed encodings in databases. 
-This functionality is aimed at troubleshooting databases 
-that have inconsistent encodings for external reasons.
-
-For these cases, you can pass in the in additional keyword argument 
-``bypassencoding = True`` into :meth:`Cursor.var()`. This needs
-to be used in combination with :ref:`outputtypehandlers`
-
-    .. code-block:: python
-
-		#defining output type handlers method
-		def ConvertStringToBytes(cursor, name, defaultType, size, precision, scale):
-		    if defaultType == cx_Oracle.STRING:
-		        return cursor.var(str, arraysize=cursor.arraysize, bypassencoding = True) 
-
-		#set cursor outputtypehandler to the method above
-		cursor = connection.cursor()
-		ursor.outputtypehandler = ConvertStringToBytes
-
-
-This will allow you to receive data as raw bytes.
+The following sample demonstrates how to use this feature:
 
     .. code-block:: python
 
-		statement = cursor.execute("select content, charset from SomeTable")
-		data = statement.fetchall()
+        # define output type handler
+        def return_strings_as_bytes(cursor, name, default_type, size,
+                                    precision, scale):
+		    if default_type == cx_Oracle.DB_TYPE_VARCHAR:
+		        return cursor.var(str, arraysize=cursor.arraysize,
+                                  bypass_decode=True)
+
+		# set output type handler on cursor before fetching data
+		with connection.cursor() as cursor:
+		    cursor.outputtypehandler = return_strings_as_bytes
+		    cursor.execute("select content, charset from SomeTable")
+		    data = cursor.fetchall()
+
+This will produce output as::
+
+    [(b'Fianc\xc3\xa9', b'UTF-8')]
 
 
-This will produce output as:
+Note that last \xc3\xa9 is é in UTF-8. Since this is valid UTF-8 you can then
+perform a decode on the data (the part that was bypassed):
+
+    .. code-block:: python
+
+        value = data[0][0].decode("UTF-8")
+
+This will return the value "Fiancé".
+
+If you want to save ``b'Fianc\xc3\xa9'`` into the database directly without
+using a Python string, you will need to create a variable using
+:meth:`Cursor.var()` that specifies the type as
+:data:`~cx_Oracle.DB_TYPE_VARCHAR` (otherwise the value will be treated as
+:data:`~cx_Oracle.DB_TYPE_RAW`). The following sample demonstrates this:
 
     .. code-block:: python
 
-	    [(b'Fianc\xc3\xa9', b'UTF-8')]
-
-
-Note that last \xc3\xa9 is é in UTF-8. Then in  you can do following:
-
-
-    .. code-block:: python
-
-		import codecs
-		# data = [(b'Fianc\xc3\xa9', b'UTF-8')]
-		unicodecontent = data[0][0].decode(data[0][1].decode()) # Assuming your charset encoding is UTF-8 
-
-
-This will revert it back to "Fiancé".
-
-If you want to save ``b'Fianc\xc3\xa9'`` to database you will need to create 
-:meth:`Cursor.var()` that will tell cx_Oracle that the value is indeed 
-intended as a string:
-
-
-    .. code-block:: python
-		
-	    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1")
-	    cursor = connection.cursor()
-	    cursorvariable = cursor.var(cx_Oracle.STRING)
-	    cursorvariable.setvalue(0, "Fiancé".encode("UTF-8")) # b'Fianc\xc4\x9b'
-	    cursor.execute("update SomeTable set SomeColumn = :param where id = 1", param=cursorvariable)
-
-
-At that point, the bytes will be assumed to be in the correct encoding and should insert as you expect.
+        with cx_Oracle.connect(user="hr", password=userpwd,
+                               dsn="dbhost.example.com/orclpdb1") as conn:
+            with conn.cursor() cursor:
+	            var = cursor.var(cx_Oracle.DB_TYPE_VARCHAR)
+	            var.setvalue(0, b"Fianc\xc4\x9b")
+	            cursor.execute("""
+                        update SomeTable set
+                            SomeColumn = :param
+                        where id = 1""",
+                        param=var)
 
 .. warning::
-    This functionality is "as-is": when saving strings like this, 
-    the bytes will be assumed to be in the correct encoding and will 
-    insert like that. Proper encoding is the responsibility of the user and
-    no correctness of any data in the database can be assumed 
-    to exist by itself.
+
+    The database will assume that the bytes provided are in the character set
+    expected by the database so only use this for troubleshooting or as
+    directed.
 
 
 .. _outconverters:

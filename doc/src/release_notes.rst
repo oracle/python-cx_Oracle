@@ -26,6 +26,12 @@ Version 8.2 (TBD)
     :meth:`cx_Oracle.SessionPool()` in order to permit specifying the size of
     the statement cache during the creation of pools and standalone
     connections.
+#)  Added parameter `bypass_decode` to :meth:`Cursor.var()` in order to allow
+    the `decode` step to be bypassed when converting data from Oracle Database
+    into Python strings
+    (`issue 385 <https://github.com/oracle/python-cx_Oracle/issues/385>`__).
+    Initial work was done in `PR 549
+    <https://github.com/oracle/python-cx_Oracle/pull/549>`__.
 #)  Threaded mode is now always enabled when creating connection pools with
     :meth:`cx_Oracle.SessionPool()`. Any `threaded` parameter value is ignored.
 #)  Eliminated a memory leak when calling :meth:`SodaOperation.filter()` with a

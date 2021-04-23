@@ -68,6 +68,8 @@ if applicable. The most recent deprecations are listed first.
       - Replace with parameter name `keyword_parameters`
     * - `keywordParameters` parameter to :meth:`Cursor.callproc()`
       - Replace with parameter name `keyword_parameters`
+    * - `encodingErrors` parameter to :meth:`Cursor.var()`
+      - Replace with parameter name `encoding_errors`
     * - `Cursor.fetchraw()`
       - Replace with :meth:`Cursor.fetchmany()`
     * - `Queue.deqMany`
