@@ -19,31 +19,11 @@ import decimal
 
 class TestCase(test_env.BaseTestCase):
 
-    def __get_object_as_tuple(self, obj):
-        if obj.type.iscollection:
-            value = []
-            for v in obj.aslist():
-                if isinstance(v, oracledb.Object):
-                    v = self.__get_object_as_tuple(v)
-                elif isinstance(value, oracledb.LOB):
-                    v = v.read()
-                value.append(v)
-            return value
-        attribute_values = []
-        for attribute in obj.type.attributes:
-            value = getattr(obj, attribute.name)
-            if isinstance(value, oracledb.Object):
-                value = self.__get_object_as_tuple(value)
-            elif isinstance(value, oracledb.LOB):
-                value = value.read()
-            attribute_values.append(value)
-        return tuple(attribute_values)
-
     def __test_data(self, expected_int_value, expected_obj_value,
                     expected_array_value):
         int_value, object_value, array_value = self.cursor.fetchone()
         if object_value is not None:
-            object_value = self.__get_object_as_tuple(object_value)
+            object_value = self.get_db_object_as_plain_object(object_value)
         if array_value is not None:
             array_value = array_value.aslist()
         self.assertEqual(int_value, expected_int_value)
@@ -413,7 +393,7 @@ class TestCase(test_env.BaseTestCase):
         obj.SUBOBJECTARRAY = array_type.newobject([sub_obj1, sub_obj2])
         sub_obj_array = obj.SUBOBJECTARRAY
         del obj
-        self.assertEqual(self.__get_object_as_tuple(sub_obj_array),
+        self.assertEqual(self.get_db_object_as_plain_object(sub_obj_array),
                          [(2, "AB"), (3, "CDE")])
 
     def test_2312_setting_attr_wrong_object_type(self):
@@ -452,15 +432,18 @@ class TestCase(test_env.BaseTestCase):
             subObj.SUBNUMBERVALUE = num_val
             subObj.SUBSTRINGVALUE = str_val
             array_obj.append(subObj)
-        self.assertEqual(self.__get_object_as_tuple(array_obj), data)
+        self.assertEqual(self.get_db_object_as_plain_object(array_obj), data)
         array_obj.trim(2)
-        self.assertEqual(self.__get_object_as_tuple(array_obj), data[:2])
+        self.assertEqual(self.get_db_object_as_plain_object(array_obj),
+                         data[:2])
         array_obj.trim(1)
-        self.assertEqual(self.__get_object_as_tuple(array_obj), data[:1])
+        self.assertEqual(self.get_db_object_as_plain_object(array_obj),
+                         data[:1])
         array_obj.trim(0)
-        self.assertEqual(self.__get_object_as_tuple(array_obj), data[:1])
+        self.assertEqual(self.get_db_object_as_plain_object(array_obj),
+                         data[:1])
         array_obj.trim(1)
-        self.assertEqual(self.__get_object_as_tuple(array_obj), [])
+        self.assertEqual(self.get_db_object_as_plain_object(array_obj), [])
 
 if __name__ == "__main__":
     test_env.run_test_cases()

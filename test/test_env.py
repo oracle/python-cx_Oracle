@@ -227,6 +227,26 @@ class BaseTestCase(unittest.TestCase):
     def assertRoundTrips(self, n):
         self.assertEqual(self.round_trip_info.get_round_trips(), n)
 
+    def get_db_object_as_plain_object(self, obj):
+        if obj.type.iscollection:
+            element_values = []
+            for value in obj.aslist():
+                if isinstance(value, oracledb.Object):
+                    value = self.get_db_object_as_plain_object(value)
+                elif isinstance(value, oracledb.LOB):
+                    value = value.read()
+                element_values.append(value)
+            return element_values
+        attr_values = []
+        for attribute in obj.type.attributes:
+            value = getattr(obj, attribute.name)
+            if isinstance(value, oracledb.Object):
+                value = self.get_db_object_as_plain_object(value)
+            elif isinstance(value, oracledb.LOB):
+                value = value.read()
+            attr_values.append(value)
+        return tuple(attr_values)
+
     def get_soda_database(self, minclient=(18, 3), minserver=(18, 0),
                           message="not supported with this client/server " \
                                   "combination"):

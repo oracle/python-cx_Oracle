@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021 Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -14,6 +14,7 @@
 import test_env
 import cx_Oracle as oracledb
 import decimal
+import datetime
 
 class TestCase(test_env.BaseTestCase):
 
@@ -932,6 +933,52 @@ class TestCase(test_env.BaseTestCase):
                           statement, value=var)
         self.assertRaises(oracledb.DatabaseError, self.cursor.execute,
                           statement, value=var, value2=var, value3=var)
+
+    def test_1279_change_in_size_on_successive_bind(self):
+        "1279 - change in size on subsequent binds does not use optimised path"
+        self.cursor.execute("truncate table TestTempTable")
+        data = [
+            (1, "Test String #1"),
+            (2, "ABC" * 100)
+        ]
+        sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
+        for row in data:
+            self.cursor.execute(sql, row)
+        self.connection.commit()
+        self.cursor.execute("select IntCol, StringCol from TestTempTable")
+        self.assertEqual(self.cursor.fetchall(), data)
+
+    def test_1280_change_in_type_on_successive_bind(self):
+        "1280 - change in type on subsequent binds cannot use optimised path"
+        sql = "select :1 from dual"
+        self.cursor.execute(sql, ('W',))
+        row, = self.cursor.fetchone()
+        self.assertEqual(row, 'W')
+        self.cursor.execute(sql, ('S',))
+        row, = self.cursor.fetchone()
+        self.assertEqual(row, 'S')
+        self.cursor.execute(sql, (7,))
+        row, = self.cursor.fetchone()
+        self.assertEqual(row, '7')
+
+    def test_1281_dml_can_use_optimised_path(self):
+        "1281 - test that dml can use optimised path"
+        data_to_insert = [
+            (1, "Test String #1"),
+            (2, "Test String #2"),
+            (3, "Test String #3")
+        ]
+        self.cursor.execute("truncate table TestTempTable")
+        sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
+        for row in data_to_insert:
+            with self.connection.cursor() as cursor:
+                cursor.execute(sql, row)
+        self.connection.commit()
+        self.cursor.execute("""
+                select IntCol, StringCol
+                from TestTempTable
+                order by IntCol""")
+        self.assertEqual(self.cursor.fetchall(), data_to_insert)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

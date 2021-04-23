@@ -282,6 +282,16 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
         case CXO_TRANSFORM_NCLOB:
             if (Py_TYPE(pyValue) == &cxoPyTypeLob) {
                 lob = (cxoLob*) pyValue;
+                if ((lob->dbType == cxoDbTypeBlob &&
+                                transformNum != CXO_TRANSFORM_BLOB) ||
+                        (lob->dbType == cxoDbTypeClob &&
+                                transformNum != CXO_TRANSFORM_CLOB) ||
+                        (lob->dbType == cxoDbTypeNclob &&
+                                transformNum != CXO_TRANSFORM_NCLOB)) {
+                    PyErr_SetString(PyExc_TypeError,
+                            "LOB must be of the correct type");
+                    return -1;
+                }
                 if (var) {
                     if (dpiVar_setFromLob(var->handle, arrayPos,
                             lob->handle) < 0)

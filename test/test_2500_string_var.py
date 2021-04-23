@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021 Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -427,6 +427,18 @@ class TestCase(test_env.BaseTestCase):
                 (int_val,))
         actual_value, = self.cursor.fetchone()
         self.assertEqual(actual_value.strip(), xml_string)
+
+    def test_2532_fetch_null_values(self):
+        "2532 - fetching null and not null values can use optimised path"
+        sql = """
+                select * from TestStrings
+                where IntCol between :start_value and :end_value"""
+        self.cursor.execute(sql, start_value=2, end_value=5)
+        self.assertEqual(self.cursor.fetchall(), self.raw_data[1:5])
+        self.cursor.execute(sql, start_value=5, end_value=8)
+        self.assertEqual(self.cursor.fetchall(), self.raw_data[4:8])
+        self.cursor.execute(sql, start_value=8, end_value=10)
+        self.assertEqual(self.cursor.fetchall(), self.raw_data[7:10])
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021 Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -93,6 +93,36 @@ class TestCase(test_env.BaseTestCase):
             number, cursor = self.cursor.fetchone()
             self.assertEqual(number, i)
             self.assertEqual(cursor.fetchall(), [(i + 1,)])
+
+    def test_1305_ref_cursor_binds(self):
+        "1305 - test that ref cursor binds cannot use optimised path"
+        ref_cursor = self.connection.cursor()
+        sql = """
+                begin
+                    open :rcursor for
+                        select IntCol, StringCol
+                        from TestStrings where IntCol
+                        between :start_value and :end_value;
+                end;"""
+        self.cursor.execute(sql, rcursor=ref_cursor, start_value=2,
+                            end_value=4)
+        expected_value = [
+            (2, 'String 2'),
+            (3, 'String 3'),
+            (4, 'String 4')
+        ]
+        rows = ref_cursor.fetchall()
+        ref_cursor.close()
+        self.assertEqual(rows, expected_value)
+        ref_cursor = self.connection.cursor()
+        self.cursor.execute(sql, rcursor=ref_cursor, start_value=5,
+                            end_value=6)
+        expected_value = [
+            (5, 'String 5'),
+            (6, 'String 6')
+        ]
+        rows = ref_cursor.fetchall()
+        self.assertEqual(rows, expected_value)
 
 if __name__ == "__main__":
     test_env.run_test_cases()
