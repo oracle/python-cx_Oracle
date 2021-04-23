@@ -722,10 +722,11 @@ static PyObject *cxoVar_repr(cxoVar *var)
 // declaration of members
 //-----------------------------------------------------------------------------
 static PyMemberDef cxoMembers[] = {
+    { "buffer_size", T_INT, offsetof(cxoVar, bufferSize), READONLY },
     { "bufferSize", T_INT, offsetof(cxoVar, bufferSize), READONLY },
     { "inconverter", T_OBJECT, offsetof(cxoVar, inConverter), 0 },
-    { "numElements", T_INT, offsetof(cxoVar, allocatedElements),
-            READONLY },
+    { "numElements", T_INT, offsetof(cxoVar, allocatedElements), READONLY },
+    { "num_elements", T_INT, offsetof(cxoVar, allocatedElements), READONLY },
     { "outconverter", T_OBJECT, offsetof(cxoVar, outConverter), 0 },
     { "size", T_INT, offsetof(cxoVar, size), READONLY },
     { NULL }
@@ -736,6 +737,7 @@ static PyMemberDef cxoMembers[] = {
 // declaration of calculated members
 //-----------------------------------------------------------------------------
 static PyGetSetDef cxoCalcMembers[] = {
+    { "actual_elements", (getter) cxoVar_externalGetActualElements, 0, 0, 0 },
     { "actualElements", (getter) cxoVar_externalGetActualElements, 0, 0, 0 },
     { "type", (getter) cxoVar_getType, 0, 0, 0 },
     { "values", (getter) cxoVar_externalGetValues, 0, 0, 0 },

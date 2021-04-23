@@ -29,13 +29,19 @@ Subscription Object
     subscriptions, the value is 0.
 
 
-.. attribute:: Subscription.ipAddress
+.. attribute:: Subscription.ip_address
 
     This read-only attribute returns the IP address used for callback
     notifications from the database server. If not set during construction,
     this value is None.
 
     .. versionadded:: 6.4
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        attribute `ipAddress` was renamed to `ip_address`. The old name will
+        continue to work for a period of time.
 
 
 .. attribute:: Subscription.name
@@ -106,7 +112,7 @@ Message Objects
     to the callback procedure specified when a subscription is created.
 
 
-.. attribute:: Message.consumerName
+.. attribute:: Message.consumer_name
 
     This read-only attribute returns the name of the consumer which generated
     the notification. It will be populated if the subscription was created with
@@ -114,6 +120,12 @@ Message Objects
     multiple consumer queue.
 
     .. versionadded:: 6.4
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        attribute `consumerName` was renamed to `consumer_name`. The old name
+        will continue to work for a period of time.
 
 
 .. attribute:: Message.dbname
@@ -130,13 +142,19 @@ Message Objects
     :data:`~cx_Oracle.SUBSCR_QOS_QUERY` when the subscription was created.
 
 
-.. attribute:: Message.queueName
+.. attribute:: Message.queue_name
 
     This read-only attribute returns the name of the queue which generated the
     notification. It will only be populated if the subscription was created
     with the namespace :data:`cx_Oracle.SUBSCR_NAMESPACE_AQ`.
 
     .. versionadded:: 6.4
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        attribute `queueName` was renamed to `queue_name`. The old name will
+        continue to work for a period of time.
 
 
 .. attribute:: Message.registered

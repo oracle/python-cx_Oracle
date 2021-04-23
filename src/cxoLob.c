@@ -236,14 +236,22 @@ static PyObject *cxoLob_write(cxoLob *lob, PyObject *args,
 static PyObject *cxoLob_trim(cxoLob *lob, PyObject *args,
         PyObject *keywordArgs)
 {
-    static char *keywordList[] = { "newSize", NULL };
-    unsigned PY_LONG_LONG newSize;
+    static char *keywordList[] = { "new_size", "newSize", NULL };
+    unsigned PY_LONG_LONG newSize, newSizeDeprecated;
     int status;
 
-    newSize = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|K", keywordList,
-            &newSize))
+    newSize = newSizeDeprecated = 0;
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|KK", keywordList,
+            &newSize, &newSizeDeprecated))
         return NULL;
+    if (newSizeDeprecated > 0) {
+        if (newSize > 0) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "new_size and newSize cannot both be specified");
+            return NULL;
+        }
+        newSize = newSizeDeprecated;
+    }
     Py_BEGIN_ALLOW_THREADS
     status = dpiLob_trim(lob->handle, (uint64_t) newSize);
     Py_END_ALLOW_THREADS

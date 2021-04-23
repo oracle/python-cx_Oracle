@@ -9,7 +9,7 @@ Variable Objects
     The DB API definition does not define this object.
 
 
-.. attribute:: Variable.actualElements
+.. attribute:: Variable.actual_elements
 
     This read-only attribute returns the actual number of elements in the
     variable. This corresponds to the number of elements in a PL/SQL index-by
@@ -17,10 +17,23 @@ Variable Objects
     :func:`Cursor.arrayvar()`. For all other variables this value will be
     identical to the attribute :attr:`~Variable.numElements`.
 
-.. attribute:: Variable.bufferSize
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        attribute `actualElements` was renamed to `actual_elements`. The old
+        name will continue to work for a period of time.
+
+
+.. attribute:: Variable.buffer_size
 
     This read-only attribute returns the size of the buffer allocated for each
     element in bytes.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        attribute `bufferSize` was renamed to `buffer_size`. The old
+        name will continue to work for a period of time.
 
 
 .. method:: Variable.getvalue([pos=0])
@@ -41,11 +54,17 @@ Variable Objects
     attribute is None, the value is bound directly without any conversion.
 
 
-.. attribute:: Variable.numElements
+.. attribute:: Variable.num_elements
 
     This read-only attribute returns the number of elements allocated in an
     array, or the number of scalar items that can be fetched into the variable
     or bound to the variable.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        attribute `numElements` was renamed to `num_elements`. The old
+        name will continue to work for a period of time.
 
 
 .. attribute:: Variable.outconverter

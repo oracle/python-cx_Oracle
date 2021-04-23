@@ -416,12 +416,14 @@ static PyMemberDef cxoSubscrTypeMembers[] = {
     { "namespace", T_UINT, offsetof(cxoSubscr, namespace), READONLY },
     { "name", T_OBJECT, offsetof(cxoSubscr, name), READONLY },
     { "protocol", T_UINT, offsetof(cxoSubscr, protocol), READONLY },
-    { "ipAddress", T_OBJECT, offsetof(cxoSubscr, ipAddress), READONLY },
+    { "ip_address", T_OBJECT, offsetof(cxoSubscr, ipAddress), READONLY },
     { "port", T_UINT, offsetof(cxoSubscr, port), READONLY },
     { "timeout", T_UINT, offsetof(cxoSubscr, timeout), READONLY },
     { "operations", T_UINT, offsetof(cxoSubscr, operations), READONLY },
     { "qos", T_UINT, offsetof(cxoSubscr, qos), READONLY },
     { "id", T_ULONG, offsetof(cxoSubscr, id), READONLY },
+    // deprecated
+    { "ipAddress", T_OBJECT, offsetof(cxoSubscr, ipAddress), READONLY },
     { NULL }
 };
 
@@ -433,9 +435,13 @@ static PyMemberDef cxoMessageTypeMembers[] = {
     { "txid", T_OBJECT, offsetof(cxoMessage, txId), READONLY },
     { "tables", T_OBJECT, offsetof(cxoMessage, tables), READONLY },
     { "queries", T_OBJECT, offsetof(cxoMessage, queries), READONLY },
+    { "queue_name", T_OBJECT, offsetof(cxoMessage, queueName), READONLY },
+    { "consumer_name", T_OBJECT, offsetof(cxoMessage, consumerName),
+            READONLY },
+    { "registered", T_BOOL, offsetof(cxoMessage, registered), READONLY },
+    // deprecated
     { "queueName", T_OBJECT, offsetof(cxoMessage, queueName), READONLY },
     { "consumerName", T_OBJECT, offsetof(cxoMessage, consumerName), READONLY },
-    { "registered", T_BOOL, offsetof(cxoMessage, registered), READONLY },
     { NULL }
 };
 

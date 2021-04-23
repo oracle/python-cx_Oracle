@@ -185,6 +185,10 @@ SessionPool Object
     This read-only attribute returns the TNS entry of the database to which a
     connection has been established.
 
+    .. deprecated:: 8.2
+
+        Use the attribute :attr:`~SessionPool.dsn` instead.
+
 
 .. attribute:: SessionPool.username
 

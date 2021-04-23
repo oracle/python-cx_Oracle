@@ -48,6 +48,8 @@ if applicable. The most recent deprecations are listed first.
       - Replace with parameter name `session_callback`
     * - `maxSessionsPerShard` parameter to :meth:`cx_Oracle.SessionPool()`
       - Replace with parameter name `max_sessions_per_shard`
+    * - `SessionPool.tnsentry`
+      - Replace with :data:`SessionPool.dsn`
     * - `payloadType` parameter to :meth:`Connection.queue()`
       - Replace with parameter name `payload_type` if using keyword parameters.
     * - `ipAddress` parameter to :meth:`Connection.subscribe()`
@@ -72,6 +74,8 @@ if applicable. The most recent deprecations are listed first.
       - Replace with parameter name `encoding_errors`
     * - `Cursor.fetchraw()`
       - Replace with :meth:`Cursor.fetchmany()`
+    * - `newSize` parameter to :meth:`LOB.trim()`
+      - Replace with parameter name `new_size`
     * - `Queue.deqMany`
       - Replace with :meth:`Queue.deqmany()`
     * - `Queue.deqOne`
@@ -86,6 +90,18 @@ if applicable. The most recent deprecations are listed first.
       - Replace with :meth:`Queue.enqoptions`
     * - `Queue.payloadType`
       - Replace with :meth:`Queue.payload_type`
+    * - `Subscription.ipAddress`
+      - Replace with :attr:`Subscription.ip_address`
+    * - `Message.consumerName`
+      - Replace with :attr:`Message.consumer_name`
+    * - `Message.queueName`
+      - Replace with :attr:`Message.queue_name`
+    * - `Variable.actualElements`
+      - Replace with :attr:`Variable.actual_elements`
+    * - `Variable.bufferSize`
+      - Replace with :attr:`Variable.buffer_size`
+    * - `Variable.numElements`
+      - Replace with :attr:`Variable.num_elements`
 
 
 .. list-table:: Deprecated in 8.0

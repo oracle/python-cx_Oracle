@@ -74,7 +74,7 @@ See :ref:`lobdata` for more information about using LOBs.
     for all but supplemental characters.
 
 
-.. method:: LOB.trim([newSize=0])
+.. method:: LOB.trim(new_size=0)
 
     Trim the LOB to the new size.
 
@@ -87,7 +87,7 @@ See :ref:`lobdata` for more information about using LOBs.
     .. versionadded:: 8.0
 
 
-.. method:: LOB.write(data, [offset=1])
+.. method:: LOB.write(data, offset=1)
 
     Write the data to the LOB object at the given offset. The offset is in
     bytes for BLOB type LOBs and in UCS-2 code points for CLOB and NCLOB type
