@@ -265,7 +265,7 @@ class TestCase(test_env.BaseTestCase):
         callback = "pkg_SessionCallback.TheCallback"
         pool = test_env.get_pool(min=2, max=8, increment=3,
                                  getmode=oracledb.SPOOL_ATTRVAL_NOWAIT,
-                                 sessionCallback=callback)
+                                 session_callback=callback)
         tags = [
             "NLS_DATE_FORMAT=SIMPLE",
             "NLS_DATE_FORMAT=FULL;TIME_ZONE=UTC",

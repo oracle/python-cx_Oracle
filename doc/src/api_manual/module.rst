@@ -206,8 +206,8 @@ Module Interface
         increment=1, connectiontype=cx_Oracle.Connection, threaded=False, \
         getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, events=False, \
         homogeneous=True, externalauth=False, encoding=None, nencoding=None, \
-        edition=None, timeout=0, waitTimeout=0, maxLifetimeSession=0, \
-        sessionCallback=None, maxSessionsPerShard=0)
+        edition=None, timeout=0, wait_timeout=0, max_lifetime_session=0, \
+        session_callback=None, max_sessions_per_shard=0)
 
     Create and return a :ref:`session pool object <sesspool>`.  Session pooling
     (also known as connection pooling) creates a pool of available connections
@@ -286,36 +286,36 @@ Module Interface
     terminated. Note that termination only occurs when the pool is accessed.
     The default value of 0 means that no idle sessions are terminated.
 
-    The waitTimeout parameter is expected to be an integer, if specified, and
+    The wait_timeout parameter is expected to be an integer, if specified, and
     sets the length of time (in milliseconds) that the caller should wait for
     a session to become available in the pool before returning with an error.
     This value is only used if the getmode parameter is set to the value
     :data:`cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT`.
 
-    The maxLifetimeSession parameter is expected to be an integer, if
+    The max_lifetime_session parameter is expected to be an integer, if
     specified, and sets the maximum length of time (in seconds) a pooled
     session may exist. Sessions that are in use will not be closed. They become
     candidates for termination only when they are released back to the pool and
-    have existed for longer than maxLifetimeSession seconds. Note that
+    have existed for longer than max_lifetime_session seconds. Note that
     termination only occurs when the pool is accessed. The default value is 0
     which means that there is no maximum length of time that a pooled session
     may exist.
 
-    The sessionCallback parameter is expected to be either a string or a
-    callable. If the sessionCallback parameter is a callable, it will be called
-    when a newly created connection is returned from the pool, or when a tag is
-    requested and that tag does not match the connection's actual tag. The
-    callable will be invoked with the connection and the requested tag as its
-    only parameters.  If the parameter is a string, it should be the name of a
-    PL/SQL procedure that will be called when :func:`SessionPool.acquire()`
-    requests a tag and that tag does not match the connection's actual tag. See
-    :ref:`Session CallBacks for Setting Pooled Connection State
-    <sessioncallback>`. Support for the PL/SQL procedure requires Oracle Client
-    libraries 12.2 or later.  See the `OCI documentation
+    The session_callback parameter is expected to be either a string or a
+    callable. If the session_callback parameter is a callable, it will be
+    called when a newly created connection is returned from the pool, or when a
+    tag is requested and that tag does not match the connection's actual tag.
+    The callable will be invoked with the connection and the requested tag as
+    its only parameters.  If the parameter is a string, it should be the name
+    of a PL/SQL procedure that will be called when
+    :func:`SessionPool.acquire()` requests a tag and that tag does not match
+    the connection's actual tag. See :ref:`Session CallBacks for Setting Pooled
+    Connection State <sessioncallback>`. Support for the PL/SQL procedure
+    requires Oracle Client libraries 12.2 or later.  See the `OCI documentation
     <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
     id=GUID-B853A020-752F-494A-8D88-D0396EF57177>`__ for more information.
 
-    The maxSessionsPerShard parameter is expected to be an integer, if
+    The max_sessions_per_shard parameter is expected to be an integer, if
     specified, and sets the maximum number of sessions in the pool that can be
     used for any given shard in a sharded database. This value is ignored if
     the Oracle client library version is less than 18.3.
@@ -323,6 +323,16 @@ Module Interface
     .. note::
 
         This method is an extension to the DB API definition.
+
+    .. versionchanged:: 8.2
+
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter `waitTimeout` was renamed to `wait_timeout`, the parameter
+        `maxLifetimeSession` was renamed to `max_lifetime_session`, the
+        parameter `sessionCallback` was renamed to `session_callback` and the
+        parameter `maxSessionsPerShard` was renamed to
+        `max_sessions_per_shard`. The old names will continue to work as
+        keyword parameters for a period of time.
 
 
 .. function:: Time(hour, minute, second)
@@ -878,7 +888,7 @@ values for the getmode parameter of the :meth:`SessionPool()` method.
 .. data:: SPOOL_ATTRVAL_TIMEDWAIT
 
     This constant is used to specify that the caller should wait for a period
-    of time (defined by the waitTimeout parameter) for a session to become
+    of time (defined by the wait_timeout parameter) for a session to become
     available before returning with an error.
 
 

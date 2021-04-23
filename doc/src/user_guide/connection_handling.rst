@@ -1360,8 +1360,9 @@ using composite sharding, which is when data has been partitioned by a list or
 range (the super sharding key), and then further partitioned by a sharding key.
 
 When creating a connection pool, the :meth:`cx_Oracle.SessionPool()` attribute
-``maxSessionsPerShard`` can be set.  This is used to balance connections in the
-pool equally across shards.  It requires Oracle Client libraries 18.3, or later.
+``max_sessions_per_shard`` can be set.  This is used to balance connections in
+the pool equally across shards.  It requires Oracle Client libraries 18.3, or
+later.
 
 Shard key values may be of type string (mapping to VARCHAR2 shard keys), number
 (NUMBER), bytes (RAW), or date (DATE).  Multiple types may be used in each

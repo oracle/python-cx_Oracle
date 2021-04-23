@@ -24,6 +24,12 @@ Version 8.2 (TBD)
     <https://github.com/oracle/python-cx_Oracle/issues/530>`__).
 #)  Added check to ensure that when setting variables or object attributes, the
     type of the temporary LOB must match the expected type.
+#)  All of the parameter names for the :meth:`~cx_Oracle.SessionPool`
+    constructor now follow the PEP 8 naming style. The parameter names
+    `waitTimeout` (use `wait_timeout` instead), `maxLifetimeSession` (use
+    `max_lifetime_session` instead), `sessionCallback` (use `session_callback`
+    instead) and `maxSessionsPerShard` (use `max_sessions_per_shard` instead)
+    are deprecated and will be removed in a subsequent release of cx_Oracle.
 #)  Improved test suite.
 
 

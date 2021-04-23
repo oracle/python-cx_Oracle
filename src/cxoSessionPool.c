@@ -33,11 +33,13 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
         PyObject *keywordArgs)
 {
     uint32_t minSessions, maxSessions, sessionIncrement, maxSessionsPerShard;
+    uint32_t waitTimeoutDeprecated, maxSessionsPerShardDeprecated;
+    PyObject *externalAuthObj, *editionObj, *sessionCallbackObjDeprecated;
     cxoBuffer userNameBuffer, passwordBuffer, dsnBuffer, editionBuffer;
     PyObject *threadedObj, *eventsObj, *homogeneousObj, *passwordObj;
     PyObject *usernameObj, *dsnObj, *sessionCallbackObj;
-    PyObject *externalAuthObj, *editionObj;
     dpiCommonCreateParams dpiCommonParams;
+    uint32_t maxLifetimeSessionDeprecated;
     dpiPoolCreateParams dpiCreateParams;
     cxoBuffer sessionCallbackBuffer;
     PyTypeObject *connectionType;
@@ -48,18 +50,22 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     static char *keywordList[] = { "user", "password", "dsn", "min", "max",
             "increment", "connectiontype", "threaded", "getmode", "events",
             "homogeneous", "externalauth", "encoding", "nencoding", "edition",
-            "timeout", "waitTimeout", "maxLifetimeSession", "sessionCallback",
-            "maxSessionsPerShard", NULL };
+            "timeout", "wait_timeout", "max_lifetime_session",
+            "session_callback", "max_sessions_per_shard", "waitTimeout",
+            "maxLifetimeSession", "sessionCallback", "maxSessionsPerShard",
+            NULL };
 
     // parse arguments and keywords
     usernameObj = passwordObj = dsnObj = editionObj = Py_None;
-    externalAuthObj = sessionCallbackObj = NULL;
+    externalAuthObj = sessionCallbackObj = sessionCallbackObjDeprecated = NULL;
     threadedObj = eventsObj = homogeneousObj = passwordObj = NULL;
     connectionType = &cxoPyTypeConnection;
     minSessions = 1;
     maxSessions = 2;
     sessionIncrement = 1;
-    maxSessionsPerShard = 0;
+    maxSessionsPerShard = maxSessionsPerShardDeprecated = 0;
+    waitTimeoutDeprecated = maxLifetimeSessionDeprecated = 0;
+    maxSessionsPerShardDeprecated = 0;
     if (cxoUtils_initializeDPI(NULL) < 0)
         return -1;
     if (dpiContext_initCommonCreateParams(cxoDpiContext, &dpiCommonParams) < 0)
@@ -67,14 +73,16 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     if (dpiContext_initPoolCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOiiiOObOOOssOiiiOi", keywordList, &usernameObj, &passwordObj,
-            &dsnObj, &minSessions, &maxSessions, &sessionIncrement,
-            &connectionType, &threadedObj, &dpiCreateParams.getMode,
-            &eventsObj, &homogeneousObj, &externalAuthObj,
-            &dpiCommonParams.encoding, &dpiCommonParams.nencoding, &editionObj,
-            &dpiCreateParams.timeout, &dpiCreateParams.waitTimeout,
-            &dpiCreateParams.maxLifetimeSession, &sessionCallbackObj,
-            &maxSessionsPerShard))
+            "|OOOiiiOObOOOssOiiiOiiiOi", keywordList, &usernameObj,
+            &passwordObj, &dsnObj, &minSessions, &maxSessions,
+            &sessionIncrement, &connectionType, &threadedObj,
+            &dpiCreateParams.getMode, &eventsObj, &homogeneousObj,
+            &externalAuthObj, &dpiCommonParams.encoding,
+            &dpiCommonParams.nencoding, &editionObj, &dpiCreateParams.timeout,
+            &dpiCreateParams.waitTimeout, &dpiCreateParams.maxLifetimeSession,
+            &sessionCallbackObj, &maxSessionsPerShard, &waitTimeoutDeprecated,
+            &maxLifetimeSessionDeprecated, &sessionCallbackObjDeprecated,
+            &maxSessionsPerShardDeprecated))
         return -1;
     if (!PyType_Check(connectionType)) {
         cxoError_raiseFromString(cxoProgrammingErrorException,
@@ -100,6 +108,43 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     if (cxoUtils_getBooleanValue(homogeneousObj, 1,
             &dpiCreateParams.homogeneous) < 0)
         return -1;
+
+    // check duplicate parameters to ensure that both are not specified
+    if (waitTimeoutDeprecated > 0) {
+        if (dpiCreateParams.waitTimeout > 0) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "waitTimeout and wait_timeout cannot both be specified");
+            return -1;
+        }
+        dpiCreateParams.waitTimeout = waitTimeoutDeprecated;
+    }
+    if (maxLifetimeSessionDeprecated > 0) {
+        if (dpiCreateParams.maxLifetimeSession > 0) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "maxLifetimeSession and max_lifetime_session cannot both "
+                    "be specified");
+            return -1;
+        }
+        dpiCreateParams.maxLifetimeSession = maxLifetimeSessionDeprecated;
+    }
+    if (sessionCallbackObjDeprecated) {
+        if (sessionCallbackObj > 0) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "sessionCallback and session_callback cannot both "
+                    "be specified");
+            return -1;
+        }
+        sessionCallbackObj = sessionCallbackObjDeprecated;
+    }
+    if (maxSessionsPerShardDeprecated > 0) {
+        if (maxSessionsPerShard > 0) {
+            cxoError_raiseFromString(cxoProgrammingErrorException,
+                    "maxSessionsPerShard and max_sessions_per_shard cannot "
+                    "both be specified");
+            return -1;
+        }
+        maxSessionsPerShard = maxSessionsPerShardDeprecated;
+    }
 
     // initialize the object's members
     Py_INCREF(connectionType);

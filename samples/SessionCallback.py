@@ -82,7 +82,7 @@ pool = cx_Oracle.SessionPool(user=sample_env.get_main_user(),
                              password=sample_env.get_main_password(),
                              dsn=sample_env.get_connect_string(), min=2, max=5,
                              increment=1, threaded=True,
-                             sessionCallback=init_session)
+                             session_callback=init_session)
 
 # acquire session without specifying a tag; since the session returned is
 # newly created, the callback will be invoked but since there is no tag
