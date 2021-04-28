@@ -52,8 +52,9 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
             "homogeneous", "externalauth", "encoding", "nencoding", "edition",
             "timeout", "wait_timeout", "max_lifetime_session",
             "session_callback", "max_sessions_per_shard",
-            "soda_metadata_cache", "stmtcachesize", "waitTimeout",
-            "maxLifetimeSession", "sessionCallback", "maxSessionsPerShard",
+            "soda_metadata_cache", "stmtcachesize", "ping_interval",
+            "waitTimeout", "maxLifetimeSession", "sessionCallback",
+            "maxSessionsPerShard",
             NULL };
 
     // parse arguments and keywords
@@ -74,7 +75,7 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
     if (dpiContext_initPoolCreateParams(cxoDpiContext, &dpiCreateParams) < 0)
         return cxoError_raiseAndReturnInt();
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs,
-            "|OOOiiiOpbpppssOiiiOipIiiOi", keywordList, &usernameObj,
+            "|OOOiiiOpbpppssOiiiOipIiiiOi", keywordList, &usernameObj,
             &passwordObj, &dsnObj, &minSessions, &maxSessions,
             &sessionIncrement, &connectionType, &threaded,
             &dpiCreateParams.getMode, &events, &dpiCreateParams.homogeneous,
@@ -83,8 +84,9 @@ static int cxoSessionPool_init(cxoSessionPool *pool, PyObject *args,
             &dpiCreateParams.waitTimeout, &dpiCreateParams.maxLifetimeSession,
             &sessionCallbackObj, &maxSessionsPerShard,
             &dpiCommonParams.sodaMetadataCache, &stmtCacheSize,
-            &waitTimeoutDeprecated, &maxLifetimeSessionDeprecated,
-            &sessionCallbackObjDeprecated, &maxSessionsPerShardDeprecated))
+            &dpiCreateParams.pingInterval, &waitTimeoutDeprecated,
+            &maxLifetimeSessionDeprecated, &sessionCallbackObjDeprecated,
+            &maxSessionsPerShardDeprecated))
         return -1;
     if (!PyType_Check(connectionType)) {
         cxoError_raiseFromString(cxoProgrammingErrorException,
@@ -464,6 +466,21 @@ static PyObject *cxoSessionPool_getOpenCount(cxoSessionPool *pool, void *unused)
 
 
 //-----------------------------------------------------------------------------
+// cxoSessionPool_getPingInterval()
+//   Return the current value of the ping interval set for the pool.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSessionPool_getPingInterval(cxoSessionPool *pool,
+        void *unused)
+{
+    int value;
+
+    if (dpiPool_getPingInterval(pool->handle, &value) < 0)
+        return cxoError_raiseAndReturnNull();
+    return PyLong_FromLong(value);
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoSessionPool_getSodaMetadataCache()
 //   Return a boolean indicating if the SODA metadata cache is enabled or not.
 //-----------------------------------------------------------------------------
@@ -539,6 +556,29 @@ static int cxoSessionPool_setMaxLifetimeSession(cxoSessionPool *pool,
 {
     return cxoSessionPool_setAttribute(pool, value,
             dpiPool_setMaxLifetimeSession);
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSessionPool_setPingInterval()
+//   Set the value of the OCI attribute.
+//-----------------------------------------------------------------------------
+static int cxoSessionPool_setPingInterval(cxoSessionPool *pool,
+        PyObject *value, void *unused)
+{
+    long cValue;
+
+    if (!PyLong_Check(value)) {
+        PyErr_SetString(PyExc_TypeError, "value must be an integer");
+        return -1;
+    }
+    cValue = PyLong_AsLong(value);
+    if (PyErr_Occurred())
+        return -1;
+    if (dpiPool_setPingInterval(pool->handle, (int) cValue) < 0)
+        return cxoError_raiseAndReturnInt();
+
+    return 0;
 }
 
 
@@ -644,6 +684,8 @@ static PyGetSetDef cxoCalcMembers[] = {
             (setter) cxoSessionPool_setGetMode, 0, 0 },
     { "max_lifetime_session", (getter) cxoSessionPool_getMaxLifetimeSession,
             (setter) cxoSessionPool_setMaxLifetimeSession, 0, 0 },
+    { "ping_interval", (getter) cxoSessionPool_getPingInterval,
+            (setter) cxoSessionPool_setPingInterval, 0, 0 },
     { "soda_metadata_cache", (getter) cxoSessionPool_getSodaMetadataCache,
             (setter) cxoSessionPool_setSodaMetadataCache, 0, 0 },
     { "stmtcachesize", (getter) cxoSessionPool_getStmtCacheSize,

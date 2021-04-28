@@ -26,6 +26,11 @@ Version 8.2 (TBD)
     :meth:`cx_Oracle.SessionPool()` in order to permit specifying the size of
     the statement cache during the creation of pools and standalone
     connections.
+#)  Added parameter `ping_interval` to :meth:`cx_Oracle.SessionPool()` to specify
+    the ping interval when acquiring pooled connections. In addition, the
+    attribute :data:`SessionPool.ping_interval` was added in order to permit
+    making adjustments after the pool has been created.  In previous cx_Oracle
+    releases a fixed ping interval of 60 seconds was used.
 #)  Added parameter `bypass_decode` to :meth:`Cursor.var()` in order to allow
     the `decode` step to be bypassed when converting data from Oracle Database
     into Python strings

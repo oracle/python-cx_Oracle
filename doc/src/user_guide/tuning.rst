@@ -259,6 +259,7 @@ Some general tips for reducing round-trips are:
 * Make use of PL/SQL procedures which execute multiple SQL statements instead of executing them individually from cx_Oracle.
 * Use scalar types instead of Oracle Database object types.
 * Avoid overuse of :meth:`Connection.ping()`.
+* Avoid setting :data:`SessionPool.ping_interval` to 0 or a small value.
 * When using SODA, use pooled connections and enable the :ref:`SODA metadata cache <sodametadatacache>`.
 
 Finding the Number of Round-Trips

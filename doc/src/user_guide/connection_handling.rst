@@ -327,18 +327,19 @@ return a different one.  This check will not detect cases such as where the
 database session has been killed by the DBA, or reached a database resource
 manager quota limit.  To help in those cases, :meth:`~SessionPool.acquire()`
 will also do a full :ref:`round-trip <roundtrips>` ping to the database when it
-is about to return a connection that was unused in the pool for 60 seconds.  If
-the ping fails, the connection will be discarded and another one obtained before
-:meth:`~SessionPool.acquire()` returns to the application.  Because this full
-ping is time based, it won't catch every failure.  Also network timeouts and
-session kills may occur after :meth:`~SessionPool.acquire()` and before
-:meth:`Cursor.execute()`.  To handle these cases, applications need to check
-for errors after each :meth:`~Cursor.execute()` and make application-specific
-decisions about retrying work if there was a connection failure.  Oracle's
-:ref:`Application Continuity <highavailability>` can do this automatically in
-some cases.  Note both the lightweight and full ping connection checks can mask
-performance-impacting configuration issues, for example firewalls killing
-connections, so monitor the connection rate in `AWR
+is about to return a connection that was unused in the pool for
+:data:`SessionPool.ping_interval` seconds.  If the ping fails, the connection
+will be discarded and another one obtained before :meth:`~SessionPool.acquire()`
+returns to the application.  Because this full ping is time based, it won't
+catch every failure.  Also network timeouts and session kills may occur after
+:meth:`~SessionPool.acquire()` and before :meth:`Cursor.execute()`.  To handle
+these cases, applications need to check for errors after each
+:meth:`~Cursor.execute()` and make application-specific decisions about retrying
+work if there was a connection failure.  Oracle's :ref:`Application Continuity
+<highavailability>` can do this automatically in some cases.  Note both the
+lightweight and full ping connection checks can mask performance-impacting
+configuration issues, for example firewalls killing connections, so monitor the
+connection rate in `AWR
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
 for an unexpected value.  You can explicitly initiate a full ping to check
 connection liveness with :meth:`Connection.ping()` but overuse will impact

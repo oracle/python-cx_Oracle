@@ -213,7 +213,7 @@ Module Interface
         homogeneous=True, externalauth=False, encoding=None, nencoding=None, \
         edition=None, timeout=0, wait_timeout=0, max_lifetime_session=0, \
         session_callback=None, max_sessions_per_shard=0, \
-        soda_metadata_cache=False, stmtcachesize=20)
+        soda_metadata_cache=False, stmtcachesize=20, ping_interval=60)
 
     Create and return a :ref:`session pool object <sesspool>`.  Session pooling
     (also known as connection pooling) creates a pool of available connections
@@ -333,19 +333,22 @@ Module Interface
     The stmtcachesize parameter, if specified, is expected to be an integer
     which specifies the initial value of :data:`~SessionPool.stmtcachesize`.
 
+    The ping_interval parameter, if specified, is expected to be an integer
+    which specifies the initial value of :data:`~SessionPool.ping_interval`.
+
     .. note::
 
         This method is an extension to the DB API definition.
 
     .. versionchanged:: 8.2
 
-        The parameters `soda_metadata_cache` and `stmtcachesize` were added.
-        For consistency and compliance with the PEP 8 naming style, the
-        parameter `waitTimeout` was renamed to `wait_timeout`, the parameter
-        `maxLifetimeSession` was renamed to `max_lifetime_session`, the
-        parameter `sessionCallback` was renamed to `session_callback` and the
-        parameter `maxSessionsPerShard` was renamed to
-        `max_sessions_per_shard`. The old names will continue to work as
+        The parameters `soda_metadata_cache`, `stmtcachesize` and
+        `ping_interval` were added. For consistency and compliance with the PEP
+        8 naming style, the parameter `waitTimeout` was renamed to
+        `wait_timeout`, the parameter `maxLifetimeSession` was renamed to
+        `max_lifetime_session`, the parameter `sessionCallback` was renamed to
+        `session_callback` and the parameter `maxSessionsPerShard` was renamed
+        to `max_sessions_per_shard`. The old names will continue to work as
         keyword parameters for a period of time. The `threaded` parameter value
         is ignored and threading is always enabled.
 
