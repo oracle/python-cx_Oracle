@@ -567,8 +567,8 @@ Connection Object
 .. attribute:: Connection.stmtcachesize
 
     This read-write attribute specifies the size of the statement cache. This
-    value can make a significant difference in performance (up to 100x) if you
-    have a small number of statements that you execute repeatedly.
+    value can make a significant difference in performance if you have a small
+    number of statements that you execute repeatedly.
 
     The default value is 20.
 
