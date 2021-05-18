@@ -28,11 +28,6 @@
 static Py_ssize_t cxoTransform_calculateSize(PyObject *value,
         cxoTransformNum transformNum);
 static cxoTransformNum cxoTransform_getNumFromPythonType(PyTypeObject *type);
-
-
-//-----------------------------------------------------------------------------
-// Forward declarations
-//-----------------------------------------------------------------------------
 static PyObject *cxoTransform_toPythonFromJson(cxoConnection *connection,
         dpiJsonNode *node, const char *encodingErrors);
 
