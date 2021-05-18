@@ -32,6 +32,36 @@ class TestCase(test_env.BaseTestCase):
             self.assertRaises(oracledb.DatabaseError, cursor.execute,
                             "select 1 / 0 from dual")
 
+    def __perform_reconfigure_test(self, parameter_name, parameter_value,
+                                   min=3, max=30, increment=4, timeout=5,
+                                   wait_timeout=5000, stmtcachesize=25,
+                                   max_lifetime_session=1000,
+                                   max_sessions_per_shard=3, ping_interval=30,
+                                   getmode=oracledb.SPOOL_ATTRVAL_WAIT):
+        creation_args = dict(min=min, max=max, increment=increment,
+                             timeout=timeout, wait_timeout=wait_timeout,
+                             stmtcachesize=stmtcachesize,
+                             max_lifetime_session=max_lifetime_session,
+                             max_sessions_per_shard=max_sessions_per_shard,
+                             ping_interval=ping_interval, getmode=getmode)
+        reconfigure_args = {}
+        reconfigure_args[parameter_name] = parameter_value
+
+        pool = test_env.get_pool(**creation_args)
+        connection = pool.acquire()
+        pool.reconfigure(**reconfigure_args)
+        actual_args = dict(min=pool.min, max=pool.max,
+                           increment=pool.increment, timeout=pool.timeout,
+                           wait_timeout=pool.wait_timeout,
+                           stmtcachesize=pool.stmtcachesize,
+                           max_lifetime_session=pool.max_lifetime_session,
+                           max_sessions_per_shard=pool.max_sessions_per_shard,
+                           ping_interval=pool.ping_interval,
+                           getmode=pool.getmode)
+        expected_args = creation_args.copy()
+        expected_args.update(reconfigure_args)
+        self.assertEqual(actual_args, expected_args)
+
     def __verify_connection(self, connection, expected_user,
                             expected_proxy_user=None):
         cursor = connection.cursor()
@@ -376,37 +406,40 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.stmtcachesize, 30, "stmtcachesize (30)")
         self.assertEqual(pool.ping_interval, 30, "ping_interval (30)")
 
-    def test_2416_reconfigure_pool_with_missing_params(self):
-        "2416 - test to ensure reconfigure uses initial values if unspecified"
-        pool = test_env.get_pool(min=1, max=2, increment=1)
+    def test_2416_test_reconfigure_pool_with_missing_values(self):
+        "2416 - test the reconfigure values are changed and rest unchanged"
+        self.__perform_reconfigure_test("min", 5)
+        self.__perform_reconfigure_test("max", 20)
+        self.__perform_reconfigure_test("increment", 5)
+        self.__perform_reconfigure_test("timeout", 10)
+        self.__perform_reconfigure_test("wait_timeout", 8000)
+        self.__perform_reconfigure_test("stmtcachesize", 40)
+        self.__perform_reconfigure_test("max_lifetime_session", 2000)
+        self.__perform_reconfigure_test("max_sessions_per_shard", 5)
+        self.__perform_reconfigure_test("ping_interval", 50)
+        self.__perform_reconfigure_test("getmode",
+                                        oracledb.SPOOL_ATTRVAL_NOWAIT)
+
+    def test_2417_setting_each_pool_param(self):
+        "2417 - test to see if specified parameters are set during creation"
+        pool = test_env.get_pool(min=1, max=2, increment=1, timeout=10,
+                                 wait_timeout=10, max_lifetime_session=20,
+                                 max_sessions_per_shard=1, stmtcachesize=25,
+                                 ping_interval=25,
+                                 getmode=oracledb.SPOOL_ATTRVAL_WAIT)
         self.assertEqual(pool.min, 1, "min (1)")
         self.assertEqual(pool.max, 2, "max (2)")
         self.assertEqual(pool.increment, 1, "increment (1)")
-        self.assertEqual(pool.getmode, oracledb.SPOOL_ATTRVAL_NOWAIT,
+        self.assertEqual(pool.getmode, oracledb.SPOOL_ATTRVAL_WAIT,
                          "getmode differs")
-        self.assertEqual(pool.timeout, 0, "timeout (0)")
-        self.assertEqual(pool.wait_timeout, 5000, "wait_timeout (5000)")
-        self.assertEqual(pool.max_lifetime_session, 0,
-                        "max_lifetime_sessionmeout (0)")
-        self.assertEqual(pool.max_sessions_per_shard, 0,
-                        "max_sessions_per_shard (0)")
-        self.assertEqual(pool.stmtcachesize, 20, "stmtcachesize (20)")
-        self.assertEqual(pool.ping_interval, 60, "ping_interval (60)")
-
-        pool.reconfigure(min=2, max=5, increment=2)
-        self.assertEqual(pool.min, 2, "min (2)")
-        self.assertEqual(pool.max, 5, "max (5)")
-        self.assertEqual(pool.increment, 2, "increment (2)")
-        self.assertEqual(pool.getmode, oracledb.SPOOL_ATTRVAL_NOWAIT,
-                         "getmode differs")
-        self.assertEqual(pool.timeout, 0, "timeout (0)")
-        self.assertEqual(pool.wait_timeout, 5000, "wait_timeout (5000)")
-        self.assertEqual(pool.max_lifetime_session, 0,
-                        "max_lifetime_sessionmeout (0)")
-        self.assertEqual(pool.max_sessions_per_shard, 0,
-                        "max_sessions_per_shard (0)")
-        self.assertEqual(pool.stmtcachesize, 20, "stmtcachesize (20)")
-        self.assertEqual(pool.ping_interval, 60, "ping_interval (60)")
+        self.assertEqual(pool.timeout, 10, "timeout (10)")
+        self.assertEqual(pool.wait_timeout, 10, "wait_timeout (10)")
+        self.assertEqual(pool.max_lifetime_session, 20,
+                        "max_lifetime_sessionmeout (20)")
+        self.assertEqual(pool.max_sessions_per_shard, 1,
+                        "max_sessions_per_shard (1)")
+        self.assertEqual(pool.stmtcachesize, 25, "stmtcachesize (25)")
+        self.assertEqual(pool.ping_interval, 25, "ping_interval (25)")
 
 if __name__ == "__main__":
     test_env.run_test_cases()
