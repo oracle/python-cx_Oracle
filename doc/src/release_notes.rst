@@ -7,12 +7,12 @@ cx_Oracle Release Notes
 
 For any deprecations, see :ref:`Deprecations <deprecations>`.
 
-Version 8.2 (TBD)
------------------
+Version 8.2 (May 2021)
+----------------------
 
 #)  Updated embedded ODPI-C to `version 4.2.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
-    version-4-2-tbd>`__.
+    version-4-2-may-18-2021>`__.
 #)  Threaded mode is now always enabled when creating connection pools with
     :meth:`cx_Oracle.SessionPool()`. Any `threaded` parameter value is ignored.
 #)  Added :meth:`SessionPool.reconfigure()` to support pool reconfiguration.
@@ -24,7 +24,7 @@ Version 8.2 (TBD)
     pool.  In addition, the attribute
     :data:`SessionPool.max_sessions_per_shard` was added in order to permit
     making adjustments after the pool has been created. They are usable when
-    using Oracle Client version 18.4 and higher.
+    using Oracle Client version 18.3 and higher.
 #)  Added parameter `stmtcachesize` to :meth:`cx_Oracle.connect()` and
     :meth:`cx_Oracle.SessionPool()` in order to permit specifying the size of
     the statement cache during the creation of pools and standalone
@@ -41,7 +41,8 @@ Version 8.2 (TBD)
     significantly improves the performance of methods
     :meth:`SodaDatabase.createCollection()` (when not specifying a value for
     the metadata parameter) and :meth:`SodaDatabase.openCollection()`. Caching
-    is available when using Oracle Client version 19.11 and higher.
+    is available when using Oracle Client version 21.3 and higher (or Oracle
+    Client 19 from 19.11).
 #)  Added support for supplying hints to SODA operations. A new non-terminal
     method :meth:`~SodaOperation.hint()` was added and a `hint` parameter was
     added to the methods :meth:`SodaCollection.insertOneAndGet()`,
