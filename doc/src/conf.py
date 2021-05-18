@@ -28,8 +28,8 @@ templates_path = ['.templates']
 # The suffix of source filenames.
 source_suffix = '.rst'
 
-# The main toctree document.
-main_doc = 'index'
+# The root toctree document.
+root_doc = master_doc = 'index'
 
 # General substitutions.
 project = 'cx_Oracle'
