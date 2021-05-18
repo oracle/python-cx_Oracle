@@ -320,9 +320,12 @@ Module Interface
     id=GUID-B853A020-752F-494A-8D88-D0396EF57177>`__ for more information.
 
     The max_sessions_per_shard parameter is expected to be an integer, if
-    specified, and sets the maximum number of sessions in the pool that can be
-    used for any given shard in a sharded database. This value is ignored if
-    the Oracle client library version is less than 18.3.
+    specified. Setting this greater than zero specifies the maximum number of
+    sessions in the pool that can be used for any given shard in a sharded
+    database. This lets connections in the pool be balanced across the shards.
+    A value of zero will not set any maximum number of sessions for each shard.
+    This value is ignored if the Oracle client library version is less than
+    18.3.
 
     The soda_metadata_cache parameter is expected to be a boolean expresion
     which indicates whether or not to enable the SODA metatata cache. This

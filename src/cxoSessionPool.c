@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
 //
 // Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 //
@@ -13,6 +13,11 @@
 //-----------------------------------------------------------------------------
 
 #include "cxoModule.h"
+
+// forward declarations
+int cxoSessionPool_reconfigureHelper(cxoSessionPool *pool,
+        const char *attrName, PyObject *value);
+
 
 //-----------------------------------------------------------------------------
 // cxoSessionPool_new()
@@ -339,6 +344,93 @@ static PyObject *cxoSessionPool_drop(cxoSessionPool *pool, PyObject *args)
 
 
 //-----------------------------------------------------------------------------
+// cxoSessionPool_reconfigure()
+//   Reconfigure properties of the session pool.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSessionPool_reconfigure(cxoSessionPool *pool,
+        PyObject *args, PyObject *keywordArgs)
+{
+    PyObject *timeout, *waitTimeout, *maxLifetimeSession, *maxSessionsPerShard;
+    PyObject *sodaMetadataCache, *stmtcachesize, *pingInterval, *getMode;
+    uint32_t minSessions, maxSessions, sessionIncrement;
+
+    // define keyword arguments
+    static char *keywordList[] = { "min", "max", "increment", "getmode",
+            "timeout", "wait_timeout", "max_lifetime_session",
+            "max_sessions_per_shard", "soda_metadata_cache", "stmtcachesize",
+            "ping_interval", NULL };
+
+    // set up default values
+    minSessions = pool->minSessions;
+    maxSessions = pool->maxSessions;
+    sessionIncrement = pool->sessionIncrement;
+    timeout = waitTimeout = maxLifetimeSession = maxSessionsPerShard = NULL;
+    sodaMetadataCache = stmtcachesize = pingInterval = getMode = NULL;
+
+    // parse arguments and keywords
+    if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "|iiiOOOOOOOO",
+            keywordList, &minSessions, &maxSessions, &sessionIncrement,
+            &getMode, &timeout, &waitTimeout, &maxLifetimeSession,
+            &maxSessionsPerShard, &sodaMetadataCache, &stmtcachesize,
+            &pingInterval))
+        return NULL;
+
+    // perform reconfiguration of the pool itself if needed
+    if (minSessions != pool->minSessions || maxSessions != pool->maxSessions ||
+            sessionIncrement != pool->sessionIncrement) {
+        if (dpiPool_reconfigure(pool->handle, minSessions, maxSessions,
+                sessionIncrement) < 0)
+            return cxoError_raiseAndReturnNull();
+        pool->minSessions = minSessions;
+        pool->maxSessions = maxSessions;
+        pool->sessionIncrement = sessionIncrement;
+    }
+
+    // adjust attributes
+    if (cxoSessionPool_reconfigureHelper(pool, "getmode", getMode) < 0)
+        return NULL;
+    if (cxoSessionPool_reconfigureHelper(pool, "timeout", timeout) < 0)
+        return NULL;
+    if (cxoSessionPool_reconfigureHelper(pool, "wait_timeout",
+            waitTimeout) < 0)
+        return NULL;
+    if (cxoSessionPool_reconfigureHelper(pool, "max_lifetime_session",
+            maxLifetimeSession) < 0)
+        return NULL;
+    if (cxoSessionPool_reconfigureHelper(pool, "max_sessions_per_shard",
+            maxSessionsPerShard) < 0)
+        return NULL;
+    if (cxoSessionPool_reconfigureHelper(pool, "soda_metadata_cache",
+            sodaMetadataCache) < 0)
+        return NULL;
+    if (cxoSessionPool_reconfigureHelper(pool, "stmtcachesize",
+            stmtcachesize) < 0)
+        return NULL;
+    if (cxoSessionPool_reconfigureHelper(pool, "ping_interval",
+            pingInterval) < 0)
+        return NULL;
+
+    Py_RETURN_NONE;
+}
+
+
+//-----------------------------------------------------------------------------
+// cxoSessionPool_reconfigureHelpe()
+//   Helper function that calls the setter for the session pool's property,
+// after first checking that a value was supplied and not None.
+//-----------------------------------------------------------------------------
+int cxoSessionPool_reconfigureHelper(cxoSessionPool *pool,
+        const char *attrName, PyObject *value)
+{
+    if (value != NULL && value != Py_None) {
+        if (PyObject_SetAttrString((PyObject*) pool, attrName, value) < 0)
+            return cxoError_raiseAndReturnInt();
+    }
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoSessionPool_release()
 //   Release a connection back to the session pool.
 //-----------------------------------------------------------------------------
@@ -456,6 +548,17 @@ static PyObject *cxoSessionPool_getMaxLifetimeSession(cxoSessionPool *pool,
 
 
 //-----------------------------------------------------------------------------
+// cxoSessionPool_getMaxSessionsPerShard()
+//   Return the maximum sessions per shard in the session pool.
+//-----------------------------------------------------------------------------
+static PyObject *cxoSessionPool_getMaxSessionsPerShard(cxoSessionPool *pool,
+        void *unused)
+{
+    return cxoSessionPool_getAttribute(pool, dpiPool_getMaxSessionsPerShard);
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoSessionPool_getOpenCount()
 //   Return the number of open connections in the session pool.
 //-----------------------------------------------------------------------------
@@ -560,6 +663,18 @@ static int cxoSessionPool_setMaxLifetimeSession(cxoSessionPool *pool,
 
 
 //-----------------------------------------------------------------------------
+// cxoSessionPool_setMaxSessionsPerShard()
+//   Set the maximum lifetime for connections in the session pool.
+//-----------------------------------------------------------------------------
+static int cxoSessionPool_setMaxSessionsPerShard(cxoSessionPool *pool,
+        PyObject *value, void *unused)
+{
+    return cxoSessionPool_setAttribute(pool, value,
+            dpiPool_setMaxSessionsPerShard);
+}
+
+
+//-----------------------------------------------------------------------------
 // cxoSessionPool_setPingInterval()
 //   Set the value of the OCI attribute.
 //-----------------------------------------------------------------------------
@@ -649,6 +764,8 @@ static PyMethodDef cxoMethods[] = {
     { "close", (PyCFunction) cxoSessionPool_close,
             METH_VARARGS | METH_KEYWORDS },
     { "drop", (PyCFunction) cxoSessionPool_drop, METH_VARARGS },
+    { "reconfigure", (PyCFunction) cxoSessionPool_reconfigure,
+            METH_VARARGS | METH_KEYWORDS },
     { "release", (PyCFunction) cxoSessionPool_release,
             METH_VARARGS | METH_KEYWORDS },
     { NULL }
@@ -684,6 +801,8 @@ static PyGetSetDef cxoCalcMembers[] = {
             (setter) cxoSessionPool_setGetMode, 0, 0 },
     { "max_lifetime_session", (getter) cxoSessionPool_getMaxLifetimeSession,
             (setter) cxoSessionPool_setMaxLifetimeSession, 0, 0 },
+    { "max_sessions_per_shard", (getter) cxoSessionPool_getMaxSessionsPerShard,
+            (setter) cxoSessionPool_setMaxSessionsPerShard, 0, 0 },
     { "ping_interval", (getter) cxoSessionPool_getPingInterval,
             (setter) cxoSessionPool_setPingInterval, 0, 0 },
     { "soda_metadata_cache", (getter) cxoSessionPool_getSodaMetadataCache,

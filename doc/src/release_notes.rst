@@ -15,23 +15,33 @@ Version 8.2 (TBD)
     version-4-2-tbd>`__.
 #)  Threaded mode is now always enabled when creating connection pools with
     :meth:`cx_Oracle.SessionPool()`. Any `threaded` parameter value is ignored.
+#)  Added :meth:`SessionPool.reconfigure()` to support pool reconfiguration.
+    This method provides the ability to change properties such as the size of
+    existing pools instead of having to restart the application or create a new
+    pool.
+#)  Added parameter `max_sessions_per_shard` to :meth:`cx_Oracle.SessionPool()`
+    to allow configuration of the maximum number of sessions per shard in the
+    pool.  In addition, the attribute
+    :data:`SessionPool.max_sessions_per_shard` was added in order to permit
+    making adjustments after the pool has been created. They are usable when
+    using Oracle Client version 18.4 and higher.
 #)  Added parameter `stmtcachesize` to :meth:`cx_Oracle.connect()` and
     :meth:`cx_Oracle.SessionPool()` in order to permit specifying the size of
     the statement cache during the creation of pools and standalone
     connections.
-#)  Added parameter `ping_interval` to :meth:`cx_Oracle.SessionPool()` to specify
-    the ping interval when acquiring pooled connections. In addition, the
-    attribute :data:`SessionPool.ping_interval` was added in order to permit
-    making adjustments after the pool has been created.  In previous cx_Oracle
-    releases a fixed ping interval of 60 seconds was used.
-#)  Added parameter `soda_metadata_cache` to :meth:`cx_Oracle.SessionPool()` for
-    :ref:`SODA metadata cache <sodametadatacache>` support.  In addition, the
-    attribute :data:`SessionPool.soda_metadata_cache` was added in order to
+#)  Added parameter `ping_interval` to :meth:`cx_Oracle.SessionPool()` to
+    specify the ping interval when acquiring pooled connections. In addition,
+    the attribute :data:`SessionPool.ping_interval` was added in order to
+    permit making adjustments after the pool has been created.  In previous
+    cx_Oracle releases a fixed ping interval of 60 seconds was used.
+#)  Added parameter `soda_metadata_cache` to :meth:`cx_Oracle.SessionPool()`
+    for :ref:`SODA metadata cache <sodametadatacache>` support.  In addition,
+    the attribute :data:`SessionPool.soda_metadata_cache` was added in order to
     permit making adjustments after the pool has been created. This feature
     significantly improves the performance of methods
-    :meth:`SodaDatabase.createCollection()` (when not specifying a value for the
-    metadata parameter) and :meth:`SodaDatabase.openCollection()`. Caching is
-    available when using Oracle Client version 19.11 and higher.
+    :meth:`SodaDatabase.createCollection()` (when not specifying a value for
+    the metadata parameter) and :meth:`SodaDatabase.openCollection()`. Caching
+    is available when using Oracle Client version 19.11 and higher.
 #)  Added support for supplying hints to SODA operations. A new non-terminal
     method :meth:`~SodaOperation.hint()` was added and a `hint` parameter was
     added to the methods :meth:`SodaCollection.insertOneAndGet()`,
@@ -56,8 +66,8 @@ Version 8.2 (TBD)
 #)  The distributed transaction handle assosciated with the connection is now
     cleared on commit or rollback (`issue 530
     <https://github.com/oracle/python-cx_Oracle/issues/530>`__).
-#)  Added a check to ensure that when setting variables or object attributes, the
-    type of the temporary LOB must match the expected type.
+#)  Added a check to ensure that when setting variables or object attributes,
+    the type of the temporary LOB must match the expected type.
 #)  A small number of parameter, method, and attribute names were updated to
     follow the PEP 8 style guide. This brings better consistency to the
     cx_Oracle API. The old names are still usable but may be removed in a

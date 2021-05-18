@@ -407,6 +407,42 @@ or user profile `IDLE_TIME
 do not expire idle sessions, since this will require connections be recreated,
 which will impact performance and scalability.
 
+.. _poolreconfiguration:
+
+Connection Pool Reconfiguration
+-------------------------------
+
+Some pool settings can be changed dynamically with
+:meth:`SessionPool.reconfigure()`.  This allows the pool size and other
+attributes to be changed during application runtime without needing to restart
+the pool or application.
+
+For example a pool's size can be changed like:
+
+.. code-block:: python
+
+    pool.reconfigure(min=10, max=10, increment=0)
+
+After any size change has been processed, reconfiguration on the other
+parameters is done sequentially. If an error such as an invalid value occurs
+when changing one attribute, then an exception will be generated but any already
+changed attributes will retain their new values.
+
+During reconfiguration of a pool's size, the behavior of
+:meth:`SessionPool.acquire()` depends on the ``getmode`` in effect when
+``acquire()`` is called, see :meth:`SessionPool.reconfigure()`.  Closing
+connections or closing the pool will wait until after pool reconfiguration is
+complete.
+
+Calling ``reconfigure()`` is the only way to change a pool's ``min``, ``max``
+and ``increment`` values.  Other attributes such as
+:data:`~SessionPool.wait_timeout` can also be passed to ``reconfigure()`` or
+they can be set directly:
+
+.. code-block:: python
+
+    pool.wait_timeout = 1000
+
 .. _sessioncallback:
 
 Session CallBacks for Setting Pooled Connection State

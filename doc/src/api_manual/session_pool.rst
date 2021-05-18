@@ -118,6 +118,19 @@ SessionPool Object
     .. versionadded:: 5.3
 
 
+.. attribute:: SessionPool.max_sessions_per_shard
+
+    This read-write attribute returns the number of sessions that can be created
+    per shard in the pool. Setting this attribute greater than zero specifies
+    the maximum number of sessions in the pool that can be used for any given
+    shard in a sharded database. This lets connections in the pool be balanced
+    across the shards. A value of zero will not set any maximum number of
+    sessions for each shard. This attribute is only available in Oracle Client
+    18.3 and higher.
+
+    .. versionadded:: 8.2
+
+
 .. attribute:: SessionPool.min
 
     This read-only attribute returns the number of sessions with which the
@@ -150,6 +163,60 @@ SessionPool Object
     ``aquire()`` and is not recommended.
 
     Prior to cx_Oracle 8.2, the ping interval was fixed at 60 seconds.
+
+    .. versionadded:: 8.2
+
+
+.. method:: SessionPool.reconfigure([min, max, increment, getmode, timeout, \
+        wait_timeout, max_lifetime_session, max_sessions_per_shard, \
+        soda_metadata_cache, stmtcachesize, ping_interval])
+
+    Reconfigures various parameters of a connection pool. The pool size can be
+    altered with ``reconfigure()`` by passing values for
+    :data:`~SessionPool.min`, :data:`~SessionPool.max` or
+    :data:`~SessionPool.increment`.  The :data:`~SessionPool.getmode`,
+    :data:`~SessionPool.timeout`, :data:`~SessionPool.wait_timeout`,
+    :data:`~SessionPool.max_lifetime_session`,
+    :data:`~SessionPool.max_sessions_per_shard`,
+    :data:`~SessionPool.soda_metadata_cache`, :data:`~SessionPool.stmtcachesize`
+    and :data:`~SessionPool.ping_interval` attributes can be set directly or
+    with ``reconfigure()``.
+
+    All parameters are optional. Unspecified parameters will leave those pool
+    attributes unchanged. The parameters are processed in two stages. After any
+    size change has been processed, reconfiguration on the other parameters is
+    done sequentially. If an error such as an invalid value occurs when changing
+    one attribute, then an exception will be generated but any already changed
+    attributes will retain their new values.
+
+    During reconfiguration of a pool's size, the behavior of
+    :meth:`SessionPool.acquire()` depends on the ``getmode`` in effect when
+    ``acquire()`` is called:
+
+    * With mode :data:`~cx_Oracle.SPOOL_ATTRVAL_FORCEGET`, an ``acquire()`` call
+      will wait until the pool has been reconfigured.
+
+    * With mode :data:`~cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT`, an ``acquire()`` call
+      will try to acquire a connection in the time specified by
+      :data:`~SessionPool.wait_timeout` and return an error if the time taken
+      exceeds that value.
+
+    * With mode :data:`~cx_Oracle.SPOOL_ATTRVAL_WAIT`, an ``acquire()`` call
+      will wait until after the pool has been reconfigured and a connection is
+      available.
+
+    * With mode :data:`~cx_Oracle.SPOOL_ATTRVAL_NOWAIT`, if the number of busy
+      connections is less than the pool size, ``acquire()`` will return a new
+      connection after pool reconfiguration is complete.
+
+    Closing connections with :meth:`SessionPool.release()` or
+    :meth:`Connection.close()` will wait until any pool size reconfiguration is
+    complete.
+
+    Closing the connection pool with :meth:`SessionPool.close()` will wait until
+    reconfiguration is complete.
+
+    See :ref:`Connection Pool Reconfiguration <poolreconfiguration>`.
 
     .. versionadded:: 8.2
 
