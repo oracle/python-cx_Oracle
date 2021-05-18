@@ -48,7 +48,7 @@ def building_in_converter(value):
 
 def building_out_converter(obj):
     return Building(int(obj.BUILDINGID), obj.DESCRIPTION, int(obj.NUMFLOORS),
-            obj.DATEBUILT)
+                    obj.DATEBUILT)
 
 
 def input_type_handler(cursor, value, num_elements):

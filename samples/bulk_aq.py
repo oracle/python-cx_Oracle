@@ -66,7 +66,7 @@ connection.commit()
 print("\nDequeuing messages...")
 batch_size = 8
 while True:
-    messages = queue.deqMany(batch_size)
+    messages = queue.deqmany(batch_size)
     if not messages:
         break
     for props in messages:

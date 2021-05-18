@@ -11,10 +11,10 @@
 2400 - Module for testing session pools
 """
 
-import test_env
+import threading
 
 import cx_Oracle as oracledb
-import threading
+import test_env
 
 class TestCase(test_env.BaseTestCase):
     require_connection = False

@@ -60,8 +60,8 @@ print("--> Protocol:", sub.protocol)
 print("--> Timeout:", sub.timeout)
 print("--> Operations:", sub.operations)
 print("--> Rowids?:", bool(sub.qos & oracledb.SUBSCR_QOS_ROWIDS))
-queryId = sub.registerquery("select * from TestTempTable")
-print("Registered query:", queryId)
+query_id = sub.registerquery("select * from TestTempTable")
+print("Registered query:", query_id)
 
 while registered:
     print("Waiting for notifications....")

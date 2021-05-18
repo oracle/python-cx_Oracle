@@ -59,8 +59,8 @@ try:
     connection.commit() # this should fail
     sys.exit("Session was not killed. Terminating.")
 except oracledb.DatabaseError as e:
-    errorObj, = e.args
-    if not errorObj.isrecoverable:
+    error_obj, = e.args
+    if not error_obj.isrecoverable:
         sys.exit("Session is not recoverable. Terminating.")
 ltxid = connection.ltxid
 if not ltxid:
