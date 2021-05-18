@@ -32,9 +32,9 @@ code can be used:
     try:
         cursor.execute("insert into customer values (101, 'Customer A')")
     except cx_Oracle.IntegrityError as e:
-        errorObj, = e.args
+        error_obj, = e.args
         print("Customer ID already exists")
-        print("Error Code:", errorObj.code)
-        print("Error Message:", errorObj.message)
+        print("Error Code:", error_obj.code)
+        print("Error Message:", error_obj.message)
     else:
         print("Customer added")

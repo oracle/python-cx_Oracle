@@ -18,15 +18,15 @@ in the custom subclass, so application code does not need to supply them.
 .. code-block:: python
 
     class Connection(cx_Oracle.Connection):
-        logFileName = "log.txt"
+        log_file_name = "log.txt"
 
         def __init__(self):
-            connectString = "hr/hr_password@dbhost.example.com/orclpdb1"
+            connect_string = "hr/hr_password@dbhost.example.com/orclpdb1"
             self._log("Connect to the database")
-            return super(Connection, self).__init__(connectString)
+            return super(Connection, self).__init__(connect_string)
 
         def _log(self, message):
-            with open(self.logFileName, "a") as f:
+            with open(self.log_file_name, "a") as f:
                 print(message, file=f)
 
         def execute(self, sql, parameters):
@@ -35,8 +35,9 @@ in the custom subclass, so application code does not need to supply them.
             try:
                 return cursor.execute(sql, parameters)
             except cx_Oracle.Error as e:
-                errorObj, = e.args
-                self._log(errorObj.message)
+                error_obj, = e.args
+                self._log(error_obj.message)
+                raise
 
     connection = Connection()
     connection.execute("""
@@ -65,7 +66,7 @@ instead::
 In production applications be careful not to log sensitive information.
 
 See `Subclassing.py
-<https://github.com/oracle/python-cx_Oracle/blob/master/
+<https://github.com/oracle/python-cx_Oracle/blob/main/
 samples/subclassing.py>`__ for an example.
 
 

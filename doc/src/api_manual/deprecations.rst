@@ -35,7 +35,7 @@ if applicable. The most recent deprecations are listed first.
     * - Positional parameters to :meth:`cx_Oracle.connect()`
       - Replace with keyword parameters in order to comply with the Python
         database API.
-    * - positional parameters to :meth:`cx_Oracle.SessionPool()`
+    * - Positional parameters to :meth:`cx_Oracle.SessionPool()`
       - Replace with keyword parameters in order to comply with the Python
         database API.
     * - `threaded` parameter to :meth:`cx_Oracle.SessionPool()`

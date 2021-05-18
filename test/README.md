@@ -46,8 +46,8 @@ This directory contains the test suite for cx_Oracle.
 
         sqlplus system/systempassword@hostname/servicename @sql/drop_test.sql
 
-[1]: https://github.com/oracle/python-cx_Oracle/blob/master/test/setup_test.py
-[2]: https://github.com/oracle/python-cx_Oracle/blob/master/test/test_env.py
-[3]: https://github.com/oracle/python-cx_Oracle/blob/master/test/sql/setup_test.sql
-[4]: https://github.com/oracle/python-cx_Oracle/blob/master/test/drop_test.py
-[5]: https://github.com/oracle/python-cx_Oracle/blob/master/test/sql/drop_test.sql
+[1]: https://github.com/oracle/python-cx_Oracle/blob/main/test/setup_test.py
+[2]: https://github.com/oracle/python-cx_Oracle/blob/main/test/test_env.py
+[3]: https://github.com/oracle/python-cx_Oracle/blob/main/test/sql/setup_test.sql
+[4]: https://github.com/oracle/python-cx_Oracle/blob/main/test/drop_test.py
+[5]: https://github.com/oracle/python-cx_Oracle/blob/main/test/sql/drop_test.sql

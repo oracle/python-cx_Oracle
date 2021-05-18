@@ -22,7 +22,7 @@ Inserting into the table can be done by simply binding a string as shown:
 
 .. code-block:: python
 
-    xmlData = """<?xml version="1.0"?>
+    xml_data = """<?xml version="1.0"?>
             <customer>
                 <name>John Smith</name>
                 <Age>43</Age>
@@ -30,7 +30,7 @@ Inserting into the table can be done by simply binding a string as shown:
                 <Subject>Mathematics</Subject>
             </customer>"""
     cursor.execute("insert into xml_table values (:id, :xml)",
-            id=1, xml=xmlData)
+                   id=1, xml=xml_data)
 
 This approach works with XML strings up to 1 GB in size. For longer strings, a
 temporary CLOB must be created using :meth:`Connection.createlob()` and bound
@@ -39,9 +39,9 @@ as shown:
 .. code-block:: python
 
     clob = connection.createlob(cx_Oracle.DB_TYPE_CLOB)
-    clob.write(xmlData)
+    clob.write(xml_data)
     cursor.execute("insert into xml_table values (:id, sys.xmltype(:xml))",
-            id=2, xml=clob)
+                   id=2, xml=clob)
 
 Fetching XML data can be done simply for values that are shorter than the
 length of a VARCHAR2 column, as shown:
@@ -49,8 +49,8 @@ length of a VARCHAR2 column, as shown:
 .. code-block:: python
 
     cursor.execute("select xml_data from xml_table where id = :id", id=1)
-    xmlData, = cursor.fetchone()
-    print(xmlData)           # will print the string that was originally stored
+    xml_data, = cursor.fetchone()
+    print(xml_data)          # will print the string that was originally stored
 
 For values that exceed the length of a VARCHAR2 column, a CLOB must be returned
 instead by using the function ``XMLTYPE.GETCLOBVAL()`` as shown:

@@ -73,53 +73,6 @@ cx_Oracle uses the following objects for SODA:
   then used by a terminal method to find, count, replace, or remove documents.
   This is an internal object that should not be directly accessed.
 
-.. _sodametadatacache:
-
-Using the SODA Metadata Cache
-=============================
-
-SODA metadata can be cached to improve the performance of
-:meth:`SodaDatabase.createCollection()` and
-:meth:`SodaDatabase.openCollection()` by reducing :ref:`round-trips
-<roundtrips>` to the database. Caching is available with Oracle Client 21.3 (or
-later). The feature is also available in Oracle Client 19 from 19.11 onwards.
-Note: if collection metadata changes are made externally, the cache can become
-invalid.
-
-Caching can be enabled for pooled connections but not standalone connections.
-Each pool has its own cache.  Applications using standalone connections should
-retain and reuse the :ref:`collection <sodacoll>` returned from
-``createCollection()`` or ``openCollection()`` wherever possible, instead of
-making repeated calls to those methods.
-
-The metadata cache can be turned on when creating a connection pool
-with :meth:`cx_Oracle.SessionPool()`:
-
-.. code-block:: python
-
-    # Create the session pool
-    pool = cx_Oracle.SessionPool("hr", userpwd, "dbhost.example.com/orclpdb1",
-                                 soda_metadata_cache=True)
-
-Note the cache is not used by ``createCollection()`` when explicitly passing
-metadata.  In this case, instead of using only ``createCollection()`` and
-relying on its behavior of opening an existing collection like:
-
-.. code-block:: python
-
-    mymetadata = { . . . }
-    collection = soda.createCollection("mycollection", mymetadata) # open existing or create new collection
-    collection.insertOne(mycontent)
-
-you may find it more efficient to use logic similar to:
-
-.. code-block:: python
-
-    collection = soda.openCollection("mycollection")
-    if (collection is None):
-        mymetadata = { . . . }
-        collection = soda.createCollection("mycollection", mymetadata)
-    collection.insertOne(mycontent)
 
 SODA Examples
 =============
@@ -138,8 +91,8 @@ Creating and adding documents to a collection can be done as follows:
     # document, the content can be a simple Python dictionary which will
     # internally be converted to a JSON document
     content = {'name': 'Matilda', 'address': {'city': 'Melbourne'}}
-    returnedDoc = collection.insertOneAndGet(content)
-    key = returnedDoc.key
+    returned_doc = collection.insertOneAndGet(content)
+    key = returned_doc.key
     print('The key of the new SODA document is: ', key)
 
 By default, a system generated key is created when documents are inserted.
@@ -163,12 +116,65 @@ You can also search for documents using query-by-example syntax:
         print(content["name"])
 
 See the `samples directory
-<https://github.com/oracle/python-cx_Oracle/tree/master/samples>`__
+<https://github.com/oracle/python-cx_Oracle/tree/main/samples>`__
 for runnable SODA examples.
 
---------------------
+
+.. _sodametadatacache:
+
+Using the SODA Metadata Cache
+=============================
+
+SODA metadata can be cached to improve the performance of
+:meth:`SodaDatabase.createCollection()` and
+:meth:`SodaDatabase.openCollection()` by reducing :ref:`round-trips
+<roundtrips>` to the database. Caching is available with Oracle Client 21.3 (or
+later). The feature is also available in Oracle Client 19 from 19.11 onwards.
+Note: if collection metadata changes are made externally, the cache can become
+invalid.  If this happens, the cache can be cleared by calling
+:meth:`SessionPool.reconfigure()` with ``soda_metadata_cache`` set to `False`,
+or by setting the attribute :attr:`SessionPool.soda_metadata_cache` to `False`.
+A second call to ``reconfigure()`` or a direct setting of the
+``soda_metadata_cache`` attribute can then be performed to re-enable the cache.
+
+Caching can be enabled for pooled connections but not standalone
+connections. Applications using standalone connections should retain and reuse
+the :ref:`collection <sodacoll>` returned from ``createCollection()`` or
+``openCollection()`` wherever possible, instead of making repeated calls to
+those methods.
+
+The metadata cache can be turned on when creating a connection pool with
+:meth:`cx_Oracle.SessionPool()`. Each pool has its own cache:
+
+.. code-block:: python
+
+    # Create the session pool
+    pool = cx_Oracle.SessionPool(user="hr", password=userpwd,
+                                 dsn="dbhost.example.com/orclpdb1",
+                                 soda_metadata_cache=True)
+
+Note the cache is not used by ``createCollection()`` when explicitly passing
+metadata.  In this case, instead of using only ``createCollection()`` and
+relying on its behavior of opening an existing collection like:
+
+.. code-block:: python
+
+    mymetadata = { . . . }
+    collection = soda.createCollection("mycollection", mymetadata) # open existing or create new collection
+    collection.insertOne(mycontent)
+
+you will find it more efficient to use logic similar to:
+
+.. code-block:: python
+
+    collection = soda.openCollection("mycollection")
+    if collection is None:
+        mymetadata = { . . . }
+        collection = soda.createCollection("mycollection", mymetadata)
+    collection.insertOne(mycontent)
+
 Committing SODA Work
---------------------
+====================
 
 The general recommendation for SODA applications is to turn on
 :attr:`~Connection.autocommit` globally:

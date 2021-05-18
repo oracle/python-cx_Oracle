@@ -29,7 +29,7 @@ cx_Oracle.  This makes LOBs easy to work with, and has significant performance
 benefits over streaming.  However it requires the entire LOB data to be present
 in Python memory, which may not be possible.
 
-See `GitHub <https://github.com/oracle/python-cx_Oracle/tree/master/samples>`__ for LOB examples.
+See `GitHub <https://github.com/oracle/python-cx_Oracle/tree/main/samples>`__ for LOB examples.
 
 
 Simple Insertion of LOBs
@@ -51,15 +51,15 @@ bytes as needed:
 .. code-block:: python
 
     with open('example.txt', 'r') as f:
-        textdata = f.read()
+        text_data = f.read()
 
     with open('image.png', 'rb') as f:
-        imgdata = f.read()
+        img_data = f.read()
 
     cursor.execute("""
             insert into lob_tbl (id, c, b)
             values (:lobid, :clobdata, :blobdata)""",
-            lobid=10, clobdata=textdata, blobdata=imgdata)
+            lobid=10, clobdata=text_data, blobdata=img_data)
 
 Note that with this approach, LOB data is limited to 1 GB in size.
 
@@ -76,25 +76,25 @@ to be used as shown in this example:
 
 .. code-block:: python
 
-    def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
-        if defaultType == cx_Oracle.DB_TYPE_CLOB:
+    def output_type_handler(cursor, name, default_type, size, precision, scale):
+        if default_type == cx_Oracle.DB_TYPE_CLOB:
             return cursor.var(cx_Oracle.DB_TYPE_LONG, arraysize=cursor.arraysize)
-        if defaultType == cx_Oracle.DB_TYPE_BLOB:
+        if default_type == cx_Oracle.DB_TYPE_BLOB:
             return cursor.var(cx_Oracle.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
 
-    idVal = 1
-    textData = "The quick brown fox jumps over the lazy dog"
-    bytesData = b"Some binary data"
+    id_val = 1
+    text_data = "The quick brown fox jumps over the lazy dog"
+    binary_data = b"Some binary data"
     cursor.execute("insert into lob_tbl (id, c, b) values (:1, :2, :3)",
-            [idVal, textData, bytesData])
+                   [id_val, text_data, binary_data])
 
-    connection.outputtypehandler = OutputTypeHandler
-    cursor.execute("select c, b from lob_tbl where id = :1", [idVal])
-    clobData, blobData = cursor.fetchone()
-    print("CLOB length:", len(clobData))
-    print("CLOB data:", clobData)
-    print("BLOB length:", len(blobData))
-    print("BLOB data:", blobData)
+    connection.outputtypehandler = output_type_handler
+    cursor.execute("select c, b from lob_tbl where id = :1", [id_val])
+    clob_data, blob_data = cursor.fetchone()
+    print("CLOB length:", len(clob_data))
+    print("CLOB data:", clob_data)
+    print("BLOB length:", len(blob_data))
+    print("BLOB data:", blob_data)
 
 This displays::
 
@@ -114,13 +114,13 @@ calling :meth:`LOB.size()` and the data can be read by calling
 
 .. code-block:: python
 
-    idVal = 1
-    textData = "The quick brown fox jumps over the lazy dog"
-    bytesData = b"Some binary data"
+    id_val = 1
+    text_data = "The quick brown fox jumps over the lazy dog"
+    binary_data = b"Some binary data"
     cursor.execute("insert into lob_tbl (id, c, b) values (:1, :2, :3)",
-            [idVal, textData, bytesData])
+                   [id_val, text_data, binary_data])
 
-    cursor.execute("select b, c from lob_tbl where id = :1", [idVal])
+    cursor.execute("select b, c from lob_tbl where id = :1", [id_val])
     b, c = cursor.fetchone()
     print("CLOB length:", c.size())
     print("CLOB data:", c.read())
@@ -140,13 +140,13 @@ repeatedly until all of the data has been read, as shown below:
     cursor.execute("select b from lob_tbl where id = :1", [10])
     blob, = cursor.fetchone()
     offset = 1
-    numBytesInChunk = 65536
+    num_bytes_in_chunk = 65536
     with open("image.png", "wb") as f:
         while True:
-            data = blob.read(offset, numBytesInChunk)
+            data = blob.read(offset, num_bytes_in_chunk)
             if data:
                 f.write(data)
-            if len(data) < numBytesInChunk:
+            if len(data) < num_bytes_in_chunk:
                 break
             offset += len(data)
 
@@ -161,21 +161,21 @@ in the following code:
 
 .. code-block:: python
 
-    idVal = 9
-    lobVar = cursor.var(cx_Oracle.DB_TYPE_BLOB)
+    id_val = 9
+    lob_var = cursor.var(cx_Oracle.DB_TYPE_BLOB)
     cursor.execute("""
             insert into lob_tbl (id, b)
             values (:1, empty_blob())
-            returning b into :2""", [idVal, lobVar])
+            returning b into :2""", [id_val, lob_var])
     blob, = lobVar.getvalue()
     offset = 1
-    numBytesInChunk = 65536
+    num_bytes_in_chunk = 65536
     with open("image.png", "rb") as f:
         while True:
-            data = f.read(numBytesInChunk)
+            data = f.read(num_bytes_in_chunk)
             if data:
                 blob.write(data, offset)
-            if len(data) < numBytesInChunk:
+            if len(data) < num_bytes_in_chunk:
                 break
             offset += len(data)
     connection.commit()

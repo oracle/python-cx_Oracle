@@ -29,7 +29,7 @@ statements:
 
     # !! Never do this !!
     sql = f"""insert into departments (department_id, department_name)
-              values ({did}, {dnm})"""
+              values ({did}, '{dnm}')"""
     cursor.execute(sql)
 
 Bind variables reduce parsing and execution costs when statements are executed
@@ -58,7 +58,7 @@ bind variables in a statement are associated with a name. For example:
 
     # alternatively, the parameters can be passed as a dictionary instead of as
     # keyword parameters
-    data = { "dept_id": 280, "dept_name": "Facility" }
+    data = dict(dept_id=280, dept_name="Facility")
     cursor.execute("""
             insert into departments (department_id, department_name)
             values (:dept_id, :dept_name)""", data)
@@ -105,12 +105,13 @@ integers 8 and 7 and stores the result in an OUT bind variable of type integer:
 
 .. code-block:: python
 
-    outVal = cursor.var(int)
+    out_val = cursor.var(int)
     cursor.execute("""
             begin
-                :outVal := :inBindVar1 + :inBindVar2;
-            end;""", outVal=outVal, inBindVar1=8, inBindVar2=7)
-    print(outVal.getvalue())        # will print 15
+                :out_val := :in_bind_var1 + :in_bind_var2;
+            end;""",
+            out_val=out_val, in_bind_var1=8, in_bind_var2=7)
+    print(out_val.getvalue())        # will print 15
 
 If instead of simply getting data back you wish to supply an initial value to
 the database, you can set the variable's initial value. This example is the
@@ -118,13 +119,15 @@ same as the previous one but it sets the initial value first:
 
 .. code-block:: python
 
-    inOutVal = cursor.var(int)
-    inOutVal.setvalue(0, 25)
+    in_out_var = cursor.var(int)
+    in_out_var.setvalue(0, 25)
     cursor.execute("""
             begin
-                :inOutBindVar := :inOutBindVar + :inBindVar1 + :inBindVar2;
-            end;""", inOutBindVar=inOutVal, inBindVar1=8, inBindVar2=7)
-    print(inOutVal.getvalue())        # will print 40
+                :in_out_bind_var := :in_out_bind_var + :in_bind_var1 +
+                        :in_bind_var2;
+            end;""",
+            in_out_bind_var=in_out_var, in_bind_var1=8, in_bind_var2=7)
+    print(in_out_var.getvalue())        # will print 40
 
 When binding data to parameters of PL/SQL procedures that are declared as OUT
 parameters, it is worth noting that any value that is set in the bind variable
@@ -257,9 +260,9 @@ cursor which had executed a SQL query:
 
 .. code-block:: python
 
-    refCursor = connection.cursor()
-    cursor.callproc("find_employees", ['Smith', refCursor])
-    for row in refCursor:
+    ref_cursor = connection.cursor()
+    cursor.callproc("find_employees", ['Smith', ref_cursor])
+    for row in ref_cursor:
         print(row)
 
 With Oracle's `sample HR schema
@@ -274,8 +277,9 @@ return type of :meth:`Cursor.callfunc()`:
 
 .. code-block:: python
 
-    refCursor = cursor.callfunc('example_package.f_get_cursor', cx_Oracle.DB_TYPE_CURSOR)
-    for row in refCursor:
+    ref_cursor = cursor.callfunc('example_package.f_get_cursor',
+                                 cx_Oracle.DB_TYPE_CURSOR)
+    for row in ref_cursor:
         print(row)
 
 See :ref:`tuning` for information on how to tune REF CURSORS.
@@ -322,8 +326,8 @@ Then the Python code:
 .. code-block:: python
 
     values = ["String One", "String Two", "String Three"]
-    returnVal = cursor.callfunc("mypkg.DemoCollectionIn", int, [values])
-    print(returnVal)        # will print 32
+    return_val = cursor.callfunc("mypkg.DemoCollectionIn", int, [values])
+    print(return_val)        # will print 32
 
 In order get values back from the database, a bind variable must be created
 using :meth:`Cursor.arrayvar()`. The first parameter to this method is a Python
@@ -388,9 +392,9 @@ language array`` would be raised.
 
 .. code-block:: python
 
-    outArrayVar = cursor.arrayvar(str, 10, 100)
-    cursor.callproc("mypkg.DemoCollectionOut", [5, outArrayVar])
-    for val in outArrayVar.getvalue():
+    out_array_var = cursor.arrayvar(str, 10, 100)
+    cursor.callproc("mypkg.DemoCollectionOut", [5, out_array_var])
+    for val in out_array_var.getvalue():
         print(val)
 
 This would produce the following output::
@@ -408,10 +412,10 @@ initial value.
 
 .. code-block:: python
 
-    inValues = ["String One", "String Two", "String Three", "String Four"]
-    inOutArrayVar = cursor.arrayvar(str, inValues)
-    cursor.callproc("mypkg.DemoCollectionInOut", [inOutArrayVar])
-    for val in inOutArrayVar.getvalue():
+    in_values = ["String One", "String Two", "String Three", "String Four"]
+    in_out_array_var = cursor.arrayvar(str, in_values)
+    cursor.callproc("mypkg.DemoCollectionInOut", [in_out_array_var])
+    for val in in_out_array_var.getvalue():
         print(val)
 
 This would produce the following output::
@@ -427,8 +431,8 @@ used instead:
 
 .. code-block:: python
 
-    inOutArrayVar = cursor.arrayvar(str, 10, 100)
-    inOutArrayVar.setvalue(0, ["String One", "String Two"])
+    in_out_array_var = cursor.arrayvar(str, 10, 100)
+    in_out_array_var.setvalue(0, ["String One", "String Two"])
 
 All of the collections that have been bound in preceding examples have used
 contiguous array elements. If an associative array with sparse array elements
@@ -470,8 +474,8 @@ process this collection looks like this instead:
 
 .. code-block:: python
 
-    collectionType = connection.gettype("MYPKG.UDT_STRINGLIST")
-    collection = collectionType.newobject()
+    collection_type = connection.gettype("MYPKG.UDT_STRINGLIST")
+    collection = collection_type.newobject()
     cursor.callproc("mypkg.DemoCollectionOut", [collection])
     print(collection.aslist())
 
@@ -570,8 +574,8 @@ update the record:
 .. code-block:: python
 
     # create and populate a record
-    recordType = connection.gettype("MYPKG.UDT_DEMORECORD")
-    record = recordType.newobject()
+    record_type = connection.gettype("MYPKG.UDT_DEMORECORD")
+    record = record_type.newobject()
     record.NUMBERVALUE = 6
     record.STRINGVALUE = "Test String"
     record.DATEVALUE = datetime.datetime(2016, 5, 28)
@@ -639,36 +643,38 @@ objects seamlessly:
 .. code-block:: python
 
     # A standard Python object
-    class Building(object):
-        def __init__(self, buildingId, description, numFloors, dateBuilt):
-            self.buildingId = buildingId
+    class Building:
+
+        def __init__(self, build_id, description, num_floors, date_built):
+            self.building_id = build_id
             self.description = description
-            self.numFloors = numFloors
-            self.dateBuilt = dateBuilt
+            self.num_floors = num_floors
+            self.date_built = date_built
 
     building = Building(1, "Skyscraper 1", 5, datetime.date(2001, 5, 24))
 
     # Get Python representation of the Oracle user defined type UDT_BUILDING
-    objType = con.gettype("UDT_BUILDING")
+    obj_type = con.gettype("UDT_BUILDING")
 
-    # convert a Python Building object to the Oracle user defined type UDT_BUILDING
-    def BuildingInConverter(value):
-        obj = objType.newobject()
-        obj.BUILDINGID  = value.buildingId
+    # convert a Python Building object to the Oracle user defined type
+    # UDT_BUILDING
+    def building_in_converter(value):
+        obj = obj_type.newobject()
+        obj.BUILDINGID = value.building_id
         obj.DESCRIPTION = value.description
-        obj.NUMFLOORS   = value.numFloors
-        obj.DATEBUILT   = value.dateBuilt
+        obj.NUMFLOORS = value.num_floors
+        obj.DATEBUILT = value.date_built
         return obj
 
-    def InputTypeHandler(cursor, value, numElements):
+    def input_type_handler(cursor, value, num_elements):
         if isinstance(value, Building):
-            return cursor.var(cx_Oracle.DB_TYPE_OBJECT, arraysize = numElements,
-                    inconverter = BuildingInConverter, typename = objType.name)
+            return cursor.var(obj_type, arraysize=num_elements,
+                              inconverter=building_in_converter)
 
 
     # With the input type handler, the bound Python object is converted
     # to the required Oracle object before being inserted
-    cur.inputtypehandler = InputTypeHandler
+    cur.inputtypehandler = input_type_handler
     cur.execute("insert into myTable values (:1, :2)", (1, building))
 
 
@@ -746,11 +752,11 @@ means to validate the data in order to avoid SQL Injection security issues:
 
 .. code-block:: python
 
-    tableAllowList = ['employees', 'departments']
-    tableName = getTableName() #  get the table name from user input
-    if tableName not in tableAllowList:
+    table_allow_list = ['employees', 'departments']
+    table_name = get_table_name() #  get the table name from user input
+    if table_name.lower() not in table_allow_list:
         raise Exception('Invalid table name')
-    sql = 'select * from ' + tableName
+    sql = f'select * from {table_name}'
 
 Binding column names can be done either by using the above method or by using a
 CASE statement.  The example below demonstrates binding a column name in an
@@ -766,8 +772,8 @@ ORDER BY clause:
                     ELSE MANAGER_ID
                 END"""
 
-    columnName = getColumnName() # Obtain a column name from the user
-    cursor.execute(sql, [colname])
+    col_name = get_column_name() # Obtain a column name from the user
+    cursor.execute(sql, [col_name])
 
 Depending on the name provided by the user, the query results will be
 ordered either by the column ``DEPARTMENT_ID`` or the column ``MANAGER_ID``.

@@ -74,13 +74,18 @@ Connection Object
     that a single round-trip to the database may take before a timeout will
     occur. A value of 0 means that no timeout will take place.
 
+    If a timeout occurs, the error *DPI-1067* will be returned if the
+    connection is still usable.  Alternatively the error *DPI-1080* will be
+    returned if the connection has become invalid and can no longer be used.
+
     .. versionadded:: 7.0
 
     .. versionchanged:: 8.2
 
         For consistency and compliance with the PEP 8 naming style, the
         attribute `callTimeout` was renamed to `call_timeout`. The old name
-        will continue to work for a period of time.
+        will continue to work for a period of time.  The error *DPI-1080* was
+        also introduced in this release.
 
     .. note::
 

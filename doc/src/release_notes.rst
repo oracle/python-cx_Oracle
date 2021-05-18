@@ -5,23 +5,16 @@
 cx_Oracle Release Notes
 =======================
 
+For any deprecations, see :ref:`Deprecations <deprecations>`.
+
 Version 8.2 (TBD)
 -----------------
 
 #)  Updated embedded ODPI-C to `version 4.2.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-2-tbd>`__.
-#)  Added :ref:`SODA metadata cache <sodametadatacache>` support to connection
-    pools. This significantly improves the performance of methods
-    :meth:`SodaDatabase.createCollection()` (when not specifying a value for
-    the metadata parameter) and :meth:`SodaDatabase.openCollection()`. Caching
-    is available when using Oracle Client version 19.11 and higher.
-#)  Added support for supplying hints to SODA operations. A new non-terminal
-    method :meth:`~SodaOperation.hint()` was added and a `hint` parameter was
-    added to the methods :meth:`SodaCollection.insertOneAndGet()`,
-    :meth:`SodaCollection.insertManyAndGet()` and
-    :meth:`SodaCollection.saveAndGet()`. All of these require Oracle Client
-    21.3 or higher (or Oracle Client 19 from 19.11).
+#)  Threaded mode is now always enabled when creating connection pools with
+    :meth:`cx_Oracle.SessionPool()`. Any `threaded` parameter value is ignored.
 #)  Added parameter `stmtcachesize` to :meth:`cx_Oracle.connect()` and
     :meth:`cx_Oracle.SessionPool()` in order to permit specifying the size of
     the statement cache during the creation of pools and standalone
@@ -31,20 +24,39 @@ Version 8.2 (TBD)
     attribute :data:`SessionPool.ping_interval` was added in order to permit
     making adjustments after the pool has been created.  In previous cx_Oracle
     releases a fixed ping interval of 60 seconds was used.
+#)  Added parameter `soda_metadata_cache` to :meth:`cx_Oracle.SessionPool()` for
+    :ref:`SODA metadata cache <sodametadatacache>` support.  In addition, the
+    attribute :data:`SessionPool.soda_metadata_cache` was added in order to
+    permit making adjustments after the pool has been created. This feature
+    significantly improves the performance of methods
+    :meth:`SodaDatabase.createCollection()` (when not specifying a value for the
+    metadata parameter) and :meth:`SodaDatabase.openCollection()`. Caching is
+    available when using Oracle Client version 19.11 and higher.
+#)  Added support for supplying hints to SODA operations. A new non-terminal
+    method :meth:`~SodaOperation.hint()` was added and a `hint` parameter was
+    added to the methods :meth:`SodaCollection.insertOneAndGet()`,
+    :meth:`SodaCollection.insertManyAndGet()` and
+    :meth:`SodaCollection.saveAndGet()`. All of these require Oracle Client
+    21.3 or higher (or Oracle Client 19 from 19.11).
 #)  Added parameter `bypass_decode` to :meth:`Cursor.var()` in order to allow
     the `decode` step to be bypassed when converting data from Oracle Database
     into Python strings
     (`issue 385 <https://github.com/oracle/python-cx_Oracle/issues/385>`__).
     Initial work was done in `PR 549
     <https://github.com/oracle/python-cx_Oracle/pull/549>`__.
-#)  Threaded mode is now always enabled when creating connection pools with
-    :meth:`cx_Oracle.SessionPool()`. Any `threaded` parameter value is ignored.
+#)  Enhanced dead connection detection.  If an Oracle Database error indicates
+    that a connection is no longer usable, the error `DPI-1080: connection was
+    closed by ORA-%d` is now returned.  The `%d` will be the Oracle error
+    causing the connection to be closed.  Using the connection after this will
+    give `DPI-1010: not connected`.  This behavior also applies for
+    :data:`Connection.call_timeout` errors that result in an unusable
+    connection.
 #)  Eliminated a memory leak when calling :meth:`SodaOperation.filter()` with a
     dictionary.
 #)  The distributed transaction handle assosciated with the connection is now
     cleared on commit or rollback (`issue 530
     <https://github.com/oracle/python-cx_Oracle/issues/530>`__).
-#)  Added check to ensure that when setting variables or object attributes, the
+#)  Added a check to ensure that when setting variables or object attributes, the
     type of the temporary LOB must match the expected type.
 #)  A small number of parameter, method, and attribute names were updated to
     follow the PEP 8 style guide. This brings better consistency to the
@@ -1020,10 +1032,10 @@ Version 6.0 beta 1 (April 2017)
     tagging.
 #)  Added parameter edition to the :meth:`cx_Oracle.SessionPool` method.
 #)  Added support for
-    `universal rowids <https://github.com/oracle/python-cx_Oracle/blob/master/
+    `universal rowids <https://github.com/oracle/python-cx_Oracle/blob/main/
     samples/universal_rowids.py>`__.
 #)  Added support for `DML Returning of multiple rows
-    <https://github.com/oracle/python-cx_Oracle/blob/master/samples/
+    <https://github.com/oracle/python-cx_Oracle/blob/main/samples/
     dml_returning_multiple_rows.py>`__.
 #)  Added attributes :attr:`Variable.actualElements` and
     :attr:`Variable.values` to variables.
@@ -1053,19 +1065,19 @@ Version 6.0 beta 1 (April 2017)
 #)  Dropped deprecated parameters action, module and clientinfo from the
     :meth:`cx_Oracle.connect` method. The appcontext parameter should be used
     instead as shown in this `sample <https://github.com/oracle/
-    python-cx_Oracle/blob/master/samples/app_context.py>`__.
+    python-cx_Oracle/blob/main/samples/app_context.py>`__.
 #)  Dropped deprecated attribute numbersAsString from
     :ref:`cursor objects <cursorobj>`. Use an output type handler instead as
     shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
-    master/samples/return_numbers_as_decimals.py>`__.
+    main/samples/return_numbers_as_decimals.py>`__.
 #)  Dropped deprecated attributes cqqos and rowids from
     :ref:`subscription objects <subscrobj>`. Use the qos attribute instead as
     shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
-    master/samples/cqn.py>`__.
+    main/samples/cqn.py>`__.
 #)  Dropped deprecated parameters cqqos and rowids from the
     :meth:`Connection.subscribe()` method. Use the qos parameter instead as
     shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
-    master/samples/cqn.py>`__.
+    main/samples/cqn.py>`__.
 
 
 Version 5.3 (March 2017)

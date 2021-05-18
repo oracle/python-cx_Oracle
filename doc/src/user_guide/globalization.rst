@@ -29,8 +29,12 @@ specify different Oracle Client character sets. For example:
 .. code-block:: python
 
     import cx_Oracle
-    connection = cx_Oracle.connect(connectString, encoding="US-ASCII",
-            nencoding="UTF-8")
+    connection = cx_Oracle.connect(dsn=connect_string, encoding="US-ASCII",
+                                   nencoding="UTF-8")
+
+.. note::
+
+    In a future release of cx_Oracle, only UTF-8 will be supported.
 
 The ``encoding`` parameter affects character data such as VARCHAR2 and CLOB
 columns.  The ``nencoding`` parameter affects "National Character" data such as
@@ -66,8 +70,9 @@ database.
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect(userName, password, "dbhost.example.com/orclpdb1",
-            encoding="US-ASCII")
+    connection = cx_Oracle.connect(user=user, password=password,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="US-ASCII")
     cursor = connection.cursor()
     for row in cursor.execute("select nvarchar2_column from nchar_test"):
         print(row)
@@ -77,11 +82,13 @@ Because the '€' symbol is not supported by the ``US-ASCII`` character set, all
 
     ('¿',)
 
-When the ``encoding`` parameter is removed (or set to "UTF-8") during connection:
+When the ``encoding`` parameter is removed (or set to "UTF-8") during
+connection:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect(userName, password, "dbhost.example.com/orclpdb1")
+    connection = cx_Oracle.connect(user=user, password=password,
+                                   dsn="dbhost.example.com/orclpdb1")
 
 Then the output displays the Euro symbol as desired::
 

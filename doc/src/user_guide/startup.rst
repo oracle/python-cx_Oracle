@@ -20,12 +20,11 @@ of the database that should be started:
 .. code-block:: python
 
     # the connection must be in PRELIM_AUTH mode to perform startup
-    connection = cx_Oracle.connect("/",
-            mode = cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
+    connection = cx_Oracle.connect(mode=cx_Oracle.SYSDBA | cx_Oracle.PRELIM_AUTH)
     connection.startup()
 
     # the following statements must be issued in normal SYSDBA mode
-    connection = cx_Oracle.connect("/", mode = cx_Oracle.SYSDBA, encoding="UTF-8")
+    connection = cx_Oracle.connect(mode=cx_Oracle.SYSDBA, encoding="UTF-8")
     cursor = connection.cursor()
     cursor.execute("alter database mount")
     cursor.execute("alter database open")
@@ -48,11 +47,11 @@ connection. This example also assumes that the environment variable
 .. code-block:: python
 
     # need to connect as SYSDBA or SYSOPER
-    connection = cx_Oracle.connect("/", mode = cx_Oracle.SYSDBA)
+    connection = cx_Oracle.connect(mode=cx_Oracle.SYSDBA)
 
     # first shutdown() call must specify the mode, if DBSHUTDOWN_ABORT is used,
     # there is no need for any of the other steps
-    connection.shutdown(mode = cx_Oracle.DBSHUTDOWN_IMMEDIATE)
+    connection.shutdown(mode=cx_Oracle.DBSHUTDOWN_IMMEDIATE)
 
     # now close and dismount the database
     cursor = connection.cursor()
@@ -60,4 +59,4 @@ connection. This example also assumes that the environment variable
     cursor.execute("alter database dismount")
 
     # perform the final shutdown call
-    connection.shutdown(mode = cx_Oracle.DBSHUTDOWN_FINAL)
+    connection.shutdown(mode=cx_Oracle.DBSHUTDOWN_FINAL)

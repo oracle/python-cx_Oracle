@@ -19,7 +19,7 @@ contain information on specific data types and features.  See :ref:`batchstmnt`,
 cx_Oracle can be used to execute individual statements, one at a time.  It does
 not read SQL*Plus ".sql" files.  To read SQL files, use a technique like the one
 in ``run_sql_script()`` in `samples/sample_env.py
-<https://github.com/oracle/python-cx_Oracle/blob/master/samples/sample_env.py>`__
+<https://github.com/oracle/python-cx_Oracle/blob/main/samples/sample_env.py>`__
 
 SQL statements should not contain a trailing semicolon (";") or forward slash
 ("/").  This will fail:
@@ -87,9 +87,9 @@ which defaults to the value of :attr:`Cursor.arraysize`.
 
     cur = connection.cursor()
     cur.execute("select * from MyTable")
-    numRows = 10
+    num_rows = 10
     while True:
-        rows = cur.fetchmany(numRows)
+        rows = cur.fetchmany(num_rows)
         if not rows:
             break
         for row in rows:
@@ -289,7 +289,7 @@ should be used.
 
 Examples of output handlers are shown in :ref:`numberprecision`,
 :ref:`directlobs` and :ref:`fetching-raw-data`.  Also see samples such as `samples/type_handlers.py
-<https://github.com/oracle/python-cx_Oracle/blob/master/samples/type_handlers.py>`__
+<https://github.com/oracle/python-cx_Oracle/blob/main/samples/type_handlers.py>`__
 
 .. _numberprecision:
 
@@ -324,12 +324,12 @@ Using Python decimal objects, however, there is no loss of precision:
 
     import decimal
 
-    def NumberToDecimal(cursor, name, defaultType, size, precision, scale):
-        if defaultType == cx_Oracle.DB_TYPE_NUMBER:
+    def number_to_decimal(cursor, name, default_type, size, precision, scale):
+        if default_type == cx_Oracle.DB_TYPE_NUMBER:
             return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
     cur = connection.cursor()
-    cur.outputtypehandler = NumberToDecimal
+    cur.outputtypehandler = number_to_decimal
     cur.execute("select * from test_float")
     val, = cur.fetchone()
     print(val, "* 3 =", val * 3)
@@ -341,7 +341,7 @@ representation of the Oracle number.  The output from ``decimal.Decimal`` is
 returned in the output tuple.
 
 See `samples/return_numbers_as_decimals.py
-<https://github.com/oracle/python-cx_Oracle/blob/master/samples/return_numbers_as_decimals.py>`__
+<https://github.com/oracle/python-cx_Oracle/blob/main/samples/return_numbers_as_decimals.py>`__
 
 
 .. _outconverters:
@@ -356,16 +356,17 @@ For example, to make queries return empty strings instead of NULLs:
 
 .. code-block:: python
 
-    def OutConverter(value):
+    def out_converter(value):
         if value is None:
             return ''
         return value
 
-    def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
-        if defaultType in (cx_Oracle.DB_TYPE_VARCHAR, cx_Oracle.DB_TYPE_CHAR):
-            return cursor.var(str, size, cur.arraysize, outconverter=OutConverter)
+    def output_type_handler(cursor, name, default_type, size, precision, scale):
+        if default_type in (cx_Oracle.DB_TYPE_VARCHAR, cx_Oracle.DB_TYPE_CHAR):
+            return cursor.var(str, size, arraysize=cur.arraysize,
+                              outconverter=out_converter)
 
-    connection.outputtypehandler = OutputTypeHandler
+    connection.outputtypehandler = output_type_handler
 
 
 .. _rowfactories:
@@ -673,15 +674,15 @@ The following sample demonstrates how to use this feature:
         # define output type handler
         def return_strings_as_bytes(cursor, name, default_type, size,
                                     precision, scale):
-                    if default_type == cx_Oracle.DB_TYPE_VARCHAR:
-                        return cursor.var(str, arraysize=cursor.arraysize,
+            if default_type == cx_Oracle.DB_TYPE_VARCHAR:
+                return cursor.var(str, arraysize=cursor.arraysize,
                                   bypass_decode=True)
 
-                # set output type handler on cursor before fetching data
-                with connection.cursor() as cursor:
-                    cursor.outputtypehandler = return_strings_as_bytes
-                    cursor.execute("select content, charset from SomeTable")
-                    data = cursor.fetchall()
+        # set output type handler on cursor before fetching data
+        with connection.cursor() as cursor:
+            cursor.outputtypehandler = return_strings_as_bytes
+            cursor.execute("select content, charset from SomeTable")
+            data = cursor.fetchall()
 
 This will produce output as::
 
@@ -708,13 +709,13 @@ using a Python string, you will need to create a variable using
         with cx_Oracle.connect(user="hr", password=userpwd,
                                dsn="dbhost.example.com/orclpdb1") as conn:
             with conn.cursor() cursor:
-                    var = cursor.var(cx_Oracle.DB_TYPE_VARCHAR)
-                    var.setvalue(0, b"Fianc\xc4\x9b")
-                    cursor.execute("""
-                        update SomeTable set
-                            SomeColumn = :param
-                        where id = 1""",
-                        param=var)
+                var = cursor.var(cx_Oracle.DB_TYPE_VARCHAR)
+                var.setvalue(0, b"Fianc\xc4\x9b")
+                cursor.execute("""
+                    update SomeTable set
+                        SomeColumn = :param
+                    where id = 1""",
+                    param=var)
 
 .. warning::
 
@@ -737,8 +738,9 @@ then:
 
     .. code-block:: python
 
-        connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
-                encoding="UTF-8", nencoding="UTF-8")
+        connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                       dsn="dbhost.example.com/orclpdb1",
+                                       encoding="UTF-8", nencoding="UTF-8")
 
 * Check for corrupt data in the database.
 
@@ -746,21 +748,21 @@ If data really is corrupt, you can pass options to the internal `decode()
 <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__ used by
 cx_Oracle to allow it to be selected and prevent the whole query failing.  Do
 this by creating an :ref:`outputtypehandler <outputtypehandlers>` and setting
-``encodingErrors``.  For example to replace corrupt characters in character
+``encoding_errors``.  For example to replace corrupt characters in character
 columns:
 
 .. code-block:: python
 
-    def OutputTypeHandler(cursor, name, defaultType, size, precision, scale):
-        if defaultType == cx_Oracle.STRING:
-            return cursor.var(defaultType, size, arraysize=cursor.arraysize,
-                    encodingErrors="replace")
+    def output_type_handler(cursor, name, default_type, size, precision, scale):
+        if default_type == cx_Oracle.DB_TYPE_VARCHAR:
+            return cursor.var(default_type, size, arraysize=cursor.arraysize,
+                              encoding_errors="replace")
 
-    cursor.outputtypehandler = OutputTypeHandler
+    cursor.outputtypehandler = output_type_handler
 
     cursor.execute("select column1, column2 from SomeTableWithBadData")
 
-Other codec behaviors can be chosen for ``encodingErrors``, see `Error Handlers
+Other codec behaviors can be chosen for ``encoding_errors``, see `Error Handlers
 <https://docs.python.org/3/library/codecs.html#error-handlers>`__.
 
 .. _dml:
@@ -797,7 +799,7 @@ SDO_GEOMETRY <spatial>` object:
 
 .. code-block:: python
 
-    typeObj = connection.gettype("SDO_GEOMETRY")
+    type_obj = connection.gettype("SDO_GEOMETRY")
     cur = connection.cursor()
-    cur.setinputsizes(typeObj)
+    cur.setinputsizes(type_obj)
     cur.execute("insert into sometable values (:1)", [None])

@@ -36,10 +36,10 @@ This directory contains samples for [cx_Oracle][6].  Documentation is [here][7].
 
        sqlplus sys/syspassword@hostname/servicename @sql/drop_samples.sql
 
-[1]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/setup_samples.py
-[2]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sample_env.py
-[3]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/setup_samples.sql
-[4]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/drop_samples.py
-[5]: https://github.com/oracle/python-cx_Oracle/blob/master/samples/sql/drop_samples.sql
+[1]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/setup_samples.py
+[2]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/sample_env.py
+[3]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/sql/setup_samples.sql
+[4]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/drop_samples.py
+[5]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/sql/drop_samples.sql
 [6]: https://oracle.github.io/python-cx_Oracle/
 [7]: http://cx-oracle.readthedocs.org/en/latest/index.html

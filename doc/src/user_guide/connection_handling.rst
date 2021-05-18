@@ -44,7 +44,9 @@ enabling :ref:`network encryption <netencrypt>`.
 
     userpwd = ". . ." # Obtain password string from a user prompt or environment variable
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1", encoding="UTF-8")
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8")
 
 cx_Oracle also supports :ref:`external authentication <extauth>` so
 passwords do not need to be in the application.
@@ -61,11 +63,12 @@ the use of a "with" block, for example:
 
 .. code-block:: python
 
-    with cx_Oracle.connect(userName, password, "dbhost.example.com/orclpdb1",
-                encoding="UTF-8") as connection:
+    with cx_Oracle.connect(user=user, password=password,
+                           dsn="dbhost.example.com/orclpdb1",
+                           encoding="UTF-8") as connection:
         cursor = connection.cursor()
         cursor.execute("insert into SomeTable values (:1, :2)",
-                (1, "Some string"))
+                       (1, "Some string"))
         connection.commit()
 
 This code ensures that, once the block is completed, the connection is closed
@@ -103,15 +106,21 @@ such as ``tnsnames.ora``.
 
 For example, to connect to the Oracle Database service ``orclpdb1`` that is
 running on the host ``dbhost.example.com`` with the default Oracle
-Database port 1521, use::
+Database port 1521, use:
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
-            encoding="UTF-8")
+.. code-block:: python
 
-If the database is using a non-default port, it must be specified::
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8")
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com:1984/orclpdb1",
-            encoding="UTF-8")
+If the database is using a non-default port, it must be specified:
+
+.. code-block:: python
+
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com:1984/orclpdb1",
+                                   encoding="UTF-8")
 
 The Easy Connect syntax supports Oracle Database service names.  It cannot be
 used with the older System Identifiers (SID).
@@ -143,10 +152,13 @@ syntax.
 
 For example, to connect to the Oracle Database service ``orclpdb1`` that is
 running on the host ``dbhost.example.com`` with the default Oracle
-Database port 1521, use::
+Database port 1521, use:
+
+.. code-block:: python
 
     dsn = cx_Oracle.makedsn("dbhost.example.com", 1521, service_name="orclpdb1")
-    connection = cx_Oracle.connect("hr", userpwd, dsn, encoding="UTF-8")
+    connection = cx_Oracle.connect(user="hr", password=userpwd, dsn=dsn,
+                                   encoding="UTF-8")
 
 Note the use of the named argument ``service_name``.  By default, the third
 parameter of :meth:`~cx_Oracle.makedsn()` is a database System Identifier (SID),
@@ -158,7 +170,9 @@ The value of ``dsn`` in this example is the connect descriptor string::
 
 You can manually create similar connect descriptor strings.  This lets you
 extend the syntax, for example to support failover.  These strings can be
-embedded directly in the application::
+embedded directly in the application:
+
+.. code-block:: python
 
     dsn = """(DESCRIPTION=
                  (FAILOVER=on)
@@ -167,7 +181,8 @@ embedded directly in the application::
                    (ADDRESS=(PROTOCOL=tcp)(HOST=sales2-svr)(PORT=1521)))
                  (CONNECT_DATA=(SERVICE_NAME=sales.example.com)))"""
 
-    connection = cx_Oracle.connect("hr", userpwd, dsn, encoding="UTF-8")
+    connection = cx_Oracle.connect(user="hr", password=userpwd, dsn=dsn,
+                                   encoding="UTF-8")
 
 .. _netservice:
 
@@ -189,9 +204,12 @@ given a ``tnsnames.ora`` file with the following contents::
         )
       )
 
-then you could connect using the following code::
+then you could connect using the following code:
 
-    connection = cx_Oracle.connect("hr", userpwd, "orclpdb1", encoding="UTF-8")
+.. code-block:: python
+
+    connection = cx_Oracle.connect(user="hr", password=userpwd, dsn="orclpdb1",
+                                   encoding="UTF-8")
 
 For more information about Net Service Names, see
 `Database Net Services Reference
@@ -210,9 +228,13 @@ for example::
 
     jdbc:oracle:thin:@dbhost.example.com:1521/orclpdb1
 
-then use Oracle's Easy Connect syntax in cx_Oracle::
+then use Oracle's Easy Connect syntax in cx_Oracle:
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com:1521/orclpdb1", encoding="UTF-8")
+.. code-block:: python
+
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com:1521/orclpdb1",
+                                   encoding="UTF-8")
 
 Alternatively, if a JDBC connection string uses an old-style Oracle SID "system
 identifier", and the database does not have a service name::
@@ -224,10 +246,13 @@ for example::
     jdbc:oracle:thin:@dbhost.example.com:1521:orcl
 
 then a connect descriptor string from ``makedsn()`` can be used in the
-application::
+application:
+
+.. code-block:: python
 
     dsn = cx_Oracle.makedsn("dbhost.example.com", 1521, sid="orcl")
-    connection = cx_Oracle.connect("hr", userpwd, dsn, encoding="UTF-8")
+    connection = cx_Oracle.connect(user="hr", password=userpwd, dsn=dsn,
+                                   encoding="UTF-8")
 
 Alternatively, create a ``tnsnames.ora`` (see :ref:`optnetfiles`) entry, for
 example::
@@ -240,9 +265,12 @@ example::
        )
      )
 
-This can be referenced in cx_Oracle::
+This can be referenced in cx_Oracle:
 
-    connection = cx_Oracle.connect("hr", userpwd, "finance", encoding="UTF-8")
+.. code-block:: python
+
+    connection = cx_Oracle.connect(user="hr", password=userpwd, dsn="finance",
+                                   encoding="UTF-8")
 
 .. _connpool:
 
@@ -289,8 +317,9 @@ connection pool:
 .. code-block:: python
 
     # Create the session pool
-    pool = cx_Oracle.SessionPool("hr", userpwd,
-            "dbhost.example.com/orclpdb1", min=2, max=5, increment=1, encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(user="hr", password=userpwd,
+                                 dsn="dbhost.example.com/orclpdb1", min=2,
+                                 max=5, increment=1, encoding="UTF-8")
 
     # Acquire a connection from the pool
     connection = pool.acquire()
@@ -306,18 +335,22 @@ connection pool:
     # Close the pool
     pool.close()
 
-Other :meth:`cx_Oracle.SessionPool()` options can be used at pool creation.  For
-example the ``getmode`` value can be set so that any ``aquire()`` call will wait
-for a connection to become available if all are currently in use, for example:
+Other :meth:`cx_Oracle.SessionPool()` options can be used at pool creation.
+For example the ``getmode`` value can be set so that any ``aquire()`` call will
+wait for a connection to become available if all are currently in use, for
+example:
 
 .. code-block:: python
 
     # Create the session pool
-    pool = cx_Oracle.SessionPool("hr", userpwd, "dbhost.example.com/orclpdb1",
-                  min=2, max=5, increment=1, getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT, encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(user="hr", password=userpwd,
+                                 dsn="dbhost.example.com/orclpdb1", min=2,
+                                 max=5, increment=1,
+                                 getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT,
+                                 encoding="UTF-8")
 
 See `ConnectionPool.py
-<https://github.com/oracle/python-cx_Oracle/tree/master/samples/ConnectionPool.py>`__
+<https://github.com/oracle/python-cx_Oracle/tree/main/samples/ConnectionPool.py>`__
 for an example.
 
 Before :meth:`SessionPool.acquire()` returns, cx_Oracle does a lightweight check
@@ -386,7 +419,7 @@ However, because pools can grow, or connections in the pool can be recreated,
 there is no guarantee a subsequent :meth:`~SessionPool.acquire()` call will
 return a database connection that has any particular state.
 
-The :meth:`~cx_Oracle.SessionPool()` parameter ``sessionCallback``
+The :meth:`~cx_Oracle.SessionPool()` parameter ``session_callback``
 enables efficient setting of session state so that connections have a
 known session state, without requiring that state to be explicitly set
 after each :meth:`~SessionPool.acquire()` call.
@@ -401,7 +434,7 @@ necessary changes.
 
 The session callback can be a Python function or a PL/SQL procedure.
 
-There are three common scenarios for ``sessionCallback``:
+There are three common scenarios for ``session_callback``:
 
 - When all connections in the pool should have the same state, use a
   Python callback without tagging.
@@ -414,7 +447,7 @@ There are three common scenarios for ``sessionCallback``:
 
 **Python Callback**
 
-If the ``sessionCallback`` parameter is a Python procedure, it will be called
+If the ``session_callback`` parameter is a Python procedure, it will be called
 whenever :meth:`~SessionPool.acquire()` will return a newly created database
 connection that has not been used before.  It is also called when connection
 tagging is being used and the requested tag is not identical to the tag in the
@@ -425,24 +458,25 @@ An example is:
 .. code-block:: python
 
     # Set the NLS_DATE_FORMAT for a session
-    def initSession(connection, requestedTag):
+    def init_session(connection, requested_tag):
         cursor = connection.cursor()
         cursor.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI'")
 
     # Create the pool with session callback defined
-    pool = cx_Oracle.SessionPool("hr", userpwd, "orclpdb1",
-                         sessionCallback=initSession, encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(user="hr", password=userpwd, dsn="orclpdb1",
+                                 session_callback=init_session,
+                                 encoding="UTF-8")
 
     # Acquire a connection from the pool (will always have the new date format)
     connection = pool.acquire()
 
-If needed, the ``initSession()`` procedure is called internally before
+If needed, the ``init_session()`` procedure is called internally before
 ``acquire()`` returns.  It will not be called when previously used connections
 are returned from the pool.  This means that the ALTER SESSION does not need to
 be executed after every ``acquire()`` call.  This improves performance and
 scalability.
 
-In this example tagging was not being used, so the ``requestedTag`` parameter
+In this example tagging was not being used, so the ``requested_tag`` parameter
 is ignored.
 
 Note: if you need to execute multiple SQL statements in the callback, use an
@@ -483,25 +517,26 @@ The example below demonstrates connection tagging:
 
 .. code-block:: python
 
-    def initSession(connection, requestedTag):
-        if requestedTag == "NLS_DATE_FORMAT=SIMPLE":
+    def init_session(connection, requested_tag):
+        if requested_tag == "NLS_DATE_FORMAT=SIMPLE":
             sql = "ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD'"
-        elif requestedTag == "NLS_DATE_FORMAT=FULL":
+        elif requested_tag == "NLS_DATE_FORMAT=FULL":
             sql = "ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI'"
         cursor = connection.cursor()
         cursor.execute(sql)
-        connection.tag = requestedTag
+        connection.tag = requested_tag
 
-    pool = cx_Oracle.SessionPool("hr", userpwd, "orclpdb1",
-                         sessionCallback=initSession, encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(user="hr", password=userpwd, dsn="orclpdb1",
+                                 session_callback=init_session,
+                                 encoding="UTF-8")
 
     # Two connections with different session state:
-    connection1 = pool.acquire(tag = "NLS_DATE_FORMAT=SIMPLE")
-    connection2 = pool.acquire(tag = "NLS_DATE_FORMAT=FULL")
+    connection1 = pool.acquire(tag="NLS_DATE_FORMAT=SIMPLE")
+    connection2 = pool.acquire(tag="NLS_DATE_FORMAT=FULL")
 
-See `SessionCallback.py
-<https://github.com/oracle/python-cx_Oracle/tree/master/
-samples/SessionCallback.py>`__ for an example.
+See `session_callback.py
+<https://github.com/oracle/python-cx_Oracle/tree/main/
+samples/session_callback.py>`__ for an example.
 
 **PL/SQL Callback**
 
@@ -533,21 +568,24 @@ Oracle 'multi-property tags' must be used.  The tag string must be of the form
 of one or more "name=value" pairs separated by a semi-colon, for example
 ``"loc=uk;lang=cy"``.
 
-In cx_Oracle set ``sessionCallback`` to the name of the PL/SQL procedure. For
+In cx_Oracle set ``session_callback`` to the name of the PL/SQL procedure. For
 example:
 
 .. code-block:: python
 
-    pool = cx_Oracle.SessionPool("hr", userpwd, "dbhost.example.com/orclpdb1:pooled",
-                         sessionCallback="myPlsqlCallback", encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(user="hr", password=userpwd,
+                                 dsn="dbhost.example.com/orclpdb1:pooled",
+                                 session_callback="MyPlsqlCallback",
+                                 encoding="UTF-8")
 
     connection = pool.acquire(tag="NLS_DATE_FORMAT=SIMPLE",
-            # DRCP options, if you are using DRCP
-            cclass='MYCLASS', purity=cx_Oracle.ATTR_PURITY_SELF)
+                              # DRCP options, if you are using DRCP
+                              cclass='MYCLASS',
+                              purity=cx_Oracle.ATTR_PURITY_SELF)
 
-See `SessionCallbackPLSQL.py
-<https://github.com/oracle/python-cx_Oracle/tree/master/
-samples/SessionCallbackPLSQL.py>`__ for an example.
+See `session_callback_plsql.py
+<https://github.com/oracle/python-cx_Oracle/tree/main/
+samples/session_callback_plsql.py>`__ for an example.
 
 .. _connpooltypes:
 
@@ -568,8 +606,8 @@ may be passed to :meth:`~SessionPool.acquire()` as shown in this example:
 
 .. code-block:: python
 
-    pool = cx_Oracle.SessionPool(dsn="dbhost.example.com/orclpdb1", homogeneous=False,
-                         encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(dsn="dbhost.example.com/orclpdb1",
+                                 homogeneous=False, encoding="UTF-8")
     connection = pool.acquire(user="hr", password=userpwd)
 
 .. _drcp:
@@ -697,14 +735,16 @@ Using Oracle’s Easy Connect syntax, the connection would look like:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orcl:pooled",
-            encoding="UTF-8")
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orcl:pooled",
+                                   encoding="UTF-8")
 
 Or if you connect using a Net Service Name named ``customerpool``:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect("hr", userpwd, "customerpool", encoding="UTF-8")
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="customerpool", encoding="UTF-8")
 
 Then only the Oracle Network configuration file ``tnsnames.ora`` needs
 to be modified::
@@ -729,17 +769,22 @@ Resident Connection Pooling:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orcl:pooled",
-            cclass="MYCLASS", purity=cx_Oracle.ATTR_PURITY_SELF, encoding="UTF-8")
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orcl:pooled",
+                                   cclass="MYCLASS",
+                                   purity=cx_Oracle.ATTR_PURITY_SELF,
+                                   encoding="UTF-8")
 
 The example below shows connecting to Oracle Database using DRCP and
 cx_Oracle's connection pooling:
 
 .. code-block:: python
 
-    mypool = cx_Oracle.SessionPool("hr", userpwd, "dbhost.example.com/orcl:pooled",
-                           encoding="UTF-8")
-    connection = mypool.acquire(cclass="MYCLASS", purity=cx_Oracle.ATTR_PURITY_SELF)
+    mypool = cx_Oracle.SessionPool(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orcl:pooled",
+                                   encoding="UTF-8")
+    connection = mypool.acquire(cclass="MYCLASS",
+                                purity=cx_Oracle.ATTR_PURITY_SELF)
 
 For more information about DRCP see `Oracle Database Concepts Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
@@ -902,14 +947,18 @@ Standalone connection examples:
 .. code-block:: python
 
     # Basic Authentication without a proxy
-    connection = cx_Oracle.connect("myproxyuser", "myproxyuserpw", "dbhost.example.com/orclpdb1",
-            encoding="UTF-8")
+    connection = cx_Oracle.connect(user="myproxyuser",
+                                   password="myproxyuserpw",
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8")
     # PROXY_USER:   None
     # SESSION_USER: MYPROXYUSER
 
     # Basic Authentication with a proxy
-    connection = cx_Oracle.connect(user="myproxyuser[mysessionuser]", "myproxyuserpw",
-           "dbhost.example.com/orclpdb1", encoding="UTF-8")
+    connection = cx_Oracle.connect(user="myproxyuser[mysessionuser]",
+                                   password="myproxyuserpw",
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8")
     # PROXY_USER:   MYPROXYUSER
     # SESSION_USER: MYSESSIONUSER
 
@@ -918,15 +967,18 @@ Pooled connection examples:
 .. code-block:: python
 
     # Basic Authentication without a proxy
-    pool = cx_Oracle.SessionPool("myproxyuser", "myproxyuser", "dbhost.example.com/orclpdb1",
-                         encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(user="myproxyuser", password="myproxyuser",
+                                 dsn="dbhost.example.com/orclpdb1",
+                                 encoding="UTF-8")
     connection = pool.acquire()
     # PROXY_USER:   None
     # SESSION_USER: MYPROXYUSER
 
     # Basic Authentication with proxy
-    pool = cx_Oracle.SessionPool("myproxyuser[mysessionuser]", "myproxyuser",
-                         "dbhost.example.com/orclpdb1", homogeneous=False, encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(user="myproxyuser[mysessionuser]",
+                                 password="myproxyuser",
+                                 dsn="dbhost.example.com/orclpdb1",
+                                 homogeneous=False, encoding="UTF-8")
     connection = pool.acquire()
     # PROXY_USER:   MYPROXYUSER
     # SESSION_USER: MYSESSIONUSER
@@ -1021,14 +1073,18 @@ your DBA, skip to step 3.
     set to the directory containing them.  See :ref:`optnetfiles`.
 
 With an Oracle wallet configured, and readable by you, your scripts
-can connect using::
+can connect using:
+
+.. code-block:: python
 
     connection = cx_Oracle.connect(dsn="mynetalias", encoding="UTF-8")
 
-or::
+or:
 
-    pool = cx_Oracle.SessionPool(externalauth=True, homogeneous=False, dsn="mynetalias",
-                         encoding="UTF-8")
+.. code-block:: python
+
+    pool = cx_Oracle.SessionPool(externalauth=True, homogeneous=False,
+                                 dsn="mynetalias", encoding="UTF-8")
     pool.acquire()
 
 The ``dsn`` must match the one used in the wallet.
@@ -1068,7 +1124,8 @@ Standalone connection example:
 .. code-block:: python
 
     # External Authentication with proxy
-    connection = cx_Oracle.connect(user="[mysessionuser]", dsn="mynetalias", encoding="UTF-8")
+    connection = cx_Oracle.connect(user="[mysessionuser]", dsn="mynetalias",
+                                   encoding="UTF-8")
     # PROXY_USER:   MYUSER
     # SESSION_USER: MYSESSIONUSER
 
@@ -1077,8 +1134,8 @@ Pooled connection example:
 .. code-block:: python
 
     # External Authentication with proxy
-    pool = cx_Oracle.SessionPool(externalauth=True, homogeneous=False, dsn="mynetalias",
-                         encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(externalauth=True, homogeneous=False,
+                                 dsn="mynetalias", encoding="UTF-8")
     pool.acquire(user="[mysessionuser]")
     # PROXY_USER:   MYUSER
     # SESSION_USER: MYSESSIONUSER
@@ -1087,8 +1144,9 @@ The following usage is not supported:
 
 .. code-block:: python
 
-    pool = cx_Oracle.SessionPool("[mysessionuser]", externalauth=True, homogeneous=False,
-                         dsn="mynetalias", encoding="UTF-8")
+    pool = cx_Oracle.SessionPool(user="[mysessionuser]", externalauth=True,
+                                 homogeneous=False, dsn="mynetalias",
+                                 encoding="UTF-8")
     pool.acquire()
 
 
@@ -1119,7 +1177,9 @@ to implement OS Authentication on Linux.
         CREATE USER ops$oracle IDENTIFIED EXTERNALLY;
         GRANT CONNECT, RESOURCE TO ops$oracle;
 
-In Python, connect using the following code::
+In Python, connect using the following code:
+
+.. code-block:: python
 
        connection = cx_Oracle.connect(dsn="mynetalias", encoding="UTF-8")
 
@@ -1144,8 +1204,9 @@ The example below shows how to connect to Oracle Database as SYSDBA:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect("sys", syspwd, "dbhost.example.com/orclpdb1",
-            mode=cx_Oracle.SYSDBA, encoding="UTF-8")
+    connection = cx_Oracle.connect(user="sys", password=syspwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   mode=cx_Oracle.SYSDBA, encoding="UTF-8")
 
     cursor = con.cursor()
     sql = "GRANT SYSOPER TO hr"
@@ -1232,8 +1293,8 @@ After connecting, passwords can be changed by calling
 .. code-block:: python
 
     # Get the passwords from somewhere, such as prompting the user
-    oldpwd = getpass.getpass("Old Password for %s: " % username)
-    newpwd = getpass.getpass("New Password for %s: " % username)
+    oldpwd = getpass.getpass(f"Old Password for {username}: ")
+    newpwd = getpass.getpass(f"New Password for {username}: ")
 
     connection.changepassword(oldpwd, newpwd)
 
@@ -1244,11 +1305,12 @@ of the function :meth:`cx_Oracle.connect()` constructor:
 .. code-block:: python
 
     # Get the passwords from somewhere, such as prompting the user
-    oldpwd = getpass.getpass("Old Password for %s: " % username)
-    newpwd = getpass.getpass("New Password for %s: " % username)
+    oldpwd = getpass.getpass(f"Old Password for {username}: ")
+    newpwd = getpass.getpass(f"New Password for {username}: ")
 
-    connection = cx_Oracle.connect(username, oldpwd, "dbhost.example.com/orclpdb1",
-            newpassword=newpwd, encoding="UTF-8")
+    connection = cx_Oracle.connect(user=username, password=oldpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   newpassword=newpwd, encoding="UTF-8")
 
 .. _autononmousdb:
 
@@ -1293,7 +1355,8 @@ a net service name, for example:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect("scott", userpwd, "cjdb1_high", encoding="UTF-8")
+    connection = cx_Oracle.connect(user="scott", password=userpwd,
+                                   dsn="cjdb1_high", encoding="UTF-8")
 
 Once you have set Oracle environment variables required by your application,
 such as ``TNS_ADMIN``, you can start your application.
@@ -1314,13 +1377,13 @@ in the connect descriptor.  Successful connection depends on specific proxy
 configurations.  Oracle does not recommend doing this when performance is
 critical.
 
-Edit ``sqlnet.ora`` and add a line:
+Edit ``sqlnet.ora`` and add a line::
 
     SQLNET.USE_HTTPS_PROXY=on
 
 Edit ``tnsnames.ora`` and add an ``HTTPS_PROXY`` proxy name and
 ``HTTPS_PROXY_PORT`` port to the connect descriptor address list of any service
-name you plan to use, for example:
+name you plan to use, for example::
 
 
     cjdb1_high = (description=
@@ -1382,15 +1445,17 @@ then direct connection to a shard can be made by passing a single sharding key:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
-            encoding="UTF-8", shardingkey=["SCOTT"])
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8", shardingkey=["SCOTT"])
 
 Numbers keys can be used in a similar way:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
-            encoding="UTF-8", shardingkey=[110])
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8", shardingkey=[110])
 
 When sharding by DATE, you can connect like:
 
@@ -1400,8 +1465,9 @@ When sharding by DATE, you can connect like:
 
     d = datetime.datetime(2014, 7, 3)
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
-            encoding="UTF-8", shardingkey=[d])
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8", shardingkey=[d])
 
 When sharding by RAW, you can connect like:
 
@@ -1409,21 +1475,26 @@ When sharding by RAW, you can connect like:
 
     b = b'\x01\x04\x08';
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
-            encoding="UTF-8", shardingkey=[b])
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8", shardingkey=[b])
 
 Multiple keys can be specified, for example:
 
 .. code-block:: python
 
-    keyArray = [70, "SCOTT", "gold", b'\x00\x01\x02']
+    key_list = [70, "SCOTT", "gold", b'\x00\x01\x02']
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
-            encoding="UTF-8", shardingkey=keyArray)
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8", shardingkey=key_list)
 
 A super sharding key example is:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
-            encoding="UTF-8", supershardingkey=["goldclass"], shardingkey=["SCOTT"])
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8",
+                                   supershardingkey=["goldclass"],
+                                   shardingkey=["SCOTT"])

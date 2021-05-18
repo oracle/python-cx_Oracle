@@ -49,17 +49,17 @@ records:
 .. code-block:: python
 
     # Add a new customer
-    idVar = cursor.var(int)
+    id_var = cursor.var(int)
     connection.autocommit = False  # make sure any previous value is off
     cursor.execute("""
             INSERT INTO cust_table (name) VALUES ('John')
-            RETURNING id INTO :bvid""", bvid=idVar)
+            RETURNING id INTO :bvid""", bvid=id_var)
 
     # Add sales data for the new customer and commit all new values
-    idVal = idVar.getvalue()[0]
+    id_val = id_var.getvalue()[0]
     connection.autocommit = True
     cursor.execute("INSERT INTO sales_table VALUES (:bvid, 'pens', 3000)",
-            bvid=idVal)
+            bvid=id_val)
 
 
 Explicit Transactions

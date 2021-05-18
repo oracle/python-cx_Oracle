@@ -12,7 +12,7 @@ The :meth:`~Cursor.executemany()` method can also be used to execute PL/SQL
 statements multiple times at once.
 
 There are examples in the `GitHub examples
-<https://github.com/oracle/python-cx_Oracle/tree/master/samples>`__
+<https://github.com/oracle/python-cx_Oracle/tree/main/samples>`__
 directory.
 
 The following tables will be used in the samples that follow:
@@ -42,14 +42,14 @@ The following example inserts five rows into the table ``ParentTable``:
 
 .. code-block:: python
 
-    dataToInsert = [
+    data = [
         (10, 'Parent 10'),
         (20, 'Parent 20'),
         (30, 'Parent 30'),
         (40, 'Parent 40'),
         (50, 'Parent 50')
     ]
-    cursor.executemany("insert into ParentTable values (:1, :2)", dataToInsert)
+    cursor.executemany("insert into ParentTable values (:1, :2)", data)
 
 This code requires only one :ref:`round-trip <roundtrips>` from the client to
 the database instead of the five round-trips that would be required for
@@ -70,14 +70,14 @@ example:
 
 .. code-block:: python
 
-    dataToInsert = [
+    data = [
         (10, 'Parent 10'),
         (20, 'Parent 20'),
         (30, 'Parent 30'),
         (40, 'Parent 40'),
         (50, 'Parent 50')
     ]
-    cursor.executemany("begin mypkg.create_parent(:1, :2); end;", dataToInsert)
+    cursor.executemany("begin mypkg.create_parent(:1, :2); end;", data)
 
 Note that the ``batcherrors`` parameter (discussed below) cannot be used with
 PL/SQL block execution.
@@ -104,7 +104,7 @@ This example shows how data errors can be identified:
 
 .. code-block:: python
 
-    dataToInsert = [
+    data = [
         (60, 'Parent 60'),
         (70, 'Parent 70'),
         (70, 'Parent 70 (duplicate)'),
@@ -112,8 +112,8 @@ This example shows how data errors can be identified:
         (80, 'Parent 80 (duplicate)'),
         (90, 'Parent 90')
     ]
-    cursor.executemany("insert into ParentTable values (:1, :2)", dataToInsert,
-            batcherrors=True)
+    cursor.executemany("insert into ParentTable values (:1, :2)", data,
+                       batcherrors=True)
     for error in cursor.getbatcherrors():
         print("Error", error.message, "at row offset", error.offset)
 
@@ -142,16 +142,16 @@ affected by each row of data that is bound you must set the parameter
 
 .. code-block:: python
 
-    parentIdsToDelete = [20, 30, 50]
+    parent_ids_to_delete = [20, 30, 50]
     cursor.executemany("delete from ChildTable where ParentId = :1",
-            [(i,) for i in parentIdsToDelete],
-            arraydmlrowcounts=True)
-    rowCounts = cursor.getarraydmlrowcounts()
-    for parentId, count in zip(parentIdsToDelete, rowCounts):
-        print("Parent ID:", parentId, "deleted", count, "rows.")
+                       [(i,) for i in parent_ids_to_delete],
+                       arraydmlrowcounts=True)
+    row_counts = cursor.getarraydmlrowcounts()
+    for parent_id, count in zip(parent_ids_to_delete, row_counts):
+        print("Parent ID:", parent_id, "deleted", count, "rows.")
 
 Using the data found in the `GitHub samples
-<https://github.com/oracle/python-cx_Oracle/tree/master/samples>`__ the output
+<https://github.com/oracle/python-cx_Oracle/tree/main/samples>`__ the output
 is as follows::
 
     Parent ID: 20 deleted 3 rows.
@@ -172,17 +172,17 @@ you could use the following code:
 
 .. code-block:: python
 
-    parentIdsToDelete = [20, 30, 50]
-    childIdVar = cursor.var(int, arraysize=len(parentIdsToDelete))
-    cursor.setinputsizes(None, childIdVar)
+    parent_ids_to_delete = [20, 30, 50]
+    child_id_var = cursor.var(int, arraysize=len(parent_ids_to_delete))
+    cursor.setinputsizes(None, child_id_var)
     cursor.executemany("""
             delete from ChildTable
             where ParentId = :1
             returning ChildId into :2""",
-            [(i,) for i in parentIdsToDelete])
-    for ix, parentId in enumerate(parentIdsToDelete):
-        print("Child IDs deleted for parent ID", parentId, "are",
-                childIdVar.getvalue(ix))
+            [(i,) for i in parent_ids_to_delete])
+    for ix, parent_id in enumerate(parent_ids_to_delete):
+        print("Child IDs deleted for parent ID", parent_id, "are",
+              child_id_var.getvalue(ix))
 
 The output would then be::
 
@@ -216,10 +216,10 @@ Consider the following code:
 .. code-block:: python
 
     data = [
-        (    110, "Parent 110"),
-        (   2000, "Parent 2000"),
-        (  30000, "Parent 30000"),
-        ( 400000, "Parent 400000"),
+        (110, "Parent 110"),
+        (2000, "Parent 2000"),
+        (30000, "Parent 30000"),
+        (400000, "Parent 400000"),
         (5000000, "Parent 5000000")
     ]
     cursor.setinputsizes(None, 20)

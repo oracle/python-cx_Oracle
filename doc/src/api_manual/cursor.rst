@@ -67,7 +67,7 @@ Cursor Object
     Array variables can only be used for PL/SQL associative arrays with
     contiguous keys. For PL/SQL associative arrays with sparsely populated keys
     or for varrays and nested tables, the approach shown in this
-    `example <https://github.com/oracle/python-cx_Oracle/blob/master/
+    `example <https://github.com/oracle/python-cx_Oracle/blob/main/
     samples/plsql_collection.py>`__ needs to be used.
 
     .. note::

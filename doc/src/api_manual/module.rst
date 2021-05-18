@@ -97,7 +97,7 @@ Module Interface
     See the :ref:`globalization <globalization>` section for details on the
     encoding and nencoding parameters.  Note the default encoding and nencoding
     values changed to "UTF-8" in cx_Oracle 8, and any character set in NLS_LANG
-    is ignored.
+    is ignored. In a future release of cx_Oracle, only UTF-8 will be supported.
 
     The edition parameter is expected to be a string if specified and sets the
     edition to use for the session. It is only relevant if both the client and
@@ -208,7 +208,7 @@ Module Interface
 
 
 .. function:: SessionPool(user=None, password=None, dsn=None, min=1, max=2, \
-        increment=1, connectiontype=cx_Oracle.Connection, threaded=False, \
+        increment=1, connectiontype=cx_Oracle.Connection, threaded=True, \
         getmode=cx_Oracle.SPOOL_ATTRVAL_NOWAIT, events=False, \
         homogeneous=True, externalauth=False, encoding=None, nencoding=None, \
         edition=None, timeout=0, wait_timeout=0, max_lifetime_session=0, \
@@ -275,7 +275,8 @@ Module Interface
     values transferred between cx_Oracle and Oracle Database, see
     :ref:`Character Sets and Globalization <globalization>`. Note the default
     encoding and nencoding values changed to "UTF-8" in cx_Oracle 8, and any
-    character set in NLS_LANG is ignored.
+    character set in NLS_LANG is ignored. In a future release of cx_Oracle,
+    only UTF-8 will be supported.
 
     The edition parameter is expected to be a string, if specified, and sets the
     edition to use for the sessions in the pool. It is only relevant if both the
@@ -285,7 +286,9 @@ Module Interface
     The timeout parameter is expected to be an integer, if specified, and sets
     the length of time (in seconds) after which idle sessions in the pool are
     terminated. Note that termination only occurs when the pool is accessed.
-    The default value of 0 means that no idle sessions are terminated.
+    The default value of 0 means that no idle sessions are terminated. The
+    initial pool timeout must be non-zero if you subsequently want to change
+    the timeout with :meth:`SessionPool.reconfigure()`.
 
     The wait_timeout parameter is expected to be an integer, if specified, and
     sets the length of time (in milliseconds) that the caller should wait for
@@ -350,7 +353,8 @@ Module Interface
         `session_callback` and the parameter `maxSessionsPerShard` was renamed
         to `max_sessions_per_shard`. The old names will continue to work as
         keyword parameters for a period of time. The `threaded` parameter value
-        is ignored and threading is always enabled.
+        is ignored and threading is always enabled; in previous versions the
+        default was False.
 
 
 .. function:: Time(hour, minute, second)

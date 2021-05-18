@@ -71,6 +71,20 @@ SessionPool Object
     connection has been established.
 
 
+.. attribute:: SessionPool.getmode
+
+    This read-write attribute determines how connections are returned from the
+    pool. If :data:`~cx_Oracle.SPOOL_ATTRVAL_FORCEGET` is specified, a new
+    connection will be returned even if there are no free sessions in the pool.
+    :data:`~cx_Oracle.SPOOL_ATTRVAL_NOWAIT` will raise an exception if there
+    are no free sessions are available in the pool. If
+    :data:`~cx_Oracle.SPOOL_ATTRVAL_WAIT` is specified and there are no free
+    sessions in the pool, the caller will wait until a free session is
+    available.  :data:`~cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT` uses the value of
+    :data:`~SessionPool.wait_timeout` to determine how long the caller should
+    wait for a session to become available before returning an error.
+
+
 .. attribute:: SessionPool.homogeneous
 
     This read-write boolean attribute indicates whether the pool is considered
@@ -128,11 +142,11 @@ SessionPool Object
     This read-write integer attribute specifies the pool ping interval in
     seconds. When a connection is acquired from the pool, a check is first made
     to see how long it has been since the connection was put into the pool. If
-    this idle time exceeds ``ping_interval``, then a :ref:`round-trip <roundtrips>`
-    ping to the database is performed. If the connection is unusable, it is
-    discarded and a different connection is selected to be returned by
-    :meth:`SessionPool.acquire()`.  Setting ``ping_interval`` to a negative
-    value disables pinging.  Setting it to 0 forces a ping for every
+    this idle time exceeds ``ping_interval``, then a :ref:`round-trip
+    <roundtrips>` ping to the database is performed. If the connection is
+    unusable, it is discarded and a different connection is selected to be
+    returned by :meth:`SessionPool.acquire()`.  Setting ``ping_interval`` to a
+    negative value disables pinging.  Setting it to 0 forces a ping for every
     ``aquire()`` and is not recommended.
 
     Prior to cx_Oracle 8.2, the ping interval was fixed at 60 seconds.

@@ -14,7 +14,7 @@ cx_Oracle 7.2 introduced an updated interface for Oracle Advanced
 Queuing.
 
 There are Advanced Queuing examples in the `GitHub examples
-<https://github.com/oracle/python-cx_Oracle/tree/master/samples>`__ directory.
+<https://github.com/oracle/python-cx_Oracle/tree/main/samples>`__ directory.
 
 
 Creating a Queue
@@ -46,7 +46,7 @@ queue can be used for enqueuing, dequeuing, or both as needed.
 
     queue = connection.queue("DEMO_RAW_QUEUE")
 
-Now messages can be queued using :meth:`Queue.enqOne()`.  To send three
+Now messages can be queued using :meth:`~Queue.enqone()`.  To send three
 messages:
 
 .. code-block:: python
@@ -57,7 +57,7 @@ messages:
         "The third message"
     ]
     for data in PAYLOAD_DATA:
-        queue.enqOne(connection.msgproperties(payload=data))
+        queue.enqone(connection.msgproperties(payload=data))
     connection.commit()
 
 Since the queue sending the messages is a RAW queue, the strings in this
@@ -69,7 +69,7 @@ Dequeuing Messages
 ==================
 
 Dequeuing is performed similarly. To dequeue a message call the method
-:meth:`Queue.deqOne()` as shown. Note that if the message is expected to be a
+:meth:`~Queue.deqone()` as shown. Note that if the message is expected to be a
 string, the bytes must be decoded using :attr:`Connection.encoding`.
 
 .. code-block:: python
@@ -110,25 +110,25 @@ You can queue messages:
 
 .. code-block:: python
 
-    booksType = connection.gettype("UDT_BOOK")
-    queue = connection.queue("DEMO_BOOK_QUEUE", booksType)
+    book_type = connection.gettype("UDT_BOOK")
+    queue = connection.queue("DEMO_BOOK_QUEUE", book_type)
 
-    book = booksType.newobject()
+    book = book_type.newobject()
     book.TITLE = "Quick Brown Fox"
     book.AUTHORS = "The Dog"
     book.PRICE = 123
 
-    queue.enqOne(connection.msgproperties(payload=book))
+    queue.enqone(connection.msgproperties(payload=book))
     connection.commit()
 
 Dequeuing is done like this:
 
 .. code-block:: python
 
-    booksType = connection.gettype("UDT_BOOK")
-    queue = connection.queue("DEMO_BOOK_QUEUE", booksType)
+    book_type = connection.gettype("UDT_BOOK")
+    queue = connection.queue("DEMO_BOOK_QUEUE", book_type)
 
-    msg = queue.deqOne()
+    msg = queue.deqone()
     connection.commit()
     print(msg.payload.TITLE)        # will print Quick Brown Fox
 
@@ -148,7 +148,7 @@ messages:
 .. code-block:: python
 
     queue = connection.queue("DEMO_RAW_QUEUE")
-    queue.enqOptions.visibility = cx_Oracle.ENQ_IMMEDIATE
+    queue.enqoptions.visibility = cx_Oracle.ENQ_IMMEDIATE
 
 Dequeue options can also be set.  For example, to specify not to block on
 dequeuing if no messages are available:
@@ -156,14 +156,14 @@ dequeuing if no messages are available:
 .. code-block:: python
 
     queue = connection.queue("DEMO_RAW_QUEUE")
-    queue.deqOptions.wait = cx_Oracle.DEQ_NO_WAIT
+    queue.deqoptions.wait = cx_Oracle.DEQ_NO_WAIT
 
 Message properties can be set when enqueuing.  For example, to set an
 expiration of 60 seconds on a message:
 
 .. code-block:: python
 
-    queue.enqOne(connection.msgproperties(payload="Message", expiration=60))
+    queue.enqone(connection.msgproperties(payload="Message", expiration=60))
 
 This means that if no dequeue operation occurs within 60 seconds that the
 message will be dropped from the queue.
@@ -172,10 +172,10 @@ message will be dropped from the queue.
 Bulk Enqueue and Dequeue
 ========================
 
-The :meth:`Queue.enqMany()` and :meth:`Queue.deqMany()` methods can be used for
-efficient bulk message handling.
+The :meth:`~Queue.enqmany()` and :meth:`~Queue.deqmany()` methods can be used
+for efficient bulk message handling.
 
-:meth:`Queue.enqMany()` is similar to :meth:`Queue.enqOne()` but accepts an
+:meth:`~Queue.enqmany()` is similar to :meth:`~Queue.enqone()` but accepts an
 array of messages:
 
 .. code-block:: python
@@ -186,22 +186,25 @@ array of messages:
         "The third message",
     ]
     queue = connection.queue("DEMO_RAW_QUEUE")
-    queue.enqMany(connection.msgproperties(payload=m) for m in messages)
+    queue.enqmany(connection.msgproperties(payload=m) for m in messages)
     connection.commit()
 
-Warning: calling :meth:`Queue.enqMany()` in parallel on different connections
-acquired from the same pool may fail due to Oracle bug 29928074.  Ensure that
-this function is not run in parallel, use standalone connections or connections
-from different pools, or make multiple calls to :meth:`Queue.enqOne()` instead.
-The function :meth:`Queue.deqMany()` call is not affected.
+.. warning::
 
-To dequeue multiple messages at one time, use :meth:`Queue.deqMany()`.  This
+    Calling :meth:`~Queue.enqmany()` in parallel on different connections
+    acquired from the same pool may fail due to Oracle bug 29928074.  Ensure
+    that this function is not run in parallel, use standalone connections or
+    connections from different pools, or make multiple calls to
+    :meth:`~Queue.enqone()` instead. The function :meth:`~Queue.deqmany()` call
+    is not affected.
+
+To dequeue multiple messages at one time, use :meth:`~Queue.deqmany()`.  This
 takes an argument specifying the maximum number of messages to dequeue at one
 time:
 
 .. code-block:: python
 
-    for m in queue.deqMany(maxMessages=10):
+    for m in queue.deqmany(10):
         print(m.payload.decode(connection.encoding))
 
 Depending on the queue properties and the number of messages available to

@@ -212,5 +212,5 @@ In the Python application code:
   the last call was completed successfully or not.
 
 See the `Transaction Guard Sample
-<https://github.com/oracle/python-cx_Oracle/blob/master/
+<https://github.com/oracle/python-cx_Oracle/blob/main/
 samples/transaction_guard.py>`__ for further details.

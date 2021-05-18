@@ -45,12 +45,14 @@ example:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect(userName, password, "dbhost.example.com/orclpdb1", events=True)
+    connection = cx_Oracle.connect(user=user, password=password,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   events=True)
 
 The default CQN connection mode means the database must be able to connect back
 to the application using cx_Oracle in order to receive notification events.
 Alternatively, when using Oracle Database and Oracle client libraries 19.4, or
-later, subscriptions can set the optional ``clientInitiated`` parameter to
+later, subscriptions can set the optional ``client_initiated`` parameter to
 ``True``, see ``Connection.subscribe()`` below.
 
 The default CQN connection mode typically means that the machine running
@@ -71,8 +73,7 @@ For example, a basic CQN subscription might be created like:
 
 .. code-block:: python
 
-    connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE,
-            callback=MyCallback)
+    connection.subscribe(callback=my_callback)
 
 See :meth:`Connection.subscribe()` for details on all of the parameters.
 
@@ -87,11 +88,11 @@ See :ref:`subscrobj` for more details on the subscription object that is
 created.
 
 When using Oracle Database and Oracle client libraries 19.4, or later, the
-optional subscription parameter ``clientInitiated`` can be set:
+optional subscription parameter ``client_initiated`` can be set:
 
 .. code-block:: python
 
-    connection.subscribe(namespace= . . ., callback=MyCallback, clientInitiated=True)
+    connection.subscribe(callback=my_callback, client_initiated=True)
 
 This enables CQN "client initiated" connections which internally use the same
 approach as normal cx_Oracle connections to the database, and do not require the
@@ -113,7 +114,7 @@ changes is:
 
 .. code-block:: python
 
-    def CQNCallback(message):
+    def cqn_callback(message):
         print("Notification:")
         for query in message.queries:
             for tab in query.tables:
@@ -125,10 +126,9 @@ changes is:
                     if row.operation & cx_Oracle.OPCODE_DELETE:
                         print("DELETE of rowid:", row.rowid)
 
-    subscr = connection.subscribe(namespace=cx_Oracle.SUBSCR_NAMESPACE_DBCHANGE,
-            callback=CQNCallback,
-            operations=cx_Oracle.OPCODE_INSERT | cx_Oracle.OPCODE_DELETE,
-            qos = cx_Oracle.SUBSCR_QOS_QUERY | cx_Oracle.SUBSCR_QOS_ROWIDS)
+    subscr = connection.subscribe(callback=cqn_callback,
+                                  operations=cx_Oracle.OPCODE_INSERT | cx_Oracle.OPCODE_DELETE,
+                                  qos=cx_Oracle.SUBSCR_QOS_QUERY | cx_Oracle.SUBSCR_QOS_ROWIDS)
     subscr.registerquery("select * from regions")
     input("Hit enter to stop CQN demo\n")
 
@@ -153,5 +153,5 @@ which should print something like the following::
     INSERT of rowid: AAA7EsAAHAAAFS/AAA
 
 See `GitHub Samples
-<https://github.com/oracle/python-cx_Oracle/blob/master/samples/cqn.py>`__
+<https://github.com/oracle/python-cx_Oracle/blob/main/samples/cqn.py>`__
 for a runnable CQN example.

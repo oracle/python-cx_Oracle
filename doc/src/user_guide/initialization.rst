@@ -40,7 +40,7 @@ Support's `Doc ID 207303.1
       you will need to have previously set your environment to use that
       software installation, otherwise files such as message files will not be
       located. On Windows when the path contains backslashes, use a 'raw'
-      string like ``lib_dir = r"C:\instantclient_19_6"``. If the Oracle Client
+      string like ``lib_dir=r"C:\instantclient_19_6"``. If the Oracle Client
       libraries cannot be loaded from ``lib_dir``, then an exception is raised.
 
     - If ``lib_dir`` was not specified, then Oracle Client libraries are looked
@@ -164,7 +164,8 @@ example, if the Oracle Instant Client Libraries are in
                                    "instantclient_19_8")
             cx_Oracle.init_oracle_client(lib_dir=lib_dir)
         elif sys.platform.startswith("win32"):
-            cx_Oracle.init_oracle_client(lib_dir=r"C:\oracle\instantclient_19_9")
+            lib_dir=r"C:\oracle\instantclient_19_9"
+            cx_Oracle.init_oracle_client(lib_dir=lib_dir)
     except Exception as err:
         print("Whoops!")
         print(err);
@@ -388,8 +389,8 @@ parameters is:
     import sys
 
     try:
-        cx_Oracle.init_oracle_client(driver_name = "My Great App : 3.1.4",
-            error_url: "https://example.com/MyInstallInstructions.html")
+        cx_Oracle.init_oracle_client(driver_name="My Great App : 3.1.4",
+                                     error_url="https://example.com/MyInstallInstructions.html")
     except Exception as err:
         print("Whoops!")
         print(err);

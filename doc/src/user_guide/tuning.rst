@@ -200,18 +200,18 @@ data from one database to another:
 .. code-block:: python
 
     # setup cursors
-    sourceCursor = sourceConnection.cursor()
-    sourceCursor.arraysize = 1000
-    targetCursor = targetConnection.cursor()
+    source_cursor = source_connection.cursor()
+    source_cursor.arraysize = 1000
+    target_cursor = target_connection.cursor()
 
     # perform fetch and bulk insertion
-    sourceCursor.execute("select * from MyTable")
+    source_cursor.execute("select * from MyTable")
     while True:
-        rows = sourceCursor.fetchmany()
+        rows = source_cursor.fetchmany()
         if not rows:
             break
-        targetCursor.executemany("insert into MyTable values (:1, :2)", rows)
-        targetConnection.commit()
+        target_cursor.executemany("insert into MyTable values (:1, :2)", rows)
+        target_connection.commit()
 
 Tuning REF CURSORS
 ++++++++++++++++++

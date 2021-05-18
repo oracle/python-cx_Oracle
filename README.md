@@ -39,7 +39,7 @@ See [/test][11].
 
 ## Contributing
 
-See [CONTRIBUTING](https://github.com/oracle/python-cx_Oracle/blob/master/CONTRIBUTING.md)
+See [CONTRIBUTING](https://github.com/oracle/python-cx_Oracle/blob/main/CONTRIBUTING.md)
 
 ## License
 
@@ -47,13 +47,13 @@ cx_Oracle is licensed under a BSD license which you can find [here][3].
 
 [1]: https://www.python.org/dev/peps/pep-0249
 [2]: http://cx-oracle.readthedocs.io
-[3]: https://github.com/oracle/python-cx_Oracle/blob/master/LICENSE.txt
+[3]: https://github.com/oracle/python-cx_Oracle/blob/main/LICENSE.txt
 [5]: http://lists.sourceforge.net/lists/listinfo/cx-oracle-users
-[6]: https://github.com/oracle/python-cx_Oracle/tree/master/samples/tutorial
+[6]: https://github.com/oracle/python-cx_Oracle/tree/main/samples/tutorial
 [7]: http://cx-oracletools.sourceforge.net
 [8]: http://cx-pyoraclelib.sourceforge.net
 [9]: https://github.com/oracle/python-cx_Oracle/issues
-[11]: https://github.com/oracle/python-cx_Oracle/tree/master/test
-[12]: https://github.com/oracle/python-cx_Oracle/tree/master/samples
+[11]: https://github.com/oracle/python-cx_Oracle/tree/main/test
+[12]: https://github.com/oracle/python-cx_Oracle/tree/main/samples
 [14]: https://cx-oracle.readthedocs.io/en/latest/release_notes.html
 [15]: https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html

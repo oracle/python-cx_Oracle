@@ -256,9 +256,11 @@ SODA Collection Object
 
     The hint parameter, if specified, supplies a hint to the database when
     processing the SODA operation. This is expected to be a string in the same
-    format as SQL hints but without the enclosing comment characters. Use of
-    this parameter requires Oracle Client 21.3 or higher (or Oracle Client 19
-    from 19.11).
+    format as SQL hints but without any comment characters, for example
+    ``hint="MONITOR"``. While you could use this to pass any SQL hint, the
+    hints ``MONITOR`` (turn on monitoring) and ``NO_MONITOR`` (turn off
+    monitoring) are the most useful. Use of the hint parameter requires Oracle
+    Client 21.3 or higher (or Oracle Client 19 from 19.11).
 
     .. note::
 
@@ -288,9 +290,11 @@ SODA Collection Object
 
     The hint parameter, if specified, supplies a hint to the database when
     processing the SODA operation. This is expected to be a string in the same
-    format as SQL hints but without the enclosing comment characters. Use of
-    this parameter requires Oracle Client 21.3 or higher (or Oracle Client 19
-    from 19.11).
+    format as SQL hints but without any comment characters, for example
+    ``hint="MONITOR"``. While you could use this to pass any SQL hint, the
+    hints ``MONITOR`` (turn on monitoring) and ``NO_MONITOR`` (turn off
+    monitoring) are the most useful. Use of the hint parameter requires Oracle
+    Client 21.3 or higher (or Oracle Client 19 from 19.11).
 
     .. versionadded:: 7.0
 
@@ -339,9 +343,11 @@ SODA Collection Object
 
     The hint parameter, if specified, supplies a hint to the database when
     processing the SODA operation. This is expected to be a string in the same
-    format as SQL hints but without the enclosing comment characters. Use of
-    this parameter requires Oracle Client 21.3 or higher (or Oracle Client 19
-    from 19.11).
+    format as SQL hints but without any comment characters, for example
+    ``hint="MONITOR"``. While you could use this to pass any SQL hint, the
+    hints ``MONITOR`` (turn on monitoring) and ``NO_MONITOR`` (turn off
+    monitoring) are the most useful. Use of the hint parameter requires Oracle
+    Client 21.3 or higher (or Oracle Client 19 from 19.11).
 
     This method requires Oracle Client 19.9 or higher in addition to the usual
     SODA requirements.
@@ -560,8 +566,10 @@ SODA Operation Object
 
     Specifies a hint that will be provided to the SODA operation when it is
     performed. This is expected to be a string in the same format as SQL hints
-    but without the enclosing comment characters. Use of this method
-    requires Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+    but without any comment characters. While you could use this to pass any SQL
+    hint, the hints ``MONITOR`` (turn on monitoring) and ``NO_MONITOR`` (turn
+    off monitoring) are the most useful. Use of this method requires Oracle
+    Client 21.3 or higher (or Oracle Client 19 from 19.11).
 
     As a convenience, the SodaOperation object is returned so that further
     criteria can be specified by chaining methods together.

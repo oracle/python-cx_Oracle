@@ -30,16 +30,16 @@ then the following Python code can be used to call it:
 
 .. code-block:: python
 
-    outVal = cursor.var(int)
-    cursor.callproc('myproc', [123, outVal])
-    print(outVal.getvalue())        # will print 246
+    out_val = cursor.var(int)
+    cursor.callproc('myproc', [123, out_val])
+    print(out_val.getvalue())        # will print 246
 
 Calling :meth:`Cursor.callproc()` actually generates an anonymous PL/SQL block
 as shown below, which is then executed:
 
 .. code-block:: python
 
-    cursor.execute("begin myproc(:1,:2); end;", [123, outval])
+    cursor.execute("begin myproc(:1,:2); end;", [123, out_val])
 
 See :ref:`bind` for information on binding.
 
@@ -71,8 +71,8 @@ then the following Python code can be used to call it:
 
 .. code-block:: python
 
-    returnVal = cursor.callfunc("myfunc", int, ["a string", 15])
-    print(returnVal)        # will print 38
+    return_val = cursor.callfunc("myfunc", int, ["a string", 15])
+    print(return_val)        # will print 38
 
 A more complex example that returns a spatial (SDO) object can be seen below.
 First, the SQL statements necessary to set up the example:
@@ -104,10 +104,10 @@ The Python code that will call this procedure looks as follows:
 
 .. code-block:: python
 
-    objType = connection.gettype("SDO_POINT_TYPE")
+    obj_type = connection.gettype("SDO_POINT_TYPE")
     cursor = connection.cursor()
-    returnVal = cursor.callfunc("spatial_queryfn", objType, [1])
-    print("(%d, %d, %d)" % (returnVal.X, returnVal.Y, returnVal.Z))
+    return_val = cursor.callfunc("spatial_queryfn", obj_type, [1])
+    print(f"({return_val.X}, {return_val.Y}, {return_val.Z})")
     # will print (125, 375, 0)
 
 See :ref:`bind` for information on binding.
@@ -123,8 +123,8 @@ An anonymous PL/SQL block can be called as shown:
     var = cursor.var(int)
     cursor.execute("""
             begin
-                :outVal := length(:inVal);
-            end;""", inVal="A sample string", outVal=var)
+                :out_val := length(:in_val);
+            end;""", in_val="A sample string", out_val=var)
     print(var.getvalue())        # will print 15
 
 See :ref:`bind` for information on binding.
@@ -223,18 +223,18 @@ This will produce the following output::
     This is the cx_Oracle manual
     Demonstrating use of DBMS_OUTPUT
 
-An alternative is to call ``DBMS_OUTPUT.GET_LINE()`` once per output line, which
-may be much slower:
+An alternative is to call ``DBMS_OUTPUT.GET_LINE()`` once per output line,
+which may be much slower:
 
 .. code-block:: python
 
-    textVar = cursor.var(str)
-    statusVar = cursor.var(int)
+    text_var = cursor.var(str)
+    status_var = cursor.var(int)
     while True:
-        cursor.callproc("dbms_output.get_line", (textVar, statusVar))
-        if statusVar.getvalue() != 0:
+        cursor.callproc("dbms_output.get_line", (text_var, status_var))
+        if status_var.getvalue() != 0:
             break
-        print(textVar.getvalue())
+        print(text_var.getvalue())
 
 Implicit results
 ----------------
@@ -260,8 +260,8 @@ An example using implicit results is as shown:
                 dbms_sql.return_result(sales_cur);
             end;""")
 
-    for implicitCursor in cursor.getimplicitresults():
-        for row in implicitCursor:
+    for implicit_cursor in cursor.getimplicitresults():
+        for row in implicit_cursor:
             print(row)
 
 Data from both the result sets are returned::
@@ -289,8 +289,9 @@ The simplest way to set an edition is to pass the ``edition`` parameter to
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1",
-            edition="newsales", encoding="UTF-8")
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   edition="newsales", encoding="UTF-8")
 
 
 The edition could also be set by setting the environment variable
@@ -353,22 +354,24 @@ function as shown:
 
 .. code-block:: python
 
-    connection = cx_Oracle.connect(<username>, <password>, "dbhost.example.com/orclpdb1",
-            encoding="UTF-8")
+    connection = cx_Oracle.connect(user=user, password=password,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   encoding="UTF-8")
     print("Edition is:", repr(connection.edition))
 
     cursor = connection.cursor()
-    discountedPrice = cursor.callfunc("Discount", int, [100])
-    print("Price after discount is:", discountedPrice)
+    discounted_price = cursor.callfunc("Discount", int, [100])
+    print("Price after discount is:", discounted_price)
 
     # Use the edition parameter for the connection
-    connection = cx_Oracle.connect(<username>, <password>, "dbhost.example.com/orclpdb1",
-            edition = "demo", encoding="UTF-8")
+    connection = cx_Oracle.connect(user=user, password=password,
+                                   dsn="dbhost.example.com/orclpdb1",
+                                   edition="demo", encoding="UTF-8")
     print("Edition is:", repr(connection.edition))
 
     cursor = connection.cursor()
-    discountedPrice = cursor.callfunc("Discount", int, [100])
-    print("Price after discount is:", discountedPrice)
+    discounted_price = cursor.callfunc("Discount", int, [100])
+    print("Price after discount is:", discounted_price)
 
 The output of the function call for the default and demo edition is as shown::
 

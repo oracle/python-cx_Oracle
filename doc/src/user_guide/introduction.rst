@@ -23,12 +23,15 @@ the same machine as Python, or it can be remote.
 
 cx_Oracle is typically installed from `PyPI
 <https://pypi.org/project/cx-Oracle/>`__ using `pip
-<https://pip.pypa.io/en/latest/installing/>`__.  The Oracle Client
-libraries need to be installed separately.  The libraries can be obtained from
-an installation of `Oracle Instant Client
+<https://pip.pypa.io/en/latest/installing/>`__.  The Oracle Client libraries
+need to be installed separately.  The libraries can be from an installation of
+`Oracle Instant Client
 <https://www.oracle.com/database/technologies/instant-client.html>`__, from a
 full Oracle Client installation, or even from an Oracle Database installation
-(if Python is running on the same machine as the database).
+(if Python is running on the same machine as the database).  Oracle’s standard
+client-server version interoperability allows connection to both older and
+newer databases from different Client library versions, see :ref:`cx_Oracle
+Installation <installation>`.
 
 Some behaviors of the Oracle Client libraries can optionally be configured with
 an ``oraaccess.xml`` file, for example to enable auto-tuning of a statement
@@ -74,20 +77,21 @@ Create a script ``query.py`` as shown below:
     import cx_Oracle
 
     # Establish the database connection
-    connection = cx_Oracle.connect("hr", userpwd, "dbhost.example.com/orclpdb1")
+    connection = cx_Oracle.connect(user="hr", password=userpwd,
+                                   dsn="dbhost.example.com/orclpdb1")
 
     # Obtain a cursor
     cursor = connection.cursor()
 
     # Data for binding
-    managerId = 145
-    firstName = "Peter"
+    manager_id = 145
+    first_name = "Peter"
 
     # Execute the query
     sql = """SELECT first_name, last_name
              FROM employees
              WHERE manager_id = :mid AND first_name = :fn"""
-    cursor.execute(sql, mid = managerId, fn = firstName)
+    cursor.execute(sql, mid=manager_id, fn=first_name)
 
     # Loop over the result set
     for row in cursor:
@@ -127,8 +131,14 @@ The output is::
 Examples and Tutorials
 ----------------------
 
+The `Quick Start: Developing Python Applications for Oracle Database
+<https://www.oracle.com/database/technologies/appdev/python/quickstartpythononprem.html>`__
+and `Quick Start: Developing Python Applications for Oracle Autonomous Database
+<https://www.oracle.com/database/technologies/appdev/python/quickstartpython.html>`__
+instructions have steps for Windows, Linux, and macOS.
+
 Runnable examples are in the `GitHub samples directory
-<https://github.com/oracle/python-cx_Oracle/tree/master/samples>`__.  A `Python
+<https://github.com/oracle/python-cx_Oracle/tree/main/samples>`__.  A `Python
 cx_Oracle tutorial
 <https://oracle.github.io/python-cx_Oracle/samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html>`__
 is also available.
