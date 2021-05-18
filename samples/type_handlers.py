@@ -53,14 +53,13 @@ def building_out_converter(obj):
 
 def input_type_handler(cursor, value, num_elements):
     if isinstance(value, Building):
-        return cursor.var(oracledb.OBJECT, arraysize=num_elements,
-                inconverter=building_in_converter, typename=obj_type.name)
+        return cursor.var(obj_type, arraysize=num_elements,
+                          inconverter=building_in_converter)
 
 def output_type_handler(cursor, name, default_type, size, precision, scale):
     if default_type == oracledb.OBJECT:
-        return cursor.var(oracledb.OBJECT, arraysize=cursor.arraysize,
-                          outconverter=building_out_converter,
-                          typename=obj_type.name)
+        return cursor.var(obj_type, arraysize=cursor.arraysize,
+                          outconverter=building_out_converter)
 
 buildings = [
     Building(1, "The First Building", 5, datetime.date(2007, 5, 18)),
