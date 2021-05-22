@@ -7,6 +7,10 @@ cx_Oracle Release Notes
 
 For any deprecations, see :ref:`Deprecations <deprecations>`.
 
+Version 8.3 (TBD)
+-----------------
+
+
 Version 8.2 (May 2021)
 ----------------------
 
