@@ -10,6 +10,9 @@ For any deprecations, see :ref:`Deprecations <deprecations>`.
 Version 8.3 (TBD)
 -----------------
 
+#)  Updated embedded ODPI-C to `version 4.3.0
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-4-3-tbd>`__.
 #)  Fixed crash when using the deprecated parameter name `keywordParameters`
     with :meth:`Cursor.callproc()`.
 #)  Improved the test suite.
