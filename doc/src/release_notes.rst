@@ -10,6 +10,10 @@ For any deprecations, see :ref:`Deprecations <deprecations>`.
 Version 8.3 (TBD)
 -----------------
 
+#)  Fixed crash when using the deprecated parameter name `keywordParameters`
+    with :meth:`Cursor.callproc()`.
+#)  Improved the test suite.
+
 
 Version 8.2 (May 2021)
 ----------------------

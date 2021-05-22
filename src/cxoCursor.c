@@ -1263,7 +1263,8 @@ static PyObject *cxoCursor_callProc(cxoCursor *cursor, PyObject *args,
     // parse arguments
     listOfArguments = keywordArguments = keywordArgumentsDeprecated = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, keywordArgs, "O|OOO", keywordList,
-            &name, &listOfArguments, &keywordArguments))
+            &name, &listOfArguments, &keywordArguments,
+            &keywordArgumentsDeprecated))
         return NULL;
     if (keywordArgumentsDeprecated) {
         if (keywordArguments) {
