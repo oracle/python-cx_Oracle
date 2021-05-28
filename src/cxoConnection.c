@@ -623,7 +623,7 @@ static int cxoConnection_init(cxoConnection *conn, PyObject *args,
 
     // determine if session callback should be invoked; this takes place if
     // the connection is newly created by the pool or if the requested tag
-    // does not match the actal tag
+    // does not match the actual tag
     invokeSessionCallback = 0;
     if (dpiCreateParams.outNewSession ||
             dpiCreateParams.outTagLength != params.tagBuffer.size ||
