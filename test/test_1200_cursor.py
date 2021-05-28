@@ -1001,5 +1001,35 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.statement, sql)
         self.assertEqual(self.cursor.description, None)
 
+    def test_1285_executemany_with_plsql_binds(self):
+        "1285 - test executing plsql statements multiple times (with binds)"
+        var = self.cursor.var(int, arraysize=5)
+        self.cursor.setinputsizes(var)
+        data = [[25], [30], [None], [35], [None]]
+        exepected_data = [25, 30, None, 35, None]
+        self.cursor.executemany("declare t number; begin t := :1; end;", data)
+        self.assertEqual(var.values, exepected_data)
+
+    def test_1286_encodingErrors_deprecation(self):
+        "1286 - test to verify encodingErrors is deprecated"
+        errors = 'strict'
+        self.assertRaises(oracledb.ProgrammingError, self.cursor.var,
+                          oracledb.NUMBER, encoding_errors=errors,
+                          encodingErrors=errors)
+
+    def test_1287_keywordParameters_deprecation(self):
+        "1287 - test to verify keywordParameters is deprecated"
+        out_value = self.cursor.var(oracledb.NUMBER)
+        kwargs = dict(a_OutValue=out_value)
+        self.assertRaises(oracledb.ProgrammingError, self.cursor.callproc,
+                          "proc_Test", ("hi", 5), kwargs,
+                          keywordParameters=kwargs)
+        extra_amount = self.cursor.var(oracledb.NUMBER)
+        extra_amount.setvalue(0, 5)
+        kwargs = dict(a_ExtraAmount=extra_amount, a_String="hi")
+        self.assertRaises(oracledb.ProgrammingError, self.cursor.callfunc,
+                          "func_Test", oracledb.NUMBER, [], kwargs,
+                          keywordParameters=kwargs)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

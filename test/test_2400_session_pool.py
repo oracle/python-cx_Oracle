@@ -441,5 +441,22 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.stmtcachesize, 25, "stmtcachesize (25)")
         self.assertEqual(pool.ping_interval, 25, "ping_interval (25)")
 
+    def test_2418_deprecations(self):
+        "2418 - test to verify deprecations"
+        callback = "pkg_SessionCallback.TheCallback"
+        self.assertRaises(oracledb.ProgrammingError, test_env.get_pool,
+                          min=1, max=2, increment=1, wait_timeout=10,
+                          waitTimeout=10)
+        self.assertRaises(oracledb.ProgrammingError, test_env.get_pool,
+                          min=1, max=2, increment=1, max_lifetime_session=20,
+                          maxLifetimeSession=20)
+        self.assertRaises(oracledb.ProgrammingError, test_env.get_pool,
+                          min=1, max=2, increment=1, max_sessions_per_shard=1,
+                          maxSessionsPerShard=1)
+        self.assertRaises(oracledb.ProgrammingError, test_env.get_pool,
+                          min=2, max=8, increment=3,
+                          getmode=oracledb.SPOOL_ATTRVAL_NOWAIT,
+                          session_callback=callback, sessionCallback=callback)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

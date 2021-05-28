@@ -13,6 +13,9 @@ Version 8.2.1 (June 2021)
 #)  Updated embedded ODPI-C to `version 4.2.1
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-2-1-tbd>`__.
+#)  Fixed crash when using the deprecated parameter name `keywordParameters`
+    with :meth:`Cursor.callproc()`.
+#)  Improved test suite.
 
 
 Version 8.2 (May 2021)
