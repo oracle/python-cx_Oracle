@@ -724,11 +724,11 @@ statement can be built up as follows:
 
 .. code-block:: python
 
-    bindValues = ["Gates", "Marvin", "Fay"]
-    bindNames = [":" + str(i + 1) for i in range(len(bindValues))]
+    bind_values = ["Gates", "Marvin", "Fay"]
+    bind_names = [":" + str(i + 1) for i in range(len(bind_values))]
     sql = "select employee_id, first_name, last_name from employees " + \
-            "where last_name in (%s)" % (",".join(bindNames))
-    cursor.execute(sql, bindValues)
+            "where last_name in (%s)" % (",".join(bind_names))
+    cursor.execute(sql, bind_values)
     for row in cursor:
         print(row)
 
