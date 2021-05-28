@@ -7,6 +7,14 @@ cx_Oracle Release Notes
 
 For any deprecations, see :ref:`Deprecations <deprecations>`.
 
+Version 8.2.1 (June 2021)
+-------------------------
+
+#)  Updated embedded ODPI-C to `version 4.2.1
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-4-2-1-tbd>`__.
+
+
 Version 8.2 (May 2021)
 ----------------------
 
