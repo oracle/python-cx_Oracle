@@ -13,9 +13,22 @@ Version 8.3 (TBD)
 #)  Updated embedded ODPI-C to `version 4.3.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-3-tbd>`__.
+
+
+Version 8.2.1 (June 2021)
+-------------------------
+
+#)  Updated embedded ODPI-C to `version 4.2.1
+    <https://oracle.github.io/odpi/doc/releasenotes.html#
+    version-4-2-1-june-1-2021>`__.
+#)  Added support for caching the database version in pooled connections with
+    Oracle Client 19 and earlier (later Oracle Clients handle this caching
+    internally). This optimization eliminates a round-trip previously often
+    required when reusing a pooled connection.
+#)  Fixed a regression with error messages when creating a connection fails.
 #)  Fixed crash when using the deprecated parameter name `keywordParameters`
     with :meth:`Cursor.callproc()`.
-#)  Improved the test suite.
+#)  Improved documentation and the test suite.
 
 
 Version 8.2 (May 2021)
