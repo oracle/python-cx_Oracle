@@ -130,18 +130,6 @@ SODA metadata can be cached to improve the performance of
 :meth:`SodaDatabase.openCollection()` by reducing :ref:`round-trips
 <roundtrips>` to the database. Caching is available with Oracle Client 21.3 (or
 later). The feature is also available in Oracle Client 19 from 19.11 onwards.
-Note: if collection metadata changes are made externally, the cache can become
-invalid.  If this happens, the cache can be cleared by calling
-:meth:`SessionPool.reconfigure()` with ``soda_metadata_cache`` set to `False`,
-or by setting the attribute :attr:`SessionPool.soda_metadata_cache` to `False`.
-A second call to ``reconfigure()`` or a direct setting of the
-``soda_metadata_cache`` attribute can then be performed to re-enable the cache.
-
-Caching can be enabled for pooled connections but not standalone
-connections. Applications using standalone connections should retain and reuse
-the :ref:`collection <sodacoll>` returned from ``createCollection()`` or
-``openCollection()`` wherever possible, instead of making repeated calls to
-those methods.
 
 The metadata cache can be turned on when creating a connection pool with
 :meth:`cx_Oracle.SessionPool()`. Each pool has its own cache:
@@ -153,8 +141,13 @@ The metadata cache can be turned on when creating a connection pool with
                                  dsn="dbhost.example.com/orclpdb1",
                                  soda_metadata_cache=True)
 
-Note the cache is not used by ``createCollection()`` when explicitly passing
-metadata.  In this case, instead of using only ``createCollection()`` and
+The cache is not available for standalone connections. Applications using these
+should retain and reuse the :ref:`collection <sodacoll>` returned from
+``createCollection()`` or ``openCollection()`` wherever possible, instead of
+making repeated calls to those methods.
+
+The cache is not used by ``createCollection()`` when explicitly passing
+metadata. In this case, instead of using only ``createCollection()`` and
 relying on its behavior of opening an existing collection like:
 
 .. code-block:: python
@@ -172,6 +165,13 @@ you will find it more efficient to use logic similar to:
         mymetadata = { . . . }
         collection = soda.createCollection("mycollection", mymetadata)
     collection.insertOne(mycontent)
+
+If collection metadata changes are made externally, the cache can become
+invalid. If this happens, the cache can be cleared by calling
+:meth:`SessionPool.reconfigure()` with ``soda_metadata_cache`` set to `False`,
+or by setting the attribute :attr:`SessionPool.soda_metadata_cache` to `False`.
+Use a second call to ``reconfigure()`` or set ``soda_metadata_cache`` to
+re-enable the cache.
 
 Committing SODA Work
 ====================
