@@ -256,11 +256,16 @@ SODA Collection Object
 
     The hint parameter, if specified, supplies a hint to the database when
     processing the SODA operation. This is expected to be a string in the same
-    format as SQL hints but without any comment characters, for example
-    ``hint="MONITOR"``. While you could use this to pass any SQL hint, the
-    hints ``MONITOR`` (turn on monitoring) and ``NO_MONITOR`` (turn off
-    monitoring) are the most useful. Use of the hint parameter requires Oracle
-    Client 21.3 or higher (or Oracle Client 19 from 19.11).
+    format as a SQL hint but without any comment characters, for example
+    ``hint="MONITOR"``. Pass only the hint ``"MONITOR"`` (turn on monitoring)
+    or ``"NO_MONITOR"`` (turn off monitoring).  See the Oracle Database SQL
+    Tuning Guide documentation `MONITOR and NO_MONITOR Hints
+    <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
+    and `Monitoring Database Operations
+    <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
+    for more information.
 
     .. note::
 
@@ -270,7 +275,8 @@ SODA Collection Object
 
     .. versionchanged:: 8.2
 
-        The parameter `hint` was added.
+        The parameter `hint` was added. Use of the hint parameter requires
+        Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
 
 
 .. method:: SodaCollection.insertOne(doc)
@@ -290,17 +296,23 @@ SODA Collection Object
 
     The hint parameter, if specified, supplies a hint to the database when
     processing the SODA operation. This is expected to be a string in the same
-    format as SQL hints but without any comment characters, for example
-    ``hint="MONITOR"``. While you could use this to pass any SQL hint, the
-    hints ``MONITOR`` (turn on monitoring) and ``NO_MONITOR`` (turn off
-    monitoring) are the most useful. Use of the hint parameter requires Oracle
-    Client 21.3 or higher (or Oracle Client 19 from 19.11).
+    format as a SQL hint but without any comment characters, for example
+    ``hint="MONITOR"``. Pass only the hint ``"MONITOR"`` (turn on monitoring)
+    or ``"NO_MONITOR"`` (turn off monitoring).  See the Oracle Database SQL
+    Tuning Guide documentation `MONITOR and NO_MONITOR Hints
+    <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
+    and `Monitoring Database Operations
+    <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
+    for more information.
 
     .. versionadded:: 7.0
 
     .. versionchanged:: 8.2
 
-        The parameter `hint` was added.
+        The parameter `hint` was added.  Use of the hint parameter requires
+        Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
 
 
 .. attribute:: SodaCollection.metadata
@@ -343,11 +355,16 @@ SODA Collection Object
 
     The hint parameter, if specified, supplies a hint to the database when
     processing the SODA operation. This is expected to be a string in the same
-    format as SQL hints but without any comment characters, for example
-    ``hint="MONITOR"``. While you could use this to pass any SQL hint, the
-    hints ``MONITOR`` (turn on monitoring) and ``NO_MONITOR`` (turn off
-    monitoring) are the most useful. Use of the hint parameter requires Oracle
-    Client 21.3 or higher (or Oracle Client 19 from 19.11).
+    format as a SQL hint but without any comment characters, for example
+    ``hint="MONITOR"``. Pass only the hint ``"MONITOR"`` (turn on monitoring)
+    or ``"NO_MONITOR"`` (turn off monitoring).  See the Oracle Database SQL
+    Tuning Guide documentation `MONITOR and NO_MONITOR Hints
+    <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
+    and `Monitoring Database Operations
+    <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
+    for more information.
 
     This method requires Oracle Client 19.9 or higher in addition to the usual
     SODA requirements.
@@ -356,7 +373,8 @@ SODA Collection Object
 
     .. versionchanged:: 8.2
 
-        The parameter `hint` was added.
+        The parameter `hint` was added. Use of the hint parameter requires
+        Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
 
 
 .. method:: SodaCollection.truncate()
@@ -565,14 +583,21 @@ SODA Operation Object
 .. method:: SodaOperation.hint(value)
 
     Specifies a hint that will be provided to the SODA operation when it is
-    performed. This is expected to be a string in the same format as SQL hints
-    but without any comment characters. While you could use this to pass any SQL
-    hint, the hints ``MONITOR`` (turn on monitoring) and ``NO_MONITOR`` (turn
-    off monitoring) are the most useful. Use of this method requires Oracle
-    Client 21.3 or higher (or Oracle Client 19 from 19.11).
+    performed. This is expected to be a string in the same format as a SQL hint
+    but without any comment characters, for example ``hint("MONITOR")``. Pass
+    only the hint ``"MONITOR"`` (turn on monitoring) or ``"NO_MONITOR"`` (turn
+    off monitoring). See the Oracle Database SQL Tuning Guide documentation
+    `MONITOR and NO_MONITOR Hints
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
+    and `Monitoring Database Operations
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
+    for more information.
 
     As a convenience, the SodaOperation object is returned so that further
     criteria can be specified by chaining methods together.
+
+    Use of this method requires Oracle Client 21.3 or higher (or Oracle Client
+    19 from 19.11).
 
     .. versionadded:: 8.2
 
