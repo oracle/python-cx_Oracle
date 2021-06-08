@@ -1,6 +1,7 @@
 # cx_Oracle Examples
 
-This directory contains samples for [cx_Oracle][6].  Documentation is [here][7].
+This directory contains samples for [cx_Oracle][6].  Documentation is
+[here][7].  A separate tutorial is [here][8].
 
 1. The schemas and SQL objects that are referenced in the samples can be
    created by running the Python script [setup_samples.py][1]. The script
@@ -19,7 +20,7 @@ This directory contains samples for [cx_Oracle][6].  Documentation is [here][7].
 
 2. Run a Python script, for example:
 
-        python Query.py
+        python query.py
 
 3. After running cx_Oracle samples, the schemas and SQL objects can be
    dropped by running the Python script [drop_samples.py][4]. The script
@@ -43,3 +44,4 @@ This directory contains samples for [cx_Oracle][6].  Documentation is [here][7].
 [5]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/sql/drop_samples.sql
 [6]: https://oracle.github.io/python-cx_Oracle/
 [7]: http://cx-oracle.readthedocs.org/en/latest/index.html
+[8]: https://oracle.github.io/python-cx_Oracle/samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html
