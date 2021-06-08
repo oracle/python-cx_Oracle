@@ -244,7 +244,7 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
     dpiIntervalDS *interval;
     PyDateTime_Delta *delta;
     int32_t deltaSeconds;
-    PyObject *textValue;
+    PyObject *tempValue;
     cxoObject *obj;
     cxoLob *lob;
     int status;
@@ -316,10 +316,21 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
                 dbValue->asInt64 = (pyValue == Py_True);
                 return 0;
             }
-            dbValue->asInt64 = PyLong_AsLong(pyValue);
-            if (PyErr_Occurred())
+            if (!PyFloat_Check(pyValue) &&
+                    !PyLong_Check(pyValue) &&
+                    !PyObject_TypeCheck(pyValue, cxoPyTypeDecimal)) {
+                PyErr_SetString(PyExc_TypeError,
+                        "expecting number or boolean");
                 return -1;
-            return 0;
+            }
+            tempValue = PyObject_CallFunctionObjArgs((PyObject*) &PyLong_Type,
+                    pyValue, NULL);
+            if (!tempValue)
+                return -1;
+            dbValue->asInt64 = PyLong_AsLong(tempValue);
+            status = (PyErr_Occurred()) ? -1 : 0;
+            Py_DECREF(tempValue);
+            return status;
         case CXO_TRANSFORM_INT:
         case CXO_TRANSFORM_DECIMAL:
         case CXO_TRANSFORM_FLOAT:
@@ -334,11 +345,11 @@ int cxoTransform_fromPython(cxoTransformNum transformNum,
                     PyErr_SetString(PyExc_TypeError, "expecting number");
                     return -1;
                 }
-                textValue = PyObject_Str(pyValue);
-                if (!textValue)
+                tempValue = PyObject_Str(pyValue);
+                if (!tempValue)
                     return -1;
-                status = cxoBuffer_fromObject(buffer, textValue, encoding);
-                Py_DECREF(textValue);
+                status = cxoBuffer_fromObject(buffer, tempValue, encoding);
+                Py_DECREF(tempValue);
                 if (status < 0)
                     return -1;
             }
