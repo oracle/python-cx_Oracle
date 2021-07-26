@@ -1350,32 +1350,51 @@ of the function :meth:`cx_Oracle.connect()` constructor:
 
 .. _autononmousdb:
 
-Connecting to Autononmous Databases
-===================================
+Connecting to Oracle Cloud Autononmous Databases
+================================================
 
 To enable connection to Oracle Autonomous Database in Oracle Cloud, a wallet
-needs be downloaded from the cloud GUI, and cx_Oracle needs to be configured to
-use it.  A database username and password is still required.  The wallet only
-enables SSL/TLS.
+needs be downloaded from the cloud, and cx_Oracle needs to be configured to use
+it.  The wallet gives mutual TLS which provides enhanced security for
+authentication and encryption.  A database username and password is still
+required for your application connections.
 
 Install the Wallet and Network Configuration Files
 --------------------------------------------------
 
-From the Oracle Cloud console for the database, download the wallet zip file.  It
-contains the wallet and network configuration files.  Note: keep wallet files in
-a secure location and share them only with authorized users.
+From the Oracle Cloud console for the database, download the wallet zip file.
+It contains the wallet and network configuration files.  Note: keep wallet
+files in a secure location and share them only with authorized users.
 
-Unzip the wallet zip file.
-
-For cx_Oracle, only these files from the zip are needed:
+Unzip the wallet zip file.  For cx_Oracle, only these files from the zip are needed:
 
 - ``tnsnames.ora`` - Maps net service names used for application connection strings to your database services
 - ``sqlnet.ora``  - Configures Oracle Network settings
 - ``cwallet.sso`` - Enables SSL/TLS connections
 
-The other files and the wallet password are not needed.
+There are now two options:
 
-Place these files as shown in :ref:`Optional Oracle Net Configuration Files <optnetfiles>`.
+- Move the three files to the ``network/admin`` directory of the client
+  libraries used by your application. For example if you are using Instant
+  Client 19c and it is in ``$HOME/instantclient_19_11``, then you would put the
+  wallet files in ``$HOME/instantclient_19_11/network/admin/``.
+
+- Alternatively, move them to any accessible directory, for example
+  ``/opt/OracleCloud/MYDB``.
+
+  Then edit ``sqlnet.ora`` and change the wallet location directory to the
+  directory containing the ``cwallet.sso`` file.  For example::
+
+    WALLET_LOCATION = (SOURCE = (METHOD = file) (METHOD_DATA = (DIRECTORY="/opt/OracleCloud/MYDB")))
+    SSL_SERVER_DN_MATCH=yes
+
+  Since the ``tnsnames.ora`` and ``sqlnet.ora`` files are not in the default
+  location, your application needs to indicate where they are, either with
+  ``config_dir`` parameter to :meth:`cx_Oracle.init_oracle_client()`, or using
+  the ``TNS_ADMIN`` environment variable.  See :ref:`Optional Oracle Net
+  Configuration Files <optnetfiles>`.  Neither of these settings are needed,
+  and you don't need to edit ``sqlnet.ora``, if you have put all the files in
+  the ``network/admin`` directory.
 
 Run Your Application
 --------------------
@@ -1383,7 +1402,7 @@ Run Your Application
 The ``tnsnames.ora`` file contains net service names for various levels of
 database service.  For example, if you create a database called CJDB1 with the
 Always Free services from the `Oracle Cloud Free Tier
-<https://www.oracle.com//cloud/free/>`__, then you might decide to use the
+<https://www.oracle.com/cloud/free/>`__, then you might decide to use the
 connection string in ``tnsnames.ora`` called ``cjdb1_high``.
 
 Update your application to use your schema username, its database password, and
@@ -1394,14 +1413,14 @@ a net service name, for example:
     connection = cx_Oracle.connect(user="scott", password=userpwd,
                                    dsn="cjdb1_high", encoding="UTF-8")
 
-Once you have set Oracle environment variables required by your application,
-such as ``TNS_ADMIN``, you can start your application.
+Once you have set optional Oracle environment variables used by your
+application, such as ``TNS_ADMIN``, you can start your application.
 
 If you need to create a new database schema so you do not login as the
 privileged ADMIN user, refer to the relevant Oracle Cloud documentation, for
 example see `Create Database Users
-<https://docs.oracle.com/en/cloud/paas/atp-cloud/atpud/manage.html>`__ in the
-Oracle Autonomous Transaction Processing Dedicated Deployments manual.
+<https://docs.oracle.com/en/cloud/paas/autonomous-database/adbdu/managing-database-users.html#GUID-5B94EA60-554A-4BA4-96A3-1D5A3ED5878D>`__
+in the Oracle Autonomous Database manual.
 
 Access Through a Proxy
 ----------------------
