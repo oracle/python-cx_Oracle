@@ -6,7 +6,7 @@
 # setup_samples.py
 #
 # Creates users and populates their schemas with the tables and packages
-# necessary for the cx_Oracle samples. An edition is also created for the
+# necessary for running the sample scripts. An edition is also created for the
 # demonstration of PL/SQL editioning.
 #------------------------------------------------------------------------------
 

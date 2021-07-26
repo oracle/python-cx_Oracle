@@ -6,11 +6,11 @@
 2700 - Module for testing AQ
 """
 
-import test_env
-
-import cx_Oracle as oracledb
 import decimal
 import threading
+
+import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
     book_type_name = "UDT_BOOK"
@@ -23,23 +23,21 @@ class TestCase(test_env.BaseTestCase):
 
     def __clear_books_queue(self):
         books_type = self.connection.gettype(self.book_type_name)
-        book = books_type.newobject()
-        options = self.connection.deqoptions()
-        options.wait = oracledb.DEQ_NO_WAIT
-        options.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
-        options.visibility = oracledb.ENQ_IMMEDIATE
-        props = self.connection.msgproperties()
-        while self.connection.deq(self.book_queue_name, options, props, book):
+        queue = self.connection.queue(self.book_queue_name, books_type)
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        while queue.deqone():
             pass
 
     def __deq_in_thread(self, results):
-        connection = test_env.get_connection()
+        connection = test_env.get_connection(threaded=True)
         books_type = connection.gettype(self.book_type_name)
-        book = books_type.newobject()
-        options = connection.deqoptions()
-        options.wait = 10
-        props = connection.msgproperties()
-        if connection.deq(self.book_queue_name, options, props, book):
+        queue = connection.queue(self.book_queue_name, books_type)
+        queue.deqoptions.wait = 10
+        props = queue.deqone()
+        if props is not None:
+            book = props.payload
             results.append((book.TITLE, book.AUTHORS, book.PRICE))
         connection.commit()
 
@@ -122,8 +120,7 @@ class TestCase(test_env.BaseTestCase):
         "2704 - test waiting for dequeue"
         self.__clear_books_queue()
         results = []
-        thread = threading.Thread(target = self.__deq_in_thread,
-                                  args = (results,))
+        thread = threading.Thread(target=self.__deq_in_thread, args=(results,))
         thread.start()
         books_type = self.connection.gettype(self.book_type_name)
         book = books_type.newobject()

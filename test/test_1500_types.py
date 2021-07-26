@@ -8,10 +8,10 @@ including the synonyms retained for backwards compatibility. This module also
 tests for pickling/unpickling of database types and API types.
 """
 
-import test_env
+import pickle
 
 import cx_Oracle as oracledb
-import pickle
+import test_env
 
 class TestCase(test_env.BaseTestCase):
     requires_connection = False

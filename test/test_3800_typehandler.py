@@ -6,10 +6,10 @@
 3800 - Module for testing the input and output type handlers.
 """
 
-import test_env
+import json
 
 import cx_Oracle as oracledb
-import json
+import test_env
 
 class Building(object):
 

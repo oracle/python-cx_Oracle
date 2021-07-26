@@ -11,12 +11,13 @@
 1100 - Module for testing connections
 """
 
-import test_env
-
-import cx_Oracle as oracledb
 import random
 import string
 import threading
+import time
+
+import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
     requires_connection = False
@@ -28,6 +29,14 @@ class TestCase(test_env.BaseTestCase):
         cursor.execute("select count(*) from TestNumbers")
         count, = cursor.fetchone()
         self.assertEqual(count, 10)
+
+    def __verify_fetched_data(self, connection):
+        expected_data = [f"String {i + 1}" for i in range(10)]
+        sql = "select StringCol from TestStrings order by IntCol"
+        for i in range(5):
+            with connection.cursor() as cursor:
+                fetched_data = [s for s, in cursor.execute(sql)]
+                self.assertEqual(fetched_data, expected_data)
 
     def __verify_args(self, connection):
         self.assertEqual(connection.username, test_env.get_main_user(),
@@ -68,9 +77,9 @@ class TestCase(test_env.BaseTestCase):
     def test_1102_app_context_negative(self):
         "1102 - test invalid use of application context"
         self.assertRaises(TypeError, oracledb.connect,
-                          test_env.get_main_user(),
-                          test_env.get_main_password(),
-                          test_env.get_connect_string(),
+                          user=test_env.get_main_user(),
+                          password=test_env.get_main_password(),
+                          dsn=test_env.get_connect_string(),
                           appcontext=[('userenv', 'action')])
 
     def test_1103_attributes(self):
@@ -125,9 +134,9 @@ class TestCase(test_env.BaseTestCase):
     def test_1106_bad_password(self):
         "1106 - connection to database with bad password"
         self.assertRaises(oracledb.DatabaseError, oracledb.connect,
-                          test_env.get_main_user(),
-                          test_env.get_main_password() + "X",
-                          test_env.get_connect_string())
+                          user=test_env.get_main_user(),
+                          password=test_env.get_main_password() + "X",
+                          dsn=test_env.get_connect_string())
 
     def test_1107_change_password(self):
         "1107 - test changing password"
@@ -138,8 +147,9 @@ class TestCase(test_env.BaseTestCase):
         new_password = "".join(sys_random.choice(string.ascii_letters) \
                        for i in range(20))
         connection.changepassword(test_env.get_main_password(), new_password)
-        cconnection = oracledb.connect(test_env.get_main_user(), new_password,
-                                       test_env.get_connect_string())
+        connection = oracledb.connect(dsn=test_env.get_connect_string(),
+                                      user=test_env.get_main_user(),
+                                      password=new_password)
         connection.changepassword(new_password, test_env.get_main_password())
 
     def test_1108_change_password_negative(self):
@@ -220,7 +230,7 @@ class TestCase(test_env.BaseTestCase):
         cursor.execute("""
                 insert into TestTempTable (IntCol, StringCol)
                 values (:val, null)""", val=int_value)
-        connection2 = oracledb.connect(handle = connection.handle)
+        connection2 = oracledb.connect(handle=connection.handle)
         cursor = connection2.cursor()
         cursor.execute("select IntCol from TestTempTable")
         fetched_int_value, = cursor.fetchone()
@@ -279,7 +289,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(count, 0)
 
     def test_1119_threading(self):
-        "1119 - connection to database with multiple threads"
+        "1119 - multiple connections to database with multiple threads"
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__connect_and_drop)
@@ -464,6 +474,38 @@ class TestCase(test_env.BaseTestCase):
         id_ = random.randint(0, 2 ** 128)
         xid = (0x1234, "%032x" % id_, "%032x" % 9)
         self.assertRaises(oracledb.DatabaseError, connection.begin, *xid)
+
+    def test_1129_threading_single_connection(self):
+        "1129 - single connection to database with multiple threads"
+        with test_env.get_connection(threaded=True) as connection:
+            threads = [threading.Thread(target=self.__verify_fetched_data,
+                                        args=(connection,)) for i in range(3)]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
+
+    def test_1130_cancel(self):
+        "1130 - test connection cancel"
+        conn = test_env.get_connection()
+        sleep_proc_name = "dbms_session.sleep" \
+                if int(conn.version.split(".")[0]) >= 18 \
+                else "dbms_lock.sleep"
+        def perform_cancel():
+            time.sleep(0.1)
+            conn.cancel()
+        thread = threading.Thread(target=perform_cancel)
+        thread.start()
+        try:
+            with conn.cursor() as cursor:
+                self.assertRaises(oracledb.OperationalError, cursor.callproc,
+                                sleep_proc_name, [2])
+        finally:
+            thread.join()
+        with conn.cursor() as cursor:
+            cursor.execute("select user from dual")
+            user, = cursor.fetchone()
+            self.assertEqual(user, test_env.get_main_user().upper())
 
 if __name__ == "__main__":
     test_env.run_test_cases()

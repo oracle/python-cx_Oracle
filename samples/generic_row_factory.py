@@ -10,6 +10,7 @@
 #------------------------------------------------------------------------------
 
 import collections
+
 import cx_Oracle as oracledb
 import sample_env
 
@@ -21,7 +22,7 @@ class Connection(oracledb.Connection):
 
 class Cursor(oracledb.Cursor):
 
-    def execute(self, statement, args = None):
+    def execute(self, statement, args=None):
         prepare_needed = (self.statement != statement)
         result = super().execute(statement, args or [])
         if prepare_needed:

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2021 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -11,12 +11,12 @@
 2500 - Module for testing string variables
 """
 
-import test_env
+import datetime
+import random
+import string
 
 import cx_Oracle as oracledb
-import datetime
-import string
-import random
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -297,15 +297,16 @@ class TestCase(test_env.BaseTestCase):
     def test_2522_cursor_description(self):
         "2522 - test cursor description is accurate"
         self.cursor.execute("select * from TestStrings")
+        varchar_ratio, nvarchar_ratio = test_env.get_charset_ratios()
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('STRINGCOL', oracledb.DB_TYPE_VARCHAR, 20,
-                    20 * test_env.get_charset_ratio(), None, None, 0),
-            ('RAWCOL', oracledb.DB_TYPE_RAW, 30, 30, None, None, 0),
-            ('FIXEDCHARCOL', oracledb.DB_TYPE_CHAR, 40,
-                    40 * test_env.get_charset_ratio(), None, None, 0),
-            ('NULLABLECOL', oracledb.DB_TYPE_VARCHAR, 50,
-                    50 * test_env.get_charset_ratio(), None, None, 1)
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('STRINGCOL', oracledb.DB_TYPE_VARCHAR, 20, 20 * varchar_ratio,
+                    None, None, False),
+            ('RAWCOL', oracledb.DB_TYPE_RAW, 30, 30, None, None, False),
+            ('FIXEDCHARCOL', oracledb.DB_TYPE_CHAR, 40, 40 * varchar_ratio,
+                    None, None, False),
+            ('NULLABLECOL', oracledb.DB_TYPE_VARCHAR, 50, 50 * varchar_ratio,
+                    None, None, True)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
@@ -426,6 +427,7 @@ class TestCase(test_env.BaseTestCase):
         random_string = ''.join(random.choice(chars) for _ in range(1024))
         int_val = 200
         xml_string = '<data>' + random_string + '</data>'
+        self.cursor.execute("truncate table TestXML")
         self.cursor.execute("""
                 insert into TestXML (IntCol, XMLCol)
                 values (:1, :2)""", (int_val, xml_string))
@@ -451,11 +453,19 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         string_val = "I bought a cafetière on the Champs-Élysées"
         sql = "insert into TestTempTable (IntCol, StringCol) values (:1, :2)"
-        self.cursor.execute(sql, (1, string_val))
-        self.cursor.outputtypehandler = self.__return_strings_as_bytes
-        self.cursor.execute("select IntCol, StringCol from TestTempTable")
-        expected_value = (1, string_val.encode())
-        self.assertEqual(self.cursor.fetchone(), expected_value)
+        with self.connection.cursor() as cursor:
+            cursor.execute(sql, (1, string_val))
+            cursor.execute("select IntCol, StringCol from TestTempTable")
+            self.assertEqual(cursor.fetchone(), (1, string_val))
+        with self.connection.cursor() as cursor:
+            cursor.outputtypehandler = self.__return_strings_as_bytes
+            cursor.execute("select IntCol, StringCol from TestTempTable")
+            expected_value = (1, string_val.encode())
+            self.assertEqual(cursor.fetchone(), (1, string_val.encode()))
+        with self.connection.cursor() as cursor:
+            cursor.outputtypehandler = None
+            cursor.execute("select IntCol, StringCol from TestTempTable")
+            self.assertEqual(cursor.fetchone(), (1, string_val))
 
 if __name__ == "__main__":
     test_env.run_test_cases()

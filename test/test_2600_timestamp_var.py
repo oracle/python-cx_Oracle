@@ -11,10 +11,10 @@
 2600 - Module for testing timestamp variables
 """
 
-import test_env
+import time
 
 import cx_Oracle as oracledb
-import time
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -115,9 +115,10 @@ class TestCase(test_env.BaseTestCase):
         "2606 - test cursor description is accurate"
         self.cursor.execute("select * from TestTimestamps")
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('TIMESTAMPCOL', oracledb.DB_TYPE_TIMESTAMP, 23, None, 0, 6, 0),
-            ('NULLABLECOL', oracledb.DB_TYPE_TIMESTAMP, 23, None, 0, 6, 1)
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('TIMESTAMPCOL', oracledb.DB_TYPE_TIMESTAMP, 23, None, 0, 6,
+                    False),
+            ('NULLABLECOL', oracledb.DB_TYPE_TIMESTAMP, 23, None, 0, 6, True)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 

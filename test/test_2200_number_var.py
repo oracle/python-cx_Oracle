@@ -11,11 +11,11 @@
 2200 - Module for testing number variables
 """
 
-import test_env
-
-import cx_Oracle as oracledb
 import decimal
 import sys
+
+import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -273,13 +273,13 @@ class TestCase(test_env.BaseTestCase):
         "2220 - test cursor description is accurate"
         self.cursor.execute("select * from TestNumbers")
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('LONGINTCOL', oracledb.DB_TYPE_NUMBER, 17, None, 16, 0, 0),
-            ('NUMBERCOL', oracledb.DB_TYPE_NUMBER, 13, None, 9, 2, 0),
-            ('FLOATCOL', oracledb.DB_TYPE_NUMBER, 127, None, 126, -127, 0),
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('LONGINTCOL', oracledb.DB_TYPE_NUMBER, 17, None, 16, 0, False),
+            ('NUMBERCOL', oracledb.DB_TYPE_NUMBER, 13, None, 9, 2, False),
+            ('FLOATCOL', oracledb.DB_TYPE_NUMBER, 127, None, 126, -127, False),
             ('UNCONSTRAINEDCOL', oracledb.DB_TYPE_NUMBER, 127, None, 0, -127,
-                0),
-            ('NULLABLECOL', oracledb.DB_TYPE_NUMBER, 39, None, 38, 0, 1)
+                    False),
+            ('NULLABLECOL', oracledb.DB_TYPE_NUMBER, 39, None, 38, 0, True)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 

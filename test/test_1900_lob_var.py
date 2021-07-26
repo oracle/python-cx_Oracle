@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -11,9 +11,8 @@
 1900 - Module for testing LOB (CLOB and BLOB) variables
 """
 
-import test_env
-
 import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -38,7 +37,7 @@ class TestCase(test_env.BaseTestCase):
                 long_string += char * 25000
             elif input_type is not db_type:
                 continue
-            self.cursor.setinputsizes(long_string = input_type)
+            self.cursor.setinputsizes(long_string=input_type)
             if lob_type == "BLOB":
                 bind_value = long_string.encode()
             else:
@@ -134,16 +133,16 @@ class TestCase(test_env.BaseTestCase):
                 prev_char = chr(ord('A') + integer_value - 2)
                 long_string += char * 25000
                 if lob_type == "BLOB":
-                    actualValue = long_string.encode("ascii")
+                    expected_value = long_string.encode("ascii")
                     char = char.encode("ascii")
                     prev_char = prev_char.encode("ascii")
                 else:
-                    actualValue = long_string
-                self.assertEqual(lob.size(), len(actualValue))
-                self.assertEqual(lob.read(), actualValue)
+                    expected_value = long_string
+                self.assertEqual(lob.size(), len(expected_value))
+                self.assertEqual(lob.read(), expected_value)
                 if lob_type == "CLOB":
-                    self.assertEqual(str(lob), actualValue)
-                self.assertEqual(lob.read(len(actualValue)), char)
+                    self.assertEqual(str(lob), expected_value)
+                self.assertEqual(lob.read(len(expected_value)), char)
             if integer_value > 1:
                 offset = (integer_value - 1) * 25000 - 4
                 string = prev_char * 5 + char * 5
@@ -183,8 +182,8 @@ class TestCase(test_env.BaseTestCase):
         "1905 - test cursor description is accurate for CLOBs"
         self.cursor.execute("select * from TestCLOBs")
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('CLOBCOL', oracledb.DB_TYPE_CLOB, None, None, None, None, 0)
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('CLOBCOL', oracledb.DB_TYPE_CLOB, None, None, None, None, False)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
@@ -232,24 +231,20 @@ class TestCase(test_env.BaseTestCase):
         "1914 - test binding and fetching NCLOB data (directly)"
         self.__perform_test("NCLOB", oracledb.DB_TYPE_NCLOB)
 
-    def test_1915_nclob_different_encodings(self):
-        "1915 - test binding and fetching NCLOB data (different encodings)"
-        connection = oracledb.connect(test_env.get_main_user(),
-                                      test_env.get_main_password(),
-                                      test_env.get_connect_string(),
-                                      encoding="UTF-8", nencoding="UTF-16")
+    def test_1915_nclob_non_ascii_chars(self):
+        "1915 - test binding and fetching NCLOB data (with non-ASCII chars)"
         value = "\u03b4\u4e2a"
-        cursor = connection.cursor()
-        cursor.execute("truncate table TestNCLOBs")
-        cursor.setinputsizes(val=oracledb.DB_TYPE_NVARCHAR)
-        cursor.execute("insert into TestNCLOBs values (1, :val)", val=value)
-        cursor.execute("select NCLOBCol from TestNCLOBs")
-        nclob, = cursor.fetchone()
-        cursor.setinputsizes(val=oracledb.DB_TYPE_NVARCHAR)
-        cursor.execute("update TestNCLOBs set NCLOBCol = :val",
-                       val=nclob.read() + value)
-        cursor.execute("select NCLOBCol from TestNCLOBs")
-        nclob, = cursor.fetchone()
+        self.cursor.execute("truncate table TestNCLOBs")
+        self.cursor.setinputsizes(val=oracledb.DB_TYPE_NVARCHAR)
+        self.cursor.execute("insert into TestNCLOBs values (1, :val)",
+                            val=value)
+        self.cursor.execute("select NCLOBCol from TestNCLOBs")
+        nclob, = self.cursor.fetchone()
+        self.cursor.setinputsizes(val=oracledb.DB_TYPE_NVARCHAR)
+        self.cursor.execute("update TestNCLOBs set NCLOBCol = :val",
+                            val=nclob.read() + value)
+        self.cursor.execute("select NCLOBCol from TestNCLOBs")
+        nclob, = self.cursor.fetchone()
         self.assertEqual(nclob.read(), value + value)
 
     def test_1916_nclob_indirect(self):
@@ -280,7 +275,7 @@ class TestCase(test_env.BaseTestCase):
         temp_lobs = self.__get_temp_lobs(sid)
         self.assertEqual(temp_lobs, 0)
 
-    def test_1919_AssignStringBeyondArraySize(self):
+    def test_1919_assign_string_beyond_array_size(self):
         "1919 - test assign string to NCLOB beyond array size"
         nclobVar = self.cursor.var(oracledb.DB_TYPE_NCLOB)
         self.assertRaises(IndexError, nclobVar.setvalue, 1, "test char")

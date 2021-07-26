@@ -11,9 +11,8 @@
 2100 - Module for testing NCHAR variables
 """
 
-import test_env
-
 import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -202,11 +201,15 @@ class TestCase(test_env.BaseTestCase):
     def test_2114_cursor_description(self):
         "2114 - test cursor description is accurate"
         self.cursor.execute("select * from TestUnicodes")
+        varchar_ratio, nvarchar_ratio = test_env.get_charset_ratios()
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('UNICODECOL', oracledb.DB_TYPE_NVARCHAR, 20, 80, None, None, 0),
-            ('FIXEDUNICODECOL', oracledb.DB_TYPE_NCHAR, 40, 160, None, None, 0),
-            ('NULLABLECOL', oracledb.DB_TYPE_NVARCHAR, 50, 200, None, None, 1)
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('UNICODECOL', oracledb.DB_TYPE_NVARCHAR, 20, 20 * nvarchar_ratio,
+                    None, None, False),
+            ('FIXEDUNICODECOL', oracledb.DB_TYPE_NCHAR, 40,
+                    40 * nvarchar_ratio, None, None, False),
+            ('NULLABLECOL', oracledb.DB_TYPE_NVARCHAR, 50, 50 * nvarchar_ratio,
+                    None, None, True)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 

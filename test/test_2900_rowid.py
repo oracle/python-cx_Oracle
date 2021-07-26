@@ -6,9 +6,8 @@
 2900 - Module for testing Rowids
 """
 
-import test_env
-
 import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 

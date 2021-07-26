@@ -15,8 +15,9 @@
 #
 #------------------------------------------------------------------------------
 
-import sys
 import json
+import sys
+
 import cx_Oracle as oracledb
 import sample_env
 

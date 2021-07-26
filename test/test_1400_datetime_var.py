@@ -11,11 +11,11 @@
 1400 - Module for testing date/time variables
 """
 
-import test_env
-
-import cx_Oracle as oracledb
 import datetime
 import time
+
+import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -56,9 +56,11 @@ class TestCase(test_env.BaseTestCase):
     def test_1402_bind_date_in_datetime_var(self):
         "1402 - test binding date in a datetime variable"
         var = self.cursor.var(oracledb.DATETIME)
-        dateVal = datetime.date.today()
-        var.setvalue(0, dateVal)
-        self.assertEqual(var.getvalue().date(), dateVal)
+        date_val = datetime.date.today()
+        var.setvalue(0, date_val)
+        self.cursor.execute("select :1 from dual", [var])
+        result, = self.cursor.fetchone()
+        self.assertEqual(result.date(), date_val)
 
     def test_1403_bind_date_after_string(self):
         "1403 - test binding in a date after setting input sizes to a string"
@@ -213,9 +215,9 @@ class TestCase(test_env.BaseTestCase):
         "1414 - test cursor description is accurate"
         self.cursor.execute("select * from TestDates")
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('DATECOL', oracledb.DB_TYPE_DATE, 23, None, None, None, 0),
-            ('NULLABLECOL', oracledb.DB_TYPE_DATE, 23, None, None, None, 1)
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('DATECOL', oracledb.DB_TYPE_DATE, 23, None, None, None, False),
+            ('NULLABLECOL', oracledb.DB_TYPE_DATE, 23, None, None, None, True)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 

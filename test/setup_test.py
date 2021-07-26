@@ -6,16 +6,15 @@
 # setup_test.py
 #
 # Creates users and populates their schemas with the tables and packages
-# necessary for the cx_Oracle test suite.
+# necessary for the test suite.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
-
-import test_env
+import cx_Oracle as oracledb
 import drop_test
+import test_env
 
 # connect as administrative user (usually SYSTEM or ADMIN)
-conn = cx_Oracle.connect(test_env.get_admin_connect_string())
+conn = oracledb.connect(test_env.get_admin_connect_string())
 
 # drop existing users and editions, if applicable
 drop_test.drop_tests(conn)

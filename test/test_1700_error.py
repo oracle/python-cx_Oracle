@@ -11,10 +11,10 @@
 1700 - Module for testing error objects
 """
 
-import test_env
+import pickle
 
 import cx_Oracle as oracledb
-import pickle
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 

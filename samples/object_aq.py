@@ -9,9 +9,8 @@
 
 #------------------------------------------------------------------------------
 # object_aq.py
-#   This script demonstrates how to use advanced queuing with objects using
-# cx_Oracle. It makes use of a simple type and queue created in the sample
-# setup.
+#   This script demonstrates how to use advanced queuing with objects. It makes
+# use of a simple type and queue created in the sample setup.
 #
 # This script requires cx_Oracle 8.2 and higher.
 #------------------------------------------------------------------------------

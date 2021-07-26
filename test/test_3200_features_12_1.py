@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -11,11 +11,11 @@
 3200 - Module for testing features introduced in 12.1
 """
 
-import test_env
-
-import cx_Oracle as oracledb
 import datetime
 import unittest
+
+import cx_Oracle as oracledb
+import test_env
 
 @unittest.skipUnless(test_env.get_client_version() >= (12, 1),
                      "unsupported client")
@@ -360,7 +360,6 @@ class TestCase(test_env.BaseTestCase):
                     c1 sys_refcursor;
                     c2 sys_refcursor;
                 begin
-
                     open c1 for
                     select NumberCol
                     from TestNumbers
@@ -374,7 +373,6 @@ class TestCase(test_env.BaseTestCase):
                     where IntCol between 7 and 10;
 
                     dbms_sql.return_result(c2);
-
                 end;""")
         results = self.cursor.getimplicitresults()
         self.assertEqual(len(results), 2)
@@ -468,6 +466,27 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(actual_errors, expected_errors)
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 2, 0, 0, 1])
         self.assertEqual(self.cursor.rowcount, 4)
+
+    def test_3225_implicit_results(self):
+        "3225 - test using implicit cursors to execute new statements"
+        cursor = self.connection.cursor()
+        cursor.execute("""
+                declare
+                    c1 sys_refcursor;
+                begin
+                    open c1 for
+                    select NumberCol
+                    from TestNumbers
+                    where IntCol between 3 and 5;
+
+                    dbms_sql.return_result(c1);
+                end;""")
+        results = cursor.getimplicitresults()
+        self.assertEqual(len(results), 1)
+        self.assertEqual([n for n, in results[0]], [3.75, 5, 6.25])
+        results[0].execute("select :1 from dual", (7,))
+        row, = results[0].fetchone()
+        self.assertEqual(row, 7)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

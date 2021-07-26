@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2021 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -11,10 +11,10 @@
 1300 - Module for testing cursor variables
 """
 
-import test_env
+import sys
 
 import cx_Oracle as oracledb
-import sys
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -27,9 +27,10 @@ class TestCase(test_env.BaseTestCase):
                   open :cursor for select 'X' StringValue from dual;
                 end;""",
                 cursor=cursor)
+        varchar_ratio, nvarchar_ratio = test_env.get_charset_ratios()
         expected_value = [
-            ('STRINGVALUE', oracledb.DB_TYPE_CHAR, 1,
-                    test_env.get_charset_ratio(), None, None, 1)
+            ('STRINGVALUE', oracledb.DB_TYPE_CHAR, 1, varchar_ratio, None,
+                    None, True)
         ]
         self.assertEqual(cursor.description, expected_value)
         self.assertEqual(cursor.fetchall(), [('X',)])
@@ -39,10 +40,11 @@ class TestCase(test_env.BaseTestCase):
         cursor = self.connection.cursor()
         self.assertEqual(cursor.description, None)
         self.cursor.callproc("pkg_TestRefCursors.TestOutCursor", (2, cursor))
+        varchar_ratio, nvarchar_ratio = test_env.get_charset_ratios()
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('STRINGCOL', oracledb.DB_TYPE_VARCHAR, 20,
-                    20 * test_env.get_charset_ratio(), None, None, 0)
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('STRINGCOL', oracledb.DB_TYPE_VARCHAR, 20, 20 * varchar_ratio,
+                    None, None, False)
         ]
         self.assertEqual(cursor.description, expected_value)
         self.assertEqual(cursor.fetchall(), [(1, 'String 1'), (2, 'String 2')])
@@ -85,8 +87,9 @@ class TestCase(test_env.BaseTestCase):
                 from TestNumbers
                 order by IntCol""")
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('CURSORVALUE', oracledb.DB_TYPE_CURSOR, None, None, None, None, 1)
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('CURSORVALUE', oracledb.DB_TYPE_CURSOR, None, None, None, None,
+                    True)
         ]
         self.assertEqual(self.cursor.description, expected_value)
         for i in range(1, 11):

@@ -1,15 +1,15 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 """
 3400 - Module for testing Simple Oracle Document Access (SODA) Collections
 """
 
-import test_env
+import unittest
 
 import cx_Oracle as oracledb
-import unittest
+import test_env
 
 @unittest.skipIf(test_env.skip_soda_tests(),
                  "unsupported client/server combination")
@@ -148,7 +148,7 @@ class TestCase(test_env.BaseTestCase):
         self.connection.commit()
         coll.drop()
 
-    def test_3406_CreateAndDropIndex(self):
+    def test_3406_create_and_drop_index(self):
         "3406 - test create and drop Index"
         index_name = "cxoTestIndexes_ix_1"
         index_spec =  {

@@ -4,8 +4,8 @@
 
 #------------------------------------------------------------------------------
 # connection_pool.py
-#   This script demonstrates the use of connection pooling in cx_Oracle. Pools
-# can significantly reduce connection times for long running applications that
+#   This script demonstrates the use of connection pooling. Pools can
+# significantly reduce connection times for long running applications that
 # repeatedly open and close connections. Internal features help protect against
 # dead connections, and also aid use of Oracle Database features such as FAN
 # and Application Continuity.
@@ -27,8 +27,8 @@ import sample_env
 # Create a Connection Pool
 pool = oracledb.SessionPool(user=sample_env.get_main_user(),
                             password=sample_env.get_main_password(),
-                            dsn=sample_env.get_connect_string(), min=2,
-                            max=5, increment=1)
+                            dsn=sample_env.get_connect_string(), min=2, max=5,
+                            increment=1)
 
 def the_long_query():
     with pool.acquire() as conn:

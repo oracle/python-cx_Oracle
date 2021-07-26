@@ -9,8 +9,8 @@
 
 #------------------------------------------------------------------------------
 # raw_aq.py
-#   This script demonstrates how to use advanced queuing with RAW data using
-# cx_Oracle. It makes use of a RAW queue created in the sample setup.
+#   This script demonstrates how to use advanced queuing with RAW data. It
+# makes use of a RAW queue created in the sample setup.
 #
 # This script requires cx_Oracle 8.2 and higher.
 #------------------------------------------------------------------------------

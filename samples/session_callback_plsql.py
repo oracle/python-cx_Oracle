@@ -29,7 +29,8 @@ import sample_env
 pool = oracledb.SessionPool(user=sample_env.get_main_user(),
                             password=sample_env.get_main_password(),
                             dsn=sample_env.get_connect_string(), min=2, max=5,
-                            increment=1, session_callback="pkg_SessionCallback.TheCallback")
+                            increment=1,
+                            session_callback="pkg_SessionCallback.TheCallback")
 
 # truncate table logging calls to PL/SQL session callback
 with pool.acquire() as conn:

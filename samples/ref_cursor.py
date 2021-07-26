@@ -4,7 +4,7 @@
 
 #------------------------------------------------------------------------------
 # ref_cursor.py
-#   Demonstrates the use of REF cursors with cx_Oracle.
+#   Demonstrates the use of REF cursors.
 #------------------------------------------------------------------------------
 
 import cx_Oracle as oracledb

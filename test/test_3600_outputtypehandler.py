@@ -6,13 +6,13 @@
 3600 - Module for testing the conversions of outputtype handler.
 """
 
-import test_env
-
-import cx_Oracle as oracledb
+import datetime
 import decimal
 import sys
-import datetime
 import unittest
+
+import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 

@@ -11,10 +11,10 @@
 1800 - Module for testing interval variables
 """
 
-import test_env
+import datetime
 
 import cx_Oracle as oracledb
-import datetime
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -119,9 +119,11 @@ class TestCase(test_env.BaseTestCase):
         "1807 - test cursor description is accurate"
         self.cursor.execute("select * from TestIntervals")
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('INTERVALCOL', oracledb.DB_TYPE_INTERVAL_DS, None, None, 2, 6, 0),
-            ('NULLABLECOL', oracledb.DB_TYPE_INTERVAL_DS, None, None, 2, 6, 1)
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('INTERVALCOL', oracledb.DB_TYPE_INTERVAL_DS, None, None, 2, 6,
+                    False),
+            ('NULLABLECOL', oracledb.DB_TYPE_INTERVAL_DS, None, None, 2, 6,
+                    True)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
@@ -150,6 +152,13 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[3])
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
         self.assertEqual(self.cursor.fetchone(), None)
+
+    def test_1811_bind_and_fetch_negative_interval(self):
+        "1811 - test binding and fetching a negative interval"
+        value = datetime.timedelta(days=-1, seconds=86314, microseconds=431152)
+        self.cursor.execute("select :1 from dual", [value])
+        result, = self.cursor.fetchone()
+        self.assertEqual(result, value)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

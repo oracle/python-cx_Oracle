@@ -11,9 +11,8 @@
 2000 - Module for testing long and long raw variables
 """
 
-import test_env
-
 import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -82,18 +81,20 @@ class TestCase(test_env.BaseTestCase):
         "2003 - test cursor description is accurate for longs"
         self.cursor.execute("select * from TestLongs")
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-            ('LONGCOL', oracledb.DB_TYPE_LONG, None, None, None, None, 0)
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('LONGCOL', oracledb.DB_TYPE_LONG, None, None, None, None, False)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
     def test_2004_long_raw_cursor_description(self):
         "2004 - test cursor description is accurate for long raws"
         self.cursor.execute("select * from TestLongRaws")
-        self.assertEqual(self.cursor.description,
-                [ ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, 0),
-                  ('LONGRAWCOL', oracledb.DB_TYPE_LONG_RAW, None, None, None,
-                        None, 0) ])
+        expected_value = [
+            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            ('LONGRAWCOL', oracledb.DB_TYPE_LONG_RAW, None, None, None, None,
+                    False)
+        ]
+        self.assertEqual(self.cursor.description, expected_value)
 
     def test_2005_array_size_too_large(self):
         "2005 - test array size too large generates an exception"

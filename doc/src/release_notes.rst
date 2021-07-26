@@ -17,6 +17,7 @@ Version 8.3 (TBD)
     implicit conversion to integer has become an error in Python 3.10) and
     values that are not `int`, `float` or `decimal.Decimal` are explicitly
     rejected.
+#)  Improved samples and test suite.
 
 
 Version 8.2.1 (June 2021)

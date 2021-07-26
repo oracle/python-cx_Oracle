@@ -12,7 +12,7 @@
 #   This script demonstrates using continuous query notification in Python, a
 # feature that is available in Oracle 11g and later. Once this script is
 # running, use another session to insert, update or delete rows from the table
-# cx_Oracle.TestTempTable and you will see the notification of that change.
+# TestTempTable and you will see the notification of that change.
 #
 # This script requires cx_Oracle 5.3 and higher.
 #------------------------------------------------------------------------------

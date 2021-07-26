@@ -3,9 +3,9 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# Sets the environment used by most Python cx_Oracle samples. Production
-# applications should consider using External Authentication to
-# avoid hard coded credentials.
+# Sets the environment used by the sample scripts. Production applications
+# should consider using External Authentication to avoid hard coded
+# credentials.
 #
 # You can set values in environment variables to bypass the sample requesting
 # the information it requires.
@@ -24,8 +24,8 @@
 # Net Service Name from a tnsnames.ora file or external naming service,
 # or it can be the name of a local Oracle database instance.
 #
-# If cx_Oracle is using Instant Client, then an Easy Connect string is
-# generally appropriate. The syntax is:
+# If using Instant Client, then an Easy Connect string is generally
+# appropriate. The syntax is:
 #
 #   [//]host_name[:port][/service_name][:server_type][/instance_name]
 #

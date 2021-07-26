@@ -6,11 +6,12 @@
 3500 - Module for testing the JSON data type.
 """
 
-import cx_Oracle as oracledb
-import test_env
 import datetime
 import decimal
 import unittest
+
+import cx_Oracle as oracledb
+import test_env
 
 @unittest.skipUnless(test_env.get_client_version() >= (21, 0),
                      "unsupported client")
@@ -77,7 +78,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(result, self.json_data)
 
     def test_3501_execute_with_dml_returning(self):
-        "3502 - inserting single rows with JSON and DML returning"
+        "3501 - inserting single rows with JSON and DML returning"
         json_val = self.json_data[11]
         self.cursor.execute("truncate table TestJson")
         json_out = self.cursor.var(oracledb.DB_TYPE_JSON)
@@ -116,7 +117,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(out_json_var.values, [[v] for v in self.json_data])
 
     def test_3504_boolean(self):
-        "3509 - test binding boolean values as scalar JSON values"
+        "3504 - test binding boolean values as scalar JSON values"
         data = [
             True,
             False,
@@ -128,7 +129,7 @@ class TestCase(test_env.BaseTestCase):
         self.__bind_scalar_as_json(data)
 
     def test_3505_strings_and_bytes(self):
-        "3509 - test binding strings/bytes values as scalar JSON values"
+        "3505 - test binding strings/bytes values as scalar JSON values"
         data = [
             "String 1",
             b"A raw value",

@@ -7,8 +7,7 @@
 #
 # Demonstrate how to bind (in and out) a PL/SQL record.
 #
-# This feature is new in cx_Oracle 5.3 and is only available in Oracle
-# Database 12.1 and higher.
+# This feature is only available in Oracle Database 12.1 and higher.
 #------------------------------------------------------------------------------
 
 import datetime

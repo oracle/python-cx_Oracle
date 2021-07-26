@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2021 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021, Oracle and/or its affiliates. All rights reserved.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -11,10 +11,10 @@
 1200 - Module for testing cursors
 """
 
-import test_env
-import cx_Oracle as oracledb
 import decimal
-import datetime
+
+import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 
@@ -397,7 +397,7 @@ class TestCase(test_env.BaseTestCase):
         cursor.fetchmany()
         self.assertTrue(cursor.arraysize > 1,
                 "array size must exceed 1 for this test to work correctly")
-        cursor.scroll(1, mode = "absolute")
+        cursor.scroll(1, mode="absolute")
         row = cursor.fetchone()
         self.assertEqual(row[0], 1.25)
         self.assertEqual(cursor.rowcount, 1)
@@ -410,7 +410,7 @@ class TestCase(test_env.BaseTestCase):
                 select NumberCol
                 from TestNumbers
                 order by IntCol""")
-        cursor.scroll(6, mode = "absolute")
+        cursor.scroll(6, mode="absolute")
         row = cursor.fetchone()
         self.assertEqual(row[0], 7.5)
         self.assertEqual(cursor.rowcount, 6)
@@ -515,9 +515,9 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         cursor = self.connection.cursor(scrollable=True)
         cursor.execute("select * from TestTempTable")
-        cursor.scroll(mode = "last")
+        cursor.scroll(mode="last")
         self.assertEqual(cursor.fetchall(), [])
-        cursor.scroll(mode = "first")
+        cursor.scroll(mode="first")
         self.assertEqual(cursor.fetchall(), [])
         self.assertRaises(oracledb.DatabaseError, cursor.scroll, 1,
                           mode="absolute")
@@ -637,8 +637,8 @@ class TestCase(test_env.BaseTestCase):
                 select IntCol, StringCol
                 from TestTempTable
                 order by IntCol""")
-        self.assertEqual(self.cursor.fetchall(),
-                         [(0, "Value should be 0"), (1, "Value should be 1")])
+        expected_value = [(0, "Value should be 0"), (1, "Value should be 1")]
+        self.assertEqual(self.cursor.fetchall(), expected_value)
 
     def test_1259_as_context_manager(self):
         "1259 - test using a cursor as a context manager"

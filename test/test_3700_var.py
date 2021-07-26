@@ -6,12 +6,13 @@
 3700 - Module for testing all variable types.
 """
 
-import test_env
-import cx_Oracle as oracledb
-import decimal
 import datetime
+import decimal
 import time
 import unittest
+
+import cx_Oracle as oracledb
+import test_env
 
 class TestCase(test_env.BaseTestCase):
 

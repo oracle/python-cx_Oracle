@@ -10,8 +10,9 @@
 #   For JSON with older databases see json_blob.py
 #------------------------------------------------------------------------------
 
-import sys
 import json
+import sys
+
 import cx_Oracle as oracledb
 import sample_env
 

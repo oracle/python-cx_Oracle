@@ -1,14 +1,14 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2019, 2020, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019, 2021, Oracle and/or its affiliates. All rights reserved.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 # drop_test.py
 #
-# Drops the database objects used for the cx_Oracle test suite.
+# Drops the database objects used by the test suite.
 #------------------------------------------------------------------------------
 
-import cx_Oracle
+import cx_Oracle as oracledb
 import test_env
 
 def drop_tests(conn):
@@ -18,6 +18,6 @@ def drop_tests(conn):
                             proxy_user=test_env.get_proxy_user())
 
 if __name__ == "__main__":
-    conn = cx_Oracle.connect(test_env.get_admin_connect_string())
+    conn = oracledb.connect(test_env.get_admin_connect_string())
     drop_tests(conn)
     print("Done.")
