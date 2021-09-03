@@ -375,5 +375,21 @@ class TestCase(test_env.BaseTestCase):
                           self.book_queue_name, books_type,
                           payloadType=books_type)
 
+    def test_2718_verify_msgid(self):
+        "2718 - verify that the msgid property is returned correctly"
+        self.__clear_books_queue()
+        books_type = self.connection.gettype(self.book_type_name)
+        book = books_type.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.book_data[0]
+        queue = self.connection.queue(self.book_queue_name, books_type)
+        props = self.connection.msgproperties(payload=book)
+        self.assertEqual(props.msgid, None)
+        queue.enqone(props)
+        self.cursor.execute("select msgid from book_queue_tab")
+        actual_msgid, = self.cursor.fetchone()
+        self.assertEqual(props.msgid, actual_msgid)
+        props = queue.deqone()
+        self.assertEqual(props.msgid, actual_msgid)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

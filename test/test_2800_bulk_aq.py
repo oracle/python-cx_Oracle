@@ -131,5 +131,19 @@ class TestCase(test_env.BaseTestCase):
         messages = other_queue.deqmany(5)
         self.assertEqual(len(messages), 0)
 
+    def test_2806_verify_msgid(self):
+        "2806 - verify that the msgid property is returned correctly"
+        queue = self.__get_and_clear_raw_queue()
+        messages = [self.connection.msgproperties(payload=d) \
+                    for d in RAW_PAYLOAD_DATA]
+        queue.enqmany(messages)
+        self.cursor.execute("select msgid from raw_queue_tab")
+        actual_msgids = set(m for m, in self.cursor)
+        msgids = set(m.msgid for m in messages)
+        self.assertEqual(msgids, actual_msgids)
+        messages = queue.deqmany(len(RAW_PAYLOAD_DATA))
+        msgids = set(m.msgid for m in messages)
+        self.assertEqual(msgids, actual_msgids)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
