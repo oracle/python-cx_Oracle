@@ -301,5 +301,39 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(coll.find().count(), 0)
         coll.drop()
 
+    def test_3414_soda_hint(self):
+        "3414 - verify hints are reflected in the executed SQL statement"
+        soda_db = self.connection.getSodaDatabase()
+        cursor = self.connection.cursor()
+        statement = """
+                SELECT
+                    ( SELECT t2.sql_fulltext
+                      FROM v$sql t2
+                      WHERE t2.sql_id = t1.prev_sql_id
+                        AND t2.child_number = t1.prev_child_number
+                    )
+                 FROM v$session t1
+                 WHERE t1.audsid = sys_context('userenv', 'sessionid')"""
+        coll = soda_db.createCollection("cxoSodaHint")
+        coll.find().remove()
+        values_to_insert = [
+            {"name": "George", "age": 47},
+            {"name": "Susan", "age": 39},
+        ]
+        coll.insertOneAndGet(values_to_insert[0], hint="MONITOR")
+        cursor.execute(statement)
+        result, = cursor.fetchone()
+        self.assertTrue('MONITOR' in result.read())
+
+        coll.find().hint("MONITOR").getOne().getContent()
+        cursor.execute(statement)
+        result, = cursor.fetchone()
+        self.assertTrue('MONITOR' in result.read())
+
+        coll.insertOneAndGet(values_to_insert[1], hint="NO_MONITOR")
+        cursor.execute(statement)
+        result, = cursor.fetchone()
+        self.assertTrue('NO_MONITOR' in result.read())
+
 if __name__ == "__main__":
     test_env.run_test_cases()

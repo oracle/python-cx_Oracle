@@ -137,6 +137,11 @@ def get_proxy_password():
 def get_proxy_user():
     return get_value("PROXY_USER", "Proxy User Name", DEFAULT_PROXY_USER)
 
+def get_sleep_proc_name():
+    server_version = get_server_version()
+    return "dbms_session.sleep" if server_version[0] >= 18 \
+            else "dbms_lock.sleep"
+
 def get_server_version():
     name = "SERVER_VERSION"
     value = PARAMETERS.get(name)
