@@ -1389,7 +1389,7 @@ There are now two options:
     SSL_SERVER_DN_MATCH=yes
 
   Since the ``tnsnames.ora`` and ``sqlnet.ora`` files are not in the default
-  location, your application needs to indicate where they are, either with
+  location, your application needs to indicate where they are, either with the
   ``config_dir`` parameter to :meth:`cx_Oracle.init_oracle_client()`, or using
   the ``TNS_ADMIN`` environment variable.  See :ref:`Optional Oracle Net
   Configuration Files <optnetfiles>`.  Neither of these settings are needed,
@@ -1445,6 +1445,43 @@ name you plan to use, for example::
         (address=
         (https_proxy=myproxy.example.com)(https_proxy_port=80)
         (protocol=tcps)(port=1522)(host= . . . )
+
+Using the Easy Connect Syntax with Autonomous Database
+------------------------------------------------------
+
+When cx_Oracle is using Oracle Client libraries 19c or later, you can
+optionally use the :ref:`Easy Connect <easyconnect>` syntax to connect to
+Oracle Autonomous Database.
+
+The mapping from the cloud ``tnsnames.ora`` entries to an Easy Connect Plus
+string is::
+
+    protocol://host:port/service_name?wallet_location=/my/dir&retry_count=N&retry_delay=N
+
+For example, if your ``tnsnames.ora`` file had an entry::
+
+    cjjson_high = (description=(retry_count=20)(retry_delay=3)
+        (address=(protocol=tcps)(port=1522)
+        (host=adb.ap-sydney-1.oraclecloud.com))
+        (connect_data=(service_name=abc_cjjson_high.adb.oraclecloud.com))
+        (security=(ssl_server_cert_dn="CN=adb.ap-sydney-1.oraclecloud.com,OU=Oracle ADB SYDNEY,O=Oracle Corporation,L=Redwood City,ST=California,C=US")))
+
+Then your applications can connect using the connection string:
+
+  .. code-block:: python
+
+    dsn = "tcps://adb.ap-sydney-1.oraclecloud.com:1522/abc_cjjson_high.adb.oraclecloud.com?wallet_location=/Users/cjones/Cloud/CJJSON&retry_count=20&retry_delay=3"
+    connection = cx_Oracle.connect(user="hr", password=userpwd, dsn=dsn,
+                                   encoding="UTF-8")
+
+The ``wallet_location`` parameter needs to be set to the directory containing
+the ``cwallet.sso`` file from the wallet ZIP.  The other wallet files,
+including ``tnsnames.ora``, are not needed when you use the Easy Connect Plus
+syntax.
+
+You can add other Easy Connect parameters to the connection string, for example::
+
+    dsn = dsn + "&https_proxy=myproxy.example.com&https_proxy_port=80"
 
 .. _connsharding:
 

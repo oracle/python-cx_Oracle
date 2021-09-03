@@ -50,7 +50,7 @@ Features
 
 The cx_Oracle feature highlights are:
 
-    *   Easily installed from PyPI
+    *   Easy installation from PyPI
     *   Support for multiple Oracle Client and Database versions
     *   Execution of SQL and PL/SQL statements
     *   Extensive Oracle data type support, including large objects (CLOB and
@@ -104,7 +104,7 @@ Simple :ref:`connection <connhandling>` to the database requires a username,
 password and connection string.  Locate your Oracle Database `user name and
 password <https://www.youtube.com/watch?v=WDJacg0NuLo>`_ and the database
 :ref:`connection string <connstr>`, and use them in ``query.py``.  For
-cx_Oracle the connection string is commonly of the format
+cx_Oracle, the connection string is commonly of the format
 ``hostname/servicename``, using the host name where the database is running and
 the Oracle Database service name of the database instance.
 
