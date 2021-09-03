@@ -321,8 +321,9 @@ Message Properties
 
 .. attribute:: MessageProperties.msgid
 
-    This attribute specifies the id of the message in the last queue that
-    generated this message.
+    This read-only attribute specifies the id of the message in the last queue
+    that enqueued or dequeued the message. If the message has never been
+    dequeued or enqueued, the value will be `None`.
 
 
 .. attribute:: MessageProperties.payload

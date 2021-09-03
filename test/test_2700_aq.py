@@ -161,7 +161,6 @@ class TestCase(test_env.BaseTestCase):
         self.__verify_attr(props, "expiration", 30)
         self.assertEqual(props.attempts, 0)
         self.__verify_attr(props, "priority", 1)
-        self.__verify_attr(props, "msgid", b'mID')
         self.assertEqual(props.state, oracledb.MSG_READY)
         self.assertEqual(props.deliverymode, 0)
 

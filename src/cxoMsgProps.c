@@ -182,15 +182,15 @@ static PyObject *cxoMsgProps_getExpiration(cxoMsgProps *props, void *unused)
 
 
 //-----------------------------------------------------------------------------
-// cxoMsgProps_getOriginalMsgId()
-//   Get the value of the expiration property.
+// cxoMsgProps_getMsgId()
+//   Get the value of the msgid property.
 //-----------------------------------------------------------------------------
-static PyObject *cxoMsgProps_getOriginalMsgId(cxoMsgProps *props, void *unused)
+static PyObject *cxoMsgProps_getMsgId(cxoMsgProps *props, void *unused)
 {
     uint32_t valueLength;
     const char *value;
 
-    if (dpiMsgProps_getOriginalMsgId(props->handle, &value, &valueLength) < 0)
+    if (dpiMsgProps_getMsgId(props->handle, &value, &valueLength) < 0)
         return cxoError_raiseAndReturnNull();
     if (!value)
         Py_RETURN_NONE;
@@ -286,25 +286,6 @@ static int cxoMsgProps_setExpiration(cxoMsgProps *props, PyObject *valueObj,
 
 
 //-----------------------------------------------------------------------------
-// cxoMsgProps_setOriginalMsgId()
-//   Set the value of the original message id property.
-//-----------------------------------------------------------------------------
-static int cxoMsgProps_setOriginalMsgId(cxoMsgProps *props, PyObject *valueObj,
-        void *unused)
-{
-    Py_ssize_t valueLength;
-    char *value;
-
-    if (PyBytes_AsStringAndSize(valueObj, &value, &valueLength) < 0)
-        return -1;
-    if (dpiMsgProps_setOriginalMsgId(props->handle, value,
-            (uint32_t) valueLength) < 0)
-        return cxoError_raiseAndReturnInt();
-    return 0;
-}
-
-
-//-----------------------------------------------------------------------------
 // cxoMsgProps_setPriority()
 //   Set the value of the expiration property.
 //-----------------------------------------------------------------------------
@@ -339,8 +320,7 @@ static PyGetSetDef cxoCalcMembers[] = {
             (setter) cxoMsgProps_setExceptionQ, 0, 0 },
     { "expiration", (getter) cxoMsgProps_getExpiration,
             (setter) cxoMsgProps_setExpiration, 0, 0 },
-    { "msgid", (getter) cxoMsgProps_getOriginalMsgId,
-            (setter) cxoMsgProps_setOriginalMsgId, 0, 0 },
+    { "msgid", (getter) cxoMsgProps_getMsgId, 0, 0, 0 },
     { "priority", (getter) cxoMsgProps_getPriority,
             (setter) cxoMsgProps_setPriority, 0, 0 },
     { "state", (getter) cxoMsgProps_getState, 0, 0, 0 },
