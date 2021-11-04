@@ -13,6 +13,7 @@ Version 8.3 (TBD)
 #)  Updated embedded ODPI-C to `version 4.3.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-3-tbd>`__.
+#)  Added official support for Python 3.10.
 #)  Corrected calculation of attribute :data:`MessageProperties.msgid`. Note
     that the attribute is now also read only.
 #)  Binary integer variables now explicitly convert values to integers (since
