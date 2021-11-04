@@ -427,11 +427,11 @@ class TestCase(test_env.BaseTestCase):
         random_string = ''.join(random.choice(chars) for _ in range(1024))
         int_val = 200
         xml_string = '<data>' + random_string + '</data>'
-        self.cursor.execute("truncate table TestXML")
+        self.cursor.execute("truncate table TestTempXML")
         self.cursor.execute("""
-                insert into TestXML (IntCol, XMLCol)
+                insert into TestTempXML (IntCol, XMLCol)
                 values (:1, :2)""", (int_val, xml_string))
-        self.cursor.execute("select XMLCol from TestXML where intCol = :1",
+        self.cursor.execute("select XMLCol from TestTempXML where intCol = :1",
                 (int_val,))
         actual_value, = self.cursor.fetchone()
         self.assertEqual(actual_value.strip(), xml_string)

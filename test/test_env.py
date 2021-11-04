@@ -197,6 +197,12 @@ def run_test_cases():
         print()
     unittest.main(testRunner=unittest.TextTestRunner(verbosity=2))
 
+def skip_client_version_old_multi(min_version1, min_version2):
+    ver = get_client_version()
+    return ver < min_version1 or \
+            (ver[0] > min_version1[0] and ver[0] < min_version2[0]) or \
+            (ver[0] == min_version2[0] and ver[1] < min_version2[1])
+
 def skip_soda_tests():
     client = get_client_version()
     if client < (18, 3):

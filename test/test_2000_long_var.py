@@ -19,24 +19,27 @@ class TestCase(test_env.BaseTestCase):
     def __perform_test(self, typ):
         name_part = "Long" if typ is oracledb.DB_TYPE_LONG else "LongRaw"
 
-        self.cursor.execute("truncate table Test%ss" % name_part)
+        self.cursor.execute(f"truncate table Test{name_part}s")
+        self.cursor.setinputsizes(long_string=typ)
         long_string = ""
         for i in range(1, 11):
             char = chr(ord('A') + i - 1)
             long_string += char * 25000
-            self.cursor.setinputsizes(long_string=typ)
-            if typ is oracledb.DB_TYPE_LONG_RAW:
-                bind_value = long_string.encode()
+            if i % 3 == 1:
+                bind_value = None
             else:
-                bind_value = long_string
-            self.cursor.execute("""
-                    insert into Test%ss (
+                if typ is oracledb.DB_TYPE_LONG_RAW:
+                    bind_value = long_string.encode()
+                else:
+                    bind_value = long_string
+            self.cursor.execute(f"""
+                    insert into Test{name_part}s (
                       IntCol,
-                      %sCol
+                      {name_part}Col
                     ) values (
                       :integer_value,
                       :long_string
-                    )""" % (name_part, name_part),
+                    )""",
                     integer_value=i,
                     long_string=bind_value)
         self.connection.commit()
@@ -48,12 +51,16 @@ class TestCase(test_env.BaseTestCase):
         for integer_value, fetched_value in self.cursor:
             char = chr(ord('A') + integer_value - 1)
             long_string += char * 25000
-            if typ is oracledb.DB_TYPE_LONG_RAW:
-                actual_value = long_string.encode()
+            if integer_value % 3 == 1:
+                expected_value = None
             else:
-                actual_value = long_string
-            self.assertEqual(len(fetched_value), integer_value * 25000)
-            self.assertEqual(fetched_value, actual_value)
+                if typ is oracledb.DB_TYPE_LONG_RAW:
+                    expected_value = long_string.encode()
+                else:
+                    expected_value = long_string
+            if fetched_value is not None:
+                self.assertEqual(len(fetched_value), integer_value * 25000)
+            self.assertEqual(fetched_value, expected_value)
 
     def test_2000_longs(self):
         "2000 - test binding and fetching long data"
@@ -82,7 +89,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select * from TestLongs")
         expected_value = [
             ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
-            ('LONGCOL', oracledb.DB_TYPE_LONG, None, None, None, None, False)
+            ('LONGCOL', oracledb.DB_TYPE_LONG, None, None, None, None, True)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
@@ -92,7 +99,7 @@ class TestCase(test_env.BaseTestCase):
         expected_value = [
             ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
             ('LONGRAWCOL', oracledb.DB_TYPE_LONG_RAW, None, None, None, None,
-                    False)
+                    True)
         ]
         self.assertEqual(self.cursor.description, expected_value)
 

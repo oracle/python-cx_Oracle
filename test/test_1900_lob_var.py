@@ -19,7 +19,7 @@ class TestCase(test_env.BaseTestCase):
     def __get_temp_lobs(self, sid):
         cursor = self.connection.cursor()
         cursor.execute("""
-                select abstract_lobs
+                select cache_lobs + nocache_lobs + abstract_lobs
                 from v$temporary_lobs
                 where sid = :sid""", sid = sid)
         row = cursor.fetchone()

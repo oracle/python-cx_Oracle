@@ -301,6 +301,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(coll.find().count(), 0)
         coll.drop()
 
+    @unittest.skipIf(test_env.skip_client_version_old_multi((19, 11), (21, 3)),
+                     "unsupported client")
     def test_3414_soda_hint(self):
         "3414 - verify hints are reflected in the executed SQL statement"
         soda_db = self.connection.getSodaDatabase()
