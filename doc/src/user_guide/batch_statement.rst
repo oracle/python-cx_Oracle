@@ -238,7 +238,7 @@ processing will be sufficient.
 Loading CSV Files into Oracle Database
 ======================================
 
-The :meth:`Cursor.executemany()` method and `csv module
+The :meth:`Cursor.executemany()` method and Python's `csv module
 <https://docs.python.org/3/library/csv.html#module-csv>`__ can be used to
 efficiently load CSV (Comma Separated Values) files.  For example, consider the
 file ``data.csv``::
@@ -255,21 +255,24 @@ And the schema:
 
     create table test (id number, name varchar2(25));
 
-Instead of looping through each line of the CSV file and inserting it
-individually, you can insert batches of records using
-:meth:`Cursor.executemany()`:
+Data loading can be done in batches of records since the number of records may
+prevent all data being inserted at once:
 
 .. code-block:: python
 
     import cx_Oracle
     import csv
 
-    . . .
-
-    # Predefine the memory areas to match the table definition
+    # Predefine the memory areas to match the table definition.
+    # This can improve performance by avoiding memory reallocations.
+    # Here, one parameter is passed for each of the columns.
+    # "None" is used for the ID column, since the size of NUMBER isn't
+    # variable.  The "25" matches the maximum expected data size for the
+    # NAME column
     cursor.setinputsizes(None, 25)
 
-    # Adjust the batch size to meet your memory and performance requirements
+    # Adjust the number of rows to be inserted in each iteration
+    # to meet your memory and performance requirements
     batch_size = 10000
 
     with open('testsp.csv', 'r') as csv_file:
@@ -284,3 +287,8 @@ individually, you can insert batches of records using
         if data:
             cursor.executemany(sql, data)
         con.commit()
+
+
+Depending on data sizes and business requirements, database changes such as
+temporarily disabling redo logging on the table, or disabling indexes may also
+be beneficial.
