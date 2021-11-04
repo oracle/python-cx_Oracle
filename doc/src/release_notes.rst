@@ -7,13 +7,15 @@ cx_Oracle Release Notes
 
 For any deprecations, see :ref:`Deprecations <deprecations>`.
 
-Version 8.3 (TBD)
------------------
+Version 8.3 (November 2021)
+---------------------------
 
 #)  Updated embedded ODPI-C to `version 4.3.0
     <https://oracle.github.io/odpi/doc/releasenotes.html#
-    version-4-3-tbd>`__.
+    version-4-3-november-4-2021>`__.
 #)  Added official support for Python 3.10.
+#)  Support for dequeuing messages from Oracle Transactional Event Queue (TEQ)
+    queues was restored.
 #)  Corrected calculation of attribute :data:`MessageProperties.msgid`. Note
     that the attribute is now also read only.
 #)  Binary integer variables now explicitly convert values to integers (since
