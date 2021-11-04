@@ -681,8 +681,9 @@ objects seamlessly:
 Binding Multiple Values to a SQL WHERE IN Clause
 ================================================
 
-To use an IN clause with multiple values in a WHERE clause, you must define and
-bind multiple values. You cannot bind an array of values. For example:
+To use a SQL IN clause with multiple values, use one bind variable per
+value. You cannot directly bind a Python list or dictionary to a single bind
+variable. For example, to use two values in an IN clause:
 
 .. code-block:: python
 
@@ -694,18 +695,18 @@ bind multiple values. You cannot bind an array of values. For example:
     for row in cursor:
         print(row)
 
-This will produce the following output::
+This gives the output::
 
     (159, 'Lindsey', 'Smith')
     (171, 'William', 'Smith')
     (176, 'Jonathon', 'Taylor')
     (180, 'Winston', 'Taylor')
 
-If this sort of query is executed multiple times with differing numbers of
-values, a bind variable should be included for each possible value up to the
-maximum number of values that can be provided. Missing values can be bound with
-the value ``None``. For example, if the query above is used for up to 5 values,
-the code should be adjusted as follows:
+If the query is executed multiple times with differing numbers of values, a
+bind variable should be included for each possible value. When the statement is
+executed but the maximum number of values has not been supplied, the value
+``None`` can be bound for missing values. For example, if the query above is
+used for up to 5 values, the code would be:
 
 .. code-block:: python
 
@@ -717,10 +718,14 @@ the code should be adjusted as follows:
     for row in cursor:
         print(row)
 
-This will produce the same output as the original example.
+This will produce the same output as the original example. Reusing the same SQL
+statement like this for a variable number of values, instead of constructing a
+unique statement per set of values, allows best reuse of Oracle Database
+resources.
 
-If the number of values is only going to be known at runtime, then a SQL
-statement can be built up as follows:
+However, if the statement is not going to be re-executed, or the number of
+values is only going to be known at runtime, then a SQL statement can be built
+up as follows:
 
 .. code-block:: python
 
@@ -732,16 +737,37 @@ statement can be built up as follows:
     for row in cursor:
         print(row)
 
-Another solution for a larger number of values is to construct a SQL
+A general solution for a larger number of values is to construct a SQL
 statement like::
 
-    SELECT ... WHERE col IN ( <something that returns a list of rows> )
+    SELECT ... WHERE col IN ( <something that returns a list of values> )
 
-The easiest way to do the '<something that returns a list of rows>'
-will depend on how the data is initially represented and the number of
-items.  You might look at using CONNECT BY or nested tables.  Or,
-for really large numbers of items, you might prefer to use a global
-temporary table.
+The best way to do the '<something that returns a list of values>' will depend
+on how the data is initially represented and the number of items. You might
+look at using CONNECT BY or at using a global temporary table.
+
+One method is to use an Oracle collection with the ``TABLE()`` clause. For
+example, if the following type was created::
+
+    SQL> CREATE OR REPLACE TYPE name_array AS TABLE OF VARCHAR2(25);
+      2  /
+
+then the application could do:
+
+.. code-block:: python
+
+    type_obj = connection.gettype("NAME_ARRAY")
+    obj = type_obj.newobject()
+    obj.extend(["Smith", "Taylor"])
+    cursor.execute("""select employee_id, first_name, last_name
+                      from employees
+                      where last_name in (select * from table(:1))""",
+                   [obj])
+    for row in cursor:
+        print(row)
+
+For efficiency, retain the return value of ``gettype()`` for reuse instead of
+making repeated calls to get the type information.
 
 Binding Column and Table Names
 ==============================
