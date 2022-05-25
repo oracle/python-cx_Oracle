@@ -201,3 +201,10 @@ hr {
   padding-top: 16px;
   padding-bottom: 16px;
 }
+
+.announcement {
+  margin-top: 30px;
+  padding: 30px;
+  padding-bottom: 15px;
+  background-color: #F0CC71;
+}
