@@ -4,12 +4,19 @@
 cx_Oracle 8 Installation
 ************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Overview
 ========
 
-To use cx_Oracle 8 with Python and Oracle Database you need:
+To use cx_Oracle 8.3 with Python and Oracle Database you need:
 
-- Python 3.5 and higher. Older versions of cx_Oracle may work with older
+- Python 3.6 and higher. Older versions of cx_Oracle may work with older
   versions of Python.
 
 - Oracle Client libraries. These can be from the free `Oracle Instant Client
@@ -35,18 +42,12 @@ product: it is how the Oracle Client and Oracle Database communicate.
 Quick Start cx_Oracle Installation
 ==================================
 
-The `Quick Start: Developing Python Applications for Oracle Database
-<https://www.oracle.com/database/technologies/appdev/python/quickstartpythononprem.html>`__
-and `Quick Start: Developing Python Applications for Oracle Autonomous Database
-<https://www.oracle.com/database/technologies/appdev/python/quickstartpython.html>`__
-instructions have steps for Windows, Linux, and macOS.
-
-Alternatively you can:
+You can:
 
 - Install `Python <https://www.python.org/downloads>`__ 3, if not already
   available.  On macOS you must always install your own Python.
 
-  Python 3.5 and higher are supported by cx_Oracle 8.  If you use Python 2,
+  Python 3.6 and higher are supported by cx_Oracle 8.3.  If you use Python 2,
   then the older cx_Oracle 7.3 will install.
 
 - Install cx_Oracle from `PyPI
@@ -190,6 +191,13 @@ Installing cx_Oracle on Linux
 
 This section discusses the generic installation methods on Linux.  To use Python
 and cx_Oracle RPM packages from yum on Oracle Linux, see :ref:`oraclelinux`.
+
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
 
 Install cx_Oracle
 -----------------
@@ -424,6 +432,13 @@ Developers <https://yum.oracle.com/oracle-linux-python.html>`__.
 Installing cx_Oracle on Windows
 ===============================
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Install cx_Oracle
 -----------------
 
@@ -571,6 +586,13 @@ Python architecture.
 
 Installing cx_Oracle on macOS (Intel x86)
 =========================================
+
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
 
 Install Python
 --------------

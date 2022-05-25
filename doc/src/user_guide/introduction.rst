@@ -9,6 +9,13 @@ Database.  It conforms to the `Python Database API v2.0 Specification
 <https://www.python.org/dev/peps/pep-0249/>`__ with a considerable number of
 additions and a couple of exclusions.
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Architecture
 ------------
 
@@ -130,12 +137,6 @@ The output is::
 
 Examples and Tutorials
 ----------------------
-
-The `Quick Start: Developing Python Applications for Oracle Database
-<https://www.oracle.com/database/technologies/appdev/python/quickstartpythononprem.html>`__
-and `Quick Start: Developing Python Applications for Oracle Autonomous Database
-<https://www.oracle.com/database/technologies/appdev/python/quickstartpython.html>`__
-instructions have steps for Windows, Linux, and macOS.
 
 Runnable examples are in the `GitHub samples directory
 <https://github.com/oracle/python-cx_Oracle/tree/main/samples>`__.  A `Python

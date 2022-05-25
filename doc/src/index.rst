@@ -11,6 +11,13 @@ releases.
 (the BSD license). A detailed description of cx_Oracle changes can be found in
 the :ref:`release notes <releasenotes>`.
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Contents:
 
 User Guide

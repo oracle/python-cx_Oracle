@@ -1,4 +1,16 @@
-# cx_Oracle Examples
+# Samples
+
+## News
+
+**cx_Oracle has a major new release under a new name and homepage
+[python-oracledb](https://oracle.github.io/python-oracledb/).**
+
+**New projects should install python-oracledb instead of cx_Oracle.**
+
+**The new source code and samples can be found at
+[github.com/oracle/python-oracledb](https://github.com/oracle/python-oracledb).**
+
+## cx_Oracle Examples
 
 This directory contains samples for [cx_Oracle][6].  Documentation is
 [here][7].  A separate tutorial is [here][8].
