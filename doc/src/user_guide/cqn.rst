@@ -19,14 +19,14 @@ what types of SQL should trigger a notification, whether notifications should
 survive database loss, and control over unsubscription.  You can also choose
 whether notification messages will include ROWIDs of affected rows.
 
-By default, object-level (previously known as Database Change Notification)
-occurs and the Python notification method is invoked whenever a database
-transaction is committed that changes an object that a registered query
-references, regardless of whether the actual query result changed.  However if
-the :meth:`subscription <Connection.subscribe>` option ``qos`` is
-:data:`cx_Oracle.SUBSCR_QOS_QUERY` then query-level notification occurs.  In
-this mode, the database notifies the application whenever a transaction changing
-the result of the registered query is committed.
+By default, object-level notification (previously known as Database Change
+Notification) occurs.  With this mode a Python notification method is invoked
+whenever a database transaction is committed that changes an object referenced
+by a registered query.  However if the :meth:`subscription
+<Connection.subscribe>` option ``qos`` is :data:`cx_Oracle.SUBSCR_QOS_QUERY`
+then query-level notification occurs.  In this mode, the database notifies the
+application whenever a committed transaction changes the result of a registered
+query.
 
 CQN is best used to track infrequent data changes.
 
@@ -109,7 +109,7 @@ calling :meth:`Subscription.registerquery()`.  Registering a query behaves
 similarly to :meth:`Cursor.execute()`, but only queries are permitted and the
 ``args`` parameter must be a sequence or dictionary.
 
-An example script to receive query notifications when the 'CUSTOMER' table data
+An example script to receive query notifications when the 'REGIONS' table data
 changes is:
 
 .. code-block:: python
@@ -129,6 +129,7 @@ changes is:
     subscr = connection.subscribe(callback=cqn_callback,
                                   operations=cx_Oracle.OPCODE_INSERT | cx_Oracle.OPCODE_DELETE,
                                   qos=cx_Oracle.SUBSCR_QOS_QUERY | cx_Oracle.SUBSCR_QOS_ROWIDS)
+
     subscr.registerquery("select * from regions")
     input("Hit enter to stop CQN demo\n")
 

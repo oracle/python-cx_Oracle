@@ -160,7 +160,7 @@ SessionPool Object
     unusable, it is discarded and a different connection is selected to be
     returned by :meth:`SessionPool.acquire()`.  Setting ``ping_interval`` to a
     negative value disables pinging.  Setting it to 0 forces a ping for every
-    ``aquire()`` and is not recommended.
+    ``acquire()`` and is not recommended.
 
     Prior to cx_Oracle 8.2, the ping interval was fixed at 60 seconds.
 

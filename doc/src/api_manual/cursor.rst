@@ -290,7 +290,7 @@ Cursor Object
     See :ref:`fetching` for an example.
 
 
-.. method:: Cursor.fetchmany(num_rows=cursor.arraysize)
+.. method:: Cursor.fetchmany(numRows=cursor.arraysize)
 
     Fetch the next set of rows of a query result, returning a list of tuples.
     An empty list is returned if no more rows are available. Note that the

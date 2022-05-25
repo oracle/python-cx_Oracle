@@ -336,7 +336,7 @@ connection pool:
     pool.close()
 
 Other :meth:`cx_Oracle.SessionPool()` options can be used at pool creation.
-For example the ``getmode`` value can be set so that any ``aquire()`` call will
+For example the ``getmode`` value can be set so that any ``acquire()`` call will
 wait for a connection to become available if all are currently in use, for
 example:
 
@@ -349,8 +349,8 @@ example:
                                  getmode=cx_Oracle.SPOOL_ATTRVAL_WAIT,
                                  encoding="UTF-8")
 
-See `ConnectionPool.py
-<https://github.com/oracle/python-cx_Oracle/tree/main/samples/ConnectionPool.py>`__
+See `connection_pool.py
+<https://github.com/oracle/python-cx_Oracle/tree/main/samples/connection_pool.py>`__
 for an example.
 
 Before :meth:`SessionPool.acquire()` returns, cx_Oracle does a lightweight check
@@ -1348,10 +1348,10 @@ of the function :meth:`cx_Oracle.connect()` constructor:
                                    dsn="dbhost.example.com/orclpdb1",
                                    newpassword=newpwd, encoding="UTF-8")
 
-.. _autononmousdb:
+.. _autonomousdb:
 
-Connecting to Oracle Cloud Autononmous Databases
-================================================
+Connecting to Oracle Cloud Autonomous Databases
+===============================================
 
 To enable connection to Oracle Autonomous Database in Oracle Cloud, a wallet
 needs be downloaded from the cloud, and cx_Oracle needs to be configured to use

@@ -40,7 +40,7 @@ Module Interface
         mode=cx_Oracle.DEFAULT_AUTH, handle=0, pool=None, threaded=False, \
         events=False, cclass=None, purity=cx_Oracle.ATTR_PURITY_DEFAULT, \
         newpassword=None, encoding=None, nencoding=None, edition=None, \
-        appcontext=[], tag=None, matchanytag=None, shardingkey=[], \
+        appcontext=[], tag=None, matchanytag=False, shardingkey=[], \
         supershardingkey=[], stmtcachesize=20)
     Connection(user=None, password=None, dsn=None, \
         mode=cx_Oracle.DEFAULT_AUTH, handle=0, pool=None, threaded=False, \

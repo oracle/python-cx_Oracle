@@ -491,10 +491,11 @@ To use cx_Oracle with Oracle Instant Client zip files:
    a 64-bit or 32-bit architecture to match Instant Client's architecture.
    Each Instant Client version requires a different redistributable version:
 
-       - For Instant Client 19 install `VS 2017 <https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads>`__.
-       - For Instant Client 18 or 12.2 install `VS 2013 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2013>`__
-       - For Instant Client 12.1 install `VS 2010 <https://support.microsoft.com/en-us/kb/2977003#bookmark-vs2010>`__
-       - For Instant Client 11.2 install `VS 2005 64-bit <https://www.microsoft.com/en-us/download/details.aspx?id=18471>`__ or `VS 2005 32-bit <https://www.microsoft.com/en-ca/download/details.aspx?id=3387>`__
+       - For Instant Client 21 install `VS 2019 <https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170>`__ or later.
+       - For Instant Client 19 install `VS 2017 <https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170>`__.
+       - For Instant Client 18 or 12.2 install `VS 2013 <https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2013-vc-120>`__
+       - For Instant Client 12.1 install `VS 2010 <https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2010-vc-100-sp1-no-longer-supported>`__
+       - For Instant Client 11.2 install `VS 2005 64-bit <https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2005-vc-80-sp1-no-longer-supported>`__
 
 Configure Oracle Instant Client
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

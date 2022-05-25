@@ -241,7 +241,7 @@ located with, or separately from, the ``tnsnames.ora`` and ``sqlnet.ora``
 files.  It should be securely stored.  The ``sqlnet.ora`` file's
 ``WALLET_LOCATION`` path should be set to the directory containing
 ``cwallet.sso``.  For Oracle Autonomous Database use of wallets, see
-:ref:`autononmousdb`.
+:ref:`autonomousdb`.
 
 Note the :ref:`easyconnect` can set many common configuration options without
 needing ``tnsnames.ora`` or ``sqlnet.ora`` files.
