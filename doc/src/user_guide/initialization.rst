@@ -168,8 +168,8 @@ example, if the Oracle Instant Client Libraries are in
             cx_Oracle.init_oracle_client(lib_dir=lib_dir)
     except Exception as err:
         print("Whoops!")
-        print(err);
-        sys.exit(1);
+        print(err)
+        sys.exit(1)
 
 Note the use of a 'raw' string ``r"..."`` on Windows so that backslashes are
 treated as directory separators.
@@ -220,8 +220,8 @@ you can call :meth:`cx_Oracle.init_oracle_client()`:
         cx_Oracle.init_oracle_client(config_dir="/etc/my-oracle-config")
     except Exception as err:
         print("Whoops!")
-        print(err);
-        sys.exit(1);
+        print(err)
+        sys.exit(1)
 
 This is equivalent to setting the environment variable `TNS_ADMIN
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-12C94B15-2CE1-4B98-9D0C-8226A9DDF4CB>`__
@@ -393,8 +393,8 @@ parameters is:
                                      error_url="https://example.com/MyInstallInstructions.html")
     except Exception as err:
         print("Whoops!")
-        print(err);
-        sys.exit(1);
+        print(err)
+        sys.exit(1)
 
 The convention for ``driver_name`` is to separate the product name from the
 product version by a colon and single blank characters.  The value will be shown
