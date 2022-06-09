@@ -60,3 +60,10 @@ hr {
 pre {
     background: #E0E0E0;
 }
+
+.announcement {
+  margin-top: 30px;
+  padding: 30px;
+  padding-bottom: 15px;
+  background-color: #F0CC71;
+}
