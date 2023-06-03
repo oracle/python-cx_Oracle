@@ -5,6 +5,13 @@
 cx_Oracle Release Notes
 =======================
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 For any deprecations, see :ref:`Deprecations <deprecations>`.
 
 Version 8.3 (November 2021)

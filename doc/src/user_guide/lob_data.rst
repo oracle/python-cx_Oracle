@@ -4,6 +4,13 @@
 Using CLOB and BLOB Data
 ************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Oracle Database uses :ref:`lobobj` to store large data such as text, images,
 videos and other multimedia formats.  The maximum size of a LOB is limited to
 the size of the tablespace storing it.

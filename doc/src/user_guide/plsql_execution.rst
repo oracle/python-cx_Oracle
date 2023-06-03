@@ -4,6 +4,13 @@
 PL/SQL Execution
 ****************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 PL/SQL stored procedures, functions and anonymous blocks can be called from
 cx_Oracle.
 

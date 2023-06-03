@@ -4,6 +4,13 @@
 Oracle Advanced Queuing (AQ)
 ****************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 `Oracle Advanced Queuing
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADQUE>`__ is a highly
 configurable and scalable messaging feature of Oracle Database.  It has

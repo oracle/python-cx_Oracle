@@ -4,6 +4,13 @@
 Working with the JSON Data Type
 *******************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Native support for JSON data was introduced in Oracle Database 12c.  You can
 use JSON with relational database features, including transactions, indexing,
 declarative querying, and views.  You can project JSON data relationally,

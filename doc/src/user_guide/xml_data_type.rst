@@ -4,6 +4,13 @@
 Working with XMLTYPE
 ********************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Oracle XMLType columns are fetched as strings by default.  This is currently
 limited to the maximum length of a ``VARCHAR2`` column.  To return longer XML
 values, they must be queried as LOB values instead.

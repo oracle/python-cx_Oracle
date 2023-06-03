@@ -1,6 +1,13 @@
 Welcome to cx_Oracle's documentation!
 =====================================
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 **cx_Oracle** is a module that enables access to Oracle Database and conforms
 to the Python database API specification. This module is currently tested
 against Oracle Client 21c, 19c, 18c, 12c, and 11.2, and Python 3.6, 3.7, 3.8,
@@ -10,13 +17,6 @@ releases.
 **cx_Oracle** is distributed under an open-source :ref:`license <license>`
 (the BSD license). A detailed description of cx_Oracle changes can be found in
 the :ref:`release notes <releasenotes>`.
-
-.. note::
-
-    **cx_Oracle has a major new release under a new name and homepage**
-    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
-
-    **New projects should install python-oracledb instead of cx_Oracle.**
 
 Contents:
 

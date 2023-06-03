@@ -4,6 +4,13 @@
 SODA
 ****
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 `Oracle Database Simple Oracle Document Access (SODA)
 <https://docs.oracle.com/en/database/oracle/simple-oracle-document-access>`__
 allows documents to be inserted, queried, and retrieved from Oracle Database

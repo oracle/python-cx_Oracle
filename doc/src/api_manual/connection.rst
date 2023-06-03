@@ -6,6 +6,13 @@ Connection Object
 
 .. note::
 
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
+.. note::
+
     Any outstanding changes will be rolled back when the connection object
     is destroyed or closed.
 

@@ -4,6 +4,13 @@
 Starting and Stopping Oracle Database
 *************************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 This chapter covers how to start up and shutdown Oracle Database using
 cx_Oracle.
 

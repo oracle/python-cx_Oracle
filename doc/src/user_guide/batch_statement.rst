@@ -4,6 +4,13 @@
 Batch Statement Execution and Bulk Loading
 ******************************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Inserting or updating multiple rows can be performed efficiently with
 :meth:`Cursor.executemany()`, making it easy to work with large data sets with
 cx_Oracle.  This method can significantly outperform repeated calls to

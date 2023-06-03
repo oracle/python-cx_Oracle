@@ -4,6 +4,13 @@
 SQL Execution
 *************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Executing SQL statements is the primary way in which a Python application
 communicates with Oracle Database.  Statements are executed using the methods
 :meth:`Cursor.execute()` or :meth:`Cursor.executemany()`.  Statements include

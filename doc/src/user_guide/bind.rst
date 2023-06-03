@@ -4,6 +4,13 @@
 Using Bind Variables
 ********************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 SQL and PL/SQL statements that pass data to and from Oracle Database should use
 placeholders in SQL and PL/SQL statements that mark where data is supplied or
 returned.  These placeholders are referred to as bind variables or bind

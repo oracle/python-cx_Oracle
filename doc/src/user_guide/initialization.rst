@@ -4,6 +4,13 @@
 cx_Oracle 8 Initialization
 **************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 The cx_Oracle module loads Oracle Client libraries which communicate over
 Oracle Net to an existing database.  The Oracle Client libraries need to be
 installed separately.  See :ref:`installation`.  Oracle Net is not a separate

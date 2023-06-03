@@ -4,6 +4,13 @@
 Advanced Queuing (AQ)
 *********************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 See :ref:`aqusermanual` for more information about using AQ in cx_Oracle.
 
 .. note::

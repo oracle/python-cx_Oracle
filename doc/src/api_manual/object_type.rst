@@ -6,6 +6,13 @@ Object Type Objects
 
 .. note::
 
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
+.. note::
+
     This object is an extension to the DB API. It is returned by the
     :meth:`Connection.gettype()` call and is available as the
     :data:`Variable.type` for variables containing Oracle objects.

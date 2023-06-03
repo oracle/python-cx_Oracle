@@ -4,6 +4,13 @@
 Continuous Query Notification (CQN)
 ***********************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 `Continuous Query Notification (CQN)
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-373BAF72-3E63-42FE-8BEA-8A2AEFBF1C35>`__ allows applications to receive

@@ -5,6 +5,13 @@ Cursor Object
 *************
 
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 .. method:: Cursor.__enter__()
 
     The entry point for the cursor as a context manager. It returns itself.

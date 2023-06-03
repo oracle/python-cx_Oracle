@@ -4,6 +4,13 @@
 Connecting to Oracle Database
 *****************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Connections between cx_Oracle and Oracle Database are used for executing
 :ref:`SQL <sqlexecution>`, :ref:`PL/SQL <plsqlexecution>`, and :ref:`SODA
 <sodausermanual>`.

@@ -4,6 +4,13 @@
 Exception Handling
 ******************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 All exceptions raised by cx_Oracle are inherited from :attr:`cx_Oracle.Error`.
 See :ref:`Exceptions <exceptions>` for more details on the various exceptions
 defined by cx_Oracle. See the exception handling section in the

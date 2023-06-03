@@ -4,6 +4,13 @@
 Character Sets and Globalization
 ********************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Data fetched from, and sent to, Oracle Database will be mapped between the
 database character set and the "Oracle client" character set of the Oracle
 Client libraries used by cx_Oracle.  If data cannot be correctly mapped between

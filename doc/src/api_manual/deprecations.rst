@@ -4,6 +4,13 @@
 Deprecations
 ************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 The following tables contains all of the deprecations in the cx_Oracle API,
 when they were first deprecated and a comment on what should be used instead,
 if applicable. The most recent deprecations are listed first.

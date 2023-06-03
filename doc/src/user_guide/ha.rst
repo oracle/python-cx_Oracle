@@ -4,6 +4,13 @@
 High Availability with cx_Oracle
 ********************************
 
+.. note::
+
+    **cx_Oracle has a major new release under a new name and homepage**
+    `python-oracledb <https://oracle.github.io/python-oracledb/>`__.
+
+    **New projects should install python-oracledb instead of cx_Oracle.**
+
 Applications can utilize many features for high availability (HA) during planned and
 unplanned outages in order to:
 
