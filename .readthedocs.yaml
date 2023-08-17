@@ -1,9 +1,16 @@
+# required
 version: 2
 
-sphinx:
-  configuration: doc/src/conf.py
+build:
+  os: ubuntu-20.04
+  tools:
+    python: "3.9"
 
+# Build documentation in the doc/src directory with Sphinx
+sphinx:
+   configuration: doc/src/conf.py
+
+# declare Python requirements required to build docs
 python:
-  version: 3.8
-  install:
-    - requirements: doc/requirements.txt
+   install:
+   - requirements: doc/requirements.txt
