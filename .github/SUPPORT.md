@@ -1,7 +1,9 @@
 # Python cx_Oracle Support
 
-cx_Oracle is an Open Source project, so do some searching and reading
-before asking questions.
+**The cx_Oracle driver was renamed to python-oracledb in May 2022.  It has a
+new repository at https://github.com/oracle/python-oracledb.  Please update to
+this new driver.  If you still have problems, open an issue on the new
+repository.**
 
 ## cx_Oracle Installation issues
 

@@ -11,7 +11,14 @@ assignees: ''
 
 Thank you for using cx_Oracle.
 
-Review the user manual: https://cx-oracle.readthedocs.io/en/latest/index.html
+The cx_Oracle driver was renamed to python-oracledb in May 2022.  It has a new
+repository at https://github.com/oracle/python-oracledb.  The installation
+instructions are at:
+https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html
+
+Update to python-oracledb, if possible.
+
+Otherwise, review the cx_Oracle user manual: https://cx-oracle.readthedocs.io/en/latest/index.html
 
 Please answer these questions so we can help you.
 

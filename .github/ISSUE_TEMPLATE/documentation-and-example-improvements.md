@@ -9,16 +9,13 @@ assignees: ''
 
 <!--
 
-Thank you for using cx_Oracle.
+The cx_Oracle driver was renamed to python-oracledb in May 2022.  It has a new
+repository at https://github.com/oracle/python-oracledb. The installation
+instructions are at:
+https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html
 
-Please answer these questions so we can help you.
+Please submit your documentation and example improvements to the python-oracledb repository.
 
-Use Markdown syntax, see https://docs.github.com/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
+No further releases under the cx_Oracle namespace are planned.
 
 -->
-
-1. What is the link to the documentation section that needs improving?
-
-2. Describe the confusion
-
-3. Suggest changes that would help

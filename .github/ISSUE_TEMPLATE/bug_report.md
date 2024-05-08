@@ -13,7 +13,17 @@ Thank you for using cx_Oracle.
 
 See https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html for how to report security issues
 
-Please answer these questions so we can help you.
+The cx_Oracle driver was renamed to python-oracledb in May 2022.  It has a new
+repository at https://github.com/oracle/python-oracledb.  The installation
+instructions are at:
+https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html
+
+Update to python-oracledb, if possible, and submit your bug report to the
+python-oracledb repository.
+
+No further releases under the cx_Oracle namespace are planned.
+
+Otherwise, please answer these questions so we can help you.
 
 Use Markdown syntax, see https://docs.github.com/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
 
