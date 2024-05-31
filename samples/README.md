@@ -5,7 +5,7 @@
 **cx_Oracle has a major new release under a new name and homepage
 [python-oracledb](https://oracle.github.io/python-oracledb/).**
 
-**New projects should install python-oracledb instead of cx_Oracle.**
+**New projects should install python-oracledb instead of cx_Oracle: python -m pip install oracledb**
 
 **The new source code and samples can be found at
 [github.com/oracle/python-oracledb](https://github.com/oracle/python-oracledb).**

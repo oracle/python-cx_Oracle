@@ -41,6 +41,19 @@
 # user for on premises databases is SYSTEM.
 #------------------------------------------------------------------------------
 
+print("""
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!  cx_Oracle was renamed to python-oracledb.                      !!!
+!!!  Use python-oracledb instead of cx_Oracle for development.      !!!
+!!!  Install with:                                                  !!!
+!!!    python -m pip install oracledb                               !!!
+!!!  and use the new samples in:                                    !!!
+!!!    https://github.com/oracle/python-oracledb/tree/main/samples  !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+""")
+
 import getpass
 import os
 import sys
