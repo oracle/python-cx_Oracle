@@ -62,7 +62,7 @@ No further releases under the cx_Oracle namespace are planned.
 
 ## Security
 
-Please consult the [security guide](./SECURITY.md) for our responsible security
+Please consult the [security guide](./.github/SECURITY.md) for our responsible security
 vulnerability disclosure process.
 
 ## License
