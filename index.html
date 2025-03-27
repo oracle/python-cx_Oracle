@@ -25,11 +25,11 @@
         <h1 class="headerTitle">Python cx_Oracle</h1>
         <nav class="headerNav" role="navigation">
           <ul>
-            <li><a href="https://cx-oracle.readthedocs.io/en/latest/index.html">Documentation</a></li>
-            <li><a href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html" >Installation</a></li>
-            <li><a href="https://cx-oracle.readthedocs.io/en/latest/release_notes.html#releasenotes">Release Notes</a></li>
-            <li><a href="https://github.com/oracle/python-cx_Oracle">Source code</a></li>
-            <li><a href="https://github.com/oracle/python-cx_Oracle/issues">Help</a></li>
+            <li><a href="https://python-oracledb.readthedocs.io/en/latest/index.html">Documentation</a></li>
+            <li><a href="https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html" >Installation</a></li>
+            <li><a href="https://python-oracledb.readthedocs.io/en/latest/release_notes.html#releasenotes">Release Notes</a></li>
+            <li><a href="https://github.com/oracle/python-oracledb">Source code</a></li>
+            <li><a href="https://github.com/oracle/python-oracledb/discussions">Help</a></li>
           </ul>
         </nav>
       </div>
@@ -42,9 +42,12 @@
 
       <div class="announcement">
 
-      <p><strong>cx_Oracle has a major new release under a new name and
-      homepage <a href="https://oracle.github.io/python-oracledb/"
-      >python-oracledb</a>.</strong></p>
+      <p><strong>cx_Oracle was obsoleted by <a
+      href="https://oracle.github.io/python-oracledb/" >python-oracledb</a> in
+      2022.</strong></p>
+
+      <p><strong>python-oracledb uses the same Python DB API as cx_Oracle, and
+      has many new features<strong>.</p>
 
       <p><strong>Follow the python-oracledb <a
       href="https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html"
@@ -52,201 +55,6 @@
       the upgrade today.</strong></p>
 
       </div> <!-- announcement -->
-
-      <div id="about">
-      <h2>About cx_Oracle</h2>
-
-      <p><strong>cx_Oracle</strong> is a Python extension module that
-      enables access to Oracle Database.  It conforms to the Python
-      database API 2.0 <a
-      href="https://peps.python.org/pep-0249/">
-      specification</a> with a considerable number of additions and a
-      couple of exclusions.</p>
-
-      <p>cx_Oracle 8.3 was tested with Python versions 3.6 through 3.10.
-      Older versions of cx_Oracle may be used with previous Python releases.
-      You can use cx_Oracle with Oracle 11.2, 12, 18, 19 and 21 client
-      libraries.  Oracle's standard client-server version interoperability
-      allows connection to both older and newer databases. For example Oracle
-      19c client libraries can connect to Oracle Database 11.2.</p>
-
-      </div> <!-- /about -->
-
-      <div id="quickstart">
-      <h2>Getting Started</h2>
-
-      See <a
-      href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html#quick-start-cx-oracle-installation"
-      >Quick Start cx_Oracle Installation</a> and the <a
-      href="samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html">Python
-      and Oracle Database Tutorial: Scripting for the Future</a>.
-
-      </div> <!-- /quickstart -->
-
-      <div id="installation">
-      <h2>Installation</h2>
-
-      See <a
-      href="https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html"
-      >cx_Oracle Installation</a> for detailed instructions.
-
-      </div> <!-- /installation -->
-
-      <div id="documentation">
-      <h2>Documentation</h2>
-
-      See the <a href="https://cx-oracle.readthedocs.io" >cx_Oracle
-      Documentation</a> and <a
-      href="https://cx-oracle.readthedocs.io/en/latest/release_notes.html#releasenotes"
-      >Release Notes</a>.
-
-      </div> <!-- /documentation -->
-
-      <div id="example">
-      <h2>Samples</h2>
-
-      See the <a
-      href="https://github.com/oracle/python-cx_Oracle/tree/main/samples"
-      >/samples</a> directory.  You can also look at the scripts in <a
-      href="https://github.com/anthony-tuininga/cx_OracleTools">cx_OracleTools</a>
-      and the modules in <a
-      href="https://github.com/anthony-tuininga/cx_PyOracleLib">cx_PyOracleLib</a>.
-
-      </div> <!-- /example -->
-
-      <div id="help">
-      <h2>Help</h2>
-
-      <p>Issues and questions can be raised with the cx_Oracle community on
-      <a href="https://github.com/oracle/python-cx_Oracle/issues"
-      >GitHub</a> or on the <a
-      href="https://sourceforge.net/projects/cx-oracle/lists/cx-oracle-users"
-      >mailing list</a>.</p>
-
-      </div> <!-- /help -->
-
-      <div id="tests">
-      <h2>Tests</h2>
-
-      See the <a href="https://github.com/oracle/python-cx_Oracle/tree/main/test" >test suite</a>.
-
-      </div> <!-- /tests -->
-
-      <div id="contribuing">
-      <h2>Contributing</h2>
-
-      See <a href="https://github.com/oracle/python-cx_Oracle/blob/main/CONTRIBUTING.md" >CONTRIBUTING</a>.
-
-      </div> <!-- /contributing -->
-
-      <div id="features">
-
-      <h2>Features</h2>
-
-      <ul>
-      <li><p>Easily installed from PyPI.</p></li>
-
-      <li><p>Support for Python 3.6 and higher. Older versions of cx_Oracle may
-      be used with previous Python releases.</p></li>
-
-      <li><p>Support for Oracle Client 11.2, 12, 18, 19 and 21.
-      Oracle's standard cross-version interoperability, allows easy upgrades
-      and connectivity to different Oracle Database versions.</p></li>
-
-      <li><p>Connect to Oracle Database 9.2, 10, 11, 12, 18, 19 or 21
-      (depending on the Oracle Client version used).</p></li>
-
-      <li><p>SQL and PL/SQL Execution. The underlying Oracle Client
-      libraries have significant optimizations including compressed fetch,
-      pre-fetching, client and server result set caching, and statement
-      caching with auto-tuning.</p></li>
-
-      <li><p>Full use of Oracle Network Service infrastructure, including
-      encrypted network traffic and security features.</p></li>
-
-      <li><p>Extensive Oracle data type support, including large object
-      support (CLOB and BLOB).</p></li>
-
-      <li><p>Direct binding to SQL objects.  One great use case is binding
-      Python objects to Oracle Spatial SDO objects.</p></li>
-
-      <li><p>JSON datatype support.</p></li>
-
-      <li><p>SODA (Simple Oracle Document Access).</p></li>
-
-      <li><p>Array operations for efficient INSERT and UPDATEs.</p></li>
-
-      <li><p>Array row counts and batch error handling for array operations.</p></li>
-
-      <li><p>Fetching of large result sets.</p></li>
-
-      <li><p>REF CURSOR support.</p></li>
-
-      <li><p>Support for scrollable cursors. Go back and forth through your
-      query results.</p></li>
-
-      <li><p>Fetch PL/SQL Implicit Results. Easily return query results from
-      PL/SQL.</p></li>
-
-      <li><p>Row Prefetching.  Efficient use of the network.</p></li>
-
-      <li><p>Client Result Caching.  Improve performance of frequently
-      executed look-up statements.</p></li>
-
-      <li><p>Support for Advanced Queuing. Use database notifications to
-      build micro-service applications.</p></li>
-
-      <li><p>Continuous Query Notification (CQN).  Get notified when data
-      changes.</p></li>
-
-      <li><p>Support for Edition Based Redefinition.  Easily switch
-      applications to use updated PL/SQL logic.</p></li>
-
-      <li><p>Support for setting application context during the creation of
-      a connection, making application metadata more accessible to the
-      database, including in LOGON triggers.</p></li>
-
-      <li><p>End-to-end monitoring and tracing.</p></li>
-
-      <li><p>Transaction Management.</p></li>
-
-      <li><p>Session Pooling, with tagging and session state fix-up callback.</p></li>
-
-      <li><p>Database Resident Connection Pooling (DRCP).</p></li>
-
-      <li><p>Privileged Connections.</p></li>
-
-      <li><p>External Authentication.</p></li>
-
-      <li><p>Database startup and shutdown.</p></li>
-
-      <li><p>Sharded Databases.</p></li>
-
-      <li><p>Oracle Database High Availability Features, such as FAN
-      notifications, Application Continuity, and Transaction Guard support.</p></li>
-
-      </ul>
-
-      <p>DB API specification exclusions: The time data type is not
-      supported by Oracle and is therefore not implemented. The method
-      <code>cursor.nextset()</code> is not implemented either as the DB API
-      specification assumes an implementation of cursors that does not fit
-      well with Oracle's implementation of cursors and implicit results. See
-      the method
-      <a href="https://cx-oracle.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.getimplicitresults">cursor.getimplicitresults()</a>
-      for more information.
-      </p>
-
-      </div> <!-- /features -->
-
-      <div id="license">
-      <h2>License</h2>
-
-      <p>cx_Oracle is licensed under a BSD license which you can find <a
-      href="https://github.com/oracle/python-cx_Oracle/blob/main/LICENSE.txt"
-      >here</a>.  The cx_Oracle project is open source and maintained by Oracle Corp.</p>
-
-      </div> <!-- /license -->
 
     </div>
   </main>
