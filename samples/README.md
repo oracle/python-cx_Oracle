@@ -1,59 +1,15 @@
 # Samples
 
-## News
-
 **cx_Oracle has a major new release under a new name and homepage
-[python-oracledb](https://oracle.github.io/python-oracledb/).**
+[python-oracledb](https://oracle.github.io/python-oracledb/). New projects
+should use python-oracledb instead of the obsolete cx_Oracle driver.**
 
-**New projects should install python-oracledb instead of cx_Oracle: python -m pip install oracledb**
+Python-oracledb uses the same Python Database API as cx_Oracle, supports the
+feature requirements of frameworks that rely on this API, and has many new
+features.
 
-**The new source code and samples can be found at
-[github.com/oracle/python-oracledb](https://github.com/oracle/python-oracledb).**
+**Python-oracledb samples can be found at
+[github.com/oracle/python-oracledb/tree/main/samples](https://github.com/oracle/python-oracledb/tree/main/samples).**
 
-## cx_Oracle Examples
-
-This directory contains samples for [cx_Oracle][6].  Documentation is
-[here][7].  A separate tutorial is [here][8].
-
-1. The schemas and SQL objects that are referenced in the samples can be
-   created by running the Python script [setup_samples.py][1]. The script
-   requires SYSDBA privileges and will prompt for these credentials as well as
-   the names of the schemas and edition that will be created, unless a number
-   of environment variables are set as documented in the Python script
-   [sample_env.py][2]. Run the script using the following command:
-
-       python setup_samples.py
-
-   Alternatively, the [SQL script][3] can be run directly via SQL\*Plus, which
-   will always prompt for the names of the schemas and edition that will be
-   created.
-
-       sqlplus sys/syspassword@hostname/servicename @sql/setup_samples.sql
-
-2. Run a Python script, for example:
-
-        python query.py
-
-3. After running cx_Oracle samples, the schemas and SQL objects can be
-   dropped by running the Python script [drop_samples.py][4]. The script
-   requires SYSDBA privileges and will prompt for these credentials as well as
-   the names of the schemas and edition that will be dropped, unless a number
-   of environment variables are set as documented in the Python script
-   [sample_env.py][2]. Run the script using the following command:
-
-       python drop_samples.py
-
-   Alternatively, the [SQL script][5] can be run directly via SQL\*Plus, which
-   will always prompt for the names of the schemas and edition that will be
-   dropped.
-
-       sqlplus sys/syspassword@hostname/servicename @sql/drop_samples.sql
-
-[1]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/setup_samples.py
-[2]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/sample_env.py
-[3]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/sql/setup_samples.sql
-[4]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/drop_samples.py
-[5]: https://github.com/oracle/python-cx_Oracle/blob/main/samples/sql/drop_samples.sql
-[6]: https://oracle.github.io/python-cx_Oracle/
-[7]: http://cx-oracle.readthedocs.org/en/latest/index.html
-[8]: https://oracle.github.io/python-cx_Oracle/samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html
+To upgrade to python-oracledb, see [Upgrading from cx_Oracle 8.3 to
+python-oracledb](https://python-oracledb.readthedocs.io/en/latest/user_guide/appendix_c.html#upgrading-from-cx-oracle-8-3-to-python-oracledb).
