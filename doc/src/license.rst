@@ -10,7 +10,7 @@ License
 
 .. centered:: **LICENSE AGREEMENT FOR CX_ORACLE**
 
-Copyright |copy| 2016, 2020, Oracle and/or its affiliates. All rights reserved.
+Copyright |copy| 2016, 2025, Oracle and/or its affiliates. All rights reserved.
 
 Copyright |copy| 2007-2015, Anthony Tuininga. All rights reserved.
 
@@ -43,4 +43,3 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Computronix |reg| is a registered trademark of Computronix (Canada) Ltd.
-
