@@ -20,7 +20,7 @@ import sys
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-#extensions = []
+extensions = ['sphinx_rtd_theme']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -74,7 +74,10 @@ pygments_style = 'sphinx'
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
-html_style = 'default.css'
+# html_style = 'default.css'
+
+# The theme to use for ReadtheDocs.
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
